@@ -40,7 +40,12 @@ def normalize_youtube_url(value):
     if not isinstance(value, str) or len(value) > 2048:
         raise PulseError('Vloz platny odkaz na jedno YouTube video.')
     try:
-        parsed = urlparse(value.strip())
+        raw = value.strip()
+        # YouTube share links are often pasted without the scheme. Canonicalize
+        # only known hosts; all other inputs are still rejected by the allowlist.
+        if re.match(r'^(?:(?:www|m|music)\.)?youtube\.com(?:[/?#]|$)|^youtu\.be(?:[/?#]|$)', raw, re.I):
+            raw = 'https://' + raw
+        parsed = urlparse(raw)
         host = (parsed.hostname or '').lower()
         if parsed.scheme != 'https' or parsed.username or parsed.password or parsed.port:
             raise ValueError('scheme')
@@ -58,7 +63,7 @@ def normalize_youtube_url(value):
     except (ValueError, TypeError):
         vid = ''
     if not VIDEO_ID.fullmatch(vid):
-        raise PulseError('Podporujeme odkazy na jedno YouTube video nebo Short. Bez playlistu a bez jinych webu.')
+        raise PulseError('Vloz odkaz na konkretni YouTube video nebo Short, ne na samostatny playlist.')
     return 'https://www.youtube.com/watch?v=' + vid
 
 

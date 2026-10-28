@@ -139,7 +139,7 @@ export function initYoutubeTool(){
     clearError();
     status('Po vložení odkazu se zdroj automaticky načte.');
     const input=el('yt-url').value.trim();
-    if(/^https:\/\//i.test(input))debounce=setTimeout(check,850);
+    if(/^(?:https?:\/\/)?(?:(?:www|m|music)\.)?(?:youtube\.com|youtu\.be)(?:[/?#]|$)/i.test(input))debounce=setTimeout(check,850);
   });
   el('yt-url').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();check();}});
   el('yt-check').addEventListener('click',check);

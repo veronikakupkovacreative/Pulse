@@ -48,12 +48,21 @@ class YoutubeTests(unittest.TestCase):
         self.assertEqual(server.normalize_youtube_url(VIDEO), VIDEO)
         self.assertEqual(server.normalize_youtube_url('https://youtu.be/dQw4w9WgXcQ?t=5'), VIDEO)
         self.assertEqual(server.normalize_youtube_url('https://www.youtube.com/shorts/dQw4w9WgXcQ'), VIDEO)
+        # URLs pasted from YouTube without the scheme or with radio/playlist
+        # parameters are one-video links, not whole playlists.
+        self.assertEqual(server.normalize_youtube_url('youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1'), VIDEO)
+        self.assertEqual(server.normalize_youtube_url('www.youtube.com/watch?v=dQw4w9WgXcQ'), VIDEO)
+        self.assertEqual(server.normalize_youtube_url('music.youtube.com/watch?v=dQw4w9WgXcQ'), VIDEO)
+        self.assertEqual(server.normalize_youtube_url('youtu.be/dQw4w9WgXcQ?si=shared'), VIDEO)
         for invalid in ['http://www.youtube.com/watch?v=dQw4w9WgXcQ',
                         'https://youtube.com.evil.test/watch?v=dQw4w9WgXcQ',
                         'https://www.youtube.com/playlist?list=foo',
                         'file:///etc/passwd',
                         'https://localhost/watch?v=dQw4w9WgXcQ',
-                        'https://www.youtube.com/watch?v=dQw4w9WgXcQ123']:
+                        'https://www.youtube.com/watch?v=dQw4w9WgXcQ123',
+                        'youtube.com.evil.example/watch?v=dQw4w9WgXcQ',
+                        'http://youtube.com/watch?v=dQw4w9WgXcQ',
+                        '//youtube.com/watch?v=dQw4w9WgXcQ']:
             with self.subTest(invalid=invalid), self.assertRaises(server.PulseError):
                 server.normalize_youtube_url(invalid)
 

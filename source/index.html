@@ -24,15 +24,15 @@
   <header class="header">
     <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
     <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
-    <span class="header-note"><span class="tiny-dot"></span> Jen ty a tvůj rytmus.</span>
+    
   </header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy"><p class="eyebrow"><span class="small-cross">+</span> AUDIO IN. IDEAS OUT.</p><h1 id="hero-title">Najdi svůj<br><span>rytmus.</span></h1><p class="intro">BPM, tónina, konverze i dokonalý loop.<br>Tvůj produkční toolkit na jednom místě.</p></div>
+      <div class="hero-copy"><h1 id="hero-title">Najdi svůj<br><span>rytmus.</span></h1><p class="intro">BPM, tónina, konverze i dokonalý loop.<br>Tvůj produkční toolkit na jednom místě.</p></div>
       <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
     </section>
     <section id="analyzer" aria-label="Analyzátor tempa">
-      <div class="section-label"><h2>01 / ANALYZÁTOR TEMPA</h2><span>TVŮJ SOUBOR. TVOJE SOUKROMÍ.</span></div>
+      <div class="section-label"><h2>01 / ANALYZÁTOR TEMPA</h2></div>
       <div class="workspace">
         <div class="upload-panel" id="drop-zone">
           <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Vybrat WAV, MP3 nebo MP4" hidden>
@@ -64,8 +64,8 @@
       <div class="demo-line"><span>Ještě nemáš track po ruce?</span><button id="try-demo">Vyzkoušet na ukázce <span aria-hidden="true">↗</span></button></div>
     </section>
     <section id="toolkit" class="toolkit" aria-labelledby="toolkit-title">
-      <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2><span>JEDEN TRACK. VÍC MOŽNOSTÍ.</span></div>
-      <div class="toolkit-heading"><div><p class="eyebrow"><span class="small-cross">+</span> WORK SMARTER. SOUND BETTER.</p><h2 id="toolkit-title">Tvůj zvuk.<br><span>Tvoje pravidla.</span></h2></div></div>
+      <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2></div>
+      <div class="toolkit-heading"><div><h2 id="toolkit-title">Tvůj zvuk.<br><span>Tvoje pravidla.</span></h2></div></div>
       <div class="tool-tabs" role="tablist" aria-label="Produkční nástroje">
         <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
@@ -95,7 +95,7 @@
 
         </div>
       </div>
-      <div class="toolkit-bottom"><span>◉ PRIVATE BY DESIGN</span></div>
+      
       <p class="message" id="tool-error" role="alert" hidden></p>
     </section>
     <section class="steps" aria-label="Tři kroky k tempu"><article><span class="step-number">01</span><div><h3>Nahraj.</h3><p>Audio i video. Stačí jeden soubor.</p></div></article><article><span class="step-number">02</span><div><h3>Najdi tempo.</h3><p>Pulse zachytí rytmus a odhadne BPM.</p></div></article><article><span class="step-number">03</span><div><h3>Chyť svůj flow.</h3><p>Pro střih, mix i tvůj další projekt.</p></div></article></section>

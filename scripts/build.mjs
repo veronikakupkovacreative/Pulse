@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,youtube]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('youtube.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
@@ -36,7 +36,6 @@ const bundledScript=`(() => {
   ${createBlobWorker('bpm')}
   ${createBlobWorker('key')}
   ${noExports(studioAudio)}
-  ${noExports(youtube)}
   ${noExports(tools)}
   ${app}
 })();`;

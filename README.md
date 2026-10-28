@@ -4,6 +4,10 @@ Tato verze řeší chybu **LOCAL HELPER OFFLINE**. Návštěvník veřejného we
 
 **Stav:** Zdrojový kód je připravený, testovaný na syntetickém audiosouboru. Není nasazený na uživatelské Vercel ani Railway účty. Reálné YouTube stahování zatím nebylo ověřeno, protože YouTube může měnit způsob přístupu a omezovat cloudové IP.
 
+## Aktuální veřejný stav (YouTube Audio — Coming soon)
+
+YouTube Audio je v uživatelském rozhraní **disabled / Coming soon**. Návštěvník nemůže vložit odkaz ani spustit import a web při otevření nevolá YouTube API. Důvod: YouTube vyžaduje na cloudovém serveru ověření proti automatizaci; funkční stahování není možné garantovat. BPM Analyzer, Converter, Key Finder a Loop Cutter zůstávají aktivní. Cloudové API je ponechané pro další interní vývoj, není však veřejně nabízeno jako funkční downloader.
+
 ## Co se změnilo
 
 - V rozhraní už není návod na instalaci Mac helperu ani adresa `127.0.0.1:8765`.

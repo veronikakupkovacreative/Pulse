@@ -1,5 +1,4 @@
 import {encodeWav,extractSegment,getAudioPeaks} from './studio-audio.mjs';
-import {initYoutubeTool} from './youtube.mjs';
 
 function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'});}
 
@@ -105,12 +104,10 @@ export function initStudioTools(getBpmTrack){
   }
   function selectTab(which){
     tools.tab=which;stopPreview();
-    for(const name of ['converter','key','cutter','youtube']){
+    for(const name of ['converter','key','cutter']){
       const selected=which===name,tab=el('tab-'+name);
       tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
     }
-    el('tool-drop-zone').hidden=which==='youtube';
-    el('youtube-source').hidden=which!=='youtube';
     drawToolWave();
   }
   function updateTrimInputs(){
@@ -227,7 +224,7 @@ export function initStudioTools(getBpmTrack){
   // Events
   document.querySelectorAll('[data-tool]').forEach(button=>{
     button.addEventListener('click',()=>selectTab(button.dataset.tool));
-    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter','youtube'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
+    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
   });
   el('tool-select-file').onclick=el('tool-change').onclick=()=>el('tool-file-input').click();
   el('tool-file-input').onchange=e=>decode(e.target.files[0]);
@@ -254,10 +251,6 @@ export function initStudioTools(getBpmTrack){
   window.addEventListener('pulse:bpm-track-ready',updateButtons);
   const resize=new ResizeObserver(()=>drawToolWave());resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.keyWorker?.terminate();tools.context?.close();});
-  for(const id of ['open-youtube','hero-youtube']){
-    el(id)?.addEventListener('click',()=>selectTab('youtube'));
-  }
-  if(window.location.hash==='#youtube')selectTab('youtube');
-  syncOutput();updateButtons();initYoutubeTool();
+  syncOutput();updateButtons();
   return {reset:remove};
 }

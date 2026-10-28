@@ -40,6 +40,25 @@ class CloudApiTests(unittest.TestCase):
         for item in jobs:
             shutil.rmtree(item['directory'], ignore_errors=True)
 
+    def test_diagnostic_classification(self):
+        self.assertEqual(api.health()['release'], '2.2.2-diagnostics')
+        self.assertEqual(api.public_error(server.PulseError('Invalid URL'))[0], 400)
+        for error in [
+            'ERROR: Sign in to confirm you are not a bot',
+            'HTTP Error 403: Forbidden',
+            'HTTP Error 429: Too Many Requests',
+        ]:
+            with self.subTest(error=error):
+                code, detail = api.public_error(RuntimeError(error))
+                self.assertEqual(code, 502)
+                self.assertIn('YouTube', detail)
+        code, detail = api.public_error(RuntimeError('Private video'))
+        self.assertEqual(code, 422)
+        self.assertIn('video', detail.lower())
+        code, detail = api.public_error(RuntimeError('unexpected network error'))
+        self.assertEqual(code, 502)
+        self.assertIn('Logs', detail)
+
     def test_security_and_cors(self):
         with TestClient(api.app) as client:
             invalid = client.post('/api/youtube/info', json={'url': VIDEO}, headers={

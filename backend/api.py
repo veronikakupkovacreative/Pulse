@@ -65,18 +65,46 @@ def protect_request(request: Request, kind: str):
         hits.append(now)
 
 
-def raise_service_error(exc: Exception):
+def public_error(exc: Exception):
+    """Show actionable errors without leaking extractor internals to clients."""
     if isinstance(exc, PulseError):
-        raise HTTPException(400, detail=str(exc)) from exc
-    # External extractor errors should not disclose internal stack details.
-    print('[pulse-cloud] download failed:', type(exc).__name__, str(exc)[:180], flush=True)
-    raise HTTPException(502, detail='YouTube audio momentálně nelze načíst. Video může být omezené nebo služba YouTube změnila způsob přístupu.') from exc
+        return 400, str(exc)
+    reason = str(exc).lower()
+    if any(phrase in reason for phrase in (
+        "sign in to confirm you", "not a bot", "confirm your age", "login required",
+        "cookies are no longer valid", "authentication required",
+    )):
+        return 502, ('YouTube pozaduje overeni prehravani. Cloudovy server nema pristup '
+                     'ke zvukove stope; dalsi prevod do WAV to nevyresi.')
+    if any(phrase in reason for phrase in (
+        "http error 403", "403 forbidden", "http error 429", "too many requests",
+        "rate-limit", "rate limit exceeded",
+    )):
+        return 502, ('YouTube odmitl pozadavek z cloudoveho serveru (403/429). '
+                     'Problem neni v adrese videa. Zkus pozdeji nebo pouzij '
+                     'originalni audio soubor, pokud ho mas k dispozici.')
+    if any(phrase in reason for phrase in (
+        "private video", "video unavailable", "this video is unavailable",
+        "not available in your country", "video is not available",
+        "members-only", "members only",
+    )):
+        return 422, ('Toto video neni pro server verejne dostupne '
+                     '(napr. soukrome, regionalne omezene nebo odstranene).')
+    return 502, ('YouTube se nepodarilo nacist. Podrobnosti najdes '
+                 'v Render > Logs pod [pulse-cloud].')
+
+
+def raise_service_error(exc: Exception):
+    status, message = public_error(exc)
+    print('[pulse-cloud] source error:', type(exc).__name__, str(exc)[:350], flush=True)
+    raise HTTPException(status, detail=message) from exc
 
 
 @app.get('/api/youtube/health')
 def health():
     missing = dependencies()
-    return {'ready': not missing, 'cloud': True, 'missing': missing}
+    return {'ready': not missing, 'cloud': True, 'missing': missing,
+            'release': '2.2.2-diagnostics'}
 
 
 @app.post('/api/youtube/info')

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="theme-color" content="#F5F4F0" />
+<meta name="description" content="Pulse. One dollar. Lifetime access. Audio toolkit pro music producenty." />
+<title>Pulse. — Lifetime Access</title>
+<style>
+:root{--paper:#F5F4F0;--red:#FF2B20;--ink:#191919;--muted:#706F68;--line:#D8D6D0;--white:#fff;--font:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button,a{font:inherit;color:inherit}
+a{text-decoration:none}
+button{cursor:pointer;border:0}
+button:focus-visible,a:focus-visible{outline:2px solid var(--red);outline-offset:4px}
+.frame{max-width:1440px;margin:0 auto;padding:0 clamp(20px,5vw,80px)}
+.top{min-height:94px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{font-size:32px;font-weight:750;letter-spacing:-2px;display:inline-flex;align-items:baseline;line-height:1}
+.logo i{width:9px;height:9px;background:var(--red);border-radius:50%;display:inline-block;margin-left:2px}
+.top-side{display:flex;gap:24px;align-items:center}
+.micro{font-size:10px;letter-spacing:1.4px;font-weight:700;text-transform:uppercase}
+.muted{color:var(--muted)}
+.top-link{font-size:12px;border-bottom:1px solid currentColor;padding:6px 0}
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);min-height:calc(100vh - 155px);align-items:center;gap:clamp(36px,6vw,96px);padding:55px 0 70px}
+.art{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+.pads{width:min(100%,540px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,1.7vw,20px);aspect-ratio:1}
+.pad{border-radius:50%;background:var(--red);transition:transform .35s ease}
+.pad:hover{transform:scale(.95)}
+.pad.outline{background:transparent;border:1.8px solid var(--red)}
+.pad.black{background:var(--ink)}
+.art-caption{width:min(100%,540px);display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:750;letter-spacing:2.2px}
+.art-caption svg{width:25px;height:25px;transform:rotate(135deg)}
+.detail{align-self:stretch;max-width:590px;padding-bottom:8px}
+.kicker{display:flex;align-items:center;gap:9px;margin:0 0 22px;color:var(--red)}
+.kicker:before{content:"";height:7px;width:7px;border-radius:50%;background:var(--red)}
+h1{font-weight:650;line-height:.91;letter-spacing:-.065em;font-size:clamp(64px,6.6vw,104px);margin:0}
+h1 span{color:var(--red)}
+.description{font-size:16px;line-height:1.65;max-width:440px;color:#55544f;margin:26px 0 30px}
+.price-card{border-top:1px solid var(--ink);border-bottom:1px solid var(--line);padding:22px 0 20px}
+.price-row{display:flex;gap:18px;align-items:baseline;justify-content:space-between}
+.price{font-size:clamp(85px,9.5vw,145px);font-weight:600;letter-spacing:-.09em;line-height:1}
+.price-detail{text-align:right;line-height:1.7;font-size:11px;letter-spacing:.9px;text-transform:uppercase;font-weight:700}
+.price-detail strong{color:var(--red)}
+.price-note{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0 0}
+.cta{margin-top:24px;width:100%;background:var(--ink);color:var(--paper);min-height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;text-align:left;font-weight:650;font-size:15px;transition:background .2s,color .2s}
+.cta:hover{background:var(--red);color:var(--ink)}
+.cta svg{width:24px;height:24px}
+.cta[disabled]{cursor:not-allowed;background:#2C2C2C;color:#C2C2BE}
+.cta[disabled]:hover{background:#2C2C2C;color:#C2C2BE}
+.system-note{font-size:11px;line-height:1.6;margin:13px 0 0;color:var(--muted)}
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:28px 0 12px}
+.feature{background:var(--paper);padding:14px 15px;min-height:63px;display:flex;justify-content:space-between;align-items:center;gap:9px;font-size:12px;font-weight:600}
+.feature:after{content:"↗";font-size:17px;font-weight:400}
+.feature.off{opacity:.45}.feature.off:after{content:"SOON";font-size:9px;letter-spacing:1px}
+footer{border-top:1px solid var(--line);padding:20px 0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+footer p{margin:0;font-size:10px;color:var(--muted)}
+footer b{font-size:14px;letter-spacing:-.4px}
+footer b span{color:var(--red)}
+@media(max-width:920px){.hero{grid-template-columns:1fr;gap:40px}.art{max-width:460px;margin:auto}.detail{max-width:620px;margin:auto}.hero{padding:48px 0}.top{min-height:76px}}
+@media(max-width:550px){.frame{padding:0 22px}.hero{gap:42px;padding:38px 0 50px}.pads{max-width:340px}.art-caption{max-width:340px}.micro{font-size:9px}.logo{font-size:29px}.price{font-size:100px}.description{font-size:14px;margin:22px 0 23px}h1{font-size:65px}.top-side .micro{display:none}.price-row{align-items:center}.price-detail{font-size:10px}.feature{padding:14px 10px;font-size:11px}.art-caption{font-size:9px}footer{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="frame">
+<header class="top"><a class="logo" href="#top" aria-label="Pulse — začátek">Pulse<i aria-hidden="true"></i></a><div class="top-side"><span class="micro muted">ONE PLAN. ALL TOOLS.</span><a class="top-link" href="#access">Lifetime Access ↗</a></div></header>
+<main class="hero" id="top">
+<section class="art" aria-label="Vizuální identita Pulse"><div class="pads" aria-hidden="true"><span class="pad"></span><span class="pad"></span><span class="pad outline"></span><span class="pad"></span><span class="pad black"></span><span class="pad"></span><span class="pad outline"></span><span class="pad"></span><span class="pad"></span></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12l9 9 9-9"/></svg></div></section>
+<section class="detail" id="access"><p class="kicker micro">LIFETIME ACCESS</p><h1>Pulse<span>.</span><br>Yours forever.</h1><p class="description">Všechny nástroje pro tvůj sound. Zaplať jednou a používej Pulse bez měsíčních plateb.</p><div class="price-card"><div class="price-row"><strong class="price">$1</strong><div class="price-detail"><strong>ONE TIME.</strong><br>NO SUBSCRIPTION.<br>LIFETIME ACCESS.</div></div><p class="price-note">Jednorázová platba · žádné automatické obnovování · přístup po dobu provozu služby.</p></div><div class="features" aria-label="Zahrnuté funkce"><div class="feature">BPM Analyzer</div><div class="feature">Converter</div><div class="feature">Key Finder</div><div class="feature">Loop Cutter</div><div class="feature off">YouTube Audio</div></div><button class="cta" type="button" disabled aria-describedby="payment-status"><span>Unlock Pulse — $1 once</span><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M6 5h13v13"/></svg></button><p class="system-note" id="payment-status" role="status">Návrh platební obrazovky. Platba není aktivní, dokud nebude propojen Stripe a uživatelské účty.</p></section>
+</main>
+<footer><b>Pulse<span>.</span></b><p>PAY ONCE. MAKE MUSIC.</p><p>© 2026 Pulse Studio</p></footer>
+</div>
+</body>
+</html>

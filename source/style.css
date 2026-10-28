@@ -114,3 +114,37 @@
 @media(max-width:760px){.tool-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .phase2-metrics{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 17px}.phase2-metrics span{border:1px solid #abaaa3;padding:9px 12px;font-size:10px}.phase2-metrics b{color:#191919;font-weight:700}
+
+/* PULSE / Red surface contrast pass
+   Keep full-opacity dark type on the vivid brand red (#ff2b20).
+   Do not fade text or controls: disabled state is shown with a distinct,
+   pale filled background and dashed border instead. */
+.tool-settings,
+.result-panel { color:#191919; }
+.tool-settings .tool-view h3 span { opacity:1; color:#191919; }
+.tool-settings :is(.tool-view-header,.tool-view-header span,.tool-description,
+  .tool-fields label,.tool-fields output,.tool-footnote,.quick-info,
+  .pulse-toggle,.phase2-metrics,.phase2-metrics span,
+  .phase2-metrics b,.key-alternatives,.cut-sliders label,
+  .cut-sliders output,.key-idle p) { color:#191919; opacity:1; }
+.tool-settings .quick-info { border-color:rgba(25,25,25,.62); }
+.tool-settings .phase2-metrics span { border-color:rgba(25,25,25,.65); }
+.tool-settings :is(.tool-fields input,.tool-fields select) { color:#191919; }
+.tool-settings .tool-fields input::placeholder { color:#4a2723; opacity:1; }
+.tool-settings .tool-fields :is(input,select):disabled {
+  opacity:1; color:#191919; background:#ffdbd7; border-color:#63332d;
+}
+.tool-settings :is(.quick-actions button,.tool-action-dark):disabled {
+  opacity:1; color:#191919; background:#ffe1dd;
+  border:1px dashed #56302c; cursor:not-allowed;
+}
+.tool-settings .quick-actions button:hover:not(:disabled) {
+  color:#191919; background:#fff2ee; border-color:#191919;
+}
+.tool-settings .quick-actions button:last-child:hover:not(:disabled) {
+  color:#f5f4f0; background:#303030; border-color:#303030;
+}
+.tool-settings .pulse-calc-grid button:hover { color:#191919; text-decoration:underline; }
+.tool-settings :is(button,input,select):focus-visible {
+  outline:3px solid #191919; outline-offset:3px;
+}

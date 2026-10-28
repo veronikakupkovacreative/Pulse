@@ -38,3 +38,7 @@ Automated tests: BPM regression, format/export, normalization, workspace, fundam
 - **Not done**: Phase 3 Analyzer/Batch Processor, Phase 4 Stem Separator, server-validated lifetime payment, and production deployment.
 
 No external DSP packages were added; Phase 2 uses original code, native Web Audio API, Web Workers and ES Modules. YouTube Audio is still a disabled Coming Soon tab. No previously removed marketing slogans were reintroduced.
+
+## UI contrast update
+
+Text on all vivid-red producer-tool settings panels uses full-opacity \`#191919\` foreground. Muted headline spans, field outputs, status copy, and metadata remain legible on \`#ff2b20\` (WCAG AA 4.7:1 for normal text). Disabled actions retain a distinct light pink surface and dark foreground without fading via opacity. Hover states and focus rings are adjusted for contrast. No DSP behavior or application flow has changed.

@@ -110,6 +110,20 @@
 .tool-source .pulse-workspace-actions button:hover:not(:disabled){color:#191919;background:#f5f4f0}
 .tool-source .pulse-workspace-actions button:disabled{color:#9c9b94;border-color:#77766f;opacity:.45}
 
+/* PULSE 3.0 / phase 2 production toolkit */
+.tool-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tuner-meter{background:#191919;color:#f5f4f0;padding:20px;margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;align-items:end}
+.tuner-meter strong{font-size:clamp(38px,5vw,66px);letter-spacing:-2px;line-height:1;grid-row:span 3;color:#ff2b20}
+.tuner-meter span{font-size:14px;font-variant-numeric:tabular-nums}
+.tuner-meter small{font-size:9px;letter-spacing:1px;color:#bdbbb4}
+.pulse-toggle{display:flex;align-items:center;gap:9px;margin:17px 0 6px;font-size:12px;font-weight:600}
+.pulse-toggle input{accent-color:#ff2b20;width:17px;height:17px}
+.tool-view:has(#slice-auto) .quick-actions button{flex:1 1 42%}
+#tool-waveform{touch-action:pan-y}
+@media(max-width:760px){.tool-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.phase2-metrics{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 17px}.phase2-metrics span{border:1px solid #abaaa3;padding:9px 12px;font-size:10px}.phase2-metrics b{color:#191919;font-weight:700}
+
 </style>
 
 </head>
@@ -177,7 +191,10 @@
         <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim"><span>05</span> Silence Trim <b>↗</b></button>
         <button class="tool-tab" id="tab-calculator" role="tab" aria-selected="false" aria-controls="panel-calculator" tabindex="-1" data-tool="calculator"><span>06</span> BPM Calculator <b>↗</b></button>
         <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer"><span>07</span> Normalizer <b>↗</b></button>
-        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>08</span> YouTube Audio <b>COMING SOON</b></button>
+        <button class="tool-tab" id="tab-pitch" role="tab" aria-selected="false" aria-controls="panel-pitch" tabindex="-1" data-tool="pitch"><span>08</span> Pitch &amp; Time <b>↗</b></button>
+        <button class="tool-tab" id="tab-tuner" role="tab" aria-selected="false" aria-controls="panel-tuner" tabindex="-1" data-tool="tuner"><span>09</span> 808 Tuner <b>↗</b></button>
+        <button class="tool-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="panel-slicer" tabindex="-1" data-tool="slicer"><span>10</span> Sample Slicer <b>↗</b></button>
+        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>11</span> YouTube Audio <b>COMING SOON</b></button>
       </div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
@@ -216,6 +233,36 @@
             <div class="tool-fields"><label>Tempo (BPM)<input id="calc-bpm" type="number" min="20" max="400" step="0.1" value="120"></label></div>
             <div class="pulse-calc-grid" id="calc-table" role="table" aria-label="Note lengths in milliseconds"></div><p id="calc-status" class="tool-footnote" role="status">Klikni na hodnotu pro zkopírování.</p>
           </div>
+          <div id="panel-pitch" class="tool-view" role="tabpanel" aria-labelledby="tab-pitch" hidden>
+            <div class="tool-view-header"><span>02 / PITCH &amp; TIME</span><span>WSOLA PROCESSING</span></div>
+            <h3>Změň tempo.<br><span>Ne svůj flow.</span></h3>
+            <p class="tool-description">Nezávislé tempo a ladění. Výpočet proběhne lokálně v audio workeru, bez nahrávání na server. U extrémních změn mohou vznikat slyšitelné artefakty.</p>
+            <div class="phase2-metrics"><span>Original key: <b id="pt-source-key">—</b></span><span>Target key: <b id="pt-target-key">—</b></span></div>
+            <div class="tool-fields"><label>Original BPM<input id="pt-original" type="number" min="20" max="400" step="0.1" value="120"></label><label>Target BPM<input id="pt-target" type="number" min="20" max="400" step="0.1" value="120"></label>
+              <label>Transpose <output id="pt-semitone-label">0 st</output><input id="pt-semitones" type="range" min="-12" max="12" step="1" value="0"></label>
+              <label>Fine tuning <output id="pt-cent-label">0 cents</output><input id="pt-cents" type="range" min="-100" max="100" step="1" value="0"></label>
+            </div><label class="pulse-toggle"><input id="pt-preserve" type="checkbox" checked> Preserve Pitch při změně tempa</label>
+            <p class="tool-footnote" id="pt-status" role="status">Načti track a nastav cílové tempo. Tóninu lze ověřit v Key Finderu.</p>
+            <div class="quick-actions"><button id="pt-preview">▶ Preview</button><button id="pt-apply">Apply to Workspace</button><button id="pt-export">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-tuner" class="tool-view" role="tabpanel" aria-labelledby="tab-tuner" hidden>
+            <div class="tool-view-header"><span>02 / 808 TUNER</span><span>LOW-FREQUENCY PITCH</span></div>
+            <h3>Najdi svůj<br><span>fundament.</span></h3>
+            <p class="tool-description">Detekce základní frekvence pro 808, basy a tónové kicky. U neharmonického úderu nebo pitch sweepu zobrazíme nízkou spolehlivost.</p>
+            <div class="tuner-meter"><strong id="tuner-note">—</strong><span id="tuner-frequency">— Hz</span><span id="tuner-cents">— cents</span><small id="tuner-confidence">ČEKÁM NA ANALÝZU</small></div>
+            <button class="tool-action tool-action-dark" id="tuner-analyze">Analyze 808 ↗</button>
+            <div class="tool-fields"><label>Transpose <output id="tuner-semitone-label">0 st</output><input id="tuner-semitones" type="range" min="-12" max="12" step="1" value="0"></label></div>
+            <p class="tool-footnote" id="tuner-status" role="status">Pro stabilní odhad použij samostatný 808 sample s doznívajícím tónem.</p>
+            <div class="quick-actions"><button id="tuner-preview">▶ Preview</button><button id="tuner-apply">Apply to Workspace</button><button id="tuner-export">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-slicer" class="tool-view" role="tabpanel" aria-labelledby="tab-slicer" hidden>
+            <div class="tool-view-header"><span>02 / SAMPLE SLICER</span><span>TRANSIENT DETECTION</span></div>
+            <h3>Rozsekej sample.<br><span>Ne workflow.</span></h3>
+            <p class="tool-description">Auto Slice najde nástupy. Na waveform klikni pro nový marker, přetáhni jej pro posun a Shift+klik na marker jej smaže. Poslední marker je konec souboru.</p>
+            <div class="tool-fields"><label>Sensitivity <output id="slice-sensitivity-label">55%</output><input id="slice-sensitivity" type="range" min="0" max="100" step="1" value="55"></label><label>Selected slice<select id="slice-selection" aria-label="Vybrat slice"></select></label></div>
+            <div class="quick-actions"><button id="slice-auto">Auto Slice ↗</button><button id="slice-preview">▶ Preview slice</button><button id="slice-export-one">Export WAV</button><button id="slice-export-all">Export ZIP ↗</button></div>
+            <p class="tool-footnote" id="slice-status" role="status">Nahraj soubor a spusť detekci transientů.</p>
+          </div>
           <div id="panel-normalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-normalizer" hidden>
             <div class="tool-view-header"><span>02 / NORMALIZER</span><span>GAIN CONTROL</span></div><h3>Správná úroveň.<br><span>Bez clippingu.</span></h3><p class="tool-description">Peak nebo gated integrated LUFS (K-weighted). Automatický gain bez komprese a bez překročení nastaveného ceilingu.</p>
             <div class="tool-fields"><label>Mode<select id="norm-mode"><option value="peak">Peak dBFS</option><option value="lufs">Integrated LUFS</option></select></label><label id="norm-peak-field">Target peak (dBFS)<input id="norm-peak" type="number" min="-40" max="0" step="0.5" value="-1"></label><label id="norm-lufs-field" hidden>Target LUFS<input id="norm-lufs" type="number" min="-45" max="0" step="0.5" value="-14"></label><label>Peak ceiling (dBFS)<input id="norm-ceiling" type="number" min="-30" max="0" step="0.5" value="-1"></label></div>
@@ -239,6 +286,7 @@
   const PULSE_API_BASE_URL="";
   const ANALYSIS_WORKER_SOURCE="// Multi-band onset envelope and normalized tempo autocorrelation.\n// Confidence describes rhythmic periodicity, not a calibrated probability.\nfunction analyzeTempo(samples, sampleRate) {\n  const duration = samples.length / sampleRate;\n  if (duration < 6) throw new Error('TOO_SHORT');\n  const hop = Math.round(sampleRate / 200);\n  const rate = sampleRate / hop;\n  const frames = Math.floor(samples.length / hop);\n  const energy = [new Float32Array(frames), new Float32Array(frames), new Float32Array(frames)];\n  const lowA = 1 - Math.exp(-2 * Math.PI * 180 / sampleRate);\n  const highA = 1 - Math.exp(-2 * Math.PI * 2200 / sampleRate);\n  let low = 0, high = 0, total = 0;\n  for (let f = 0; f < frames; f++) {\n    let a = 0, b = 0, c = 0;\n    for (let j = 0; j < hop; j++) {\n      const x = samples[f * hop + j];\n      low += lowA * (x - low); high += highA * (x - high);\n      a += low * low; b += (x - high) ** 2; c += x * x;\n    }\n    total += c;\n    energy[0][f] = Math.log1p(100 * Math.sqrt(a / hop));\n    energy[1][f] = Math.log1p(100 * Math.sqrt(b / hop));\n    energy[2][f] = Math.log1p(100 * Math.sqrt(c / hop));\n  }\n  if (Math.sqrt(total / samples.length) < 0.00005) throw new Error('SILENCE');\n  // Ignore tiny frame-boundary ripples of a sustained tone.\n  let dynamicMin = Infinity, dynamicMax = 0;\n  for (let i = Math.round(rate); i < frames; i++) { dynamicMin = Math.min(dynamicMin, energy[2][i]); dynamicMax = Math.max(dynamicMax, energy[2][i]); }\n  if (dynamicMax - dynamicMin < 0.12) throw new Error('NO_RHYTHM');\n  const envelope = new Float32Array(frames);\n  for (const band of energy) {\n    const delta = new Float32Array(frames);\n    let sum = 0;\n    for (let i = 2; i < frames; i++) {\n      delta[i] = Math.max(0, band[i] - band[i - 2]);\n      sum += delta[i];\n    }\n    const mean = sum / frames;\n    if (mean > 0.00001) for (let i = 0; i < frames; i++) envelope[i] += Math.min(8, Math.max(0, delta[i] - mean * 0.5) / mean);\n  }\n  let onsetEnergy = 0;\n  for (const x of envelope) onsetEnergy += x * x;\n  if (onsetEnergy / frames < 0.01) throw new Error('NO_RHYTHM');\n  const windowFrames = Math.min(frames, Math.round(rate * 40));\n  const starts = frames <= windowFrames ? [0] : [0, Math.floor((frames - windowFrames) / 2), frames - windowFrames];\n  const maxLag = Math.ceil(rate * 60 / 45) * 3 + 2;\n  const corr = new Float64Array(maxLag + 1);\n  for (let lag = 1; lag <= maxLag; lag++) {\n    let dot = 0, aa = 0, bb = 0;\n    for (const start of starts) {\n      for (let i = start + lag; i < start + windowFrames; i++) {\n        const a = envelope[i], b = envelope[i - lag];\n        dot += a * b; aa += a * a; bb += b * b;\n      }\n    }\n    corr[lag] = dot / (Math.sqrt(aa * bb) || 1);\n  }\n  const at = lag => {\n    const lo = Math.floor(lag), fraction = lag - lo;\n    return (corr[lo] || 0) * (1 - fraction) + (corr[lo + 1] || 0) * fraction;\n  };\n  const candidates = [];\n  for (let lag = Math.floor(rate * 60 / 220); lag <= Math.ceil(rate * 60 / 45); lag++) {\n    if (corr[lag] <= corr[lag - 1] || corr[lag] < corr[lag + 1]) continue;\n    const curvature = corr[lag - 1] - 2 * corr[lag] + corr[lag + 1];\n    const offset = curvature ? Math.max(-0.5, Math.min(0.5, 0.5 * (corr[lag - 1] - corr[lag + 1]) / curvature)) : 0;\n    const period = lag + offset;\n    const bpm = 60 * rate / period;\n    if (bpm < 45 || bpm > 220) continue;\n    const periodicity = at(period);\n    const prior = Math.exp(-0.5 * (Math.log(bpm / 115) / 0.65) ** 2);\n    const score = (periodicity + 0.45 * at(period * 2) + 0.2 * at(period * 3)) * (0.84 + 0.16 * prior);\n    candidates.push({bpm, score, periodicity});\n  }\n  candidates.sort((a,b) => b.score - a.score);\n  if (!candidates.length || candidates[0].periodicity < 0.14) throw new Error('NO_RHYTHM');\n  const best = candidates[0];\n  const backgroundValues = Array.from(corr.slice(Math.floor(rate*60/220),Math.ceil(rate*60/45))).sort((a,b)=>a-b);\n  const background = backgroundValues[Math.floor(backgroundValues.length/2)];\n  const prominence = (best.periodicity-background)/(1-background || 1);\n  if (prominence < 0.06) throw new Error('NO_RHYTHM');\n  const windows = starts.map(start => {\n    let winner = null;\n    for (const candidate of candidates.slice(0, 8)) {\n      const lag = Math.round(60 * rate / candidate.bpm);\n      let dot = 0, power = 0;\n      for (let i = start + lag; i < start + windowFrames; i++) { dot += envelope[i] * envelope[i-lag]; power += envelope[i] ** 2; }\n      const score = dot / (power || 1);\n      if (!winner || score > winner.score) winner = {bpm:candidate.bpm,score};\n    }\n    return winner.bpm;\n  });\n  const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;\n  const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';\n  const waveform = Array.from({length:220}, (_,i) => {\n    const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);\n    let sum = 0, count = 0;\n    for (let j = start; j < end; j += 8) { sum += samples[j] ** 2; count++; }\n    return Math.sqrt(sum / (count || 1));\n  });\n  const peak = Math.max(...waveform) || 1;\n  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};\n}\n\nself.onmessage = ({data}) => {\n  try { self.postMessage({result:analyzeTempo(data.samples,data.sampleRate)}); }\n  catch(error) { self.postMessage({error:error.message}); }\n};\n";
   const KEY_WORKER_SOURCE="// Audio utilities used by the production toolkit. No remote processing.\nfunction encodeWav(channels, sampleRate, bitDepth=16) {\n  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');\n  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');\n  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');\n  const length=channels[0].length;\n  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');\n  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;\n  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');\n  const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);\n  const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));\n  str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');\n  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels.length,true);\n  view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*blockAlign,true);\n  view.setUint16(32,blockAlign,true);view.setUint16(34,bitDepth,true);\n  str(36,'data');view.setUint32(40,dataBytes,true);\n  let position=44;\n  for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){\n    const sample=Math.min(1,Math.max(-1,channels[c][i]||0));\n    if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}\n    else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}\n  }\n  return new Blob([array],{type:'audio/wav'});\n}\nfunction extractSegment(channels, sampleRate, from, to, fadeMs=5) {\n  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');\n  const length=channels[0].length;\n  const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));\n  const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));\n  const fade=Math.min(Math.round(sampleRate*fadeMs/1000),Math.floor((last-first)/2));\n  return channels.map(source=>{\n    const out=source.slice(first,last);\n    for(let i=0;i<fade;i++){const factor=(i+1)/Math.max(1,fade);out[i]*=factor;out[out.length-i-1]*=factor;}\n    return out;\n  });\n}\nfunction getAudioPeaks(samples,count=240) {\n  const peaks=new Float32Array(count);\n  for(let i=0;i<count;i++){\n    let sum=0,n=0;const a=Math.floor(i*samples.length/count),b=Math.floor((i+1)*samples.length/count);\n    const step=Math.max(1,Math.floor((b-a)/70));\n    for(let j=a;j<b;j+=step){sum+=samples[j]*samples[j];n++;}\n    peaks[i]=Math.sqrt(sum/(n||1));\n  }\n  const max=Math.max(...peaks)||1;\n  return Array.from(peaks,x=>x/max);\n}\nconst NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];\nconst MAJOR=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];\nconst MINOR=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];\nconst MAJOR_CAM=['8B','3B','10B','5B','12B','7B','2B','9B','4B','11B','6B','1B'];\nconst MINOR_CAM=['5A','12A','7A','2A','9A','4A','11A','6A','1A','8A','3A','10A'];\nfunction fft(real,imag){\n  const n=real.length;\n  for(let i=1,j=0;i<n;i++){\n    let bit=n>>1;\n    for(;j&bit;bit>>=1)j^=bit;\n    j^=bit;\n    if(i<j){[real[i],real[j]]=[real[j],real[i]];[imag[i],imag[j]]=[imag[j],imag[i]];}\n  }\n  for(let size=2;size<=n;size*=2){\n    const half=size/2,angle=-2*Math.PI/size,cos=Math.cos(angle),sin=Math.sin(angle);\n    for(let start=0;start<n;start+=size){let wr=1,wi=0;\n      for(let i=0;i<half;i++){\n        const a=start+i,b=a+half,rr=wr*real[b]-wi*imag[b],ii=wr*imag[b]+wi*real[b];\n        real[b]=real[a]-rr;imag[b]=imag[a]-ii;real[a]+=rr;imag[a]+=ii;\n        const nr=wr*cos-wi*sin;wi=wr*sin+wi*cos;wr=nr;\n      }\n    }\n  }\n}\nfunction correlation(a,b){\n  const am=a.reduce((x,y)=>x+y,0)/12,bm=b.reduce((x,y)=>x+y,0)/12;\n  let numerator=0,aa=0,bb=0;\n  for(let i=0;i<12;i++){const x=a[i]-am,y=b[i]-bm;numerator+=x*y;aa+=x*x;bb+=y*y;}\n  return numerator/(Math.sqrt(aa*bb)||1);\n}\n// Chroma-based key estimation: approximate, especially for short or percussive material.\nfunction detectKey(samples,sampleRate){\n  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');\n  const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);\n  if(samples.length<size)throw new Error('Soubor je příliš krátký.');\n  const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);\n  const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));\n  let total=0,frames=0;\n  for(let frame=0;frame<count;frame++){\n    const start=Math.min(samples.length-size,frame*step);\n    let rms=0;\n    for(let i=0;i<size;i++){const x=samples[start+i];real[i]=x*(0.5-0.5*Math.cos(2*Math.PI*i/(size-1)));imag[i]=0;rms+=x*x;}\n    if(rms/size<0.0000002)continue;\n    fft(real,imag);\n    const magnitudes=new Float64Array(size/2);\n    for(let bin=0;bin<magnitudes.length;bin++)magnitudes[bin]=Math.hypot(real[bin],imag[bin]);\n    for(let bin=2;bin<magnitudes.length-1;bin++){\n      const hz=bin*sampleRate/size;\n      if(hz<65||hz>1700)continue;\n      const v=magnitudes[bin];\n      if(v<magnitudes[bin-1]||v<magnitudes[bin+1])continue;\n      const midi=69+12*Math.log2(hz/440),rounded=Math.round(midi);\n      if(Math.abs(midi-rounded)>.32)continue;\n      const pc=((rounded%12)+12)%12;\n      const weight=Math.sqrt(v)*Math.pow(110/Math.max(hz,110),0.2);\n      chroma[pc]+=weight;total+=weight;\n    }\n    frames++;\n  }\n  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');\n  const candidates=[];\n  for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){\n    const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);\n    const score=correlation(chroma,rotated);\n    candidates.push({name:NOTE_NAMES[root],mode,display:NOTE_NAMES[root]+(mode==='minor'?'m':''),camelot:camelot[root],score});\n  }\n  candidates.sort((a,b)=>b.score-a.score);\n  const [top,second]=candidates;\n  return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};\n}\n\nself.onmessage=({data})=>{\n  try{self.postMessage({result:detectKey(data.samples,data.sampleRate)});}\n  catch(error){self.postMessage({error:error.message});}\n};\n";
+  const PRODUCTION_WORKER_SOURCE="// Pulse production DSP. Pure JS, zero runtime dependencies and no network.\n// Pitch/time use a WSOLA-like waveform-similarity overlap/add algorithm.\nconst assertAudio=(channels,rate)=>{\n  if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length||channels.some(c=>!(c instanceof Float32Array)||c.length!==channels[0].length))throw Error('Neplatná mono/stereo audio data.');\n  if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Neplatná vzorkovací frekvence.');\n};\nconst clamp=(x,a,b)=>Math.min(b,Math.max(a,x));\nconst hzToMidi=hz=>69+12*Math.log2(hz/440);\nconst NOTE=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];\nconst frequencyNote=hz=>{\n  if(!(hz>0)||!Number.isFinite(hz))return null;\n  const exact=hzToMidi(hz),nearest=Math.round(exact),pc=((nearest%12)+12)%12;\n  return {note:NOTE[pc]+(Math.floor(nearest/12)-1),hz:440*Math.pow(2,(nearest-69)/12),cents:(exact-nearest)*100,midi:nearest};\n};\n\n// YIN normalized difference on low-pass decimated bass windows.\n// A kick with pitch sweep or noisy signal will produce low confidence.\nfunction detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){\n  assertAudio(channels,rate);\n  if(minHz<20||maxHz>450||maxHz<=minHz)throw Error('Neplatný rozsah frekvencí.');\n  const targetRate=2000,step=rate/targetRate,windowLen=480,minLag=Math.max(2,Math.floor(targetRate/maxHz)),maxLag=Math.min(130,Math.ceil(targetRate/minHz));\n  const n=channels[0].length,duration=n/rate;\n  if(duration<.13)throw Error('Pro 808 tuner použij alespoň 130 ms audia.');\n  const energy=channels.map(c=>{let e=0;for(let i=0;i<c.length;i+=32)e+=c[i]*c[i];return e;});\n  const best=channels[energy.indexOf(Math.max(...energy))];\n  const windows=[],positions=Math.min(34,Math.max(1,Math.floor(duration/.12)));\n  for(let k=0;k<positions;k++){\n    const time=duration<.28?0:Math.min(Math.max(0,duration-.25),.045+k*Math.max(0,Math.min(duration-0.28,5.5))/Math.max(1,positions-1));\n    const sourceAt=Math.round(time*rate);const samples=new Float32Array(windowLen);\n    let amp=0;\n    for(let i=0;i<windowLen;i++){\n      const at=sourceAt+i*step,j=Math.floor(at),frac=at-j;\n      if(j+1<best.length){samples[i]=(best[j]*(1-frac)+best[j+1]*frac);amp+=samples[i]*samples[i];}\n    }\n    const rms=Math.sqrt(amp/windowLen);\n    if(rms<.001)continue;\n    // Remove DC and apply a gentle zero-phase moving-average low-pass.\n    const mean=samples.reduce((a,b)=>a+b,0)/samples.length;\n    for(let i=0;i<samples.length;i++)samples[i]-=mean;\n    const dif=new Float64Array(maxLag+1);let cumulative=0,lag=-1,bestVal=1;\n    for(let tau=1;tau<=maxLag;tau++){\n      let diff=0;for(let j=0;j<windowLen-maxLag;j++){const x=samples[j]-samples[j+tau];diff+=x*x;}\n      dif[tau]=diff;cumulative+=diff;\n      if(tau>=minLag){const cmnd=diff*tau/(cumulative||1);\n        if(cmnd<bestVal){bestVal=cmnd;lag=tau;}\n      }\n    }\n    // Prefer the first convincing local YIN minimum to reduce octave errors.\n    cumulative=0;\n    for(let tau=1;tau<=maxLag;tau++){\n      cumulative+=dif[tau];if(tau<minLag)continue;\n      const cur=dif[tau]*tau/(cumulative||1),next=tau<maxLag?dif[tau+1]*(tau+1)/(cumulative+dif[tau+1]||1):Infinity;\n      if(cur<.16&&cur<=next){lag=tau;bestVal=cur;break;}\n    }\n    if(lag<minLag)continue;\n    // Parabolic interpolation on the raw difference function.\n    const a=dif[lag-1]??dif[lag],b=dif[lag],c=dif[lag+1]??dif[lag];\n    const shift=(a-2*b+c)!==0?clamp(.5*(a-c)/(a-2*b+c),-.5,.5):0;\n    const hz=targetRate/(lag+shift),confidence=clamp(1-bestVal,0,1);\n    if(hz>=minHz&&hz<=maxHz)windows.push({hz,confidence,rms});\n  }\n  if(!windows.length)return {hz:null,confidence:0,label:'Nelze určit fundamentální frekvenci',note:null,frames:0};\n  // Weighted median is stable under sparse pitched sections.\n  const sorted=windows.sort((a,b)=>a.hz-b.hz),weights=sorted.reduce((a,b)=>a+b.rms*b.confidence*b.confidence,0),half=weights/2;\n  let running=0,median=sorted[Math.floor(sorted.length/2)].hz;\n  for(const w of sorted){running+=w.rms*w.confidence*w.confidence;if(running>=half){median=w.hz;break;}}\n  const near=sorted.filter(w=>Math.abs(1200*Math.log2(w.hz/median))<65);\n  const consistency=near.length/sorted.length;\n  const confidence=clamp((near.reduce((a,b)=>a+b.confidence,0)/(near.length||1))*consistency,0,1);\n  const hz=near.reduce((a,b)=>a+b.hz*b.confidence,0)/(near.reduce((a,b)=>a+b.confidence,0)||1);\n  return {hz:hz||median,confidence,label:confidence>=.75?'Vyšší':confidence>=.52?'Střední':'Nízká',note:frequencyNote(hz||median),frames:windows.length};\n}\n\n// Waveform Similarity Overlap Add: phase-coherent multi-channel alignment.\nfunction stretchWsola(channels,targetLen,rate){\n  assertAudio(channels,rate);\n  const inputLen=channels[0].length;\n  if(!Number.isInteger(targetLen)||targetLen<1||targetLen>rate*1200)throw Error('Neplatná délka výstupu.');\n  if(targetLen===inputLen)return channels.map(c=>c.slice());\n  if(inputLen<rate*.08)throw Error('Pro time stretching je potřeba alespoň 80 ms audia.');\n  const ratio=targetLen/inputLen;\n  if(ratio<.25||ratio>4)throw Error('Tempo/pitch mimo bezpečný rozsah pro WSOLA.');\n  const size=Math.max(512,Math.round(rate*.038/64)*64),hop=Math.max(128,Math.floor(size/4)),search=Math.max(32,Math.floor(size*.22)),analysisHop=hop/ratio;\n  const out=channels.map(()=>new Float32Array(targetLen)),weights=new Float32Array(targetLen);\n  const win=Float32Array.from({length:size},(_,i)=>.5-.5*Math.cos(2*Math.PI*i/(size-1)));\n  const reference=channels[0];let prevSource=0;\n  const maxAt=Math.max(0,inputLen-size),nFrames=Math.ceil((targetLen+size)/hop);\n  for(let frame=0;frame<nFrames;frame++){\n    const dest=frame*hop;if(dest>=targetLen)break;\n    let expected=clamp(Math.round(frame*analysisHop),0,maxAt),at=expected;\n    if(frame>0&&dest>hop){\n      let best=-Infinity;\n      const from=Math.max(0,expected-search),to=Math.min(maxAt,expected+search);\n      // Small alignment search, sampled correlation, shared across all channels.\n      for(let candidate=from;candidate<=to;candidate+=8){\n        let corr=0,a2=0,b2=0;\n        for(let j=0;j<size-hop;j+=16){\n          const pos=dest+j;if(pos>=targetLen)break;\n          const x=out[0][pos]/Math.max(weights[pos],1e-9),y=reference[candidate+j];\n          corr+=x*y;a2+=x*x;b2+=y*y;\n        }\n        const score=corr/(Math.sqrt(a2*b2)+1e-8);\n        if(score>best){best=score;at=candidate;}\n      }\n    }\n    prevSource=at;\n    for(let j=0;j<size;j++){\n      const destAt=dest+j,sourceAt=at+j;if(destAt>=targetLen||sourceAt>=inputLen)break;\n      const w=win[j];weights[destAt]+=w;\n      for(let ch=0;ch<channels.length;ch++)out[ch][destAt]+=channels[ch][sourceAt]*w;\n    }\n  }\n  for(let i=0;i<targetLen;i++){\n    if(weights[i]<.00001){const source=Math.min(inputLen-1,Math.floor(i/ratio));for(let ch=0;ch<channels.length;ch++)out[ch][i]=channels[ch][source];}\n    else for(let ch=0;ch<channels.length;ch++)out[ch][i]/=weights[i];\n  }\n  return out;\n}\nfunction processPitchTime(channels,rate,{originalBpm=120,targetBpm=120,semitones=0,cents=0,preservePitch=true}={}){\n  assertAudio(channels,rate);\n  if(!Number.isFinite(originalBpm)||originalBpm<20||originalBpm>400||!Number.isFinite(targetBpm)||targetBpm<20||targetBpm>400)throw Error('BPM musí být v rozsahu 20–400.');\n  if(!Number.isFinite(semitones)||semitones<-12||semitones>12||!Number.isFinite(cents)||cents<-100||cents>100)throw Error('Pitch musí být ±12 semitonů a ±100 centů.');\n  const timeFactor=originalBpm/targetBpm;\n  const desiredLen=Math.max(1,Math.round(channels[0].length*timeFactor));\n  const ratio=Math.pow(2,(semitones+cents/100)/12)*(preservePitch?1:targetBpm/originalBpm);\n  const tempLen=Math.max(1,Math.round(channels[0].length/ratio));\n  if(tempLen*channels.length*4>220*1024*1024||desiredLen*channels.length*4>220*1024*1024)throw Error('Výstup je příliš velký. Použij kratší audio úsek.');\n  if(Math.abs(timeFactor-1)<1e-8&&Math.abs(ratio-1)<1e-8)return channels.map(c=>c.slice());\n  const temp=channels.map(c=>{\n    const result=new Float32Array(tempLen);\n    for(let i=0;i<tempLen;i++){const x=i*ratio,j=Math.floor(x),f=x-j;result[i]=(c[Math.min(j,c.length-1)]||0)*(1-f)+(c[Math.min(j+1,c.length-1)]||0)*f;}\n    return result;\n  });\n  if(tempLen===desiredLen)return temp;\n  return stretchWsola(temp,desiredLen,rate);\n}\n\n// Positive spectral flux using band-limited local energy increases.\n// Sub-band envelope is robust for short percussion loops and cheap for browsers.\nfunction detectTransients(channels,rate,{sensitivity=.55,minGapMs=85}={}){\n  assertAudio(channels,rate);\n  if(!Number.isFinite(sensitivity)||sensitivity<0||sensitivity>1)throw Error('Sensitivity musí být 0–1.');\n  const signal=channels[0],hop=Math.max(64,Math.round(rate*.0075)),frame=hop*3;\n  const count=Math.floor(signal.length/hop),energy=new Float64Array(count),flux=new Float64Array(count);\n  for(let i=1;i<count;i++){\n    const start=i*hop,end=Math.min(signal.length,start+frame);let sum=0;\n    for(let k=start;k<end;k++)sum+=signal[k]*signal[k];\n    energy[i]=Math.sqrt(sum/Math.max(1,end-start));\n    flux[i]=Math.max(0,energy[i]-energy[i-1]);\n  }\n  const minGap=Math.max(1,Math.round(minGapMs/1000*rate/hop));\n  const markers=[0];let last=-minGap;\n  const avgWindow=Math.max(3,Math.round(.24*rate/hop));\n  for(let i=2;i<count-2;i++){\n    if(i-last<minGap||flux[i]<=flux[i-1]||flux[i]<flux[i+1])continue;\n    let sum=0,n=0;\n    for(let j=Math.max(1,i-avgWindow);j<=Math.min(count-1,i+avgWindow);j+=2){sum+=flux[j];n++;}\n    const local=sum/Math.max(1,n),factor=2.9-2.35*sensitivity;\n    if(flux[i]>Math.max(.0015,energy[i]*.28,local*factor)&&energy[i]>.0025){\n      // Offset transient marker slightly earlier than current envelope peak.\n      const at=Math.max(0,i*hop/rate);\n      if(at-markers[markers.length-1]>=minGapMs/1000){markers.push(at);last=i;}\n    }\n  }\n  if(markers.length===0||markers[markers.length-1]!==signal.length/rate)markers.push(signal.length/rate);\n  return markers;\n}\nfunction sliceAudio(channels,rate,markers,index){\n  assertAudio(channels,rate);\n  if(!Array.isArray(markers)||index<0||index>=markers.length-1)throw Error('Neplatný index slicu.');\n  const start=clamp(Math.round(markers[index]*rate),0,channels[0].length);\n  const end=clamp(Math.round(markers[index+1]*rate),start+1,channels[0].length);\n  if(end<=start)throw Error('Slice je příliš krátký.');\n  return channels.map(c=>c.slice(start,end));\n}\n\n// Multi-band onset envelope and normalized tempo autocorrelation.\n// Confidence describes rhythmic periodicity, not a calibrated probability.\nfunction analyzeTempo(samples, sampleRate) {\n  const duration = samples.length / sampleRate;\n  if (duration < 6) throw new Error('TOO_SHORT');\n  const hop = Math.round(sampleRate / 200);\n  const rate = sampleRate / hop;\n  const frames = Math.floor(samples.length / hop);\n  const energy = [new Float32Array(frames), new Float32Array(frames), new Float32Array(frames)];\n  const lowA = 1 - Math.exp(-2 * Math.PI * 180 / sampleRate);\n  const highA = 1 - Math.exp(-2 * Math.PI * 2200 / sampleRate);\n  let low = 0, high = 0, total = 0;\n  for (let f = 0; f < frames; f++) {\n    let a = 0, b = 0, c = 0;\n    for (let j = 0; j < hop; j++) {\n      const x = samples[f * hop + j];\n      low += lowA * (x - low); high += highA * (x - high);\n      a += low * low; b += (x - high) ** 2; c += x * x;\n    }\n    total += c;\n    energy[0][f] = Math.log1p(100 * Math.sqrt(a / hop));\n    energy[1][f] = Math.log1p(100 * Math.sqrt(b / hop));\n    energy[2][f] = Math.log1p(100 * Math.sqrt(c / hop));\n  }\n  if (Math.sqrt(total / samples.length) < 0.00005) throw new Error('SILENCE');\n  // Ignore tiny frame-boundary ripples of a sustained tone.\n  let dynamicMin = Infinity, dynamicMax = 0;\n  for (let i = Math.round(rate); i < frames; i++) { dynamicMin = Math.min(dynamicMin, energy[2][i]); dynamicMax = Math.max(dynamicMax, energy[2][i]); }\n  if (dynamicMax - dynamicMin < 0.12) throw new Error('NO_RHYTHM');\n  const envelope = new Float32Array(frames);\n  for (const band of energy) {\n    const delta = new Float32Array(frames);\n    let sum = 0;\n    for (let i = 2; i < frames; i++) {\n      delta[i] = Math.max(0, band[i] - band[i - 2]);\n      sum += delta[i];\n    }\n    const mean = sum / frames;\n    if (mean > 0.00001) for (let i = 0; i < frames; i++) envelope[i] += Math.min(8, Math.max(0, delta[i] - mean * 0.5) / mean);\n  }\n  let onsetEnergy = 0;\n  for (const x of envelope) onsetEnergy += x * x;\n  if (onsetEnergy / frames < 0.01) throw new Error('NO_RHYTHM');\n  const windowFrames = Math.min(frames, Math.round(rate * 40));\n  const starts = frames <= windowFrames ? [0] : [0, Math.floor((frames - windowFrames) / 2), frames - windowFrames];\n  const maxLag = Math.ceil(rate * 60 / 45) * 3 + 2;\n  const corr = new Float64Array(maxLag + 1);\n  for (let lag = 1; lag <= maxLag; lag++) {\n    let dot = 0, aa = 0, bb = 0;\n    for (const start of starts) {\n      for (let i = start + lag; i < start + windowFrames; i++) {\n        const a = envelope[i], b = envelope[i - lag];\n        dot += a * b; aa += a * a; bb += b * b;\n      }\n    }\n    corr[lag] = dot / (Math.sqrt(aa * bb) || 1);\n  }\n  const at = lag => {\n    const lo = Math.floor(lag), fraction = lag - lo;\n    return (corr[lo] || 0) * (1 - fraction) + (corr[lo + 1] || 0) * fraction;\n  };\n  const candidates = [];\n  for (let lag = Math.floor(rate * 60 / 220); lag <= Math.ceil(rate * 60 / 45); lag++) {\n    if (corr[lag] <= corr[lag - 1] || corr[lag] < corr[lag + 1]) continue;\n    const curvature = corr[lag - 1] - 2 * corr[lag] + corr[lag + 1];\n    const offset = curvature ? Math.max(-0.5, Math.min(0.5, 0.5 * (corr[lag - 1] - corr[lag + 1]) / curvature)) : 0;\n    const period = lag + offset;\n    const bpm = 60 * rate / period;\n    if (bpm < 45 || bpm > 220) continue;\n    const periodicity = at(period);\n    const prior = Math.exp(-0.5 * (Math.log(bpm / 115) / 0.65) ** 2);\n    const score = (periodicity + 0.45 * at(period * 2) + 0.2 * at(period * 3)) * (0.84 + 0.16 * prior);\n    candidates.push({bpm, score, periodicity});\n  }\n  candidates.sort((a,b) => b.score - a.score);\n  if (!candidates.length || candidates[0].periodicity < 0.14) throw new Error('NO_RHYTHM');\n  const best = candidates[0];\n  const backgroundValues = Array.from(corr.slice(Math.floor(rate*60/220),Math.ceil(rate*60/45))).sort((a,b)=>a-b);\n  const background = backgroundValues[Math.floor(backgroundValues.length/2)];\n  const prominence = (best.periodicity-background)/(1-background || 1);\n  if (prominence < 0.06) throw new Error('NO_RHYTHM');\n  const windows = starts.map(start => {\n    let winner = null;\n    for (const candidate of candidates.slice(0, 8)) {\n      const lag = Math.round(60 * rate / candidate.bpm);\n      let dot = 0, power = 0;\n      for (let i = start + lag; i < start + windowFrames; i++) { dot += envelope[i] * envelope[i-lag]; power += envelope[i] ** 2; }\n      const score = dot / (power || 1);\n      if (!winner || score > winner.score) winner = {bpm:candidate.bpm,score};\n    }\n    return winner.bpm;\n  });\n  const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;\n  const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';\n  const waveform = Array.from({length:220}, (_,i) => {\n    const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);\n    let sum = 0, count = 0;\n    for (let j = start; j < end; j += 8) { sum += samples[j] ** 2; count++; }\n    return Math.sqrt(sum / (count || 1));\n  });\n  const peak = Math.max(...waveform) || 1;\n  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};\n}\n\n// Bundled with production DSP in the main app build. Runs off the UI thread.\nself.onmessage=event=>{\n  const {id,kind,channels,rate,options}=event.data;\n  try{\n    let result;\n    if(kind==='pitch')result=processPitchTime(channels,rate,options);\n    else if(kind==='transients')result=detectTransients(channels,rate,options);\n    else if(kind==='tuner')result=detectFundamental(channels,rate,options);\n    else if(kind==='bpm')result=analyzeTempo(channels[0],rate);\n    else throw Error('Neznámá operace.');\n    self.postMessage({id,ok:true,result});\n  }catch(e){self.postMessage({id,ok:false,error:e.message||'Chyba výpočtu.'});}\n};\n";
   function createAnalysisWorker(){
     const url=URL.createObjectURL(new Blob([ANALYSIS_WORKER_SOURCE],{type:'text/javascript'}));
     let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}
@@ -249,6 +297,7 @@
     let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}
     const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;
   }
+  function createBundledProductionWorker(){const url=URL.createObjectURL(new Blob([PRODUCTION_WORKER_SOURCE],{type:'text/javascript'}));const worker=new Worker(url);const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;}
   // Audio utilities used by the production toolkit. No remote processing.
 function encodeWav(channels, sampleRate, bitDepth=16) {
   if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
@@ -516,19 +565,220 @@ function createAudioWorkspace({maxUndo=5}={}){
   };
 }
 
+  // Pulse production DSP. Pure JS, zero runtime dependencies and no network.
+// Pitch/time use a WSOLA-like waveform-similarity overlap/add algorithm.
+const assertAudio=(channels,rate)=>{
+  if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length||channels.some(c=>!(c instanceof Float32Array)||c.length!==channels[0].length))throw Error('Neplatná mono/stereo audio data.');
+  if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Neplatná vzorkovací frekvence.');
+};
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const hzToMidi=hz=>69+12*Math.log2(hz/440);
+const NOTE=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const frequencyNote=hz=>{
+  if(!(hz>0)||!Number.isFinite(hz))return null;
+  const exact=hzToMidi(hz),nearest=Math.round(exact),pc=((nearest%12)+12)%12;
+  return {note:NOTE[pc]+(Math.floor(nearest/12)-1),hz:440*Math.pow(2,(nearest-69)/12),cents:(exact-nearest)*100,midi:nearest};
+};
+
+// YIN normalized difference on low-pass decimated bass windows.
+// A kick with pitch sweep or noisy signal will produce low confidence.
+function detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){
+  assertAudio(channels,rate);
+  if(minHz<20||maxHz>450||maxHz<=minHz)throw Error('Neplatný rozsah frekvencí.');
+  const targetRate=2000,step=rate/targetRate,windowLen=480,minLag=Math.max(2,Math.floor(targetRate/maxHz)),maxLag=Math.min(130,Math.ceil(targetRate/minHz));
+  const n=channels[0].length,duration=n/rate;
+  if(duration<.13)throw Error('Pro 808 tuner použij alespoň 130 ms audia.');
+  const energy=channels.map(c=>{let e=0;for(let i=0;i<c.length;i+=32)e+=c[i]*c[i];return e;});
+  const best=channels[energy.indexOf(Math.max(...energy))];
+  const windows=[],positions=Math.min(34,Math.max(1,Math.floor(duration/.12)));
+  for(let k=0;k<positions;k++){
+    const time=duration<.28?0:Math.min(Math.max(0,duration-.25),.045+k*Math.max(0,Math.min(duration-0.28,5.5))/Math.max(1,positions-1));
+    const sourceAt=Math.round(time*rate);const samples=new Float32Array(windowLen);
+    let amp=0;
+    for(let i=0;i<windowLen;i++){
+      const at=sourceAt+i*step,j=Math.floor(at),frac=at-j;
+      if(j+1<best.length){samples[i]=(best[j]*(1-frac)+best[j+1]*frac);amp+=samples[i]*samples[i];}
+    }
+    const rms=Math.sqrt(amp/windowLen);
+    if(rms<.001)continue;
+    // Remove DC and apply a gentle zero-phase moving-average low-pass.
+    const mean=samples.reduce((a,b)=>a+b,0)/samples.length;
+    for(let i=0;i<samples.length;i++)samples[i]-=mean;
+    const dif=new Float64Array(maxLag+1);let cumulative=0,lag=-1,bestVal=1;
+    for(let tau=1;tau<=maxLag;tau++){
+      let diff=0;for(let j=0;j<windowLen-maxLag;j++){const x=samples[j]-samples[j+tau];diff+=x*x;}
+      dif[tau]=diff;cumulative+=diff;
+      if(tau>=minLag){const cmnd=diff*tau/(cumulative||1);
+        if(cmnd<bestVal){bestVal=cmnd;lag=tau;}
+      }
+    }
+    // Prefer the first convincing local YIN minimum to reduce octave errors.
+    cumulative=0;
+    for(let tau=1;tau<=maxLag;tau++){
+      cumulative+=dif[tau];if(tau<minLag)continue;
+      const cur=dif[tau]*tau/(cumulative||1),next=tau<maxLag?dif[tau+1]*(tau+1)/(cumulative+dif[tau+1]||1):Infinity;
+      if(cur<.16&&cur<=next){lag=tau;bestVal=cur;break;}
+    }
+    if(lag<minLag)continue;
+    // Parabolic interpolation on the raw difference function.
+    const a=dif[lag-1]??dif[lag],b=dif[lag],c=dif[lag+1]??dif[lag];
+    const shift=(a-2*b+c)!==0?clamp(.5*(a-c)/(a-2*b+c),-.5,.5):0;
+    const hz=targetRate/(lag+shift),confidence=clamp(1-bestVal,0,1);
+    if(hz>=minHz&&hz<=maxHz)windows.push({hz,confidence,rms});
+  }
+  if(!windows.length)return {hz:null,confidence:0,label:'Nelze určit fundamentální frekvenci',note:null,frames:0};
+  // Weighted median is stable under sparse pitched sections.
+  const sorted=windows.sort((a,b)=>a.hz-b.hz),weights=sorted.reduce((a,b)=>a+b.rms*b.confidence*b.confidence,0),half=weights/2;
+  let running=0,median=sorted[Math.floor(sorted.length/2)].hz;
+  for(const w of sorted){running+=w.rms*w.confidence*w.confidence;if(running>=half){median=w.hz;break;}}
+  const near=sorted.filter(w=>Math.abs(1200*Math.log2(w.hz/median))<65);
+  const consistency=near.length/sorted.length;
+  const confidence=clamp((near.reduce((a,b)=>a+b.confidence,0)/(near.length||1))*consistency,0,1);
+  const hz=near.reduce((a,b)=>a+b.hz*b.confidence,0)/(near.reduce((a,b)=>a+b.confidence,0)||1);
+  return {hz:hz||median,confidence,label:confidence>=.75?'Vyšší':confidence>=.52?'Střední':'Nízká',note:frequencyNote(hz||median),frames:windows.length};
+}
+
+// Waveform Similarity Overlap Add: phase-coherent multi-channel alignment.
+function stretchWsola(channels,targetLen,rate){
+  assertAudio(channels,rate);
+  const inputLen=channels[0].length;
+  if(!Number.isInteger(targetLen)||targetLen<1||targetLen>rate*1200)throw Error('Neplatná délka výstupu.');
+  if(targetLen===inputLen)return channels.map(c=>c.slice());
+  if(inputLen<rate*.08)throw Error('Pro time stretching je potřeba alespoň 80 ms audia.');
+  const ratio=targetLen/inputLen;
+  if(ratio<.25||ratio>4)throw Error('Tempo/pitch mimo bezpečný rozsah pro WSOLA.');
+  const size=Math.max(512,Math.round(rate*.038/64)*64),hop=Math.max(128,Math.floor(size/4)),search=Math.max(32,Math.floor(size*.22)),analysisHop=hop/ratio;
+  const out=channels.map(()=>new Float32Array(targetLen)),weights=new Float32Array(targetLen);
+  const win=Float32Array.from({length:size},(_,i)=>.5-.5*Math.cos(2*Math.PI*i/(size-1)));
+  const reference=channels[0];let prevSource=0;
+  const maxAt=Math.max(0,inputLen-size),nFrames=Math.ceil((targetLen+size)/hop);
+  for(let frame=0;frame<nFrames;frame++){
+    const dest=frame*hop;if(dest>=targetLen)break;
+    let expected=clamp(Math.round(frame*analysisHop),0,maxAt),at=expected;
+    if(frame>0&&dest>hop){
+      let best=-Infinity;
+      const from=Math.max(0,expected-search),to=Math.min(maxAt,expected+search);
+      // Small alignment search, sampled correlation, shared across all channels.
+      for(let candidate=from;candidate<=to;candidate+=8){
+        let corr=0,a2=0,b2=0;
+        for(let j=0;j<size-hop;j+=16){
+          const pos=dest+j;if(pos>=targetLen)break;
+          const x=out[0][pos]/Math.max(weights[pos],1e-9),y=reference[candidate+j];
+          corr+=x*y;a2+=x*x;b2+=y*y;
+        }
+        const score=corr/(Math.sqrt(a2*b2)+1e-8);
+        if(score>best){best=score;at=candidate;}
+      }
+    }
+    prevSource=at;
+    for(let j=0;j<size;j++){
+      const destAt=dest+j,sourceAt=at+j;if(destAt>=targetLen||sourceAt>=inputLen)break;
+      const w=win[j];weights[destAt]+=w;
+      for(let ch=0;ch<channels.length;ch++)out[ch][destAt]+=channels[ch][sourceAt]*w;
+    }
+  }
+  for(let i=0;i<targetLen;i++){
+    if(weights[i]<.00001){const source=Math.min(inputLen-1,Math.floor(i/ratio));for(let ch=0;ch<channels.length;ch++)out[ch][i]=channels[ch][source];}
+    else for(let ch=0;ch<channels.length;ch++)out[ch][i]/=weights[i];
+  }
+  return out;
+}
+function processPitchTime(channels,rate,{originalBpm=120,targetBpm=120,semitones=0,cents=0,preservePitch=true}={}){
+  assertAudio(channels,rate);
+  if(!Number.isFinite(originalBpm)||originalBpm<20||originalBpm>400||!Number.isFinite(targetBpm)||targetBpm<20||targetBpm>400)throw Error('BPM musí být v rozsahu 20–400.');
+  if(!Number.isFinite(semitones)||semitones<-12||semitones>12||!Number.isFinite(cents)||cents<-100||cents>100)throw Error('Pitch musí být ±12 semitonů a ±100 centů.');
+  const timeFactor=originalBpm/targetBpm;
+  const desiredLen=Math.max(1,Math.round(channels[0].length*timeFactor));
+  const ratio=Math.pow(2,(semitones+cents/100)/12)*(preservePitch?1:targetBpm/originalBpm);
+  const tempLen=Math.max(1,Math.round(channels[0].length/ratio));
+  if(tempLen*channels.length*4>220*1024*1024||desiredLen*channels.length*4>220*1024*1024)throw Error('Výstup je příliš velký. Použij kratší audio úsek.');
+  if(Math.abs(timeFactor-1)<1e-8&&Math.abs(ratio-1)<1e-8)return channels.map(c=>c.slice());
+  const temp=channels.map(c=>{
+    const result=new Float32Array(tempLen);
+    for(let i=0;i<tempLen;i++){const x=i*ratio,j=Math.floor(x),f=x-j;result[i]=(c[Math.min(j,c.length-1)]||0)*(1-f)+(c[Math.min(j+1,c.length-1)]||0)*f;}
+    return result;
+  });
+  if(tempLen===desiredLen)return temp;
+  return stretchWsola(temp,desiredLen,rate);
+}
+
+// Positive spectral flux using band-limited local energy increases.
+// Sub-band envelope is robust for short percussion loops and cheap for browsers.
+function detectTransients(channels,rate,{sensitivity=.55,minGapMs=85}={}){
+  assertAudio(channels,rate);
+  if(!Number.isFinite(sensitivity)||sensitivity<0||sensitivity>1)throw Error('Sensitivity musí být 0–1.');
+  const signal=channels[0],hop=Math.max(64,Math.round(rate*.0075)),frame=hop*3;
+  const count=Math.floor(signal.length/hop),energy=new Float64Array(count),flux=new Float64Array(count);
+  for(let i=1;i<count;i++){
+    const start=i*hop,end=Math.min(signal.length,start+frame);let sum=0;
+    for(let k=start;k<end;k++)sum+=signal[k]*signal[k];
+    energy[i]=Math.sqrt(sum/Math.max(1,end-start));
+    flux[i]=Math.max(0,energy[i]-energy[i-1]);
+  }
+  const minGap=Math.max(1,Math.round(minGapMs/1000*rate/hop));
+  const markers=[0];let last=-minGap;
+  const avgWindow=Math.max(3,Math.round(.24*rate/hop));
+  for(let i=2;i<count-2;i++){
+    if(i-last<minGap||flux[i]<=flux[i-1]||flux[i]<flux[i+1])continue;
+    let sum=0,n=0;
+    for(let j=Math.max(1,i-avgWindow);j<=Math.min(count-1,i+avgWindow);j+=2){sum+=flux[j];n++;}
+    const local=sum/Math.max(1,n),factor=2.9-2.35*sensitivity;
+    if(flux[i]>Math.max(.0015,energy[i]*.28,local*factor)&&energy[i]>.0025){
+      // Offset transient marker slightly earlier than current envelope peak.
+      const at=Math.max(0,i*hop/rate);
+      if(at-markers[markers.length-1]>=minGapMs/1000){markers.push(at);last=i;}
+    }
+  }
+  if(markers.length===0||markers[markers.length-1]!==signal.length/rate)markers.push(signal.length/rate);
+  return markers;
+}
+function sliceAudio(channels,rate,markers,index){
+  assertAudio(channels,rate);
+  if(!Array.isArray(markers)||index<0||index>=markers.length-1)throw Error('Neplatný index slicu.');
+  const start=clamp(Math.round(markers[index]*rate),0,channels[0].length);
+  const end=clamp(Math.round(markers[index+1]*rate),start+1,channels[0].length);
+  if(end<=start)throw Error('Slice je příliš krátký.');
+  return channels.map(c=>c.slice(start,end));
+}
+
+  // Small standards-compliant ZIP writer (store method only), no dependencies.
+const utf8=s=>new TextEncoder().encode(s);
+const crcTable=Uint32Array.from({length:256},(_,n)=>{let x=n;for(let k=0;k<8;k++)x=(x&1)?0xedb88320^(x>>>1):x>>>1;return x>>>0;});
+function crc32(data){let c=0xffffffff;for(let i=0;i<data.length;i++)c=crcTable[(c^data[i])&255]^(c>>>8);return(c^0xffffffff)>>>0;}
+const writer=(bytes)=>({u16:(at,n)=>{bytes[at]=n&255;bytes[at+1]=(n>>>8)&255;},u32:(at,n)=>{bytes[at]=n&255;bytes[at+1]=(n>>>8)&255;bytes[at+2]=(n>>>16)&255;bytes[at+3]=(n>>>24)&255;}});
+async function createStoredZip(entries){
+  if(!Array.isArray(entries)||!entries.length||entries.length>1000)throw Error('ZIP musí obsahovat 1–1000 souborů.');
+  let position=0,total=0;const local=[],central=[],names=new Set();
+  for(const entry of entries){
+    const name=String(entry.name||'').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_');
+    if(!name||names.has(name))throw Error('Duplicitní nebo prázdný název souboru.');names.add(name);
+    const data=entry.data instanceof Uint8Array?entry.data:new Uint8Array(await entry.data.arrayBuffer());
+    total+=data.byteLength;if(total>380*1024*1024)throw Error('ZIP překročil limit 380 MB. Vyber kratší soubor.');
+    const fname=utf8(name);if(fname.length>65535||data.length>0xffffffff)throw Error('Soubor je příliš velký.');
+    const crc=crc32(data),a=new Uint8Array(30+fname.length),b=new Uint8Array(46+fname.length),A=writer(a),B=writer(b);
+    A.u32(0,0x04034b50);A.u16(4,20);A.u16(6,0x0800);A.u32(14,crc);A.u32(18,data.length);A.u32(22,data.length);A.u16(26,fname.length);a.set(fname,30);
+    B.u32(0,0x02014b50);B.u16(4,20);B.u16(6,20);B.u16(8,0x0800);B.u32(16,crc);B.u32(20,data.length);B.u32(24,data.length);B.u16(28,fname.length);B.u32(42,position);b.set(fname,46);
+    position+=a.length+data.length;local.push(a,data);central.push(b);
+  }
+  const centerOffset=position,centerLen=central.reduce((a,b)=>a+b.length,0),end=new Uint8Array(22),E=writer(end);
+  E.u32(0,0x06054b50);E.u16(8,entries.length);E.u16(10,entries.length);E.u32(12,centerLen);E.u32(16,centerOffset);
+  return new Blob([...local,...central,end],{type:'application/zip'});
+}
+
   
+function createProductionWorker(){return createBundledProductionWorker();}
 function createKeyWorker(){return createBundledKeyWorker();}
 
 function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
   const workspace=createAudioWorkspace({maxUndo:4});
-  const tools={quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'converter',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,from:0,to:8,peaks:[],bpm:120};
+  const tools={bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'converter',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,from:0,to:8,peaks:[],bpm:120};
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
   const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB`;
   function workingChanged(){
-    stopPreview();tools.quickCandidate=null;tools.quickBounds=null;
+    stopPreview();tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.markers=[];tools.selectedSlice=0;tools.quickCandidate=null;tools.quickBounds=null;
     const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;
     el('workspace-undo').disabled=!snapshot.canUndo;el('workspace-redo').disabled=!snapshot.canRedo;el('workspace-original').disabled=!snapshot.hasChanges;
     status('workspace-state',snapshot.hasChanges?'WORKING AUDIO':'ORIGINAL');
@@ -623,17 +873,17 @@ function initStudioTools(getBpmTrack){
   function status(id,text){el(id).textContent=text;}
   function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;}
   function clearError(){el('tool-error').hidden=true;}
-  function setBusy(busy){tools.loading=busy;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
+  function setBusy(busy){tools.loading=busy;for(const id of ['pt-preview','pt-apply','pt-export','tuner-analyze','tuner-preview','tuner-apply','tuner-export','slice-auto','slice-preview','slice-export-one','slice-export-all'])el(id).disabled=busy||!tools.buffer;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
   function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;if(mp3&&el('conv-rate').value==='96000')el('conv-rate').value='48000';el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
   function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;el('cut-bpm').value=other.bpm;}}
-  function resetKey(){tools.keyResult=null;el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Výsledek je orientační, zejména u bicích a krátkých samplů.');}
+  function resetKey(){tools.keyResult=null;updatePitchKey();el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Výsledek je orientační, zejména u bicích a krátkých samplů.');}
   function stopPreview(){
     clearInterval(tools.previewTimer);tools.previewTimer=null;
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
     tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Přehrát zvuk');
   }
-  function remove(){workspace.clear();tools.quickCandidate=null;tools.quickBounds=null;el('workspace-undo').disabled=true;el('workspace-redo').disabled=true;el('workspace-original').disabled=true;status('workspace-state','ORIGINAL');tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
+  function remove(){tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.markers=[];workspace.clear();tools.quickCandidate=null;tools.quickBounds=null;el('workspace-undo').disabled=true;el('workspace-redo').disabled=true;el('workspace-original').disabled=true;status('workspace-state','ORIGINAL');tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
   function nativeWavRate(data){
     // Most WAV files advertise sample rate in the fmt chunk (not always byte 24).
     if(data.byteLength<44)return null;
@@ -655,7 +905,7 @@ function initStudioTools(getBpmTrack){
     if(!file)return;
     if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Neznámý soubor. Zkus WAV, MP3, M4A, MP4 nebo jiný podporovaný audioformát.');return;}
     if(file.size>100*1024*1024||file.size===0){error('Soubor musí mít 1 B až 100 MB.');return;}
-    const token=++tools.operation;
+    const token=++tools.operation;tools.bpmEdited=false;
     stopPreview();tools.keyWorker?.terminate();tools.keyWorker=null;
     setBusy(true);status('conv-status','Načítám zvuk…');
     try{
@@ -668,7 +918,7 @@ function initStudioTools(getBpmTrack){
       const buffer=await decoder.decodeAudioData(bytes);
       if(token!==tools.operation)return;
       if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
-      workspace.load(buffer,file);tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
+      tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.markers=[];workspace.load(buffer,file);tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
       tools.to=Math.min(buffer.duration,8);updateBpmFromAnalyzer();
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
@@ -677,7 +927,7 @@ function initStudioTools(getBpmTrack){
       status('conv-status','Připraveno k exportu.');status('cut-status','Uprav délku nebo vyber počet taktů.');
       status('tool-time',`${durationText(0)} / ${durationText(buffer.duration)}`);
     }catch(e){if(token===tools.operation){error('Nelze přečíst zvuk: '+(e?.message||'nepodporovaný kodek')+'. Podpora MP4/M4A/FLAC závisí na prohlížeči.');status('conv-status','Nepodařilo se načíst soubor.');}}
-    finally{if(token===tools.operation){setBusy(false);updateButtons();}}
+    finally{if(token===tools.operation){setBusy(false);updateButtons();if(tools.buffer?.duration>=6)detectTrackBpm();}}
   }
   function channels(buffer){return Array.from({length:Math.min(buffer.numberOfChannels,2)},(_,i)=>buffer.getChannelData(i));}
   function download(blob,name){const href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),60000);}
@@ -733,7 +983,7 @@ function initStudioTools(getBpmTrack){
   }
   function selectTab(which){
     tools.tab=which;stopPreview();
-    for(const name of ['converter','key','cutter','reverse','trim','calculator','normalizer']){
+    for(const name of ['converter','key','cutter','reverse','trim','calculator','normalizer','pitch','tuner','slicer']){
       const selected=which===name,tab=el('tab-'+name);
       tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
     }
@@ -784,13 +1034,18 @@ function initStudioTools(getBpmTrack){
     if(tools.tab==='cutter'||tools.tab==='trim'&&tools.quickBounds){
       for(const x of [w*a,w*b]){ctx.fillStyle='#f5f4f0';ctx.fillRect(x-1,0,2,h);ctx.beginPath();ctx.arc(x,h/2,6,0,Math.PI*2);ctx.fill();}
     }
+    if(tools.tab==='slicer'&&tools.markers.length>1){
+      tools.markers.slice(1,-1).forEach((value,i)=>{const x=w*value/duration;ctx.fillStyle=i+1===tools.selectedSlice?'#fff':'#ff2b20';ctx.fillRect(x-1,0,2,h);ctx.fillRect(x-5,0,10,9);});
+      const start=w*tools.markers[tools.selectedSlice]/duration,end=w*tools.markers[tools.selectedSlice+1]/duration;
+      ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(start,0,end-start,h);
+    }
   }
   async function preview(){
     if(!tools.buffer||tools.loading)return;
     if(tools.playing){stopPreview();return;}
     try{
       const Ctx=window.AudioContext||window.webkitAudioContext;tools.context||=new Ctx();if(tools.context.state==='suspended')await tools.context.resume();
-      const cut=tools.tab==='cutter',from=cut?tools.from:0,to=cut?tools.to:tools.buffer.duration;
+      const cut=tools.tab==='cutter',slice=tools.tab==='slicer'&&tools.markers.length>1,from=cut?tools.from:slice?tools.markers[tools.selectedSlice]:0,to=cut?tools.to:slice?tools.markers[tools.selectedSlice+1]:tools.buffer.duration;
       if(to-from<.02)return;
       const src=tools.context.createBufferSource();src.buffer=tools.buffer;
       const gain=tools.context.createGain();src.connect(gain).connect(tools.context.destination);
@@ -841,7 +1096,7 @@ function initStudioTools(getBpmTrack){
         worker.postMessage(samples,[samples.samples.buffer]);
       });
       worker.terminate();if(token!==tools.operation)return;
-      tools.keyResult=result;el('key-result').hidden=false;el('key-idle').hidden=true;el('key-alternatives').hidden=false;
+      tools.keyResult=result;updatePitchKey();el('key-result').hidden=false;el('key-idle').hidden=true;el('key-alternatives').hidden=false;
       status('key-name',result.primary.display);status('key-mode',result.primary.mode==='major'?'MAJOR':'MINOR');
       status('key-camelot',result.primary.camelot);
       status('key-confidence',({higher:'SILNĚJŠÍ SHODA',moderate:'ORIENTAČNÍ',low:'NÍZKÁ JISTOTA'})[result.confidence]);
@@ -850,11 +1105,182 @@ function initStudioTools(getBpmTrack){
     }catch(e){if(token===tools.operation){error(e.message);status('key-status','Tóninu se nepodařilo určit.');}}
     finally{tools.keyWorker?.terminate();tools.keyWorker=null;if(token===tools.operation)setBusy(false);}
   }
+
+  // Production audio computation runs off the main thread. The current working
+  // buffer stays immutable; applying results pushes a bounded undo revision.
+  async function runProduction(kind,options){
+    if(!tools.buffer)throw Error('Nejdřív nahraj audio soubor.');
+    const token=tools.operation,worker=createProductionWorker();tools.productionWorker?.terminate();tools.productionWorker=worker;
+    const rate=tools.buffer.sampleRate;
+    const source=channels(tools.buffer).map(x=>x.slice());
+    try{
+      const result=await new Promise((resolve,reject)=>{
+        const timeout=setTimeout(()=>{worker.terminate();reject(Error('Výpočet překročil časový limit. Použij kratší audio.'));},150000);
+        worker.onmessage=({data})=>{clearTimeout(timeout);data.ok?resolve(data.result):reject(Error(data.error||'Výpočet selhal.'));};
+        worker.onerror=()=>{clearTimeout(timeout);reject(Error('Výpočet ve workeru selhal.'));};
+        worker.postMessage({id:token,kind,rate,options,channels:source},source.map(x=>x.buffer));
+      });
+      if(token!==tools.operation)throw Error('Operace byla přerušena výměnou souboru.');
+      return result;
+    }finally{worker.terminate();if(tools.productionWorker===worker)tools.productionWorker=null;}
+  }
+  function updatePitchKey(){
+    const result=tools.keyResult?.primary;if(!result){status('pt-source-key','—');status('pt-target-key','—');return;}
+    status('pt-source-key',result.display);
+    const classes=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const root=classes.indexOf(result.name),step=Number(el('pt-semitones').value);
+    status('pt-target-key',root<0?'—':classes[((root+step)%12+12)%12]+(result.mode==='minor'?'m':''));
+  }
+  async function detectTrackBpm(){
+    if(!tools.buffer||tools.buffer.duration<6)return;
+    const sound=tools.buffer,token=tools.operation,worker=createProductionWorker();
+    tools.bpmWorker?.terminate();tools.bpmWorker=worker;
+    const data=[sound.getChannelData(0).slice()],rate=sound.sampleRate;
+    worker.onmessage=({data:message})=>{
+      worker.terminate();if(tools.bpmWorker===worker)tools.bpmWorker=null;
+      if(token!==tools.operation||tools.buffer!==sound)return;
+      if(message.ok&&message.result?.bpm){
+        const bpm=message.result.bpm;
+        if(!tools.bpmEdited){el('pt-original').value=bpm;el('pt-target').value=bpm;el('calc-bpm').value=bpm;el('cut-bpm').value=bpm;tools.bpm=bpm;}
+        status('pt-status',`Tempo: ~${bpm} BPM (možný half/double-time: ${(bpm/2).toFixed(1)} / ${(bpm*2).toFixed(1)}). Ověř poslechem. Ruční hodnoty mají přednost.`);
+      }else status('pt-status','BPM se nepodařilo spolehlivě zjistit. Zadej jej ručně.');
+    };
+    worker.onerror=()=>{worker.terminate();if(tools.bpmWorker===worker)tools.bpmWorker=null;};
+    worker.postMessage({kind:'bpm',channels:data,rate,options:{}},[data[0].buffer]);
+  }
+  function updatePitchLabels(){updatePitchKey();status('pt-semitone-label',el('pt-semitones').value+' st');status('pt-cent-label',el('pt-cents').value+' cents');tools.productionCandidate=null;}
+  function updateTunerLabels(){status('tuner-semitone-label',el('tuner-semitones').value+' st');tools.productionCandidate=null;}
+  const pitchOptions=()=>({originalBpm:Number(el('pt-original').value),targetBpm:Number(el('pt-target').value),semitones:Number(el('pt-semitones').value),cents:Number(el('pt-cents').value),preservePitch:el('pt-preserve').checked});
+  async function prepareProduction(kind){
+    const options=kind==='pitch'?pitchOptions():{originalBpm:120,targetBpm:120,semitones:Number(el('tuner-semitones').value),cents:0,preservePitch:true};
+    if(tools.productionCandidate&&tools.productionCandidate.kind===kind&&tools.productionCandidate.input===tools.buffer&&tools.productionCandidate.settings===JSON.stringify(options))return tools.productionCandidate.buffer;
+    const data=await runProduction('pitch',options);
+    const out=asAudioBuffer(data,tools.buffer.sampleRate);
+    tools.productionCandidate={kind,input:tools.buffer,settings:JSON.stringify(options),buffer:out};
+    status(kind==='pitch'?'pt-status':'tuner-status',`Render hotový · ${out.duration.toFixed(3)} s · ${out.sampleRate} Hz. Preview, Apply nebo export WAV.`);
+    return out;
+  }
+  async function productionAction(kind,action){
+    if(!tools.buffer||tools.loading){error('Nejdřív nahraj audio.');return;}
+    clearError();stopPreview();setBusy(true);const token=++tools.operation;
+    try{
+      status(kind==='pitch'?'pt-status':'tuner-status','Zpracovávám audio…');
+      const buffer=await prepareProduction(kind);
+      if(token!==tools.operation)return;
+      if(action==='apply'){workspace.apply(buffer);workingChanged();status(kind==='pitch'?'pt-status':'tuner-status','Použito ve workspace. Předchozí audio můžeš obnovit přes Undo.');}
+      else if(action==='export'){const blob=encodeWav(channels(buffer),buffer.sampleRate,24);download(blob,filename(kind+'-pulse.wav').replace(/\.wav\.wav$/,'.wav'));status(kind==='pitch'?'pt-status':'tuner-status',`Exportováno ${readableSize(blob.size)}.`);}
+      else if(action==='preview')await playBuffer(buffer);
+    }catch(e){if(token===tools.operation)error(e.message);}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  async function playBuffer(buffer,from=0,to=buffer.duration){
+    stopPreview();const Ctx=window.AudioContext||window.webkitAudioContext;
+    tools.context||=new Ctx();if(tools.context.state==='suspended')await tools.context.resume();
+    const src=tools.context.createBufferSource();src.buffer=buffer;src.connect(tools.context.destination);
+    src.onended=()=>{if(tools.source===src)stopPreview();};tools.source=src;tools.playing=true;src.start(0,from,to-from);
+    el('tool-preview').textContent='Ⅱ';el('tool-preview').setAttribute('aria-label','Zastavit náhled');
+    const started=tools.context.currentTime;tools.previewTimer=setInterval(()=>status('tool-time',`${durationText(Math.min(to-from,tools.context.currentTime-started))} / ${durationText(to-from)}`),150);
+  }
+  async function analyze808(){
+    if(!tools.buffer||tools.loading)return;clearError();setBusy(true);const token=++tools.operation;
+    status('tuner-status','Hledám základní frekvenci…');
+    try{
+      const result=await runProduction('tuner',{});if(token!==tools.operation)return;
+      status('tuner-note',result.note?.note||'—');status('tuner-frequency',result.hz?result.hz.toFixed(2)+' Hz':'— Hz');
+      status('tuner-cents',result.note?`${result.note.cents>=0?'+':''}${result.note.cents.toFixed(1)} cents`:'— cents');
+      status('tuner-confidence',`${result.label.toUpperCase()} JISTOTA (${Math.round(result.confidence*100)}%)`);
+      status('tuner-status',result.confidence<.52?'Nízká jistota. Perkusivní sample může mít nestabilní ladění.':'Nejbližší nota '+result.note.note+'. Ověř uchem, zejména při pitch sweepu.');
+    }catch(e){if(token===tools.operation)error(e.message);}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  function updateSliceUI(){
+    const selection=el('slice-selection');selection.replaceChildren();
+    for(let i=0;i<tools.markers.length-1;i++){
+      const item=document.createElement('option');item.value=String(i);item.textContent=`Slice ${String(i+1).padStart(2,'0')} · ${tools.markers[i].toFixed(2)}–${tools.markers[i+1].toFixed(2)} s`;selection.append(item);
+    }
+    tools.selectedSlice=Math.min(tools.selectedSlice,Math.max(0,tools.markers.length-2));selection.value=String(tools.selectedSlice);
+    status('slice-status',`${Math.max(0,tools.markers.length-1)} slices · click pro přidání, drag pro posun, Shift+klik pro smazání markeru.`);
+    drawToolWave();
+  }
+  async function sliceAuto(){
+    if(!tools.buffer||tools.loading)return;clearError();setBusy(true);const token=++tools.operation;
+    try{
+      status('slice-status','Detekuji transiency…');const markers=await runProduction('transients',{sensitivity:Number(el('slice-sensitivity').value)/100});if(token!==tools.operation)return;
+      tools.markers=markers;tools.selectedSlice=0;updateSliceUI();
+    }catch(e){if(token===tools.operation)error(e.message);}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  function sliceWav(index){
+    const data=sliceAudio(channels(tools.buffer),tools.buffer.sampleRate,tools.markers,index);
+    return encodeWav(data,tools.buffer.sampleRate,24);
+  }
+  async function sliceExport(all=false){
+    if(!tools.buffer||tools.loading||tools.markers.length<2){error('Nejdřív nastav slice markery.');return;}
+    clearError();setBusy(true);try{
+      if(!all){download(sliceWav(tools.selectedSlice),`${tools.file.name.replace(/\.[^.]+$/,'')}_slice_${String(tools.selectedSlice+1).padStart(2,'0')}.wav`);}
+      else{
+        const entries=[];const base=tools.file.name.replace(/\.[^.]+$/,'');
+        if(tools.markers.length>201)throw Error('Maximum 200 sliců v jednom ZIPu.');
+        for(let i=0;i<tools.markers.length-1;i++){
+          const blob=sliceWav(i);entries.push({name:`${base}_slice_${String(i+1).padStart(3,'0')}.wav`,data:blob});
+          if(i%8===0){status('slice-status',`Připravuji ZIP… ${i+1}/${tools.markers.length-1}`);await new Promise(r=>setTimeout(r,0));}
+        }
+        const zip=await createStoredZip(entries);download(zip,base+'_slices.zip');
+      }
+      status('slice-status',all?'ZIP obsahuje všechny aktuální slices.':'Slice exportován do WAV.');
+    }catch(e){error(e.message);}finally{setBusy(false);}
+  }
+  function slicePosition(event){const rect=el('tool-waveform').getBoundingClientRect();return Math.min(tools.buffer.duration,Math.max(0,(event.clientX-rect.left)/rect.width*tools.buffer.duration));}
+  function slicePointerDown(event){
+    if(tools.tab!=='slicer'||!tools.buffer||tools.loading)return false;
+    const value=slicePosition(event),markers=tools.markers;
+    if(markers.length<2){tools.markers=[0,tools.buffer.duration];}
+    const tolerance=Math.min(.15,tools.buffer.duration*.025);
+    let closest=-1,distance=Infinity;
+    for(let i=1;i<tools.markers.length-1;i++){const d=Math.abs(markers[i]-value);if(d<distance){distance=d;closest=i;}}
+    if(closest>=1&&distance<tolerance){
+      if(event.shiftKey){markers.splice(closest,1);tools.selectedSlice=Math.max(0,closest-1);updateSliceUI();return true;}
+      tools.dragMarker=closest;el('tool-waveform').setPointerCapture(event.pointerId);tools.selectedSlice=closest-1;
+    }else{
+      if(markers.length>=201){error('Maximum 200 sliců.');return true;}
+      const index=markers.findIndex(x=>x>value);if(index<=0)return true;
+      const min=.02;if(value-markers[index-1]<min||markers[index]-value<min)return true;
+      markers.splice(index,0,value);tools.selectedSlice=index-1;
+    }
+    updateSliceUI();return true;
+  }
+  // Phase 2 controls
+  for(const id of ['pt-original','pt-target','pt-semitones','pt-cents','pt-preserve'])el(id).addEventListener('input',()=>{if(id==='pt-original'||id==='pt-target')tools.bpmEdited=true;updatePitchLabels();});
+  for(const id of ['tuner-semitones'])el(id).addEventListener('input',updateTunerLabels);
+  for(const action of ['preview','apply','export']){
+    el('pt-'+action).onclick=()=>productionAction('pitch',action);
+    el('tuner-'+action).onclick=()=>productionAction('tuner',action);
+  }
+  el('tuner-analyze').onclick=analyze808;
+  el('slice-sensitivity').oninput=()=>{status('slice-sensitivity-label',el('slice-sensitivity').value+'%');};
+  el('slice-auto').onclick=sliceAuto;
+  el('slice-selection').onchange=()=>{tools.selectedSlice=Number(el('slice-selection').value);drawToolWave();};
+  el('slice-preview').onclick=async()=>{
+    if(!tools.buffer||tools.markers.length<2){error('Nejdřív vytvoř slice markery.');return;}
+    if(tools.playing){stopPreview();return;}
+    try{await playBuffer(tools.buffer,tools.markers[tools.selectedSlice],tools.markers[tools.selectedSlice+1]);}
+    catch(e){error(e.message);}
+  };
+  el('slice-export-one').onclick=()=>sliceExport(false);
+  el('slice-export-all').onclick=()=>sliceExport(true);
+  const slicerCanvas=el('tool-waveform');
+  slicerCanvas.addEventListener('pointermove',event=>{
+    if(tools.dragMarker<1||tools.tab!=='slicer'||!tools.buffer)return;
+    const i=tools.dragMarker,markers=tools.markers;
+    markers[i]=Math.max(markers[i-1]+.02,Math.min(markers[i+1]-.02,slicePosition(event)));
+    updateSliceUI();
+  });
+  for(const name of ['pointerup','pointercancel','lostpointercapture'])slicerCanvas.addEventListener(name,()=>{tools.dragMarker=-1;});
   // Events
   document.querySelectorAll('[data-tool-nav]').forEach(link=>{link.addEventListener('click',()=>selectTab(link.dataset.toolNav));});
   document.querySelectorAll('[data-tool]').forEach(button=>{
     button.addEventListener('click',()=>selectTab(button.dataset.tool));
-    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter','reverse','trim','calculator','normalizer'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
+    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter','reverse','trim','calculator','normalizer','pitch','tuner','slicer'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
   });
   document.querySelectorAll('[data-quick-preview]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quickPreview,'preview'));
   document.querySelectorAll('[data-quick-apply]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quickApply,'apply'));
@@ -871,7 +1297,7 @@ function initStudioTools(getBpmTrack){
   el('tool-file-input').onchange=e=>decode(e.target.files[0]);
   el('tool-remove').onclick=remove;
   el('tool-preview').onclick=preview;
-  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.productionWorker?.terminate();tools.productionCandidate=null;tools.markers=[];workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
   el('conv-format').onchange=syncOutput;
   el('conv-export').onclick=exportConvert;
   el('key-analyze').onclick=analyzeKey;
@@ -881,6 +1307,7 @@ function initStudioTools(getBpmTrack){
   el('cut-end').oninput=e=>setEnd(e.target.value);
   el('cut-export').onclick=exportCut;
   el('tool-waveform').addEventListener('pointerdown',event=>{
+    if(slicePointerDown(event))return;
     if(tools.tab!=='cutter'||!tools.buffer)return;
     const rect=el('tool-waveform').getBoundingClientRect(),time=Math.min(tools.buffer.duration,Math.max(0,(event.clientX-rect.left)/rect.width*tools.buffer.duration));
     if(Math.abs(time-tools.from)<Math.abs(time-tools.to))setStart(time,true);else setEnd(time);
@@ -891,7 +1318,7 @@ function initStudioTools(getBpmTrack){
   drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Nahraj vždy jeden soubor.');return;}decode(e.dataTransfer.files[0]);});
   window.addEventListener('pulse:bpm-track-ready',updateButtons);
   const resize=new ResizeObserver(()=>drawToolWave());resize.observe(el('tool-waveform'));
-  window.addEventListener('pagehide',()=>{stopPreview();tools.keyWorker?.terminate();tools.context?.close();});
+  window.addEventListener('pagehide',()=>{stopPreview();tools.bpmWorker?.terminate();tools.productionWorker?.terminate();tools.keyWorker?.terminate();tools.context?.close();});
   syncOutput();updateCalculator();updateButtons();
   return {reset:remove};
 }

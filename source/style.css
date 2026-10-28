@@ -100,3 +100,17 @@
 .tool-source .pulse-workspace-actions button{color:#f5f4f0;border-color:#8c8b86;background:#292927}
 .tool-source .pulse-workspace-actions button:hover:not(:disabled){color:#191919;background:#f5f4f0}
 .tool-source .pulse-workspace-actions button:disabled{color:#9c9b94;border-color:#77766f;opacity:.45}
+
+/* PULSE 3.0 / phase 2 production toolkit */
+.tool-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tuner-meter{background:#191919;color:#f5f4f0;padding:20px;margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;align-items:end}
+.tuner-meter strong{font-size:clamp(38px,5vw,66px);letter-spacing:-2px;line-height:1;grid-row:span 3;color:#ff2b20}
+.tuner-meter span{font-size:14px;font-variant-numeric:tabular-nums}
+.tuner-meter small{font-size:9px;letter-spacing:1px;color:#bdbbb4}
+.pulse-toggle{display:flex;align-items:center;gap:9px;margin:17px 0 6px;font-size:12px;font-weight:600}
+.pulse-toggle input{accent-color:#ff2b20;width:17px;height:17px}
+.tool-view:has(#slice-auto) .quick-actions button{flex:1 1 42%}
+#tool-waveform{touch-action:pan-y}
+@media(max-width:760px){.tool-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.phase2-metrics{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 17px}.phase2-metrics span{border:1px solid #abaaa3;padding:9px 12px;font-size:10px}.phase2-metrics b{color:#191919;font-weight:700}

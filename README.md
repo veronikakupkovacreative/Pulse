@@ -66,3 +66,22 @@ Soubory:
 - `server.py` — sdílené funkce yt-dlp/FFmpeg
 - `vercel.json` — statický web
 - `tests/` — automatické testy
+
+---
+
+## PULSE 3.0 — Phase 1: Quick Tools (development)
+
+New production features: Audio Reverse, Silence Trimmer, BPM Calculator,
+Peak / LUFS Audio Normalizer, and shared working audio with Undo/Redo and
+Reset to Original. See [`docs/phase-1.md`](docs/phase-1.md) for capabilities,
+tests, and limitations.
+
+The new features use browser-side Web Audio and local DSP. YouTube Audio
+remains disabled. The $1 purchase is **lifetime, one-time**, but checkout and
+server-enforced access are not yet live; Phase 1 does not add fake billing.
+
+## Pulse Studio 3.0 — Phase 2 (development)
+
+Pitch & Time (WSOLA-like offline DSP), 808 Tuner (YIN-derived estimation), and Sample Slicer (transient markers, manual edits, WAV/ZIP exports) now build on the Phase 1 shared audio workspace. All processing runs in the browser; the supplied YouTube importer remains disabled.
+
+Read [Phase 2 implementation notes](docs/phase-2.md). The $1 one-time lifetime payment remains a separate prototype and is **not enabled** in this branch; production access is not gated.

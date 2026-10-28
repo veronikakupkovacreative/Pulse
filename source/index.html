@@ -73,7 +73,10 @@
         <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim"><span>05</span> Silence Trim <b>↗</b></button>
         <button class="tool-tab" id="tab-calculator" role="tab" aria-selected="false" aria-controls="panel-calculator" tabindex="-1" data-tool="calculator"><span>06</span> BPM Calculator <b>↗</b></button>
         <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer"><span>07</span> Normalizer <b>↗</b></button>
-        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>08</span> YouTube Audio <b>COMING SOON</b></button>
+        <button class="tool-tab" id="tab-pitch" role="tab" aria-selected="false" aria-controls="panel-pitch" tabindex="-1" data-tool="pitch"><span>08</span> Pitch &amp; Time <b>↗</b></button>
+        <button class="tool-tab" id="tab-tuner" role="tab" aria-selected="false" aria-controls="panel-tuner" tabindex="-1" data-tool="tuner"><span>09</span> 808 Tuner <b>↗</b></button>
+        <button class="tool-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="panel-slicer" tabindex="-1" data-tool="slicer"><span>10</span> Sample Slicer <b>↗</b></button>
+        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>11</span> YouTube Audio <b>COMING SOON</b></button>
       </div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
@@ -111,6 +114,36 @@
             <div class="tool-view-header"><span>02 / BPM CALCULATOR</span><span>TIME VALUES</span></div><h3>Časuj přesně.<br><span>V milisekundách.</span></h3>
             <div class="tool-fields"><label>Tempo (BPM)<input id="calc-bpm" type="number" min="20" max="400" step="0.1" value="120"></label></div>
             <div class="pulse-calc-grid" id="calc-table" role="table" aria-label="Note lengths in milliseconds"></div><p id="calc-status" class="tool-footnote" role="status">Klikni na hodnotu pro zkopírování.</p>
+          </div>
+          <div id="panel-pitch" class="tool-view" role="tabpanel" aria-labelledby="tab-pitch" hidden>
+            <div class="tool-view-header"><span>02 / PITCH &amp; TIME</span><span>WSOLA PROCESSING</span></div>
+            <h3>Změň tempo.<br><span>Ne svůj flow.</span></h3>
+            <p class="tool-description">Nezávislé tempo a ladění. Výpočet proběhne lokálně v audio workeru, bez nahrávání na server. U extrémních změn mohou vznikat slyšitelné artefakty.</p>
+            <div class="phase2-metrics"><span>Original key: <b id="pt-source-key">—</b></span><span>Target key: <b id="pt-target-key">—</b></span></div>
+            <div class="tool-fields"><label>Original BPM<input id="pt-original" type="number" min="20" max="400" step="0.1" value="120"></label><label>Target BPM<input id="pt-target" type="number" min="20" max="400" step="0.1" value="120"></label>
+              <label>Transpose <output id="pt-semitone-label">0 st</output><input id="pt-semitones" type="range" min="-12" max="12" step="1" value="0"></label>
+              <label>Fine tuning <output id="pt-cent-label">0 cents</output><input id="pt-cents" type="range" min="-100" max="100" step="1" value="0"></label>
+            </div><label class="pulse-toggle"><input id="pt-preserve" type="checkbox" checked> Preserve Pitch při změně tempa</label>
+            <p class="tool-footnote" id="pt-status" role="status">Načti track a nastav cílové tempo. Tóninu lze ověřit v Key Finderu.</p>
+            <div class="quick-actions"><button id="pt-preview">▶ Preview</button><button id="pt-apply">Apply to Workspace</button><button id="pt-export">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-tuner" class="tool-view" role="tabpanel" aria-labelledby="tab-tuner" hidden>
+            <div class="tool-view-header"><span>02 / 808 TUNER</span><span>LOW-FREQUENCY PITCH</span></div>
+            <h3>Najdi svůj<br><span>fundament.</span></h3>
+            <p class="tool-description">Detekce základní frekvence pro 808, basy a tónové kicky. U neharmonického úderu nebo pitch sweepu zobrazíme nízkou spolehlivost.</p>
+            <div class="tuner-meter"><strong id="tuner-note">—</strong><span id="tuner-frequency">— Hz</span><span id="tuner-cents">— cents</span><small id="tuner-confidence">ČEKÁM NA ANALÝZU</small></div>
+            <button class="tool-action tool-action-dark" id="tuner-analyze">Analyze 808 ↗</button>
+            <div class="tool-fields"><label>Transpose <output id="tuner-semitone-label">0 st</output><input id="tuner-semitones" type="range" min="-12" max="12" step="1" value="0"></label></div>
+            <p class="tool-footnote" id="tuner-status" role="status">Pro stabilní odhad použij samostatný 808 sample s doznívajícím tónem.</p>
+            <div class="quick-actions"><button id="tuner-preview">▶ Preview</button><button id="tuner-apply">Apply to Workspace</button><button id="tuner-export">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-slicer" class="tool-view" role="tabpanel" aria-labelledby="tab-slicer" hidden>
+            <div class="tool-view-header"><span>02 / SAMPLE SLICER</span><span>TRANSIENT DETECTION</span></div>
+            <h3>Rozsekej sample.<br><span>Ne workflow.</span></h3>
+            <p class="tool-description">Auto Slice najde nástupy. Na waveform klikni pro nový marker, přetáhni jej pro posun a Shift+klik na marker jej smaže. Poslední marker je konec souboru.</p>
+            <div class="tool-fields"><label>Sensitivity <output id="slice-sensitivity-label">55%</output><input id="slice-sensitivity" type="range" min="0" max="100" step="1" value="55"></label><label>Selected slice<select id="slice-selection" aria-label="Vybrat slice"></select></label></div>
+            <div class="quick-actions"><button id="slice-auto">Auto Slice ↗</button><button id="slice-preview">▶ Preview slice</button><button id="slice-export-one">Export WAV</button><button id="slice-export-all">Export ZIP ↗</button></div>
+            <p class="tool-footnote" id="slice-status" role="status">Nahraj soubor a spusť detekci transientů.</p>
           </div>
           <div id="panel-normalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-normalizer" hidden>
             <div class="tool-view-header"><span>02 / NORMALIZER</span><span>GAIN CONTROL</span></div><h3>Správná úroveň.<br><span>Bez clippingu.</span></h3><p class="tool-description">Peak nebo gated integrated LUFS (K-weighted). Automatický gain bez komprese a bez překročení nastaveného ceilingu.</p>

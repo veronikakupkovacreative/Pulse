@@ -24,7 +24,6 @@
   <header class="header">
     <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
     <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
-    
   </header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
@@ -70,7 +69,11 @@
         <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
         <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter"><span>03</span> Loop Cutter <b>↗</b></button>
-        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>04</span> YouTube Audio <b>COMING SOON</b></button>
+        <button class="tool-tab" id="tab-reverse" role="tab" aria-selected="false" aria-controls="panel-reverse" tabindex="-1" data-tool="reverse"><span>04</span> Reverse <b>↗</b></button>
+        <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim"><span>05</span> Silence Trim <b>↗</b></button>
+        <button class="tool-tab" id="tab-calculator" role="tab" aria-selected="false" aria-controls="panel-calculator" tabindex="-1" data-tool="calculator"><span>06</span> BPM Calculator <b>↗</b></button>
+        <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer"><span>07</span> Normalizer <b>↗</b></button>
+        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>08</span> YouTube Audio <b>COMING SOON</b></button>
       </div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
@@ -79,6 +82,7 @@
           <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Začni se zvukem.</h3><p>Přetáhni sem WAV, MP3 nebo podporované audio/video.</p><button class="tool-action tool-action-light" id="tool-select-file">Vybrat soubor <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
           <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Odebrat soubor">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Vlnový průběh nahraného zvuku"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Přehrát zvuk">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Vyměnit ↗</button></div></div>
           <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Použít track z BPM analyzátoru ↗</button>
+          <div class="pulse-workspace-actions" id="pulse-workspace-actions" role="group" aria-label="Historie úprav"><button id="workspace-undo" disabled>↶ Undo</button><button id="workspace-redo" disabled>Redo ↷</button><button id="workspace-original" disabled>Reset to Original</button><span id="workspace-state" role="status">ORIGINAL</span></div>
           <p class="tool-source-foot"><svg><use href="#lock"/></svg> Soubor zůstává v prohlížeči.</p>
         </div>
         <div class="tool-settings">
@@ -93,9 +97,28 @@
             <div class="tool-fields cut-bottom"><label>Fade in / out<select id="cut-fade"><option value="0">Off</option><option value="5" selected>5 ms · clean cut</option><option value="20">20 ms</option><option value="100">100 ms</option></select></label><label>WAV bit depth<select id="cut-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label></div>
             <button class="tool-action tool-action-dark" id="cut-export" disabled>Exportovat loop (WAV) <span>↗</span></button><p class="tool-footnote" id="cut-status" role="status">Výběr můžeš přehrát tlačítkem vlevo.</p></div>
 
+          <div id="panel-reverse" class="tool-view" role="tabpanel" aria-labelledby="tab-reverse" hidden>
+            <div class="tool-view-header"><span>02 / AUDIO REVERSE</span><span>TIME DIRECTION</span></div><h3>Otoč směr.<br><span>Změň zvuk.</span></h3><p class="tool-description">Otočí pořadí samplů v každém kanálu. Původní soubor zůstává dostupný.</p>
+            <div class="quick-info">REVERSE · SAME DURATION · ORIGINAL SAMPLE RATE</div><p id="reverse-status" class="tool-footnote" role="status">Nahraj soubor a vyzkoušej reverse.</p>
+            <div class="quick-actions"><button data-quick-preview="reverse">▶ Preview</button><button data-quick-apply="reverse">Apply to Workspace</button><button data-quick-export="reverse">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-trim" class="tool-view" role="tabpanel" aria-labelledby="tab-trim" hidden>
+            <div class="tool-view-header"><span>02 / SILENCE TRIMMER</span><span>SMART BOUNDARIES</span></div><h3>Žádné ticho.<br><span>Jen zvuk.</span></h3><p class="tool-description">RMS detekce po 5ms oknech. Nastav threshold a bezpečný padding na obou koncích.</p>
+            <div class="tool-fields"><label>Threshold <output id="trim-db-label">−48 dBFS</output><input type="range" id="trim-threshold" min="-80" max="-18" value="-48" step="1"></label><label>Padding (ms)<input id="trim-padding" type="number" min="0" max="500" step="1" value="12"></label></div>
+            <p id="trim-status" class="tool-footnote" role="status">Po vložení souboru zobrazíme hranice střihu.</p><div class="quick-actions"><button data-quick-preview="trim">▶ Preview</button><button data-quick-apply="trim">Apply to Workspace</button><button data-quick-export="trim">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-calculator" class="tool-view" role="tabpanel" aria-labelledby="tab-calculator" hidden>
+            <div class="tool-view-header"><span>02 / BPM CALCULATOR</span><span>TIME VALUES</span></div><h3>Časuj přesně.<br><span>V milisekundách.</span></h3>
+            <div class="tool-fields"><label>Tempo (BPM)<input id="calc-bpm" type="number" min="20" max="400" step="0.1" value="120"></label></div>
+            <div class="pulse-calc-grid" id="calc-table" role="table" aria-label="Note lengths in milliseconds"></div><p id="calc-status" class="tool-footnote" role="status">Klikni na hodnotu pro zkopírování.</p>
+          </div>
+          <div id="panel-normalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-normalizer" hidden>
+            <div class="tool-view-header"><span>02 / NORMALIZER</span><span>GAIN CONTROL</span></div><h3>Správná úroveň.<br><span>Bez clippingu.</span></h3><p class="tool-description">Peak nebo gated integrated LUFS (K-weighted). Automatický gain bez komprese a bez překročení nastaveného ceilingu.</p>
+            <div class="tool-fields"><label>Mode<select id="norm-mode"><option value="peak">Peak dBFS</option><option value="lufs">Integrated LUFS</option></select></label><label id="norm-peak-field">Target peak (dBFS)<input id="norm-peak" type="number" min="-40" max="0" step="0.5" value="-1"></label><label id="norm-lufs-field" hidden>Target LUFS<input id="norm-lufs" type="number" min="-45" max="0" step="0.5" value="-14"></label><label>Peak ceiling (dBFS)<input id="norm-ceiling" type="number" min="-30" max="0" step="0.5" value="-1"></label></div>
+            <p id="norm-status" class="tool-footnote" role="status">Nahraj soubor a vyber normalizaci.</p><div class="quick-actions"><button data-quick-preview="normalizer">▶ Preview</button><button data-quick-apply="normalizer">Apply to Workspace</button><button data-quick-export="normalizer">Export WAV ↗</button></div>
+          </div>
         </div>
       </div>
-      
       <p class="message" id="tool-error" role="alert" hidden></p>
     </section>
     <section class="steps" aria-label="Tři kroky k tempu"><article><span class="step-number">01</span><div><h3>Nahraj.</h3><p>Audio i video. Stačí jeden soubor.</p></div></article><article><span class="step-number">02</span><div><h3>Najdi tempo.</h3><p>Pulse zachytí rytmus a odhadne BPM.</p></div></article><article><span class="step-number">03</span><div><h3>Chyť svůj flow.</h3><p>Pro střih, mix i tvůj další projekt.</p></div></article></section>

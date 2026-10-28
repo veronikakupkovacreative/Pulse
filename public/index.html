@@ -81,6 +81,35 @@
 @media(max-width:760px){.tool-tab.tool-tab-disabled b{font-size:8px;padding:4px}}
 @media(max-width:580px){.tool-tab.tool-tab-disabled b{align-self:flex-start;margin:3px 0 0;font-size:8px}}
 
+/* PHASE 1 / audio workspace controls and quick tool panels */
+.tool-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tool-tab{min-width:0}
+.pulse-workspace-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 0 7px;border-top:1px solid #dad9d2}
+.pulse-workspace-actions button{font:inherit;font-size:11px;background:transparent;border:1px solid #8d8b83;padding:9px 11px;color:#191919;cursor:pointer}
+.pulse-workspace-actions button:hover:not(:disabled){background:#191919;color:#f5f4f0}
+.pulse-workspace-actions button:disabled{opacity:.37;cursor:not-allowed}
+.pulse-workspace-actions span{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:1px;color:#ff2b20}
+.quick-info{padding:13px 0;color:#575650;font-size:10px;letter-spacing:.8px;border-top:1px solid #ccccca;border-bottom:1px solid #ccccca}
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.quick-actions button{border:1px solid #191919;background:#f5f4f0;color:#191919;padding:12px 11px;font-size:11px;font-weight:700;cursor:pointer;min-height:43px}
+.quick-actions button:last-child{background:#191919;color:#f5f4f0}
+.quick-actions button:hover:not(:disabled){border-color:#ff2b20;color:#ff2b20}
+.quick-actions button:disabled{opacity:.4;cursor:not-allowed}
+.quick-actions button:focus-visible,.pulse-workspace-actions button:focus-visible,.pulse-calc-grid button:focus-visible{outline:3px solid #ff2b20;outline-offset:3px}
+.tool-fields input[type=number]{width:100%;margin-top:5px;background:#f5f4f0;color:#191919;border:1px solid #99978f;padding:10px;font:inherit}
+.tool-fields input[type=range]{width:100%;accent-color:#ff2b20;margin-top:12px}
+.tool-fields output{float:right;color:#ff2b20}
+.pulse-calc-grid{display:grid;grid-template-columns:1.15fr repeat(3,1fr);font-size:10px;margin-top:16px;gap:1px;background:#b3b0a7;border:1px solid #b3b0a7}
+.pulse-calc-grid>*{padding:9px 5px;background:#eeede8;min-width:0;overflow-wrap:anywhere}
+.pulse-calc-grid button{border:0;text-align:center;color:#191919;background:#f5f4f0;cursor:copy;font-size:10px}
+.pulse-calc-grid button:hover{color:#ff2b20}
+@media(max-width:760px){.tool-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-actions button{flex:1 1 42%}}
+/* Buttons live on the dark source-audio surface; maintain readable contrast. */
+.tool-source .pulse-workspace-actions{border-top-color:#595955}
+.tool-source .pulse-workspace-actions button{color:#f5f4f0;border-color:#8c8b86;background:#292927}
+.tool-source .pulse-workspace-actions button:hover:not(:disabled){color:#191919;background:#f5f4f0}
+.tool-source .pulse-workspace-actions button:disabled{color:#9c9b94;border-color:#77766f;opacity:.45}
+
 </style>
 
 </head>
@@ -99,7 +128,6 @@
   <header class="header">
     <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
     <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
-    
   </header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
@@ -145,7 +173,11 @@
         <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
         <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter"><span>03</span> Loop Cutter <b>↗</b></button>
-        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>04</span> YouTube Audio <b>COMING SOON</b></button>
+        <button class="tool-tab" id="tab-reverse" role="tab" aria-selected="false" aria-controls="panel-reverse" tabindex="-1" data-tool="reverse"><span>04</span> Reverse <b>↗</b></button>
+        <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim"><span>05</span> Silence Trim <b>↗</b></button>
+        <button class="tool-tab" id="tab-calculator" role="tab" aria-selected="false" aria-controls="panel-calculator" tabindex="-1" data-tool="calculator"><span>06</span> BPM Calculator <b>↗</b></button>
+        <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer"><span>07</span> Normalizer <b>↗</b></button>
+        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>08</span> YouTube Audio <b>COMING SOON</b></button>
       </div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
@@ -154,6 +186,7 @@
           <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Začni se zvukem.</h3><p>Přetáhni sem WAV, MP3 nebo podporované audio/video.</p><button class="tool-action tool-action-light" id="tool-select-file">Vybrat soubor <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
           <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Odebrat soubor">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Vlnový průběh nahraného zvuku"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Přehrát zvuk">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Vyměnit ↗</button></div></div>
           <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Použít track z BPM analyzátoru ↗</button>
+          <div class="pulse-workspace-actions" id="pulse-workspace-actions" role="group" aria-label="Historie úprav"><button id="workspace-undo" disabled>↶ Undo</button><button id="workspace-redo" disabled>Redo ↷</button><button id="workspace-original" disabled>Reset to Original</button><span id="workspace-state" role="status">ORIGINAL</span></div>
           <p class="tool-source-foot"><svg><use href="#lock"/></svg> Soubor zůstává v prohlížeči.</p>
         </div>
         <div class="tool-settings">
@@ -168,9 +201,28 @@
             <div class="tool-fields cut-bottom"><label>Fade in / out<select id="cut-fade"><option value="0">Off</option><option value="5" selected>5 ms · clean cut</option><option value="20">20 ms</option><option value="100">100 ms</option></select></label><label>WAV bit depth<select id="cut-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label></div>
             <button class="tool-action tool-action-dark" id="cut-export" disabled>Exportovat loop (WAV) <span>↗</span></button><p class="tool-footnote" id="cut-status" role="status">Výběr můžeš přehrát tlačítkem vlevo.</p></div>
 
+          <div id="panel-reverse" class="tool-view" role="tabpanel" aria-labelledby="tab-reverse" hidden>
+            <div class="tool-view-header"><span>02 / AUDIO REVERSE</span><span>TIME DIRECTION</span></div><h3>Otoč směr.<br><span>Změň zvuk.</span></h3><p class="tool-description">Otočí pořadí samplů v každém kanálu. Původní soubor zůstává dostupný.</p>
+            <div class="quick-info">REVERSE · SAME DURATION · ORIGINAL SAMPLE RATE</div><p id="reverse-status" class="tool-footnote" role="status">Nahraj soubor a vyzkoušej reverse.</p>
+            <div class="quick-actions"><button data-quick-preview="reverse">▶ Preview</button><button data-quick-apply="reverse">Apply to Workspace</button><button data-quick-export="reverse">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-trim" class="tool-view" role="tabpanel" aria-labelledby="tab-trim" hidden>
+            <div class="tool-view-header"><span>02 / SILENCE TRIMMER</span><span>SMART BOUNDARIES</span></div><h3>Žádné ticho.<br><span>Jen zvuk.</span></h3><p class="tool-description">RMS detekce po 5ms oknech. Nastav threshold a bezpečný padding na obou koncích.</p>
+            <div class="tool-fields"><label>Threshold <output id="trim-db-label">−48 dBFS</output><input type="range" id="trim-threshold" min="-80" max="-18" value="-48" step="1"></label><label>Padding (ms)<input id="trim-padding" type="number" min="0" max="500" step="1" value="12"></label></div>
+            <p id="trim-status" class="tool-footnote" role="status">Po vložení souboru zobrazíme hranice střihu.</p><div class="quick-actions"><button data-quick-preview="trim">▶ Preview</button><button data-quick-apply="trim">Apply to Workspace</button><button data-quick-export="trim">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-calculator" class="tool-view" role="tabpanel" aria-labelledby="tab-calculator" hidden>
+            <div class="tool-view-header"><span>02 / BPM CALCULATOR</span><span>TIME VALUES</span></div><h3>Časuj přesně.<br><span>V milisekundách.</span></h3>
+            <div class="tool-fields"><label>Tempo (BPM)<input id="calc-bpm" type="number" min="20" max="400" step="0.1" value="120"></label></div>
+            <div class="pulse-calc-grid" id="calc-table" role="table" aria-label="Note lengths in milliseconds"></div><p id="calc-status" class="tool-footnote" role="status">Klikni na hodnotu pro zkopírování.</p>
+          </div>
+          <div id="panel-normalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-normalizer" hidden>
+            <div class="tool-view-header"><span>02 / NORMALIZER</span><span>GAIN CONTROL</span></div><h3>Správná úroveň.<br><span>Bez clippingu.</span></h3><p class="tool-description">Peak nebo gated integrated LUFS (K-weighted). Automatický gain bez komprese a bez překročení nastaveného ceilingu.</p>
+            <div class="tool-fields"><label>Mode<select id="norm-mode"><option value="peak">Peak dBFS</option><option value="lufs">Integrated LUFS</option></select></label><label id="norm-peak-field">Target peak (dBFS)<input id="norm-peak" type="number" min="-40" max="0" step="0.5" value="-1"></label><label id="norm-lufs-field" hidden>Target LUFS<input id="norm-lufs" type="number" min="-45" max="0" step="0.5" value="-14"></label><label>Peak ceiling (dBFS)<input id="norm-ceiling" type="number" min="-30" max="0" step="0.5" value="-1"></label></div>
+            <p id="norm-status" class="tool-footnote" role="status">Nahraj soubor a vyber normalizaci.</p><div class="quick-actions"><button data-quick-preview="normalizer">▶ Preview</button><button data-quick-apply="normalizer">Apply to Workspace</button><button data-quick-export="normalizer">Export WAV ↗</button></div>
+          </div>
         </div>
       </div>
-      
       <p class="message" id="tool-error" role="alert" hidden></p>
     </section>
     <section class="steps" aria-label="Tři kroky k tempu"><article><span class="step-number">01</span><div><h3>Nahraj.</h3><p>Audio i video. Stačí jeden soubor.</p></div></article><article><span class="step-number">02</span><div><h3>Najdi tempo.</h3><p>Pulse zachytí rytmus a odhadne BPM.</p></div></article><article><span class="step-number">03</span><div><h3>Chyť svůj flow.</h3><p>Pro střih, mix i tvůj další projekt.</p></div></article></section>
@@ -315,20 +367,263 @@ function detectKey(samples,sampleRate){
   return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};
 }
 
+  // Pulse Studio DSP - client-side only. All operations return fresh channel arrays.
+const check = (channels, sampleRate) => {
+  if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length ||
+     channels.some(c=>!(c instanceof Float32Array)||c.length!==channels[0].length))
+    throw new Error('Zvuk musí mít jeden nebo dva platné kanály.');
+  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná sample rate.');
+};
+function reverseAudio(channels,sampleRate){
+  check(channels,sampleRate);
+  return channels.map(ch=>Float32Array.from(ch).reverse());
+}
+function bpmDurations(bpm){
+  if(!Number.isFinite(bpm)||bpm<20||bpm>400)throw new Error('BPM musí být mezi 20 a 400.');
+  const beat=60000/bpm;
+  return [
+    ['Whole',4],['Half',2],['Quarter',1],['Eighth',.5],['Sixteenth',.25],
+  ].map(([name,factor])=>({name,straight:beat*factor,dotted:beat*factor*1.5,triplet:beat*factor*2/3}));
+}
+function detectSilenceBounds(channels,sampleRate,thresholdDb=-48,paddingMs=12){
+  check(channels,sampleRate);
+  if(!Number.isFinite(thresholdDb)||thresholdDb<-100||thresholdDb>0)throw new Error('Neplatný threshold.');
+  if(!Number.isFinite(paddingMs)||paddingMs<0||paddingMs>500)throw new Error('Padding musí být 0–500 ms.');
+  const length=channels[0].length,frame=Math.max(1,Math.round(sampleRate*.005));
+  const threshold=10**(thresholdDb/20);
+  let first=-1,last=-1;
+  for(let a=0;a<length;a+=frame){
+    const end=Math.min(length,a+frame);let power=0;
+    for(let c=0;c<channels.length;c++){
+      const ch=channels[c];let channelPower=0;
+      for(let j=a;j<end;j++)channelPower+=ch[j]*ch[j];
+      power=Math.max(power,channelPower/(end-a));
+    }
+    if(Math.sqrt(power)>=threshold){if(first===-1)first=a;last=end;}
+  }
+  if(first===-1)throw new Error('Vstup je pod nastaveným thresholdem. Zkus nižší hodnotu.');
+  const pad=Math.round(sampleRate*paddingMs/1000);
+  const start=Math.max(0,first-pad),end=Math.min(length,last+pad);
+  return {start,end,startSeconds:start/sampleRate,endSeconds:end/sampleRate,removedSeconds:(start+length-end)/sampleRate};
+}
+function trimAudio(channels,bounds){
+  if(!Number.isInteger(bounds.start)||!Number.isInteger(bounds.end)||bounds.start<0||bounds.end>channels[0]?.length||bounds.end<=bounds.start)
+    throw new Error('Neplatné hranice střihu.');
+  return channels.map(c=>c.slice(bounds.start,bounds.end));
+}
+function peakLevel(channels){
+  let peak=0;
+  for(const c of channels)for(let i=0;i<c.length;i++)peak=Math.max(peak,Math.abs(c[i]));
+  return peak;
+}
+function peakDb(channels){const p=peakLevel(channels);return p?20*Math.log10(p):-Infinity;}
+// K-weighting for ITU-R BS.1770: high-shelf and RLB high-pass, coefficient
+// design parameters from the ITU reference, converted for arbitrary sample rates.
+function highShelf(rate){
+  const f=1681.974450955533, gain=3.999843853973347, q=0.7071752369554196;
+  const A=10**(gain/40),w=2*Math.PI*f/rate,cs=Math.cos(w),sn=Math.sin(w);
+  const alpha=sn/2*Math.sqrt((A+1/A)*(1/q-1)+2),root=2*Math.sqrt(A)*alpha;
+  const b0=A*((A+1)+(A-1)*cs+root),b1=-2*A*((A-1)+(A+1)*cs),b2=A*((A+1)+(A-1)*cs-root);
+  const a0=(A+1)-(A-1)*cs+root,a1=2*((A-1)-(A+1)*cs),a2=(A+1)-(A-1)*cs-root;
+  return [b0/a0,b1/a0,b2/a0,a1/a0,a2/a0];
+}
+function highPass(rate){
+  const f=38.13547087602444,q=.5003270373238773,w=2*Math.PI*f/rate,cs=Math.cos(w),alpha=Math.sin(w)/(2*q);
+  const a0=1+alpha;
+  return [((1+cs)/2)/a0,-(1+cs)/a0,((1+cs)/2)/a0,-2*cs/a0,(1-alpha)/a0];
+}
+function filteredEnergySegments(channels,rate){
+  const segLen=Math.max(1,Math.round(rate*.1)),n=channels[0].length,count=Math.ceil(n/segLen);
+  const segments=new Float64Array(count);
+  for(const channel of channels){
+    let x1=0,x2=0,y1=0,y2=0,z1=0,z2=0,v1=0,v2=0;
+    const [a,b,c,d,e]=highShelf(rate),[h,i,j,k,l]=highPass(rate);
+    for(let t=0;t<n;t++){
+      const x=channel[t];
+      const y=a*x+b*x1+c*x2-d*y1-e*y2;
+      x2=x1;x1=x;y2=y1;y1=y;
+      const z=h*y+i*z1+j*z2-k*v1-l*v2;
+      z2=z1;z1=y;v2=v1;v1=z;
+      segments[Math.floor(t/segLen)]+=z*z;
+    }
+  }
+  return {segments,segLen};
+}
+function integratedLoudness(channels,sampleRate){
+  check(channels,sampleRate);
+  const length=channels[0].length;
+  if(length<sampleRate*.4)throw new Error('Pro měření LUFS potřebujeme alespoň 400 ms audia.');
+  const {segments,segLen}=filteredEnergySegments(channels,sampleRate);
+  const blocks=[];
+  // 400 ms windows, 75% overlap, with exact sample count in the final window.
+  const energyPrefix=new Float64Array(segments.length+1);
+  for(let j=0;j<segments.length;j++)energyPrefix[j+1]=energyPrefix[j]+segments[j];
+  for(let start=0;start+4<=segments.length;start++){
+    const samples=Math.min(length,(start+4)*segLen)-start*segLen;
+    const e=(energyPrefix[start+4]-energyPrefix[start])/samples;
+    if(e>0)blocks.push(e);
+  }
+  if(!blocks.length)return -Infinity;
+  const toLufs=e=>-0.691+10*Math.log10(e);
+  const absolute=blocks.filter(e=>toLufs(e)>=-70);
+  if(!absolute.length)return -Infinity;
+  const ungated=absolute.reduce((a,b)=>a+b,0)/absolute.length;
+  const relativeGate=toLufs(ungated)-10;
+  const gated=absolute.filter(e=>toLufs(e)>=relativeGate);
+  if(!gated.length)return -Infinity;
+  return toLufs(gated.reduce((a,b)=>a+b,0)/gated.length);
+}
+function normalizeAudio(channels,sampleRate,{mode='peak',targetPeak=-1,targetLufs=-14,ceiling=-1}={}){
+  check(channels,sampleRate);
+  if(!['peak','lufs'].includes(mode))throw new Error('Neznámý režim normalizace.');
+  if(!Number.isFinite(ceiling)||ceiling>0||ceiling<-30)throw new Error('Neplatný peak ceiling.');
+  const peak=peakLevel(channels);if(peak<1e-10)throw new Error('Ticho nelze normalizovat.');
+  let sourceLufs=null,desiredGain=1;
+  if(mode==='peak'){
+    if(!Number.isFinite(targetPeak)||targetPeak>0||targetPeak<-40)throw new Error('Cílový peak musí být -40 až 0 dBFS.');
+    desiredGain=10**(targetPeak/20)/peak;
+  }else{
+    if(!Number.isFinite(targetLufs)||targetLufs>0||targetLufs<-45)throw new Error('Cílové LUFS musí být -45 až 0.');
+    sourceLufs=integratedLoudness(channels,sampleRate);
+    if(!Number.isFinite(sourceLufs))throw new Error('LUFS nelze u tohoto souboru spolehlivě změřit.');
+    desiredGain=10**((targetLufs-sourceLufs)/20);
+  }
+  const maxGain=10**(ceiling/20)/peak;
+  // Gain-only normalization: never claim limiter/compression or fabricate target results.
+  const gain=Math.min(desiredGain,maxGain);
+  const result=channels.map(ch=>Float32Array.from(ch,x=>x*gain));
+  return {channels:result,gain,gainDb:20*Math.log10(gain),inputPeakDb:20*Math.log10(peak),outputPeakDb:peakDb(result),
+    inputLufs:sourceLufs,outputLufs:sourceLufs===null?null:sourceLufs+20*Math.log10(gain),
+    limited:gain<desiredGain-1e-9,mode};
+}
+
+  // One immutable source and a bounded, reversible working history.
+// AudioBuffers are never transferred to a remote service.
+function createAudioWorkspace({maxUndo=5}={}){
+  let original=null,working=null,file=null,undo=[],redo=[];
+  const listeners=new Set();
+  const emit=()=>{for(const listener of listeners)listener(snapshot());};
+  const snapshot=()=>({original,working,file,canUndo:undo.length>0,canRedo:redo.length>0,hasChanges:!!original&&working!==original});
+  return {
+    snapshot,
+    subscribe(listener){listeners.add(listener);return ()=>listeners.delete(listener);},
+    load(source,sourceFile){if(!source?.numberOfChannels||!source?.length)throw new Error('Neplatný audio buffer.');original=source;working=source;file=sourceFile;undo=[];redo=[];emit();},
+    apply(next){if(!original||!next?.length)throw new Error('Nemáš načtený žádný výsledek.');undo.push(working);if(undo.length>maxUndo)undo.shift();working=next;redo=[];emit();},
+    undo(){if(!undo.length)return false;redo.push(working);working=undo.pop();emit();return true;},
+    redo(){if(!redo.length)return false;undo.push(working);working=redo.pop();emit();return true;},
+    reset(){if(!original)return false;working=original;undo=[];redo=[];emit();return true;},
+    clear(){original=null;working=null;file=null;undo=[];redo=[];emit();}
+  };
+}
+
   
 function createKeyWorker(){return createBundledKeyWorker();}
 
 function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
-  const tools={file:null,buffer:null,loading:false,operation:0,tab:'converter',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,from:0,to:8,peaks:[],bpm:120};
+  const workspace=createAudioWorkspace({maxUndo:4});
+  const tools={quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'converter',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,from:0,to:8,peaks:[],bpm:120};
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
   const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB`;
+  function workingChanged(){
+    stopPreview();tools.quickCandidate=null;tools.quickBounds=null;
+    const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;
+    el('workspace-undo').disabled=!snapshot.canUndo;el('workspace-redo').disabled=!snapshot.canRedo;el('workspace-original').disabled=!snapshot.hasChanges;
+    status('workspace-state',snapshot.hasChanges?'WORKING AUDIO':'ORIGINAL');
+    if(!tools.buffer){el('tool-loaded').hidden=true;el('tool-empty').hidden=false;return;}
+    const buffer=tools.buffer;
+    tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);
+    tools.from=0;tools.to=Math.min(buffer.duration,8);
+    el('tool-name').textContent=tools.file?.name||'Audio';
+    status('tool-details',`${durationText(buffer.duration)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
+    el('tool-loaded').hidden=false;el('tool-empty').hidden=true;
+    updateTrimInputs();drawToolWave();resetKey();updateButtons();
+  }
+  function asAudioBuffer(data,rate){
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)throw new Error('Web Audio API není dostupné.');
+    tools.context||=new Ctx();
+    const buffer=tools.context.createBuffer(data.length,data[0].length,rate);
+    data.forEach((channel,i)=>buffer.copyToChannel(channel,i));
+    return buffer;
+  }
+  function clearQuick(){tools.quickCandidate=null;tools.quickBounds=null;drawToolWave();}
+  async function prepareQuick(kind){
+    if(!tools.buffer)throw new Error('Nejdřív nahraj audio soubor.');
+    const buffer=tools.buffer,rate=buffer.sampleRate,source=channels(buffer);
+    let result;
+    if(kind==='reverse'){
+      result=reverseAudio(source,rate);status('reverse-status','Kanály budou přehrány od konce. Délka a sample rate se nemění.');
+    }else if(kind==='trim'){
+      const threshold=Number(el('trim-threshold').value),padding=Number(el('trim-padding').value);
+      const bounds=detectSilenceBounds(source,rate,threshold,padding);
+      tools.quickBounds=bounds;
+      result=trimAudio(source,bounds);
+      status('trim-status',`Odstraněno ${bounds.removedSeconds.toFixed(3)} s ticha · nový úsek ${bounds.startSeconds.toFixed(3)}–${bounds.endSeconds.toFixed(3)} s.`);
+    }else if(kind==='normalizer'){
+      const options={mode:el('norm-mode').value,targetPeak:Number(el('norm-peak').value),targetLufs:Number(el('norm-lufs').value),ceiling:Number(el('norm-ceiling').value)};
+      const normalization=normalizeAudio(source,rate,options);
+      result=normalization.channels;
+      status('norm-status',`Gain ${normalization.gainDb.toFixed(2)} dB · Peak ${normalization.outputPeakDb.toFixed(2)} dBFS${normalization.outputLufs===null?'':` · LUFS ${normalization.outputLufs.toFixed(2)}`}${normalization.limited?' · Cíl omezen peak ceilingem.':''}`);
+    }else throw new Error('Neznámý nástroj.');
+    if(result[0].length*result.length*3>300*1024*1024)throw new Error('Výstup je příliš velký. Zkus kratší soubor.');
+    tools.quickCandidate={kind,buffer:asAudioBuffer(result,rate)};
+    drawToolWave();
+    return tools.quickCandidate.buffer;
+  }
+  async function quickAction(kind,action){
+    if(tools.loading||!tools.buffer){error('Nejdřív nahraj zvuk.');return;}
+    clearError();stopPreview();setBusy(true);
+    const token=++tools.operation;
+    try{
+      await new Promise(resolve=>setTimeout(resolve,0));
+      if(token!==tools.operation)return;
+      const buffer=await prepareQuick(kind);
+      if(action==='apply'){
+        workspace.apply(buffer);workingChanged();
+        status(kind==='normalizer'?'norm-status':kind==='trim'?'trim-status':'reverse-status','Úprava použita. Další nástroj pracuje s výsledkem.');
+      }else if(action==='export'){
+        const data=channels(buffer),wav=encodeWav(data,buffer.sampleRate,24);
+        download(wav,filename(kind+'-pulse.wav').replace(/\.wav\.wav$/,'.wav'));
+        status(kind==='normalizer'?'norm-status':kind==='trim'?'trim-status':'reverse-status',`WAV exportován (${readableSize(wav.size)}).`);
+      }else if(action==='preview'){
+        const Ctx=window.AudioContext||window.webkitAudioContext;
+        tools.context||=new Ctx();if(tools.context.state==='suspended')await tools.context.resume();
+        const src=tools.context.createBufferSource();src.buffer=buffer;src.connect(tools.context.destination);
+        src.onended=()=>{if(tools.source===src)stopPreview();};
+        tools.source=src;tools.playing=true;src.start();
+        el('tool-preview').textContent='Ⅱ';el('tool-preview').setAttribute('aria-label','Zastavit náhled');
+        const started=tools.context.currentTime;
+        tools.previewTimer=setInterval(()=>status('tool-time',`${durationText(Math.min(buffer.duration,tools.context.currentTime-started))} / ${durationText(buffer.duration)}`),150);
+      }
+    }catch(e){if(token===tools.operation)error(e.message||'Zpracování se nezdařilo.');}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  function updateCalculator(){
+    const target=el('calc-table'),value=Number(el('calc-bpm').value);
+    try{
+      const lengths=bpmDurations(value);
+      target.replaceChildren();
+      for(const head of ['NOTE','STRAIGHT','DOTTED','TRIPLET']){
+        const item=document.createElement('strong');item.textContent=head;target.append(item);
+      }
+      for(const row of lengths){
+        const label=document.createElement('span');label.textContent=row.name;target.append(label);
+        for(const val of [row.straight,row.dotted,row.triplet]){
+          const btn=document.createElement('button');btn.type='button';btn.title='Kopírovat '+val.toFixed(2)+' ms';btn.textContent=val.toFixed(2)+' ms';
+          btn.onclick=async()=>{try{await navigator.clipboard.writeText(val.toFixed(2));status('calc-status','Zkopírováno: '+val.toFixed(2)+' ms');}catch{status('calc-status','Zkopíruj hodnotu: '+val.toFixed(2)+' ms');}};
+          target.append(btn);
+        }
+      }
+      status('calc-status',`Časové hodnoty pro ${value.toLocaleString('cs-CZ')} BPM.`);
+    }catch(e){target.replaceChildren();status('calc-status',e.message);}
+  }
   function status(id,text){el(id).textContent=text;}
   function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;}
   function clearError(){el('tool-error').hidden=true;}
-  function setBusy(busy){tools.loading=busy;el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
+  function setBusy(busy){tools.loading=busy;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
   function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;if(mp3&&el('conv-rate').value==='96000')el('conv-rate').value='48000';el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
   function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;el('cut-bpm').value=other.bpm;}}
@@ -338,7 +633,22 @@ function initStudioTools(getBpmTrack){
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
     tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Přehrát zvuk');
   }
-  function remove(){tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
+  function remove(){workspace.clear();tools.quickCandidate=null;tools.quickBounds=null;el('workspace-undo').disabled=true;el('workspace-redo').disabled=true;el('workspace-original').disabled=true;status('workspace-state','ORIGINAL');tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
+  function nativeWavRate(data){
+    // Most WAV files advertise sample rate in the fmt chunk (not always byte 24).
+    if(data.byteLength<44)return null;
+    const view=new DataView(data),string=off=>String.fromCharCode(...new Uint8Array(data,off,4));
+    if(string(0)!=='RIFF'||string(8)!=='WAVE')return null;
+    let p=12;
+    while(p+8<=data.byteLength&&p<1024*1024){
+      const size=view.getUint32(p+4,true);if(string(p)==='fmt '&&size>=16&&p+24<=data.byteLength){
+        const rate=view.getUint32(p+12,true);
+        return rate>=8000&&rate<=192000?rate:null;
+      }
+      p+=8+size+(size%2);
+    }
+    return null;
+  }
   async function decode(file){
     clearError();
     if(tools.loading)return;
@@ -352,10 +662,13 @@ function initStudioTools(getBpmTrack){
       const Ctx=window.AudioContext||window.webkitAudioContext;
       if(!Ctx)throw new Error('Prohlížeč nepodporuje dekódování audia.');
       tools.context||=new Ctx();
-      const buffer=await tools.context.decodeAudioData(await file.arrayBuffer());
+      const bytes=await file.arrayBuffer(),fileRate=nativeWavRate(bytes);
+      const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+      const decoder=fileRate&&Offline?new Offline(1,1,fileRate):tools.context;
+      const buffer=await decoder.decodeAudioData(bytes);
       if(token!==tools.operation)return;
       if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
-      tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
+      workspace.load(buffer,file);tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
       tools.to=Math.min(buffer.duration,8);updateBpmFromAnalyzer();
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
@@ -420,7 +733,7 @@ function initStudioTools(getBpmTrack){
   }
   function selectTab(which){
     tools.tab=which;stopPreview();
-    for(const name of ['converter','key','cutter']){
+    for(const name of ['converter','key','cutter','reverse','trim','calculator','normalizer']){
       const selected=which===name,tab=el('tab-'+name);
       tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
     }
@@ -460,15 +773,15 @@ function initStudioTools(getBpmTrack){
     canvas.width=Math.max(1,Math.round(w*dpr));canvas.height=Math.max(1,Math.round(h*dpr));
     const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
     const bars=tools.peaks.length,bar=w/bars,duration=tools.buffer.duration;
-    const a=tools.tab==='cutter'?tools.from/duration:0,b=tools.tab==='cutter'?tools.to/duration:1;
+    const a=tools.tab==='cutter'?tools.from/duration:tools.tab==='trim'&&tools.quickBounds?tools.quickBounds.startSeconds/duration:0,b=tools.tab==='cutter'?tools.to/duration:tools.tab==='trim'&&tools.quickBounds?tools.quickBounds.endSeconds/duration:1;
     ctx.fillStyle='#30302d';ctx.fillRect(0,0,w,h);
-    if(tools.tab==='cutter'){ctx.fillStyle='#262622';ctx.fillRect(0,0,w*a,h);ctx.fillRect(w*b,0,w*(1-b),h);ctx.fillStyle='#44312d';ctx.fillRect(w*a,0,w*(b-a),h);}
+    if(tools.tab==='cutter'||tools.tab==='trim'&&tools.quickBounds){ctx.fillStyle='#262622';ctx.fillRect(0,0,w*a,h);ctx.fillRect(w*b,0,w*(1-b),h);ctx.fillStyle='#44312d';ctx.fillRect(w*a,0,w*(b-a),h);}
     for(let i=0;i<bars;i++){
       const amp=Math.max(2,Math.pow(tools.peaks[i],.55)*h*.76),x=i*bar;
       ctx.fillStyle=(i/bars>=a&&i/bars<=b)?'#ff2b20':'#777771';
       ctx.fillRect(x,(h-amp)/2,Math.max(1,bar*.68),amp);
     }
-    if(tools.tab==='cutter'){
+    if(tools.tab==='cutter'||tools.tab==='trim'&&tools.quickBounds){
       for(const x of [w*a,w*b]){ctx.fillStyle='#f5f4f0';ctx.fillRect(x-1,0,2,h);ctx.beginPath();ctx.arc(x,h/2,6,0,Math.PI*2);ctx.fill();}
     }
   }
@@ -541,13 +854,24 @@ function initStudioTools(getBpmTrack){
   document.querySelectorAll('[data-tool-nav]').forEach(link=>{link.addEventListener('click',()=>selectTab(link.dataset.toolNav));});
   document.querySelectorAll('[data-tool]').forEach(button=>{
     button.addEventListener('click',()=>selectTab(button.dataset.tool));
-    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
+    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter','reverse','trim','calculator','normalizer'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
   });
+  document.querySelectorAll('[data-quick-preview]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quickPreview,'preview'));
+  document.querySelectorAll('[data-quick-apply]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quickApply,'apply'));
+  document.querySelectorAll('[data-quick-export]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quickExport,'export'));
+  el('workspace-undo').onclick=()=>{if(workspace.undo())workingChanged();};
+  el('workspace-redo').onclick=()=>{if(workspace.redo())workingChanged();};
+  el('workspace-original').onclick=()=>{if(workspace.reset())workingChanged();};
+  el('calc-bpm').oninput=updateCalculator;
+  el('trim-threshold').oninput=()=>{status('trim-db-label',el('trim-threshold').value+' dBFS');clearQuick();};
+  el('trim-padding').oninput=clearQuick;
+  el('norm-mode').onchange=()=>{el('norm-peak-field').hidden=el('norm-mode').value!=='peak';el('norm-lufs-field').hidden=el('norm-mode').value!=='lufs';clearQuick();};
+  for(const id of ['norm-peak','norm-lufs','norm-ceiling'])el(id).oninput=clearQuick;
   el('tool-select-file').onclick=el('tool-change').onclick=()=>el('tool-file-input').click();
   el('tool-file-input').onchange=e=>decode(e.target.files[0]);
   el('tool-remove').onclick=remove;
   el('tool-preview').onclick=preview;
-  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
   el('conv-format').onchange=syncOutput;
   el('conv-export').onclick=exportConvert;
   el('key-analyze').onclick=analyzeKey;
@@ -568,7 +892,7 @@ function initStudioTools(getBpmTrack){
   window.addEventListener('pulse:bpm-track-ready',updateButtons);
   const resize=new ResizeObserver(()=>drawToolWave());resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.keyWorker?.terminate();tools.context?.close();});
-  syncOutput();updateButtons();
+  syncOutput();updateCalculator();updateButtons();
   return {reset:remove};
 }
 

@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f4f0">
+  <meta name="description" content="Najdi tempo svého tracku. Pulse změří BPM z WAV, MP3 i MP4 přímo v prohlížeči. Tvoje soubory zůstávají u tebe.">
+  <title>Pulse Studio 2.2 — BPM, WAV, YouTube a sample cutter</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
+  <style>
+:root{--paper:#f5f4f0;--ink:#191919;--red:#ff2b20;--muted:#686763;--line:#d6d5cf;--font:Arial,Helvetica,sans-serif}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}button,input,a{-webkit-tap-highlight-color:transparent}button,a{touch-action:manipulation}button{font:inherit;cursor:pointer}button{color:inherit}button:disabled{cursor:wait;opacity:.5}button,a,input{outline-offset:5px}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--red)}a{color:inherit;text-decoration:none}button{border:0;background:none}svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}[hidden]{display:none!important}.svg-defs{position:absolute;width:0;height:0}.shell{width:min(1440px,100%);margin:auto;padding:0 64px}.header{height:98px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:32px}.brand{display:flex;align-items:center;font-size:36px;font-weight:700;letter-spacing:-1.8px;gap:10px}.brand-dot{width:27px;height:27px;border-radius:50%;background:var(--red)}.brand-period{font-size:10px;align-self:flex-start;margin:7px 0 0 -5px;letter-spacing:0}.header nav{display:flex;gap:32px;align-items:center}.nav-link{font-size:13px;padding:12px 0;display:flex;gap:13px;align-items:center;color:#62625d}.nav-link:hover,.nav-link.active{color:var(--ink)}.nav-link.active{font-weight:700}.nav-link span:not(.nav-dot){font-size:18px}.nav-dot{width:5px;height:5px;background:var(--red);border-radius:50%}.header-note{font-size:12px;display:flex;align-items:center;gap:8px}.tiny-dot{width:6px;height:6px;border-radius:50%;background:var(--red)}.hero{display:flex;justify-content:space-between;align-items:center;padding:50px 0 43px;gap:30px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.5px;margin:0 0 20px;display:flex;align-items:center;gap:9px}.small-cross{font-size:18px;font-weight:400;line-height:10px}.hero h1{font-size:clamp(64px,6.5vw,94px);line-height:.94;letter-spacing:-6px;font-weight:600;margin:0}.hero h1 span{color:var(--red)}.intro{font-size:15px;line-height:1.55;margin:20px 0 0;color:#60605a}.hero-art{width:291px;margin:3px 35px 0 0}.circle-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.circle-grid i{display:block;aspect-ratio:1;background:var(--red);border-radius:50%}.circle-grid .outline{background:none;border:1px solid var(--red)}.circle-grid .black{background:var(--ink)}.art-caption{display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:1.5px;font-weight:700;margin-top:15px}.art-caption span:last-child{font-size:23px;line-height:1}.section-label{display:flex;justify-content:space-between;align-items:center;padding:0 0 13px}.section-label h2{font-size:10px;letter-spacing:1.2px;margin:0;font-weight:600}.section-label>span{font-size:9px;letter-spacing:1px;color:var(--muted)}.workspace{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;min-height:386px}.upload-panel{background:var(--ink);color:var(--paper);position:relative;display:flex;flex-direction:column;justify-content:center;padding:24px;min-width:0}.upload-empty{min-height:294px;border:1px dashed #53534e;display:flex;align-items:center;flex-direction:column;justify-content:center;padding:26px 16px 22px}.upload-icon{display:grid;place-items:center;width:45px;height:45px;border:1px solid #6a6a64;border-radius:50%;margin-bottom:19px}.upload-icon svg{width:25px;height:25px}.upload-empty h3{font-size:28px;letter-spacing:-.8px;font-weight:500;margin:0 0 10px}.upload-empty p{font-size:12px;color:#b1b1aa;margin:0 0 23px;line-height:1.7}.button{display:flex;align-items:center;justify-content:space-between;gap:30px;min-height:45px;padding:0 19px;font-size:12px;font-weight:600;transition:background .15s,transform .15s}.button:hover{background:var(--red);color:var(--ink);transform:translateY(-2px)}.button-light{background:var(--paper);color:var(--ink)}.button svg{width:17px;height:17px}.file-limit{font-size:10px;color:#a6a6a0;margin-top:14px}.file-limit span{margin:0 5px}.privacy-note{display:flex;align-items:center;justify-content:center;gap:7px;font-size:10px;margin:18px 0 0;color:#b2b2ac}.privacy-note svg{width:12px;height:12px}.drag-overlay{display:none;position:absolute;inset:12px;background:var(--red);color:var(--ink);align-items:center;justify-content:center;flex-direction:column;gap:20px;border:1px dashed var(--ink);z-index:5}.drag-overlay span{font-size:44px;letter-spacing:-2px}.drag-overlay svg{width:50px;height:50px}.is-dragging .drag-overlay{display:flex}.result-panel{background:var(--red);padding:23px 25px 21px;display:flex;flex-direction:column;align-items:center;min-width:0;position:relative;overflow:hidden}.result-top{display:flex;align-items:center;justify-content:space-between;align-self:stretch;gap:10px}.result-top h3{font-size:10px;font-weight:700;letter-spacing:1.4px;margin:0}.result-top>span{display:flex;gap:6px;align-items:center;font-size:8px;letter-spacing:.6px}.result-top i{width:5px;height:5px;border-radius:50%;border:1px solid var(--ink)}.tempo-circle{width:238px;height:238px;border:1px solid #19191985;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:26px 0 24px;flex-shrink:0}.bpm-number{font-size:100px;line-height:1;font-weight:500;letter-spacing:-8px;font-variant-numeric:tabular-nums;padding-right:6px}.bpm-number.decimal{font-size:78px;letter-spacing:-6px}.bpm-label{font-size:9px;letter-spacing:1.6px;margin-top:10px}.orbit-dot{width:14px;height:14px;border-radius:50%;background:var(--ink);position:absolute;top:27px;right:24px;outline:6px solid var(--red)}.result-empty{margin-top:auto;display:flex;justify-content:space-between;align-items:center;width:100%;font-size:11px}.result-empty>span:last-child{font-size:25px}.demo-line{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;margin:18px 0 31px;color:var(--muted)}.demo-line button{font-size:11px;padding:5px;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px}.demo-line button span{display:inline-block;text-decoration:none;margin-left:5px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;padding:25px 0 29px;border-top:1px solid var(--line)}.steps article{display:flex;gap:16px;align-items:flex-start}.step-number{border:1px solid #b0afa7;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-size:10px;margin-top:1px;flex-shrink:0}.steps h3{font-size:18px;letter-spacing:-.5px;font-weight:500;margin:0 0 7px}.steps p{font-size:11px;line-height:1.5;color:var(--muted);margin:0}footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:20px 0 25px}footer>span:nth-child(2){font-size:8px;letter-spacing:1.5px;color:var(--muted)}.footer-wordmark{font-size:18px;font-weight:700;letter-spacing:-.7px;display:flex;align-items:center;gap:6px}.footer-wordmark i{width:12px;height:12px;border-radius:50%;background:var(--ink)}footer button{font-size:10px;color:var(--muted)}footer button span{margin-left:8px}.mobile-break{display:none}.processing{min-height:294px;display:flex;flex-direction:column;align-items:center;justify-content:center}.processing h3{font-size:27px;letter-spacing:-.8px;margin:22px 0 6px;font-weight:500}.processing p{font-size:12px;color:#b3b3ab;margin:0}.loader{display:flex;gap:7px}.loader i{width:19px;height:19px;border-radius:50%;background:var(--red);animation:bounce 1s ease-in-out infinite}.loader i:nth-child(2){animation-delay:.15s}.loader i:nth-child(3){animation-delay:.3s}.progress-line{width:180px;height:2px;background:#454540;margin:25px 0 20px;overflow:hidden}.progress-line:after{content:'';display:block;width:40%;height:100%;background:var(--red);animation:progress 1.8s infinite}.text-button{color:#d8d8d0;font-size:11px;text-decoration:underline;text-underline-offset:4px;padding:5px}.track-content{padding:0 10px;min-height:294px;display:flex;flex-direction:column;justify-content:center}.track-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.track-type{font-size:10px;letter-spacing:1px;border:1px solid #64645e;padding:5px 8px}.icon-button{width:32px;height:32px;display:grid;place-items:center;padding:6px}.icon-button:hover{background:#ffffff15}.icon-button svg{width:18px;height:18px}.track-content h3{font-size:22px;line-height:1.2;letter-spacing:-.5px;margin:0 0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.track-meta{font-size:11px;color:#aaa9a2;margin:0}.waveform-wrap{height:84px;position:relative;margin:22px 0 15px}.waveform-wrap canvas{width:100%;height:100%;display:block}.waveform-wrap input{width:100%;height:100%;margin:0;position:absolute;inset:0;opacity:0;cursor:pointer}.waveform-wrap:focus-within{outline:2px solid var(--red);outline-offset:6px}.player{display:flex;align-items:center;gap:13px}.play-button{height:37px;width:37px;border-radius:50%;background:var(--paper);color:var(--ink);display:grid;place-items:center}.play-button svg{width:20px;height:20px}.player-time{font-size:10px;font-variant-numeric:tabular-nums}.time-separator{color:#777;margin:0 7px}.replace{margin-left:auto}.result-controls{width:100%;margin-top:auto}.has-result .tempo-circle{width:204px;height:204px;margin:15px 0 15px}.has-result .bpm-number{font-size:86px}.has-result .bpm-number.decimal{font-size:66px;letter-spacing:-5px}.has-result .orbit-dot{top:22px;right:19px}.tempo-actions{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #19191940}.tempo-multipliers{display:flex;gap:5px}.tempo-multipliers button{font-size:11px;border:1px solid #19191970;padding:6px 9px;min-width:37px}.tempo-multipliers button:hover,.copy-button:hover{background:#19191912}.copy-button{display:flex;align-items:center;gap:7px;font-size:10px;padding:6px}.copy-button svg{height:13px;width:13px}.metronome-row{display:flex;align-items:center;justify-content:space-between;padding-top:12px}.metronome-row button{display:flex;align-items:center;gap:7px;font-size:10px;padding:0}.switch{width:25px;height:14px;border:1px solid #19191990;border-radius:10px;padding:2px;display:flex}.switch i{width:8px;height:8px;background:var(--ink);border-radius:50%;transition:transform .15s}.metronome-row button[aria-pressed=true] .switch{background:var(--ink)}.metronome-row button[aria-pressed=true] .switch i{background:var(--red);transform:translateX(10px)}.beat-dots{display:flex;gap:5px}.beat-dots i{width:5px;height:5px;border-radius:50%;border:1px solid var(--ink)}.beat-dots i.on{background:var(--ink);transform:scale(1.3)}.message{font-size:12px;line-height:1.6;padding:16px 18px;border-left:3px solid var(--red);background:#eae8e2;margin-top:14px}.result-note{font-size:11px;line-height:1.65;margin:14px 0;color:var(--muted)}dialog{background:var(--paper);color:var(--ink);border:0;max-width:530px;width:calc(100% - 32px);padding:40px;margin:auto;max-height:90dvh;overflow:auto}dialog::backdrop{background:#151515a8;backdrop-filter:blur(4px)}dialog h2{font-size:44px;letter-spacing:-2px;line-height:1.03;margin:23px 0 26px;font-weight:500}.dialog-close{position:absolute;right:14px;top:14px}.dialog-close:hover{background:#19191912}.help-list{padding:0;list-style:none;counter-reset:help;display:flex;flex-direction:column;gap:22px}.help-list li{counter-increment:help;padding-left:32px;position:relative}.help-list li:before{content:'0' counter(help);position:absolute;left:0;top:1px;font-size:11px;color:#9b1b15}.help-list strong{font-size:14px;font-weight:600;display:block;margin-bottom:6px}.help-list span,.privacy-copy{font-size:13px;line-height:1.65;color:#55554f}.dialog-footnote{font-size:11px;line-height:1.65;color:var(--muted);border-top:1px solid var(--line);padding-top:18px;margin-top:26px}.tap-pad{width:220px;height:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;border-radius:50%;background:var(--red);margin:30px auto;transition:transform .08s}.tap-pad:active,.tap-pad.pressed{transform:scale(.94)}#tap-value{font-size:66px;letter-spacing:-4px}#tap-hint{font-size:10px;margin-top:4px}.tap-instruction{text-align:center;font-size:12px;color:var(--muted)}.tap-bottom{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:22px}.tap-bottom>*{font-size:11px}.tap-bottom button{text-decoration:underline;text-underline-offset:4px}.toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-size:12px;padding:14px 22px;z-index:10;box-shadow:0 2px 20px #0002}.sr-only{position:absolute;overflow:hidden;width:1px;height:1px;white-space:nowrap;clip:rect(0,0,0,0);clip-path:inset(50%)}@keyframes bounce{0%,80%,100%{transform:scale(.65);opacity:.45}40%{transform:scale(1);opacity:1}}@keyframes progress{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
+@media(min-width:1500px){.hero{padding-top:60px;padding-bottom:50px}.workspace{min-height:410px}.upload-empty{min-height:318px}.tempo-circle{width:250px;height:250px;margin-top:29px}.hero-art{width:300px}}
+@media(max-width:1100px){.shell{padding:0 36px}.header-note{display:none}.hero-art{width:245px;margin-right:15px}.hero h1{font-size:82px}.workspace{grid-template-columns:1.3fr 1fr}.result-panel{padding:22px 20px}.result-top>span{font-size:7px}.upload-empty h3{font-size:25px}.tempo-circle{width:220px;height:220px}.privacy-note{font-size:9px}.steps{gap:18px}.steps p{max-width:180px}}
+@media(max-width:760px){.shell{padding:0 24px}.header{height:80px;gap:10px}.brand{font-size:29px;gap:7px}.brand-dot{width:22px;height:22px}.header nav{gap:20px}.nav-link{font-size:11px;gap:5px}.nav-link.active{display:none}.hero{padding:35px 0}.hero h1{font-size:69px;letter-spacing:-4px}.hero-art{width:190px;margin:0}.intro{font-size:13px}.hero .eyebrow{font-size:8px;letter-spacing:1px}.art-caption{font-size:7px;letter-spacing:1px}.workspace{grid-template-columns:1fr 0.95fr;gap:10px}.upload-panel{padding:17px}.upload-empty h3{font-size:22px}.upload-empty p{font-size:11px;text-align:center}.mobile-break{display:block}.file-limit{font-size:9px;max-width:160px;text-align:center;line-height:1.6}.privacy-note{font-size:8px;line-height:1.5;text-align:center;gap:5px}.result-top{align-items:flex-start}.result-top h3{font-size:9px}.result-top>span{font-size:7px;max-width:70px;line-height:1.4;text-align:right}.result-panel{padding:22px 17px}.tempo-circle{width:193px;height:193px;margin:auto 0}.bpm-number{font-size:86px}.result-empty{font-size:9px;gap:10px}.result-empty>span:last-child{font-size:22px}.has-result .tempo-circle{width:170px;height:170px;margin:auto 0 14px}.has-result .bpm-number{font-size:75px}.has-result .bpm-number.decimal{font-size:58px}.tempo-circle .orbit-dot{width:11px;height:11px;top:22px;right:18px}.has-result .orbit-dot{top:19px;right:14px}.bpm-label{font-size:7px}.result-controls{margin-top:0}.copy-button{gap:4px;font-size:9px}.tempo-multipliers button{padding:5px 6px;min-width:30px}.metronome-row button{font-size:9px}.track-content{padding:0}.track-content h3{font-size:18px}.track-meta{font-size:10px}.track-content .replace{font-size:10px}.steps{gap:14px}.steps article{gap:10px}.step-number{width:24px;height:24px;font-size:9px}.steps h3{font-size:16px}.steps p{font-size:10px}footer>span:nth-child(2){font-size:7px;letter-spacing:1px}}
+@media(max-width:580px){.shell{padding:0 20px}.header{height:74px}.header nav{gap:17px}.nav-link{font-size:10px}.nav-link span{font-size:16px!important}.hero{padding:32px 0 29px;align-items:flex-start;gap:12px;position:relative}.hero h1{font-size:68px;letter-spacing:-4.5px}.hero .eyebrow{font-size:8px;letter-spacing:.6px;margin-bottom:18px}.hero-art{width:107px;position:absolute;right:0;top:42px}.circle-grid{gap:4px}.art-caption{display:none}.hero-copy{width:100%}.intro{margin-top:17px;font-size:12px;line-height:1.6}.section-label{padding-bottom:11px}.section-label h2{font-size:9px;letter-spacing:.9px}.section-label>span{display:none}.workspace{grid-template-columns:1fr;gap:10px}.upload-panel{padding:18px}.upload-empty{min-height:278px;padding-top:24px}.upload-empty h3{font-size:27px}.upload-empty p{font-size:11px;margin-bottom:19px}.mobile-break{display:none}.file-limit{max-width:none;font-size:9px}.privacy-note{font-size:9px;margin-top:15px}.result-panel{min-height:332px;padding:21px 23px 18px}.result-top h3{font-size:10px}.result-top>span{max-width:none;font-size:8px}.tempo-circle{width:206px;height:206px;margin:17px 0}.bpm-number{font-size:96px}.bpm-label{font-size:8px}.result-empty{font-size:10px}.has-result .tempo-circle{width:186px;height:186px;margin:17px 0}.has-result .bpm-number{font-size:84px}.has-result .bpm-number.decimal{font-size:66px}.has-result .result-panel{min-height:365px}.result-controls{margin-top:auto}.tempo-multipliers button{padding:7px 10px;font-size:11px}.copy-button{font-size:11px;gap:7px}.metronome-row button{font-size:11px}.beat-dots{gap:7px}.beat-dots i{width:6px;height:6px}.demo-line{margin:14px 0 25px;flex-wrap:wrap;gap:0 4px;font-size:10px}.demo-line button{font-size:10px}.steps{grid-template-columns:1fr;gap:23px;padding:25px 0}.steps article{gap:15px;align-items:center}.steps h3{font-size:19px;margin-bottom:4px}.steps p{font-size:11px;max-width:none}.step-number{height:31px;width:31px;font-size:10px}.footer-wordmark{font-size:17px}footer>span:nth-child(2){display:none}footer{padding:18px 0 24px}.track-content{padding:2px 3px}.track-content h3{font-size:23px}.track-content .replace{font-size:11px}.track-meta{font-size:11px}.player-time{font-size:11px}.processing{min-height:278px}dialog{padding:32px 26px}dialog h2{font-size:40px}.tap-pad{height:200px;width:200px}.result-note{font-size:11px}.toast{max-width:calc(100% - 32px);width:max-content;text-align:center}}
+@media(max-width:360px){.hero-art{width:85px;top:48px}.hero h1{font-size:61px}.header nav{gap:12px}.nav-link{font-size:9px}.upload-empty h3{font-size:25px}.upload-empty p{font-size:10px}.brand{font-size:27px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(max-width:580px){.hero-art{width:72px;top:128px}.hero-art .circle-grid{gap:3px}}
+@media(max-width:360px){.hero-art{width:64px;top:118px}}
+
+/* PULSE STUDIO / producer toolkit */
+.toolkit{margin:46px 0 52px;scroll-margin-top:20px}.toolkit-heading{display:flex;align-items:end;justify-content:space-between;gap:35px;margin:24px 0 30px}.toolkit-heading .eyebrow{margin-bottom:16px}.toolkit-heading h2{font-size:clamp(44px,5.4vw,78px);line-height:.98;letter-spacing:-4px;font-weight:600;margin:0}.toolkit-heading h2 span{color:var(--red)}.toolkit-heading>p{font-size:13px;line-height:1.65;color:var(--muted);max-width:295px;margin:0 0 6px}.tool-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:13px}.tool-tab{background:#e5e3dd;min-height:65px;padding:15px 19px;display:flex;align-items:center;gap:16px;font-size:18px;letter-spacing:-.4px;text-align:left;transition:background .15s,color .15s}.tool-tab span{font-size:10px;align-self:flex-start;color:var(--muted);letter-spacing:0}.tool-tab b{margin-left:auto;font-size:15px;font-weight:400}.tool-tab:hover{background:#d5d3cd}.tool-tab.selected{background:var(--ink);color:var(--paper)}.tool-tab.selected span{color:var(--red)}.tool-board{display:grid;grid-template-columns:1.18fr 1fr;gap:13px;min-height:570px}.tool-source{background:var(--ink);color:var(--paper);padding:25px;display:flex;flex-direction:column;min-width:0;position:relative}.tool-head,.tool-view-header{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;letter-spacing:1.25px;gap:10px}.tool-head .tiny-status{font-size:8px;font-weight:400;color:#aaa;letter-spacing:.7px;white-space:nowrap}.tiny-status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:7px}.tool-empty{flex:1;border:1px dashed #585853;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;margin:21px 0 0;min-height:335px;padding:28px 15px}.tool-empty-icon{width:58px;height:58px;border-radius:50%;background:var(--red);color:var(--ink);display:grid;place-items:center;font-size:34px;margin-bottom:25px;line-height:1}.tool-empty h3{font-size:clamp(24px,2.6vw,35px);font-weight:500;letter-spacing:-1.5px;margin:0 0 13px}.tool-empty p{font-size:12px;color:#b9b8b3;line-height:1.65;max-width:245px;margin:0 0 20px}.tool-action{width:100%;min-height:52px;padding:14px 19px;display:flex;align-items:center;justify-content:space-between;text-align:left;gap:12px;font-size:13px;font-weight:600;transition:background .16s,transform .16s}.tool-action span{font-size:20px;line-height:1}.tool-action:not(:disabled):hover{transform:translateY(-2px)}.tool-action-light{background:var(--paper);color:var(--ink);max-width:222px}.tool-action-light:hover{background:var(--red)}.tool-muted{font-size:9px;letter-spacing:1px;margin-top:17px;color:#85847f}.tool-source-foot{font-size:10px;color:#aeada8;display:flex;gap:7px;align-items:center;justify-content:center;margin:21px 0 0}.tool-source-foot svg{width:12px;height:12px}.tool-loaded{flex:1;display:flex;flex-direction:column;justify-content:center;padding:26px 13px 0;min-width:0}.tool-file-label{display:flex;justify-content:space-between;align-items:center}.tool-file-label span{font-size:10px;border:1px solid #6c6b64;padding:6px 9px;letter-spacing:1px}.tool-file-label button{width:34px;height:34px;color:var(--paper);font-size:24px;line-height:1}.tool-file-label button:hover{color:var(--red)}.tool-loaded h3{font-size:clamp(20px,2.6vw,30px);font-weight:500;line-height:1.2;letter-spacing:-.7px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin:19px 0 9px}.tool-loaded p{font-size:11px;color:#adada6;margin:0}.tool-loaded canvas{width:100%;height:140px;margin:32px 0 18px;display:block;touch-action:none}.tool-player{display:flex;align-items:center;gap:14px}.tool-play{width:42px;height:42px;display:grid;place-items:center;background:var(--paper);color:var(--ink);font-size:13px;border-radius:50%;padding-left:3px}.tool-play:hover{background:var(--red)}.tool-player>span{font-size:11px;font-variant-numeric:tabular-nums}.tool-player #tool-change{margin-left:auto;font-size:11px;text-decoration:underline;text-underline-offset:4px;color:#d1d0c9}.tool-bpm-reuse{align-self:center;padding:12px;margin-top:16px;font-size:11px;text-decoration:underline;text-underline-offset:4px;color:var(--paper)}.tool-bpm-reuse:hover{color:var(--red)}.tool-settings{background:var(--red);padding:26px 27px 24px;min-width:0}.tool-view{display:flex;flex-direction:column;height:100%;min-height:520px}.tool-view-header{font-size:9px}.tool-view-header span:last-child{font-weight:400;font-size:8px}.tool-view h3{font-size:clamp(29px,3.3vw,45px);font-weight:500;line-height:1.03;letter-spacing:-1.8px;margin:32px 0 15px}.tool-view h3 span{opacity:.57}.tool-description{font-size:12px;line-height:1.6;max-width:315px;margin:0 0 26px}.tool-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:20px}.tool-fields label{min-width:0;display:flex;flex-direction:column;gap:8px;font-size:10px;font-weight:600}.tool-fields select,.tool-fields input{width:100%;background:#ff2b20;border:1px solid #19191970;height:43px;padding:10px 12px;font-size:11px;color:var(--ink);border-radius:0;font-family:inherit;outline-offset:3px}.tool-fields select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath d='M2 2l5 5 5-5' stroke='%23191919' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}.tool-fields select:focus-visible,.tool-fields input:focus-visible{outline:2px solid var(--ink)}.tool-action-dark{background:var(--ink);color:var(--paper);margin-top:auto}.tool-action-dark:hover:not(:disabled){background:#393939}.tool-action-dark:disabled{opacity:.6;cursor:not-allowed}.tool-footnote{min-height:29px;font-size:10px;line-height:1.55;margin:12px 0 0;color:#34150f}.toolkit-bottom{display:flex;justify-content:space-between;gap:20px;font-size:9px;letter-spacing:1px;color:var(--muted);padding-top:16px}.toolkit-bottom span:last-child{text-align:right}.toolkit .message{margin-top:12px}.key-idle{border:1px solid #19191955;min-height:158px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:18px;gap:8px}.key-idle .tool-circle-decoration{width:74px;height:74px;border-radius:50%;border:1px solid var(--ink);display:grid;place-items:center;font-size:38px}.key-idle p{font-size:10px}.key-result{display:flex;gap:17px;align-items:center;margin:0 0 12px}.key-bubble{width:155px;height:155px;border:1px solid #191919a0;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;flex:none}.key-bubble strong{font-size:58px;font-weight:500;line-height:1;letter-spacing:-4px}.key-bubble span{font-size:10px;margin-top:8px}.key-extra{display:flex;flex-direction:column;gap:5px}.key-extra span{font-size:9px;letter-spacing:1px}.key-extra strong{font-size:40px;letter-spacing:-1px;font-weight:500}.key-alternatives{font-size:10px;line-height:1.6;margin:0 0 18px}.cut-sliders{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}.cut-sliders label{display:flex;flex-direction:column;font-size:10px;gap:5px;font-weight:700}.cut-sliders output{font-size:11px;font-weight:400;align-self:flex-end;margin-top:-17px;font-variant-numeric:tabular-nums}.cut-sliders input{width:100%;accent-color:var(--ink);height:18px;cursor:pointer}.tool-source.tool-dragover{outline:4px solid var(--red);outline-offset:-7px}.tool-source.tool-dragover::after{content:'PUSŤ TRACK SEM';position:absolute;inset:15px;background:var(--red);color:var(--ink);display:grid;place-items:center;font-size:30px;font-weight:600;letter-spacing:-1px;pointer-events:none}.toolkit button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}.tool-source button:focus-visible{outline-color:var(--red)}
+@media(max-width:1100px){.tool-board{grid-template-columns:1.05fr 1fr}.tool-tabs .tool-tab{font-size:15px;padding:14px}.tool-settings{padding:22px}.tool-source{padding:22px}.tool-view h3{font-size:36px}.tool-fields{gap:10px}.key-bubble{width:125px;height:125px}.key-bubble strong{font-size:46px}}
+@media(max-width:760px){.tool-board{grid-template-columns:1fr 1fr;gap:10px}.tool-settings,.tool-source{padding:17px}.tool-view h3{font-size:30px;letter-spacing:-1px}.toolkit-heading h2{font-size:54px}.tool-view-header span:last-child,.tool-head .tiny-status{display:none}.tool-fields{grid-template-columns:1fr}.tool-view{min-height:610px}.tool-loaded{padding-left:0;padding-right:0}.tool-loaded h3{font-size:20px}.key-result{flex-wrap:wrap}.key-bubble{width:110px;height:110px}.key-extra strong{font-size:30px}}
+@media(max-width:580px){.toolkit{margin:28px 0 40px}.toolkit-heading{align-items:start;flex-direction:column;margin:18px 0 22px;gap:15px}.toolkit-heading h2{font-size:49px;letter-spacing:-3px}.toolkit-heading>p{max-width:360px}.tool-tabs{gap:5px}.tool-tab{min-height:75px;align-items:flex-start;flex-direction:column;gap:3px;padding:12px!important;font-size:13px!important}.tool-tab span{font-size:8px}.tool-tab b{display:none}.tool-board{grid-template-columns:1fr}.tool-source{min-height:390px;padding:20px}.tool-empty{min-height:290px}.tool-view{min-height:460px}.tool-settings{padding:22px}.tool-view h3{font-size:36px;margin-top:27px}.tool-fields{grid-template-columns:1fr 1fr;gap:12px}.toolkit-bottom{font-size:8px;flex-direction:column;gap:8px}.toolkit-bottom span:last-child{text-align:left}.tool-loaded canvas{height:112px}.header nav{gap:12px}.header .nav-link{font-size:10px}.header .nav-link.active{display:none}}
+@media(max-width:360px){.tool-fields{grid-template-columns:1fr}.tool-view{min-height:550px}.tool-tab{font-size:11px!important}}
+
+/* Pulse Studio 2.1 / high-fidelity YouTube import */
+.yt-source-body{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:430px;padding:18px 10px;gap:0}
+.yt-emblem{width:57px;height:57px;border-radius:50%;background:var(--red);color:var(--ink);display:grid;place-items:center;font-size:18px;margin-bottom:22px;padding-left:3px}
+.yt-source-body>h3{font-size:clamp(27px,3vw,39px);font-weight:500;letter-spacing:-1.5px;line-height:1.1;margin:0 0 11px}
+.yt-source-body>p{font-size:12px;line-height:1.65;color:#bdbdb6;max-width:365px;margin:0 0 27px}
+.yt-input-label,.yt-kicker{font-size:9px;letter-spacing:1.1px;font-weight:700;color:#a8a8a2;margin-bottom:9px}
+#yt-url{width:100%;height:48px;min-width:0;background:#30302d;color:var(--paper);border:1px solid #6a6a64;padding:12px 14px;font-family:inherit;font-size:12px;border-radius:0}
+#yt-url::placeholder{color:#a9a9a3}
+#yt-url:focus-visible{outline:2px solid var(--red)}
+.yt-check{margin-top:12px}
+.yt-helper-note{font-size:11px!important;line-height:1.6!important;color:#b4b4ad!important;margin:14px 0 0!important}
+.yt-source-info{margin-top:18px;padding:19px 17px;border:1px solid #62625b;width:100%}
+.yt-source-info h4{font-size:18px;line-height:1.3;letter-spacing:-.3px;overflow-wrap:anywhere;font-weight:500;margin:10px 0 17px}
+.yt-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px 10px}
+.yt-metrics>div{display:flex;flex-direction:column;gap:5px}
+.yt-metrics small{font-size:8px;color:#aaa9a2;letter-spacing:.7px}
+.yt-metrics strong{font-size:12px;font-weight:600;overflow-wrap:anywhere}
+.yt-quality-list{display:flex;flex-direction:column;gap:12px;margin:-7px 0 25px}
+.yt-quality-list>div{display:flex;align-items:start;gap:12px;font-size:11px;line-height:1.4}
+.yt-quality-list b{font-weight:600;font-size:9px;border:1px solid #191919a0;padding:3px 5px}
+.yt-permission{display:flex;align-items:flex-start;gap:10px;font-size:11px;line-height:1.4;margin:3px 0 18px;cursor:pointer}
+.yt-permission input{accent-color:var(--ink);width:16px;height:16px;margin:0;flex:none}
+.yt-error{background:#191919;color:#f5f4f0;font-size:11px;padding:12px;line-height:1.5}
+.yt-result{font-size:11px;overflow-wrap:anywhere;margin:9px 0 0}
+.yt-save-link{font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;display:inline-block;margin-top:9px}
+#yt-helper.is-ready{color:#f5f4f0}
+@media(max-width:1100px){.tool-tabs .tool-tab{gap:7px;font-size:14px}.tool-tabs .tool-tab b{display:none}.yt-source-body{padding-left:0;padding-right:0}}
+@media(max-width:760px){.tool-tabs .tool-tab{font-size:12px;padding:11px}.yt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.tool-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tool-tab{min-height:58px}.yt-source-body{min-height:330px}.yt-source-body>h3{font-size:33px}.yt-quality-list{margin-bottom:22px}}
+
+/* YouTube entry, responsive launch notes */
+.hero-quicklink{display:inline-flex;align-items:center;gap:24px;border-bottom:1px solid var(--ink);margin-top:20px;padding:9px 0;font-size:12px;font-weight:700;letter-spacing:-.1px}
+.hero-quicklink span{font-size:19px;font-weight:400}.hero-quicklink:hover{color:var(--red);border-color:var(--red)}
+.youtube-entry{font-weight:700!important;color:var(--red)!important}
+.yt-setup{border:1px solid #5d5d57;color:#d9d8d1;width:100%;margin:17px 0 0;padding:10px 12px}
+.yt-setup summary{font-size:11px;cursor:pointer;line-height:1.5;outline-offset:4px}
+.yt-setup p{font-size:11px;line-height:1.7;color:#bab9b1;margin:12px 0 2px}.yt-setup strong{color:#f5f4f0}
+.yt-format-note{font-size:11px;line-height:1.6;color:#37130d;margin:0 0 18px}
+#yt-download[aria-busy="true"]{cursor:wait;opacity:.72}
+@media(max-width:760px){.header nav #open-help{display:none}.youtube-entry{font-size:11px!important}}
+@media(max-width:580px){.hero-quicklink{margin-top:15px}.hero-art{top:83px!important;right:4px!important}.header nav #open-tap{display:none}}
+@media(max-width:360px){.header nav{gap:9px}.youtube-entry{font-size:10px!important}}
+
+</style>
+
+</head>
+<body>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="arrow-up" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+  <symbol id="arrow-ne" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></symbol>
+  <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M16 8V3H3v13h5"/></symbol>
+  <symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></symbol>
+</defs></svg>
+<div class="shell">
+  <header class="header">
+    <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
+    <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link youtube-entry" id="open-youtube">YouTube → WAV <span aria-hidden="true">↗</span></a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
+    <span class="header-note"><span class="tiny-dot"></span> Jen ty a tvůj rytmus.</span>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy"><p class="eyebrow"><span class="small-cross">+</span> AUDIO IN. IDEAS OUT.</p><h1 id="hero-title">Najdi svůj<br><span>rytmus.</span></h1><p class="intro">BPM, tónina, konverze i dokonalý loop.<br>Tvůj produkční toolkit na jednom místě.</p><a href="#toolkit" id="hero-youtube" class="hero-quicklink">Stáhnout audio z YouTube <span aria-hidden="true">↗</span></a></div>
+      <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
+    </section>
+    <section id="analyzer" aria-label="Analyzátor tempa">
+      <div class="section-label"><h2>01 / ANALYZÁTOR TEMPA</h2><span>TVŮJ SOUBOR. TVOJE SOUKROMÍ.</span></div>
+      <div class="workspace">
+        <div class="upload-panel" id="drop-zone">
+          <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Vybrat WAV, MP3 nebo MP4" hidden>
+          <div class="upload-empty" id="upload-empty">
+            <span class="upload-icon"><svg><use href="#arrow-up"/></svg></span>
+            <h3>Pusť sem svůj track.</h3><p>Přetáhni audio nebo video.<br class="mobile-break"> O zbytek se postará Pulse.</p>
+            <button class="button button-light" id="choose-file">Vybrat soubor <svg><use href="#arrow-ne"/></svg></button>
+            <span class="file-limit">WAV, MP3 nebo MP4 <span>·</span> max. 100 MB / 20 min</span>
+          </div>
+          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Poslouchám rytmus.</h3><p id="progress-detail">Načítám zvukovou stopu…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Zrušit analýzu</button></div>
+          <div class="track-content" id="track-content" hidden>
+            <div class="track-top"><span class="track-type" id="track-type">WAV</span><button class="icon-button" id="remove-file" aria-label="Odebrat soubor"><svg><use href="#close"/></svg></button></div>
+            <h3 id="track-name"></h3><p class="track-meta" id="track-meta"></p>
+            <div class="waveform-wrap"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Pozice přehrávání"></div>
+            <div class="player"><button class="play-button" id="play-track" aria-label="Přehrát track"><svg><use href="#play"/></svg></button><span class="player-time"><span id="current-time">0:00</span><span class="time-separator">/</span><span id="total-time">0:00</span></span><button class="text-button replace" id="replace-file">Jiný soubor <span aria-hidden="true">↗</span></button></div>
+          </div>
+          <p class="privacy-note"><svg><use href="#lock"/></svg> Zpracování v prohlížeči. Soubory nikam neodesíláme.</p>
+          <div class="drag-overlay" aria-hidden="true"><span>Sem s ním.</span><svg><use href="#arrow-up"/></svg></div>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-top"><h3>TVOJE TEMPO</h3><span id="result-status">ČEKÁM NA TRACK <i></i></span></div>
+          <div class="tempo-circle" id="tempo-circle"><span class="bpm-number" id="bpm-number">—</span><span class="bpm-label">BEATS PER MINUTE</span><i class="orbit-dot"></i></div>
+          <div class="result-empty" id="result-empty"><span>Všechno začíná prvním beatem.</span><span aria-hidden="true">↗</span></div>
+          <div class="result-controls" id="result-controls" hidden><div class="tempo-actions"><div class="tempo-multipliers" aria-label="Interpretace tempa"><button id="half-tempo" title="Poloviční tempo">÷ 2</button><button id="double-tempo" title="Dvojnásobné tempo">× 2</button><button id="reset-tempo" title="Původně naměřené tempo" hidden>↺</button></div><button class="copy-button" id="copy-bpm" aria-label="Zkopírovat BPM"><svg><use href="#copy"/></svg><span>Kopírovat</span></button></div><div class="metronome-row"><button id="metronome" aria-pressed="false"><span class="switch"><i></i></span>Poslechnout tempo</button><span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div>
+        </div>
+      </div>
+      <div class="message error-message" id="error" role="alert" hidden></div>
+      <p class="result-note" id="result-note" hidden></p>
+      <div class="demo-line"><span>Ještě nemáš track po ruce?</span><button id="try-demo">Vyzkoušet na ukázce <span aria-hidden="true">↗</span></button></div>
+    </section>
+    <section id="toolkit" class="toolkit" aria-labelledby="toolkit-title">
+      <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2><span>JEDEN TRACK. VÍC MOŽNOSTÍ.</span></div>
+      <div class="toolkit-heading"><div><p class="eyebrow"><span class="small-cross">+</span> WORK SMARTER. SOUND BETTER.</p><h2 id="toolkit-title">Tvůj zvuk.<br><span>Tvoje pravidla.</span></h2></div><p>Konvertuj audio, objev tóninu, vystřihni loop nebo získej zvuk z YouTube v nejlepší dostupné kvalitě. Vlastní soubory zůstávají v prohlížeči.</p></div>
+      <div class="tool-tabs" role="tablist" aria-label="Produkční nástroje">
+        <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
+        <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
+        <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter"><span>03</span> Loop Cutter <b>↗</b></button>
+        <button class="tool-tab" id="tab-youtube" role="tab" aria-selected="false" aria-controls="panel-youtube" tabindex="-1" data-tool="youtube"><span>04</span> YouTube Audio <b>&#8599;</b></button>
+      </div>
+      <div class="tool-board">
+        <div class="tool-source" id="tool-drop-zone">
+          <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
+          <input type="file" id="tool-file-input" accept=".wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.aiff,.aif,audio/*,video/mp4" hidden aria-label="Vybrat audio nebo video pro toolkit">
+          <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Začni se zvukem.</h3><p>Přetáhni sem WAV, MP3 nebo podporované audio/video.</p><button class="tool-action tool-action-light" id="tool-select-file">Vybrat soubor <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
+          <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Odebrat soubor">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Vlnový průběh nahraného zvuku"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Přehrát zvuk">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Vyměnit ↗</button></div></div>
+          <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Použít track z BPM analyzátoru ↗</button>
+          <p class="tool-source-foot"><svg><use href="#lock"/></svg> Soubor zůstává v prohlížeči.</p>
+        </div>
+        <div class="tool-source youtube-source" id="youtube-source" hidden>
+          <div class="tool-head"><span>01 / YOUTUBE URL</span><span class="tiny-status" id="yt-helper">PŘIPOJUJI CLOUD</span></div>
+          <div class="yt-source-body">
+            <span class="yt-emblem" aria-hidden="true">&#9654;</span>
+            <h3>Maximum dostupn&#233; kvality.</h3>
+            <p>Vlo&#382; odkaz na video. Pulse vybere nejkvalitn&#283;j&#353;&#237; dostupnou audio stopu. Pou&#382;&#237;vej pouze obsah, k jeho&#382; sta&#382;en&#237; m&#225;&#353; opr&#225;vn&#283;n&#237;.</p>
+            <label class="yt-input-label" for="yt-url">ODKAZ NA VIDEO</label>
+            <input id="yt-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://www.youtube.com/watch?v=..." aria-describedby="yt-help">
+            <button class="tool-action tool-action-light yt-check" id="yt-check">Načíst video <span>&#8599;</span></button>
+            <p id="yt-help" class="yt-helper-note">Ověřuji dostupnost online stahování...</p>
+
+            <div class="yt-source-info" id="yt-source-info" hidden>
+              <span class="yt-kicker">BEST AVAILABLE STREAM</span>
+              <h4 id="yt-title">&#8212;</h4>
+              <div class="yt-metrics">
+                <div><small>KODEK</small><strong id="yt-codec">&#8212;</strong></div>
+                <div><small>BITRATE</small><strong id="yt-bitrate">&#8212;</strong></div>
+                <div><small>SAMPLE RATE</small><strong id="yt-rate">&#8212;</strong></div>
+                <div><small>D&#201;LKA</small><strong id="yt-length">&#8212;</strong></div>
+                <div><small>KONTEJNER</small><strong id="yt-container">&#8212;</strong></div>
+              </div>
+            </div>
+          </div>
+          <p class="tool-source-foot">YouTube poskytuje komprimovan&#253; zvuk. WAV neobnov&#237; ztracen&#233; detaily.</p>
+        </div>
+        <div class="tool-settings">
+          <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter"><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Změň formát.<br><span>Ne kvalitu práce.</span></h3><p class="tool-description">Převeď zvuk do WAV nebo MP3. Zvol sample rate a kvalitu exportu.</p>
+            <div class="tool-fields"><label>Výstupní formát<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="44100">44.1 kHz</option><option value="48000" selected>48 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
+            <button class="tool-action tool-action-dark" id="conv-export" disabled>Konvertovat & stáhnout <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Vyber soubor a výstupní parametry.</p></div>
+          <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key" hidden><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Najdi tóninu.<br><span>Chyť harmonii.</span></h3><p class="tool-description">Odhadni hudební tóninu a Camelot označení pro rychlejší produkci i mix.</p>
+            <div class="key-idle" id="key-idle"><span class="tool-circle-decoration">♪</span><p>Připraveno na analýzu tóniny</p></div><div class="key-result" id="key-result" hidden><div class="key-bubble"><strong id="key-name">—</strong><span id="key-mode">—</span></div><div class="key-extra"><span>CAMELOT</span><strong id="key-camelot">—</strong><span id="key-confidence">—</span></div></div><p class="key-alternatives" id="key-alternatives" hidden></p><button class="tool-action tool-action-dark" id="key-analyze" disabled>Analyzovat tóninu <span>↗</span></button><p class="tool-footnote" id="key-status" role="status">Výsledek je orientační, zejména u bicích a krátkých samplů.</p></div>
+          <div id="panel-cutter" class="tool-view" role="tabpanel" aria-labelledby="tab-cutter" hidden><div class="tool-view-header"><span>02 / LOOP CUTTER</span><span>PRECISION EDIT</span></div><h3>Vyřízni beat.<br><span>Ne potenciál.</span></h3><p class="tool-description">Nastav rozsah na waveformu nebo podle taktů. Přehraj výběr a exportuj WAV s fade-out.</p>
+            <div class="tool-fields"><label>Tempo pro beat grid (BPM)<input id="cut-bpm" type="number" min="20" max="400" step="0.1" value="120"></label><label>Délka ve 4/4 taktech<select id="cut-bars"><option value="1">1 takt</option><option value="2">2 takty</option><option value="4" selected>4 takty</option><option value="8">8 taktů</option><option value="16">16 taktů</option><option value="custom">Vlastní rozsah</option></select></label></div>
+            <div class="cut-sliders"><label>START <output id="cut-start-label">00:00.00</output><input id="cut-start" type="range" min="0" max="100" step="0.01" value="0"></label><label>END <output id="cut-end-label">00:08.00</output><input id="cut-end" type="range" min="0" max="100" step="0.01" value="8"></label></div>
+            <div class="tool-fields cut-bottom"><label>Fade in / out<select id="cut-fade"><option value="0">Off</option><option value="5" selected>5 ms · clean cut</option><option value="20">20 ms</option><option value="100">100 ms</option></select></label><label>WAV bit depth<select id="cut-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label></div>
+            <button class="tool-action tool-action-dark" id="cut-export" disabled>Exportovat loop (WAV) <span>↗</span></button><p class="tool-footnote" id="cut-status" role="status">Výběr můžeš přehrát tlačítkem vlevo.</p></div>
+          <div id="panel-youtube" class="tool-view" role="tabpanel" aria-labelledby="tab-youtube" hidden>
+            <div class="tool-view-header"><span>02 / QUALITY EXPORT</span><span>SOURCE-FIRST AUDIO</span></div>
+            <h3>&#381;&#225;dn&#225; dal&#353;&#237;<br><span>ztr&#225;ta kvality.</span></h3>
+            <p class="tool-description">Pulse vybere nejlep&#353;&#237; dostupnou audio stopu. M&#367;&#382;e&#353; ji ulo&#382;it bez zm&#283;ny, nebo dek&#243;dovat do WAV bez dal&#353;&#237; ztr&#225;tov&#233; komprese.</p>
+            <div class="yt-quality-list"><div><b>01</b><span>Nejkvalitn&#283;j&#353;&#237; dostupn&#225; zvukov&#225; stopa</span></div><div><b>02</b><span>Bez normalizace a audio efekt&#367;</span></div><div><b>03</b><span>Zachov&#225;n&#237; zdrojov&#233;ho sample rate</span></div></div>
+            <div class="tool-fields"><label>V&#253;stupn&#237; form&#225;t<select id="yt-format"><option value="wav24" selected>WAV &#183; 24-bit PCM</option><option value="wav16">WAV &#183; 16-bit PCM</option><option value="native">P&#367;vodn&#237; YouTube stream &#183; bez konverze</option><option value="mp3">MP3 &#183; 320 kb/s (znovu komprimovan&#233;)</option></select></label></div>
+            <p class="yt-format-note" id="yt-format-note">WAV 24-bit je vhodn&#253; pro DAW, ale nezlep&#353;&#237; komprimovan&#253; zdroj z YouTube.</p>
+            <button class="tool-action tool-action-dark" id="yt-download" disabled>St&#225;hnout WAV <span>&#8599;</span></button>
+            <p class="tool-footnote" id="yt-status" role="status">Nejd&#345;&#237;v zkontroluj zdroj.</p>
+            <p class="yt-result" id="yt-result" hidden></p>
+            <a class="yt-save-link" id="yt-save-link" hidden>St&#225;hnout p&#345;ipraven&#253; soubor &#8599;</a>
+            <p class="yt-error" id="yt-error" role="alert" hidden></p>
+          </div>
+        </div>
+      </div>
+      <div class="toolkit-bottom"><span>◉ PRIVATE BY DESIGN</span><span>YOUTUBE IMPORT ZPRACOVÁVÁ CLOUDOVÝ SERVER. VLASTNÍ NAHRANÉ AUDIO ZŮSTÁVÁ V PROHLÍŽEČI.</span></div>
+      <p class="message" id="tool-error" role="alert" hidden></p>
+    </section>
+    <section class="steps" aria-label="Tři kroky k tempu"><article><span class="step-number">01</span><div><h3>Nahraj.</h3><p>Audio i video. Stačí jeden soubor.</p></div></article><article><span class="step-number">02</span><div><h3>Najdi tempo.</h3><p>Pulse zachytí rytmus a odhadne BPM.</p></div></article><article><span class="step-number">03</span><div><h3>Chyť svůj flow.</h3><p>Pro střih, mix i tvůj další projekt.</p></div></article></section>
+  </main>
+  <footer><span class="footer-wordmark"><i></i> Pulse</span><span>MADE FOR YOUR NEXT BEAT.</span><button id="open-privacy">Soukromí <span aria-hidden="true">↗</span></button></footer>
+</div>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">MALÝ NÁVOD. VELKÝ RYTMUS.</p><h2 id="help-title">Od tracku<br>k tempu.</h2><ol class="help-list"><li><strong>Vyber WAV, MP3 nebo MP4.</strong><span>Maximálně 100 MB a 20 minut. Pro spolehlivější odhad použij alespoň 15 sekund hudby s výrazným rytmem; minimum je 6 sekund.</span></li><li><strong>Nech Pulse najít rytmus.</strong><span>Analyzujeme zvukové nástupy a jejich opakování. U MP4 čteme zvukovou stopu. Podpora konkrétního kodeku závisí na prohlížeči.</span></li><li><strong>Ověř tempo poslechem.</strong><span>Zapni metronom nebo použij Tap tempo. Vnímání rytmu se může lišit o polovinu či dvojnásobek — k tomu slouží ÷ 2 a × 2.</span></li></ol><p class="dialog-footnote">BPM je odhad. Proměnlivé tempo, mluvené slovo a hudba bez pravidelných beatů nemusí mít jednoznačný výsledek.</p></dialog>
+<dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">CÍTÍŠ TO? ŤUKEJ.</p><h2 id="tap-title">Tvoje ruce.<br>Tvoje tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Klikni do rytmu</span></button><p class="tap-instruction">Klikni alespoň 4× nebo použij mezerník.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 úderů</span><button id="tap-reset">Začít znovu ↺</button><button id="tap-copy" hidden>Kopírovat BPM ↗</button></div></dialog>
+<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">JEN U TEBE.</p><h2 id="privacy-title">Tvůj track<br>zůstává tvůj.</h2><p class="privacy-copy">Vlastní audio a video zpracováváme přímo v prohlížeči, nikam je neodesíláme. YouTube Audio používá cloudovou službu, která stahuje audio z YouTube a dočasně ho ukládá pro export. Připravené soubory automaticky expirují po 10 minutách. Vlastní soubory nahrané do BPM analyzátoru nebo dalších nástrojů na server neodesíláme.</p><p class="privacy-copy">Po odebrání souboru nebo zavření stránky se data z této relace uvolní. Webové rozhraní běží na Vercelu. YouTube import probíhá na odděleném serveru.</p></dialog>
+<div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
+<script>
+(() => {
+  'use strict';
+  const PULSE_API_BASE_URL="";
+  const ANALYSIS_WORKER_SOURCE="// Multi-band onset envelope and normalized tempo autocorrelation.\n// Confidence describes rhythmic periodicity, not a calibrated probability.\nfunction analyzeTempo(samples, sampleRate) {\n  const duration = samples.length / sampleRate;\n  if (duration < 6) throw new Error('TOO_SHORT');\n  const hop = Math.round(sampleRate / 200);\n  const rate = sampleRate / hop;\n  const frames = Math.floor(samples.length / hop);\n  const energy = [new Float32Array(frames), new Float32Array(frames), new Float32Array(frames)];\n  const lowA = 1 - Math.exp(-2 * Math.PI * 180 / sampleRate);\n  const highA = 1 - Math.exp(-2 * Math.PI * 2200 / sampleRate);\n  let low = 0, high = 0, total = 0;\n  for (let f = 0; f < frames; f++) {\n    let a = 0, b = 0, c = 0;\n    for (let j = 0; j < hop; j++) {\n      const x = samples[f * hop + j];\n      low += lowA * (x - low); high += highA * (x - high);\n      a += low * low; b += (x - high) ** 2; c += x * x;\n    }\n    total += c;\n    energy[0][f] = Math.log1p(100 * Math.sqrt(a / hop));\n    energy[1][f] = Math.log1p(100 * Math.sqrt(b / hop));\n    energy[2][f] = Math.log1p(100 * Math.sqrt(c / hop));\n  }\n  if (Math.sqrt(total / samples.length) < 0.00005) throw new Error('SILENCE');\n  // Ignore tiny frame-boundary ripples of a sustained tone.\n  let dynamicMin = Infinity, dynamicMax = 0;\n  for (let i = Math.round(rate); i < frames; i++) { dynamicMin = Math.min(dynamicMin, energy[2][i]); dynamicMax = Math.max(dynamicMax, energy[2][i]); }\n  if (dynamicMax - dynamicMin < 0.12) throw new Error('NO_RHYTHM');\n  const envelope = new Float32Array(frames);\n  for (const band of energy) {\n    const delta = new Float32Array(frames);\n    let sum = 0;\n    for (let i = 2; i < frames; i++) {\n      delta[i] = Math.max(0, band[i] - band[i - 2]);\n      sum += delta[i];\n    }\n    const mean = sum / frames;\n    if (mean > 0.00001) for (let i = 0; i < frames; i++) envelope[i] += Math.min(8, Math.max(0, delta[i] - mean * 0.5) / mean);\n  }\n  let onsetEnergy = 0;\n  for (const x of envelope) onsetEnergy += x * x;\n  if (onsetEnergy / frames < 0.01) throw new Error('NO_RHYTHM');\n  const windowFrames = Math.min(frames, Math.round(rate * 40));\n  const starts = frames <= windowFrames ? [0] : [0, Math.floor((frames - windowFrames) / 2), frames - windowFrames];\n  const maxLag = Math.ceil(rate * 60 / 45) * 3 + 2;\n  const corr = new Float64Array(maxLag + 1);\n  for (let lag = 1; lag <= maxLag; lag++) {\n    let dot = 0, aa = 0, bb = 0;\n    for (const start of starts) {\n      for (let i = start + lag; i < start + windowFrames; i++) {\n        const a = envelope[i], b = envelope[i - lag];\n        dot += a * b; aa += a * a; bb += b * b;\n      }\n    }\n    corr[lag] = dot / (Math.sqrt(aa * bb) || 1);\n  }\n  const at = lag => {\n    const lo = Math.floor(lag), fraction = lag - lo;\n    return (corr[lo] || 0) * (1 - fraction) + (corr[lo + 1] || 0) * fraction;\n  };\n  const candidates = [];\n  for (let lag = Math.floor(rate * 60 / 220); lag <= Math.ceil(rate * 60 / 45); lag++) {\n    if (corr[lag] <= corr[lag - 1] || corr[lag] < corr[lag + 1]) continue;\n    const curvature = corr[lag - 1] - 2 * corr[lag] + corr[lag + 1];\n    const offset = curvature ? Math.max(-0.5, Math.min(0.5, 0.5 * (corr[lag - 1] - corr[lag + 1]) / curvature)) : 0;\n    const period = lag + offset;\n    const bpm = 60 * rate / period;\n    if (bpm < 45 || bpm > 220) continue;\n    const periodicity = at(period);\n    const prior = Math.exp(-0.5 * (Math.log(bpm / 115) / 0.65) ** 2);\n    const score = (periodicity + 0.45 * at(period * 2) + 0.2 * at(period * 3)) * (0.84 + 0.16 * prior);\n    candidates.push({bpm, score, periodicity});\n  }\n  candidates.sort((a,b) => b.score - a.score);\n  if (!candidates.length || candidates[0].periodicity < 0.14) throw new Error('NO_RHYTHM');\n  const best = candidates[0];\n  const backgroundValues = Array.from(corr.slice(Math.floor(rate*60/220),Math.ceil(rate*60/45))).sort((a,b)=>a-b);\n  const background = backgroundValues[Math.floor(backgroundValues.length/2)];\n  const prominence = (best.periodicity-background)/(1-background || 1);\n  if (prominence < 0.06) throw new Error('NO_RHYTHM');\n  const windows = starts.map(start => {\n    let winner = null;\n    for (const candidate of candidates.slice(0, 8)) {\n      const lag = Math.round(60 * rate / candidate.bpm);\n      let dot = 0, power = 0;\n      for (let i = start + lag; i < start + windowFrames; i++) { dot += envelope[i] * envelope[i-lag]; power += envelope[i] ** 2; }\n      const score = dot / (power || 1);\n      if (!winner || score > winner.score) winner = {bpm:candidate.bpm,score};\n    }\n    return winner.bpm;\n  });\n  const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;\n  const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';\n  const waveform = Array.from({length:220}, (_,i) => {\n    const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);\n    let sum = 0, count = 0;\n    for (let j = start; j < end; j += 8) { sum += samples[j] ** 2; count++; }\n    return Math.sqrt(sum / (count || 1));\n  });\n  const peak = Math.max(...waveform) || 1;\n  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};\n}\n\nself.onmessage = ({data}) => {\n  try { self.postMessage({result:analyzeTempo(data.samples,data.sampleRate)}); }\n  catch(error) { self.postMessage({error:error.message}); }\n};\n";
+  const KEY_WORKER_SOURCE="// Audio utilities used by the production toolkit. No remote processing.\nfunction encodeWav(channels, sampleRate, bitDepth=16) {\n  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');\n  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');\n  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');\n  const length=channels[0].length;\n  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');\n  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;\n  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');\n  const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);\n  const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));\n  str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');\n  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels.length,true);\n  view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*blockAlign,true);\n  view.setUint16(32,blockAlign,true);view.setUint16(34,bitDepth,true);\n  str(36,'data');view.setUint32(40,dataBytes,true);\n  let position=44;\n  for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){\n    const sample=Math.min(1,Math.max(-1,channels[c][i]||0));\n    if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}\n    else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}\n  }\n  return new Blob([array],{type:'audio/wav'});\n}\nfunction extractSegment(channels, sampleRate, from, to, fadeMs=5) {\n  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');\n  const length=channels[0].length;\n  const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));\n  const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));\n  const fade=Math.min(Math.round(sampleRate*fadeMs/1000),Math.floor((last-first)/2));\n  return channels.map(source=>{\n    const out=source.slice(first,last);\n    for(let i=0;i<fade;i++){const factor=(i+1)/Math.max(1,fade);out[i]*=factor;out[out.length-i-1]*=factor;}\n    return out;\n  });\n}\nfunction getAudioPeaks(samples,count=240) {\n  const peaks=new Float32Array(count);\n  for(let i=0;i<count;i++){\n    let sum=0,n=0;const a=Math.floor(i*samples.length/count),b=Math.floor((i+1)*samples.length/count);\n    const step=Math.max(1,Math.floor((b-a)/70));\n    for(let j=a;j<b;j+=step){sum+=samples[j]*samples[j];n++;}\n    peaks[i]=Math.sqrt(sum/(n||1));\n  }\n  const max=Math.max(...peaks)||1;\n  return Array.from(peaks,x=>x/max);\n}\nconst NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];\nconst MAJOR=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];\nconst MINOR=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];\nconst MAJOR_CAM=['8B','3B','10B','5B','12B','7B','2B','9B','4B','11B','6B','1B'];\nconst MINOR_CAM=['5A','12A','7A','2A','9A','4A','11A','6A','1A','8A','3A','10A'];\nfunction fft(real,imag){\n  const n=real.length;\n  for(let i=1,j=0;i<n;i++){\n    let bit=n>>1;\n    for(;j&bit;bit>>=1)j^=bit;\n    j^=bit;\n    if(i<j){[real[i],real[j]]=[real[j],real[i]];[imag[i],imag[j]]=[imag[j],imag[i]];}\n  }\n  for(let size=2;size<=n;size*=2){\n    const half=size/2,angle=-2*Math.PI/size,cos=Math.cos(angle),sin=Math.sin(angle);\n    for(let start=0;start<n;start+=size){let wr=1,wi=0;\n      for(let i=0;i<half;i++){\n        const a=start+i,b=a+half,rr=wr*real[b]-wi*imag[b],ii=wr*imag[b]+wi*real[b];\n        real[b]=real[a]-rr;imag[b]=imag[a]-ii;real[a]+=rr;imag[a]+=ii;\n        const nr=wr*cos-wi*sin;wi=wr*sin+wi*cos;wr=nr;\n      }\n    }\n  }\n}\nfunction correlation(a,b){\n  const am=a.reduce((x,y)=>x+y,0)/12,bm=b.reduce((x,y)=>x+y,0)/12;\n  let numerator=0,aa=0,bb=0;\n  for(let i=0;i<12;i++){const x=a[i]-am,y=b[i]-bm;numerator+=x*y;aa+=x*x;bb+=y*y;}\n  return numerator/(Math.sqrt(aa*bb)||1);\n}\n// Chroma-based key estimation: approximate, especially for short or percussive material.\nfunction detectKey(samples,sampleRate){\n  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');\n  const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);\n  if(samples.length<size)throw new Error('Soubor je příliš krátký.');\n  const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);\n  const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));\n  let total=0,frames=0;\n  for(let frame=0;frame<count;frame++){\n    const start=Math.min(samples.length-size,frame*step);\n    let rms=0;\n    for(let i=0;i<size;i++){const x=samples[start+i];real[i]=x*(0.5-0.5*Math.cos(2*Math.PI*i/(size-1)));imag[i]=0;rms+=x*x;}\n    if(rms/size<0.0000002)continue;\n    fft(real,imag);\n    const magnitudes=new Float64Array(size/2);\n    for(let bin=0;bin<magnitudes.length;bin++)magnitudes[bin]=Math.hypot(real[bin],imag[bin]);\n    for(let bin=2;bin<magnitudes.length-1;bin++){\n      const hz=bin*sampleRate/size;\n      if(hz<65||hz>1700)continue;\n      const v=magnitudes[bin];\n      if(v<magnitudes[bin-1]||v<magnitudes[bin+1])continue;\n      const midi=69+12*Math.log2(hz/440),rounded=Math.round(midi);\n      if(Math.abs(midi-rounded)>.32)continue;\n      const pc=((rounded%12)+12)%12;\n      const weight=Math.sqrt(v)*Math.pow(110/Math.max(hz,110),0.2);\n      chroma[pc]+=weight;total+=weight;\n    }\n    frames++;\n  }\n  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');\n  const candidates=[];\n  for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){\n    const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);\n    const score=correlation(chroma,rotated);\n    candidates.push({name:NOTE_NAMES[root],mode,display:NOTE_NAMES[root]+(mode==='minor'?'m':''),camelot:camelot[root],score});\n  }\n  candidates.sort((a,b)=>b.score-a.score);\n  const [top,second]=candidates;\n  return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};\n}\n\nself.onmessage=({data})=>{\n  try{self.postMessage({result:detectKey(data.samples,data.sampleRate)});}\n  catch(error){self.postMessage({error:error.message});}\n};\n";
+  function createAnalysisWorker(){
+    const url=URL.createObjectURL(new Blob([ANALYSIS_WORKER_SOURCE],{type:'text/javascript'}));
+    let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}
+    const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;
+  }
+  function createBundledKeyWorker(){
+    const url=URL.createObjectURL(new Blob([KEY_WORKER_SOURCE],{type:'text/javascript'}));
+    let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}
+    const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;
+  }
+  // Audio utilities used by the production toolkit. No remote processing.
+function encodeWav(channels, sampleRate, bitDepth=16) {
+  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
+  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
+  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');
+  const length=channels[0].length;
+  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');
+  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;
+  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');
+  const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);
+  const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));
+  str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');
+  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels.length,true);
+  view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*blockAlign,true);
+  view.setUint16(32,blockAlign,true);view.setUint16(34,bitDepth,true);
+  str(36,'data');view.setUint32(40,dataBytes,true);
+  let position=44;
+  for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){
+    const sample=Math.min(1,Math.max(-1,channels[c][i]||0));
+    if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}
+    else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}
+  }
+  return new Blob([array],{type:'audio/wav'});
+}
+function extractSegment(channels, sampleRate, from, to, fadeMs=5) {
+  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');
+  const length=channels[0].length;
+  const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));
+  const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));
+  const fade=Math.min(Math.round(sampleRate*fadeMs/1000),Math.floor((last-first)/2));
+  return channels.map(source=>{
+    const out=source.slice(first,last);
+    for(let i=0;i<fade;i++){const factor=(i+1)/Math.max(1,fade);out[i]*=factor;out[out.length-i-1]*=factor;}
+    return out;
+  });
+}
+function getAudioPeaks(samples,count=240) {
+  const peaks=new Float32Array(count);
+  for(let i=0;i<count;i++){
+    let sum=0,n=0;const a=Math.floor(i*samples.length/count),b=Math.floor((i+1)*samples.length/count);
+    const step=Math.max(1,Math.floor((b-a)/70));
+    for(let j=a;j<b;j+=step){sum+=samples[j]*samples[j];n++;}
+    peaks[i]=Math.sqrt(sum/(n||1));
+  }
+  const max=Math.max(...peaks)||1;
+  return Array.from(peaks,x=>x/max);
+}
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const MAJOR=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+const MINOR=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+const MAJOR_CAM=['8B','3B','10B','5B','12B','7B','2B','9B','4B','11B','6B','1B'];
+const MINOR_CAM=['5A','12A','7A','2A','9A','4A','11A','6A','1A','8A','3A','10A'];
+function fft(real,imag){
+  const n=real.length;
+  for(let i=1,j=0;i<n;i++){
+    let bit=n>>1;
+    for(;j&bit;bit>>=1)j^=bit;
+    j^=bit;
+    if(i<j){[real[i],real[j]]=[real[j],real[i]];[imag[i],imag[j]]=[imag[j],imag[i]];}
+  }
+  for(let size=2;size<=n;size*=2){
+    const half=size/2,angle=-2*Math.PI/size,cos=Math.cos(angle),sin=Math.sin(angle);
+    for(let start=0;start<n;start+=size){let wr=1,wi=0;
+      for(let i=0;i<half;i++){
+        const a=start+i,b=a+half,rr=wr*real[b]-wi*imag[b],ii=wr*imag[b]+wi*real[b];
+        real[b]=real[a]-rr;imag[b]=imag[a]-ii;real[a]+=rr;imag[a]+=ii;
+        const nr=wr*cos-wi*sin;wi=wr*sin+wi*cos;wr=nr;
+      }
+    }
+  }
+}
+function correlation(a,b){
+  const am=a.reduce((x,y)=>x+y,0)/12,bm=b.reduce((x,y)=>x+y,0)/12;
+  let numerator=0,aa=0,bb=0;
+  for(let i=0;i<12;i++){const x=a[i]-am,y=b[i]-bm;numerator+=x*y;aa+=x*x;bb+=y*y;}
+  return numerator/(Math.sqrt(aa*bb)||1);
+}
+// Chroma-based key estimation: approximate, especially for short or percussive material.
+function detectKey(samples,sampleRate){
+  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');
+  const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);
+  if(samples.length<size)throw new Error('Soubor je příliš krátký.');
+  const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);
+  const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));
+  let total=0,frames=0;
+  for(let frame=0;frame<count;frame++){
+    const start=Math.min(samples.length-size,frame*step);
+    let rms=0;
+    for(let i=0;i<size;i++){const x=samples[start+i];real[i]=x*(0.5-0.5*Math.cos(2*Math.PI*i/(size-1)));imag[i]=0;rms+=x*x;}
+    if(rms/size<0.0000002)continue;
+    fft(real,imag);
+    const magnitudes=new Float64Array(size/2);
+    for(let bin=0;bin<magnitudes.length;bin++)magnitudes[bin]=Math.hypot(real[bin],imag[bin]);
+    for(let bin=2;bin<magnitudes.length-1;bin++){
+      const hz=bin*sampleRate/size;
+      if(hz<65||hz>1700)continue;
+      const v=magnitudes[bin];
+      if(v<magnitudes[bin-1]||v<magnitudes[bin+1])continue;
+      const midi=69+12*Math.log2(hz/440),rounded=Math.round(midi);
+      if(Math.abs(midi-rounded)>.32)continue;
+      const pc=((rounded%12)+12)%12;
+      const weight=Math.sqrt(v)*Math.pow(110/Math.max(hz,110),0.2);
+      chroma[pc]+=weight;total+=weight;
+    }
+    frames++;
+  }
+  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');
+  const candidates=[];
+  for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){
+    const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);
+    const score=correlation(chroma,rotated);
+    candidates.push({name:NOTE_NAMES[root],mode,display:NOTE_NAMES[root]+(mode==='minor'?'m':''),camelot:camelot[root],score});
+  }
+  candidates.sort((a,b)=>b.score-a.score);
+  const [top,second]=candidates;
+  return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};
+}
+
+  // YouTube audio download UI. Network requests go to the hosted Pulse API.
+function initYoutubeTool(){
+  const el=id=>document.getElementById(id);
+  const state={ready:false,busy:false,source:null,url:''};
+  const apiBase=PULSE_API_BASE_URL.replace(/\/+$/, '');
+  const apiUrl=path=>apiBase+path;
+  const status=message=>{el('yt-status').textContent=message;};
+  const showError=message=>{el('yt-error').textContent=message;el('yt-error').hidden=false;};
+  const clearError=()=>{el('yt-error').textContent='';el('yt-error').hidden=true;};
+  const fmtSeconds=s=>`${Math.floor((s||0)/60)}:${String(Math.floor((s||0)%60)).padStart(2,'0')}`;
+  let debounce;
+
+  function update(){
+    el('yt-check').disabled=state.busy;
+    el('yt-download').disabled=state.busy||!state.ready||!state.source;
+    el('yt-url').disabled=state.busy;
+    el('yt-format').disabled=state.busy;
+    el('yt-download').setAttribute('aria-busy',String(state.busy));
+    el('yt-check').querySelector('span').textContent=state.busy?'…':'↗';
+  }
+  function resetSource(){
+    state.source=null;
+    state.url='';
+    el('yt-source-info').hidden=true;
+    el('yt-result').hidden=true;
+    el('yt-save-link').hidden=true;
+    update();
+  }
+  function updateFormat(){
+    const format=el('yt-format').value;
+    const message={
+      wav24:'WAV 24-bit PCM — pro práci v DAW. Dekódování bez další ztrátové komprese, ale neobnoví detaily ztracené na YouTube.',
+      wav16:'WAV 16-bit PCM — menší soubor pro editaci. Dekódování bez další ztrátové komprese.',
+      native:'Nejvěrnější YouTube zdroji: stáhne přesně audio stream, který YouTube poskytuje (obvykle Opus nebo AAC).',
+      mp3:'MP3 320 kb/s — kompatibilnější, ale znamená další ztrátové překódování již komprimovaného YouTube zvuku.'
+    };
+    const button={wav24:'Stáhnout WAV 24-bit',wav16:'Stáhnout WAV 16-bit',native:'Stáhnout původní stopu',mp3:'Stáhnout MP3'};
+    el('yt-format-note').textContent=message[format];
+    el('yt-download').replaceChildren(document.createTextNode(button[format]+' '),(()=>{const span=document.createElement('span');span.setAttribute('aria-hidden','true');span.textContent='↗';return span;})());
+    el('yt-result').hidden=true;
+    el('yt-save-link').hidden=true;
+  }
+  async function checkServer(){
+    try{
+      if(!apiBase)throw new Error('Služba není nakonfigurovaná.');
+      const response=await fetch(apiUrl('/api/youtube/health'),{cache:'no-store',signal:AbortSignal.timeout(12000)});
+      if(!response.ok)throw new Error('Server nedostupný');
+      const data=await response.json();
+      state.ready=Boolean(data.ready);
+      if(state.ready){
+        el('yt-helper').textContent='CLOUD READY';
+        el('yt-helper').classList.add('is-ready');
+        el('yt-help').textContent='Online služba je připravena. Vlož odkaz na video a zvol formát.';
+      }else{
+        el('yt-helper').textContent='SLUŽBA NEDOSTUPNÁ';
+        el('yt-helper').classList.remove('is-ready');
+        el('yt-help').textContent='Služba dočasně není dostupná. Zkus to později.';
+      }
+    }catch{
+      state.ready=false;
+      el('yt-helper').textContent='CLOUD OFFLINE';
+      el('yt-helper').classList.remove('is-ready');
+      el('yt-help').textContent='Online stahování zatím není dostupné. Provozovatel aplikace musí aktivovat cloudový backend.';
+    }
+    update();
+    return state.ready;
+  }
+  async function api(endpoint,payload){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),180000);
+    let response;
+    try{
+      response=await fetch(apiUrl('/api/youtube/'+endpoint),{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Pulse-Request':'1'},
+        body:JSON.stringify(payload),signal:controller.signal
+      });
+    }catch(error){
+      throw new Error(error.name==='AbortError'?'Zpracování trvalo příliš dlouho. Zkus kratší video.':'Online audio služba není dostupná. Zkus to později.');
+    }finally{clearTimeout(timer);}
+    let data;
+    try{data=await response.json();}
+    catch{throw new Error('Server nevrátil platnou odpověď.');}
+    if(!response.ok)throw new Error(data.error||'YouTube audio není dostupné.');
+    return data;
+  }
+  async function check(){
+    if(state.busy)return;
+    clearTimeout(debounce);
+    clearError();
+    resetSource();
+    const url=el('yt-url').value.trim();
+    if(!url){showError('Vlož odkaz na YouTube video.');return;}
+    state.busy=true;
+    update();
+    status('Zjišťuji nejkvalitnější dostupnou audio stopu…');
+    try{
+      if(!(await checkServer()))throw new Error('Online YouTube downloader je dočasně nedostupný. Není potřeba nic instalovat.');
+      const {source}=await api('info',{url});
+      state.source=source;
+      state.url=url;
+      el('yt-title').textContent=source.title;
+      el('yt-codec').textContent=(source.codec||'unknown').toUpperCase();
+      el('yt-bitrate').textContent=source.bitrate?`~${source.bitrate} kb/s`:'Nezjištěno';
+      el('yt-rate').textContent=source.sampleRate?`${(source.sampleRate/1000).toLocaleString('cs-CZ')} kHz`:'Nezjištěno';
+      el('yt-length').textContent=fmtSeconds(source.duration);
+      el('yt-container').textContent=source.container||'—';
+      el('yt-source-info').hidden=false;
+      status('Zdroj ověřen. Vyber formát vpravo a klikni na Stáhnout.');
+    }catch(error){showError(error.message);status('Video se nepodařilo načíst.');}
+    finally{state.busy=false;update();}
+  }
+  async function download(){
+    if(state.busy||!state.source||!state.ready)return;
+    state.busy=true;
+    update();
+    clearError();
+    el('yt-result').hidden=true;
+    el('yt-save-link').hidden=true;
+    status('Stahuji nejlepší dostupný audio stream a připravuji soubor…');
+    try{
+      const data=await api('download',{url:state.url,format:el('yt-format').value});
+      const save=el('yt-save-link');
+      save.href=apiUrl('/api/youtube/file/'+encodeURIComponent(data.id));
+      save.download=data.filename;
+      save.hidden=false;
+      const size=(data.bytes/1048576).toLocaleString('cs-CZ',{maximumFractionDigits:1});
+      el('yt-result').textContent=`${data.filename} · ${size} MB · připraveno`;
+      el('yt-result').hidden=false;
+      // Fallback link remains visible if the browser prevents an automatic download.
+      save.click();
+      status('Hotovo. Pokud prohlížeč stahování nezahájil, klikni na odkaz pod tlačítkem.');
+    }catch(error){showError(error.message);status('Stahování se nepodařilo dokončit.');}
+    finally{state.busy=false;update();}
+  }
+  el('yt-url').addEventListener('input',()=>{
+    clearTimeout(debounce);
+    resetSource();
+    clearError();
+    status('Po vložení odkazu se zdroj automaticky načte.');
+    const input=el('yt-url').value.trim();
+    if(/^https:\/\//i.test(input))debounce=setTimeout(check,850);
+  });
+  el('yt-url').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();check();}});
+  el('yt-check').addEventListener('click',check);
+  el('yt-download').addEventListener('click',download);
+  el('yt-format').addEventListener('change',updateFormat);
+  updateFormat();
+  checkServer();
+}
+
+  
+function createKeyWorker(){return createBundledKeyWorker();}
+
+function initStudioTools(getBpmTrack){
+  const el=id=>document.getElementById(id);
+  const tools={file:null,buffer:null,loading:false,operation:0,tab:'converter',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,from:0,to:8,peaks:[],bpm:120};
+  const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
+  const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
+  const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
+  const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB`;
+  function status(id,text){el(id).textContent=text;}
+  function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;}
+  function clearError(){el('tool-error').hidden=true;}
+  function setBusy(busy){tools.loading=busy;el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
+  function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
+  function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;if(mp3&&el('conv-rate').value==='96000')el('conv-rate').value='48000';el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
+  function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;el('cut-bpm').value=other.bpm;}}
+  function resetKey(){tools.keyResult=null;el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Výsledek je orientační, zejména u bicích a krátkých samplů.');}
+  function stopPreview(){
+    clearInterval(tools.previewTimer);tools.previewTimer=null;
+    if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
+    tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Přehrát zvuk');
+  }
+  function remove(){tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
+  async function decode(file){
+    clearError();
+    if(tools.loading)return;
+    if(!file)return;
+    if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Neznámý soubor. Zkus WAV, MP3, M4A, MP4 nebo jiný podporovaný audioformát.');return;}
+    if(file.size>100*1024*1024||file.size===0){error('Soubor musí mít 1 B až 100 MB.');return;}
+    const token=++tools.operation;
+    stopPreview();tools.keyWorker?.terminate();tools.keyWorker=null;
+    setBusy(true);status('conv-status','Načítám zvuk…');
+    try{
+      const Ctx=window.AudioContext||window.webkitAudioContext;
+      if(!Ctx)throw new Error('Prohlížeč nepodporuje dekódování audia.');
+      tools.context||=new Ctx();
+      const buffer=await tools.context.decodeAudioData(await file.arrayBuffer());
+      if(token!==tools.operation)return;
+      if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
+      tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
+      tools.to=Math.min(buffer.duration,8);updateBpmFromAnalyzer();
+      el('tool-name').textContent=file.name;el('tool-name').title=file.name;
+      status('tool-ext',file.name.split('.').pop().toUpperCase());
+      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
+      el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();drawToolWave();
+      status('conv-status','Připraveno k exportu.');status('cut-status','Uprav délku nebo vyber počet taktů.');
+      status('tool-time',`${durationText(0)} / ${durationText(buffer.duration)}`);
+    }catch(e){if(token===tools.operation){error('Nelze přečíst zvuk: '+(e?.message||'nepodporovaný kodek')+'. Podpora MP4/M4A/FLAC závisí na prohlížeči.');status('conv-status','Nepodařilo se načíst soubor.');}}
+    finally{if(token===tools.operation){setBusy(false);updateButtons();}}
+  }
+  function channels(buffer){return Array.from({length:Math.min(buffer.numberOfChannels,2)},(_,i)=>buffer.getChannelData(i));}
+  function download(blob,name){const href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),60000);}
+  async function renderedChannels(targetSampleRate){
+    const original=tools.buffer;
+    if(original.sampleRate===targetSampleRate)return channels(original);
+    const count=Math.ceil(original.duration*targetSampleRate),ch=Math.min(2,original.numberOfChannels);
+    const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    if(!Offline)throw new Error('Převzorkování není v prohlížeči podporované.');
+    const ctx=new Offline(ch,count,targetSampleRate),source=ctx.createBufferSource();source.buffer=original;source.connect(ctx.destination);source.start(0);
+    const out=await ctx.startRendering();return channels(out);
+  }
+  let lamePromise;
+  function loadLame(){
+    if(window.lamejs?.Mp3Encoder)return Promise.resolve(window.lamejs);
+    if(lamePromise)return lamePromise;
+    lamePromise=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.all.min.js';script.async=true;
+      script.onload=()=>window.lamejs?.Mp3Encoder?resolve(window.lamejs):reject(new Error('MP3 enkodér není dostupný.'));
+      script.onerror=()=>reject(new Error('Nelze načíst MP3 enkodér. Zkontroluj připojení k internetu nebo exportuj WAV.'));
+      document.head.appendChild(script);
+    }).catch(e=>{lamePromise=null;throw e;});
+    return lamePromise;
+  }
+  const int16=(float,offset,size)=>{const out=new Int16Array(size);for(let i=0;i<size;i++){const x=Math.max(-1,Math.min(1,float[offset+i]||0));out[i]=x<0?Math.round(32768*x):Math.round(32767*x);}return out;};
+  async function toMp3(data,sampleRate,bitrate,token){
+    const lame=await loadLame();if(token!==tools.operation)throw new Error('Operace byla zrušena.');
+    const encoder=new lame.Mp3Encoder(data.length,sampleRate,bitrate),parts=[],size=1152;
+    for(let i=0;i<data[0].length;i+=size){
+      if(token!==tools.operation)throw new Error('Operace byla zrušena.');
+      const len=Math.min(size,data[0].length-i),left=int16(data[0],i,len),right=data[1]&&int16(data[1],i,len);
+      const chunk=right?encoder.encodeBuffer(left,right):encoder.encodeBuffer(left);
+      if(chunk.length)parts.push(new Uint8Array(chunk));
+      if((i/size)%90===0){status('conv-status',`Kóduji MP3… ${Math.round(i/data[0].length*100)} %`);await new Promise(r=>setTimeout(r,0));}
+    }
+    const last=encoder.flush();if(last.length)parts.push(new Uint8Array(last));return new Blob(parts,{type:'audio/mpeg'});
+  }
+  async function exportConvert(){
+    if(!tools.buffer||tools.loading)return;clearError();setBusy(true);
+    const token=++tools.operation;
+    try{
+      const format=el('conv-format').value,rate=Number(el('conv-rate').value),bitDepth=Number(el('conv-depth').value),bitrate=Number(el('conv-bitrate').value);
+      if(format==='mp3'&&!([44100,48000].includes(rate)))throw new Error('MP3 podporuje jen 44,1 nebo 48 kHz.');
+      const approx=tools.buffer.duration*rate*Math.min(2,tools.buffer.numberOfChannels)*(bitDepth/8);
+      if(format==='wav'&&approx>300*1024*1024)throw new Error('Výstupní WAV by přesáhl 300 MB. Zvol menší sample rate nebo kratší track.');
+      status('conv-status','Převzorkovávám audio…');
+      const data=await renderedChannels(rate);
+      if(token!==tools.operation)return;
+      if(format==='wav'){status('conv-status','Kóduji WAV…');const blob=encodeWav(data,rate,bitDepth);download(blob,filename('wav'));status('conv-status',`WAV je připravený (${readableSize(blob.size)}).`);}
+      else{status('conv-status','Načítám MP3 enkodér…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 je připravené (${readableSize(blob.size)}).`);}
+    }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export se nepodařil.');}}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  function selectTab(which){
+    tools.tab=which;stopPreview();
+    for(const name of ['converter','key','cutter','youtube']){
+      const selected=which===name,tab=el('tab-'+name);
+      tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
+    }
+    el('tool-drop-zone').hidden=which==='youtube';
+    el('youtube-source').hidden=which!=='youtube';
+    drawToolWave();
+  }
+  function updateTrimInputs(){
+    if(!tools.buffer)return;
+    const duration=tools.buffer.duration;
+    for(const id of ['cut-start','cut-end'])el(id).max=duration.toFixed(3);
+    el('cut-start').value=tools.from;el('cut-end').value=tools.to;
+    status('cut-start-label',precise(tools.from));status('cut-end-label',precise(tools.to));
+  }
+  function setStart(value,manual=false){
+    if(!tools.buffer)return;
+    tools.from=Math.max(0,Math.min(Number(value)||0,tools.buffer.duration-.02));
+    if(manual)el('cut-bars').value='custom';
+    if(el('cut-bars').value!=='custom')setByBars();
+    else tools.to=Math.max(tools.from+.02,tools.to);
+    updateTrimInputs();drawToolWave();
+  }
+  function setEnd(value){
+    if(!tools.buffer)return;el('cut-bars').value='custom';tools.to=Math.max(tools.from+.02,Math.min(tools.buffer.duration,Number(value)||0));updateTrimInputs();drawToolWave();
+  }
+  function setByBars(){
+    if(!tools.buffer)return;
+    const bars=Number(el('cut-bars').value),bpm=Number(el('cut-bpm').value);
+    if(!bars||!Number.isFinite(bpm)||bpm<20||bpm>400)return;
+    const duration=tools.buffer.duration,span=bars*4*60/bpm;
+    tools.to=Math.min(duration,tools.from+span);
+    if(tools.to-tools.from<.02)tools.from=Math.max(0,duration-span);
+    updateTrimInputs();drawToolWave();
+    status('cut-status',span>duration-tools.from+.001?'Track je kratší než zvolený počet taktů.':'Délka loopu: '+precise(tools.to-tools.from));
+  }
+  function drawToolWave(){
+    const canvas=el('tool-waveform');if(!canvas||!tools.buffer)return;
+    const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1,w=rect.width||canvas.width,h=rect.height||140;
+    canvas.width=Math.max(1,Math.round(w*dpr));canvas.height=Math.max(1,Math.round(h*dpr));
+    const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+    const bars=tools.peaks.length,bar=w/bars,duration=tools.buffer.duration;
+    const a=tools.tab==='cutter'?tools.from/duration:0,b=tools.tab==='cutter'?tools.to/duration:1;
+    ctx.fillStyle='#30302d';ctx.fillRect(0,0,w,h);
+    if(tools.tab==='cutter'){ctx.fillStyle='#262622';ctx.fillRect(0,0,w*a,h);ctx.fillRect(w*b,0,w*(1-b),h);ctx.fillStyle='#44312d';ctx.fillRect(w*a,0,w*(b-a),h);}
+    for(let i=0;i<bars;i++){
+      const amp=Math.max(2,Math.pow(tools.peaks[i],.55)*h*.76),x=i*bar;
+      ctx.fillStyle=(i/bars>=a&&i/bars<=b)?'#ff2b20':'#777771';
+      ctx.fillRect(x,(h-amp)/2,Math.max(1,bar*.68),amp);
+    }
+    if(tools.tab==='cutter'){
+      for(const x of [w*a,w*b]){ctx.fillStyle='#f5f4f0';ctx.fillRect(x-1,0,2,h);ctx.beginPath();ctx.arc(x,h/2,6,0,Math.PI*2);ctx.fill();}
+    }
+  }
+  async function preview(){
+    if(!tools.buffer||tools.loading)return;
+    if(tools.playing){stopPreview();return;}
+    try{
+      const Ctx=window.AudioContext||window.webkitAudioContext;tools.context||=new Ctx();if(tools.context.state==='suspended')await tools.context.resume();
+      const cut=tools.tab==='cutter',from=cut?tools.from:0,to=cut?tools.to:tools.buffer.duration;
+      if(to-from<.02)return;
+      const src=tools.context.createBufferSource();src.buffer=tools.buffer;
+      const gain=tools.context.createGain();src.connect(gain).connect(tools.context.destination);
+      if(cut){const fade=Math.min(Number(el('cut-fade').value)/1000,(to-from)/2);if(fade){const t=tools.context.currentTime;gain.gain.setValueAtTime(.001,t);gain.gain.linearRampToValueAtTime(1,t+fade);gain.gain.setValueAtTime(1,t+to-from-fade);gain.gain.linearRampToValueAtTime(.001,t+to-from);}}
+      src.onended=()=>{if(tools.source===src){stopPreview();status('tool-time',`${durationText(0)} / ${durationText(to-from)}`);}};
+      tools.source=src;tools.playing=true;src.start(0,from,to-from);
+      const started=tools.context.currentTime;el('tool-preview').textContent='Ⅱ';el('tool-preview').setAttribute('aria-label','Zastavit zvuk');
+      tools.previewTimer=setInterval(()=>status('tool-time',`${durationText(Math.min(to-from,tools.context.currentTime-started))} / ${durationText(to-from)}`),100);
+    }catch(e){stopPreview();error('Přehrávání se nepodařilo spustit: '+e.message);}
+  }
+  async function exportCut(){
+    if(!tools.buffer||tools.loading)return;
+    const token=++tools.operation;clearError();setBusy(true);stopPreview();
+    try{
+      if(tools.to-tools.from<.03)throw new Error('Loop musí mít alespoň 30 ms.');
+      const data=extractSegment(channels(tools.buffer),tools.buffer.sampleRate,tools.from,tools.to,Number(el('cut-fade').value));
+      const bitDepth=Number(el('cut-depth').value),bytes=data[0].length*data.length*(bitDepth/8);
+      if(bytes>300*1024*1024)throw new Error('Loop je příliš dlouhý. Zkrať výběr.');
+      status('cut-status','Připravuji loop…');await new Promise(r=>setTimeout(r,0));
+      if(token!==tools.operation)return;
+      const wav=encodeWav(data,tools.buffer.sampleRate,bitDepth);
+      const stem=(tools.file.name||'loop').replace(/\.[^.]+$/,'');
+      download(wav,`${stem}_${Math.round(Number(el('cut-bpm').value))}bpm_loop.wav`);
+      status('cut-status',`Loop exportován (${precise(tools.to-tools.from)}, ${readableSize(wav.size)}).`);
+    }catch(e){if(token===tools.operation){error(e.message);status('cut-status','Export se nepodařil.');}}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  function getKeyInput(buffer){
+    const sr=buffer.sampleRate,step=Math.max(1,Math.round(sr/11025)),dstRate=sr/step;
+    const input=buffer.getChannelData(0),segments=[];
+    const duration=buffer.duration,chunk=Math.min(duration,10),positions=duration>18?[.08,.43,.78]:[0];
+    for(const p of positions){const start=Math.max(0,Math.min(input.length-Math.floor(chunk*sr),Math.floor(duration*p*sr)));
+      const count=Math.floor(chunk*dstRate),data=new Float32Array(count);for(let i=0;i<count;i++)data[i]=input[Math.min(input.length-1,start+i*step)];segments.push(data);
+    }
+    const merged=new Float32Array(segments.reduce((a,b)=>a+b.length,0));let off=0;for(const chunk of segments){merged.set(chunk,off);off+=chunk.length;}
+    return {samples:merged,sampleRate:dstRate};
+  }
+  async function analyzeKey(){
+    if(!tools.buffer||tools.loading)return;
+    clearError();const token=++tools.operation;setBusy(true);status('key-status','Analyzuji harmonii…');
+    try{
+      const worker=createKeyWorker();tools.keyWorker=worker;
+      const samples=getKeyInput(tools.buffer);
+      const result=await new Promise((resolve,reject)=>{
+        const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Analýza trvá příliš dlouho.'));},30000);
+        worker.onmessage=({data})=>{clearTimeout(timeout);data.error?reject(new Error(data.error)):resolve(data.result);};
+        worker.onerror=()=>{clearTimeout(timeout);reject(new Error('Analýzu nelze spustit.'));};
+        worker.postMessage(samples,[samples.samples.buffer]);
+      });
+      worker.terminate();if(token!==tools.operation)return;
+      tools.keyResult=result;el('key-result').hidden=false;el('key-idle').hidden=true;el('key-alternatives').hidden=false;
+      status('key-name',result.primary.display);status('key-mode',result.primary.mode==='major'?'MAJOR':'MINOR');
+      status('key-camelot',result.primary.camelot);
+      status('key-confidence',({higher:'SILNĚJŠÍ SHODA',moderate:'ORIENTAČNÍ',low:'NÍZKÁ JISTOTA'})[result.confidence]);
+      status('key-alternatives','Další možné tóniny: '+result.alternatives.map(a=>`${a.display} (${a.camelot})`).join(' · '));
+      status('key-status','Algoritmický odhad z chromatické analýzy. U změn tóniny nemusí být jednoznačný.');
+    }catch(e){if(token===tools.operation){error(e.message);status('key-status','Tóninu se nepodařilo určit.');}}
+    finally{tools.keyWorker?.terminate();tools.keyWorker=null;if(token===tools.operation)setBusy(false);}
+  }
+  // Events
+  document.querySelectorAll('[data-tool]').forEach(button=>{
+    button.addEventListener('click',()=>selectTab(button.dataset.tool));
+    button.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const tabs=['converter','key','cutter','youtube'];const next=tabs[(tabs.indexOf(tools.tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];selectTab(next);el('tab-'+next).focus();});
+  });
+  el('tool-select-file').onclick=el('tool-change').onclick=()=>el('tool-file-input').click();
+  el('tool-file-input').onchange=e=>decode(e.target.files[0]);
+  el('tool-remove').onclick=remove;
+  el('tool-preview').onclick=preview;
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
+  el('conv-format').onchange=syncOutput;
+  el('conv-export').onclick=exportConvert;
+  el('key-analyze').onclick=analyzeKey;
+  el('cut-bpm').oninput=()=>{tools.bpm=Number(el('cut-bpm').value);if(el('cut-bars').value!=='custom')setByBars();};
+  el('cut-bars').onchange=()=>{if(el('cut-bars').value!=='custom')setByBars();};
+  el('cut-start').oninput=e=>setStart(e.target.value,true);
+  el('cut-end').oninput=e=>setEnd(e.target.value);
+  el('cut-export').onclick=exportCut;
+  el('tool-waveform').addEventListener('pointerdown',event=>{
+    if(tools.tab!=='cutter'||!tools.buffer)return;
+    const rect=el('tool-waveform').getBoundingClientRect(),time=Math.min(tools.buffer.duration,Math.max(0,(event.clientX-rect.left)/rect.width*tools.buffer.duration));
+    if(Math.abs(time-tools.from)<Math.abs(time-tools.to))setStart(time,true);else setEnd(time);
+  });
+  const drop=el('tool-drop-zone');
+  drop.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();if(!tools.loading)drop.classList.add('tool-dragover');}});
+  drop.addEventListener('dragleave',e=>{if(!drop.contains(e.relatedTarget))drop.classList.remove('tool-dragover');});
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Nahraj vždy jeden soubor.');return;}decode(e.dataTransfer.files[0]);});
+  window.addEventListener('pulse:bpm-track-ready',updateButtons);
+  const resize=new ResizeObserver(()=>drawToolWave());resize.observe(el('tool-waveform'));
+  window.addEventListener('pagehide',()=>{stopPreview();tools.keyWorker?.terminate();tools.context?.close();});
+  for(const id of ['open-youtube','hero-youtube']){
+    el(id)?.addEventListener('click',()=>selectTab('youtube'));
+  }
+  if(window.location.hash==='#youtube')selectTab('youtube');
+  syncOutput();updateButtons();initYoutubeTool();
+  return {reset:remove};
+}
+
+  const $ = selector => document.querySelector(selector);
+const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
+const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
+const messages = {
+  TOO_SHORT:'Tenhle track je moc krátký. Potřebujeme alespoň 6 sekund, ideálně 15 sekund nebo více s výrazným rytmem.',
+  SILENCE:'V souboru je ticho nebo příliš slabý signál. Zkus nahrát zvuk s jasně slyšitelnými beaty.',
+  NO_RHYTHM:'Pravidelný rytmus se nepodařilo spolehlivě najít. Zkus jiný úsek hudby nebo použij Tap tempo.',
+  DECODE:'Zvukovou stopu se nepodařilo přečíst. Soubor může být poškozený, bez zvuku nebo používat nepodporovaný kodek. Zkus WAV/MP3 nebo MP4 se zvukem AAC v aktuálním prohlížeči.',
+  TIMEOUT:'Analýza trvá příliš dlouho. Zkus kratší úsek nebo menší soubor.'
+};
+const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
+const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.',',');
+function announce(text) { ui['live-status'].textContent=text; }
+function showError(message) { ui.error.textContent=message; ui.error.hidden=false; }
+let toastTimer;
+function toast(text) { $('#toast').textContent=text; $('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,2500); }
+function setBusy(busy) {
+  state.busy=busy;ui.processing.hidden=!busy;ui['upload-empty'].hidden=busy||!!state.buffer;ui['track-content'].hidden=busy||!state.buffer;
+  $('#try-demo').disabled=busy;ui['drop-zone'].setAttribute('aria-busy',String(busy));
+  ui['result-status'].replaceChildren(document.createTextNode(busy?'ANALYZUJI':'ČEKÁM NA TRACK'),document.createElement('i'));
+}
+function stopPlayback() {
+  if(state.source){state.source.onended=null;try{state.source.stop();}catch{}state.source.disconnect();state.source=null;}
+  state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Přehrát track');
+}
+function reset() {
+  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
+  ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
+}
+async function processFile(file) {
+  if(!file||state.busy)return;
+  ui.error.hidden=true;
+  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Tento formát zatím nepodporujeme. Vyber soubor WAV, MP3 nebo MP4.');return;}
+  if(file.size>100*1024*1024){showError('Soubor je větší než 100 MB. Vyber menší soubor nebo kratší úsek.');return;}
+  if(file.size===0){showError('Soubor je prázdný. Zkus jiný soubor.');return;}
+  reset();const generation=state.generation;setBusy(true);announce('Načítám zvuk a hledám tempo.');$('#progress-detail').textContent='Načítám zvukovou stopu…';
+  try {
+    const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    if(!OfflineContext)throw new Error('Tvůj prohlížeč nepodporuje analýzu audia. Otevři aplikaci v aktuálním Chrome, Safari, Edge nebo Firefoxu.');
+    let buffer;
+    try { const decoder=new OfflineContext(1,1,22050);buffer=await decoder.decodeAudioData(await file.arrayBuffer()); }
+    catch { throw new Error('DECODE'); }
+    if(generation!==state.generation)return;
+    if(buffer.duration>1200)throw new Error('Track je delší než 20 minut. Vyber kratší úsek pro analýzu.');
+    if(buffer.duration<6)throw new Error('TOO_SHORT');
+    $('#progress-detail').textContent='Hledám opakující se beaty…';
+    // Use the most energetic channel to avoid phase cancellation in stereo recordings.
+    let bestChannel=0,bestEnergy=-1;
+    for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
+    const samples=buffer.getChannelData(bestChannel).slice();
+    const result=await new Promise((resolve,reject)=>{
+      const worker=createAnalysisWorker();state.worker=worker;
+      const timeout=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
+      state.cancelWorker=()=>{clearTimeout(timeout);worker.terminate();reject(new Error('CANCELLED'));};
+      worker.onmessage=({data})=>{clearTimeout(timeout);worker.terminate();if(state.worker===worker){state.worker=null;state.cancelWorker=null;}data.error?reject(new Error(data.error)):resolve(data.result);};
+      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analýzu se nepodařilo spustit. Obnov stránku a zkus to znovu.'));};
+      worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
+    });
+    if(generation!==state.generation)return;
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analýza hotová. Odhadované tempo ${bpmLabel(result.bpm)} BPM.`);
+  } catch(error) {
+    if(generation!==state.generation)return;
+    setBusy(false);showError(messages[error.message]||error.message);announce('Analýzu nelze dokončit.');
+  }
+}
+function renderResult(file) {
+  $('#track-name').textContent=file.name;$('#track-name').title=file.name;
+  $('#track-type').textContent=file.name.split('.').pop().toUpperCase();
+  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
+  $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
+  ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
+  const confidence={high:'VÝRAZNÝ RYTMUS',medium:'ODHAD TEMPA',low:'NEJISTÝ RYTMUS'}[state.result.confidence];
+  ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
+  ui['result-note'].textContent=state.result.confidence==='low'?'Rytmus není jednoznačný. Ber výsledek jako orientační a ověř ho poslechem nebo pomocí Tap tempo.':'BPM je odhad. Pokud hudbu vnímáš v polovičním nebo dvojnásobném tempu, použij ÷ 2 nebo × 2. Metronom slouží k ověření rychlosti, není synchronizovaný s prvním beatem.';
+  updateTempo();drawWaveform();
+}
+function updateTempo() {
+  ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',!Number.isInteger(state.bpm));
+  $('#reset-tempo').hidden=Math.abs(state.bpm-state.result.bpm)<.01;
+  $('#half-tempo').disabled=state.bpm/2<20;$('#double-tempo').disabled=state.bpm*2>400;
+}
+function changeTempo(multiplier) {
+  if(!state.result)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
+}
+function drawWaveform() {
+  if(!state.result)return;
+  const canvas=$('#waveform'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=state.result.waveform,bar=rect.width/peaks.length;
+  const progress=Number($('#seek').value)/state.buffer.duration;
+  for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
+  ctx.fillStyle='#f5f4f0';ctx.fillRect(progress*rect.width-1,0,1,rect.height);
+}
+async function getAudioContext() {
+  const Context=window.AudioContext||window.webkitAudioContext;
+  state.context||=new Context();if(state.context.state==='suspended')await state.context.resume();return state.context;
+}
+function currentPosition() {return state.playing?Math.min(state.buffer.duration,state.offset+state.context.currentTime-state.startedAt):state.offset;}
+function animatePlayback() {
+  if(!state.playing)return;
+  const position=currentPosition();$('#current-time').textContent=timeLabel(position);$('#seek').value=position;$('#seek').setAttribute('aria-valuetext',`${timeLabel(position)} z ${timeLabel(state.buffer.duration)}`);drawWaveform();state.raf=requestAnimationFrame(animatePlayback);
+}
+async function play() {
+  if(!state.buffer||state.starting)return;
+  if(state.playing){state.offset=currentPosition();stopPlayback();return;}
+  const generation=state.generation;state.starting=true;
+  try {
+    const context=await getAudioContext();if(generation!==state.generation||!state.buffer)return;
+    if(state.offset>=state.buffer.duration-.05)state.offset=0;
+    const source=context.createBufferSource();source.buffer=state.buffer;source.connect(context.destination);state.source=source;state.startedAt=context.currentTime;state.playing=true;
+    source.onended=()=>{state.offset=0;stopPlayback();$('#seek').value=0;$('#current-time').textContent='0:00';drawWaveform();};source.start(0,state.offset);
+    $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pozastavit track');animatePlayback();
+  } catch {toast('Přehrávání nelze spustit. Zkus to znovu.');} finally {state.starting=false;}
+}
+async function startMetronome() {
+  if(!state.bpm)return;const generation=state.generation;
+  try {await getAudioContext();}catch{toast('Zvuk se nepodařilo spustit.');return;}
+  if(generation!==state.generation||state.metroTimer)return;
+  state.metroNext=state.context.currentTime+.05;state.metroBeat=0;$('#metronome').setAttribute('aria-pressed','true');
+  function schedule() {
+    while(state.metroNext<state.context.currentTime+.1){
+      const when=state.metroNext,index=state.metroBeat%4;const oscillator=state.context.createOscillator(),gain=state.context.createGain();
+      oscillator.frequency.value=index===0?1300:950;gain.gain.setValueAtTime(.12,when);gain.gain.exponentialRampToValueAtTime(.001,when+.04);oscillator.connect(gain).connect(state.context.destination);oscillator.start(when);oscillator.stop(when+.05);state.metroNodes.add(oscillator);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();state.metroNodes.delete(oscillator);};
+      const timer=setTimeout(()=>{state.beatTimers.delete(timer);document.querySelectorAll('.beat-dots i').forEach((dot,i)=>dot.classList.toggle('on',i===index));},Math.max(0,(when-state.context.currentTime)*1000));state.beatTimers.add(timer);state.metroNext+=60/state.bpm;state.metroBeat++;
+    }
+  }
+  state.metroTimer=setInterval(schedule,25);schedule();
+}
+function stopMetronome() {
+  clearInterval(state.metroTimer);state.metroTimer=null;state.beatTimers.forEach(clearTimeout);state.beatTimers.clear();state.metroNodes.forEach(node=>{try{node.stop();}catch{}});state.metroNodes.clear();$('#metronome').setAttribute('aria-pressed','false');document.querySelectorAll('.beat-dots i').forEach(dot=>dot.classList.remove('on'));
+}
+async function copy(value) {
+  try {
+    if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(String(value));
+    else {const input=document.createElement('textarea');input.value=String(value);input.style.cssText='position:fixed;opacity:0;pointer-events:none';const parent=document.querySelector('dialog[open]')||document.body;parent.append(input);input.select();const success=document.execCommand('copy');input.remove();if(!success)throw new Error('COPY');}
+    toast(`${bpmLabel(Number(value))} BPM zkopírováno.`);
+  }catch{toast('Kopírování není dostupné. BPM můžeš označit a zkopírovat ručně.');}
+}
+$('#choose-file').onclick=$('#replace-file').onclick=()=>ui['file-input'].click();
+ui['file-input'].onchange=event=>processFile(event.target.files[0]);
+$('#remove-file').onclick=()=>{reset();announce('Soubor odebrán.');$('#choose-file').focus();};
+$('#cancel-analysis').onclick=()=>{reset();announce('Analýza zrušena.');$('#choose-file').focus();};
+let dragDepth=0;
+window.addEventListener('dragover',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
+window.addEventListener('drop',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
+ui['drop-zone'].addEventListener('dragenter',event=>{if(event.dataTransfer.types.includes('Files')){event.preventDefault();dragDepth++;if(!state.busy)ui['drop-zone'].classList.add('is-dragging');}});
+ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');}});
+ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Nahraj prosím jeden soubor. Každý track analyzujeme samostatně.');return;}processFile(event.dataTransfer.files[0]);});
+$('#play-track').onclick=play;
+$('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
+$('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
+new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
+for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
+document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>button.closest('dialog').close());
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}}));
+let taps=[],tapBpm=null,tapVisualTimer;
+function resetTaps(){taps=[];tapBpm=null;$('#tap-value').textContent='TAP';$('#tap-hint').textContent='Klikni do rytmu';$('#tap-count').textContent='0 úderů';$('#tap-copy').hidden=true;}
+function tap() {
+  const now=performance.now();if(taps.length&&now-taps.at(-1)>2500)resetTaps();if(taps.length&&now-taps.at(-1)<100)return;taps.push(now);if(taps.length>16)taps.shift();
+  $('#tap-count').textContent=`${taps.length} ${taps.length===1?'úder':taps.length<5?'údery':'úderů'}`;$('#tap-hint').textContent=taps.length<4?`Ještě ${4-taps.length}×`:'BPM · tvoje tempo';
+  if(taps.length>=4){const intervals=taps.slice(1).map((value,i)=>value-taps[i]).sort((a,b)=>a-b);const median=intervals[Math.floor(intervals.length/2)];const good=intervals.filter(value=>Math.abs(value-median)<median*.3);tapBpm=Math.round(60000/(good.reduce((a,b)=>a+b,0)/good.length)*10)/10;$('#tap-value').textContent=bpmLabel(tapBpm);$('#tap-copy').hidden=false;}
+  $('#tap-pad').classList.add('pressed');clearTimeout(tapVisualTimer);tapVisualTimer=setTimeout(()=>$('#tap-pad').classList.remove('pressed'),90);
+}
+$('#tap-pad').onclick=tap;$('#tap-reset').onclick=resetTaps;$('#tap-copy').onclick=()=>tapBpm&&copy(tapBpm);
+$('#tap-dialog').addEventListener('keydown',event=>{if(event.code==='Space'&&!event.repeat&&!event.altKey&&!event.ctrlKey&&!event.metaKey){event.preventDefault();tap();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMetronome();if(state.playing){state.offset=currentPosition();stopPlayback();}}});
+window.addEventListener('pagehide',()=>{reset();state.context?.close();});
+// A local, original 120 BPM groove exercises the same WAV decoding and analysis path.
+function makeDemo() {
+  const sr=22050,seconds=20,data=new Float32Array(sr*seconds);let seed=237;
+  const noise=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296*2-1;};
+  for(let beat=0;beat<40;beat++){
+    const start=Math.round(beat*.5*sr);
+    for(let j=0;j<sr*.22&&start+j<data.length;j++){const t=j/sr;data[start+j]+=.75*Math.sin(2*Math.PI*(48*t+1.5*(1-Math.exp(-t*35))))*Math.exp(-t*24);if(beat%2===1)data[start+j]+=.27*noise()*Math.exp(-t*32);}
+    for(let half=0;half<2;half++){const off=start+Math.round(half*.25*sr);for(let j=0;j<sr*.04&&off+j<data.length;j++)data[off+j]+=.07*noise()*Math.exp(-j/sr*100);}
+  }
+  const wav=new ArrayBuffer(44+data.length*2),view=new DataView(wav);const str=(offset,text)=>[...text].forEach((ch,i)=>view.setUint8(offset+i,ch.charCodeAt(0)));
+  str(0,'RIFF');view.setUint32(4,wav.byteLength-8,true);str(8,'WAVE');str(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,sr,true);view.setUint32(28,sr*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);str(36,'data');view.setUint32(40,data.length*2,true);for(let i=0;i<data.length;i++)view.setInt16(44+i*2,Math.max(-1,Math.min(1,data[i]))*32767,true);
+  return new File([wav],'Pulse — demo groove.wav',{type:'audio/wav'});
+}
+$('#try-demo').onclick=()=>processFile(makeDemo());
+initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm}));
+
+})();
+</script>
+</body></html>

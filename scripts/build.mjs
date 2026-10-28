@@ -1,0 +1,55 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const read=name=>readFile(path.join(root,'source',name),'utf8');
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,youtube]=await Promise.all([
+  read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('youtube.mjs')
+]);
+const noExports=source=>source.replace(/^export /gm,'');
+const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
+const workerSource=noExports(analyzer)+'\n'+noImports(worker);
+const keySource=noExports(studioAudio)+'\n'+noImports(keyWorker);
+new vm.Script(workerSource);new vm.Script(keySource);
+const originalWorker="new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'})";
+const originalKeyWorker="new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'})";
+
+assert.equal(app.split(originalWorker).length,2,'Expected one BPM worker constructor');
+
+app=noImports(app).replace(originalWorker,'createAnalysisWorker()');
+assert.equal(tools.split(originalKeyWorker).length,2,'Expected one key worker constructor');
+tools=noImports(tools).replace(originalKeyWorker,'createBundledKeyWorker()');
+const createBlobWorker=source=>`function ${source==='bpm'?'createAnalysisWorker':'createBundledKeyWorker'}(){\n    const url=URL.createObjectURL(new Blob([${source==='bpm'?'ANALYSIS_WORKER_SOURCE':'KEY_WORKER_SOURCE'}],{type:'text/javascript'}));\n    let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}\n    const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;\n  }`;
+const rawApiBase=(process.env.PULSE_API_BASE_URL||'').trim();
+if(rawApiBase && !/^https:\/\/[^\s/]+\/?$/i.test(rawApiBase) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(rawApiBase)) {
+  throw new Error('PULSE_API_BASE_URL must be an HTTPS origin, or an HTTP localhost origin for tests.');
+}
+const bundledScript=`(() => {
+  'use strict';
+  const PULSE_API_BASE_URL=${JSON.stringify(rawApiBase.replace(/\/$/,''))};
+  const ANALYSIS_WORKER_SOURCE=${JSON.stringify(workerSource)};
+  const KEY_WORKER_SOURCE=${JSON.stringify(keySource)};
+  ${createBlobWorker('bpm')}
+  ${createBlobWorker('key')}
+  ${noExports(studioAudio)}
+  ${noExports(youtube)}
+  ${noExports(tools)}
+  ${app}
+})();`;
+new vm.Script(bundledScript);
+assert(!bundledScript.includes('import.meta'),'Standalone app cannot reference import.meta');
+assert(html.includes('<link rel="stylesheet" href="./style.css">'));
+assert(html.includes('<script type="module" src="./app.mjs"></script>'));
+html=html.replace('<link rel="stylesheet" href="./style.css">',()=>'<style>\n'+css.replace(/<\/style/gi,'<\\/style')+'\n</style>')
+  .replace('  <script type="module" src="./app.mjs"></script>','')
+  .replace('</body>',()=>'<script>\n'+bundledScript.replace(/<\/script/gi,'<\\/script')+'\n</script>\n</body>');
+assert(!/<link[^>]+rel=["']stylesheet/.test(html));
+assert(!/<script[^>]+src=/.test(html));
+await mkdir(path.join(root,'public'),{recursive:true});
+await writeFile(path.join(root,'public/index.html'),html);
+await writeFile(path.join(root,'index.html'),html);
+console.log(`Built standalone Pulse Studio index.html (${Math.round(Buffer.byteLength(html)/1024)} KiB).`);

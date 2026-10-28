@@ -1,0 +1,183 @@
+import {initStudioTools} from './tools.mjs';
+const $ = selector => document.querySelector(selector);
+const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
+const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
+const messages = {
+  TOO_SHORT:'Tenhle track je moc krátký. Potřebujeme alespoň 6 sekund, ideálně 15 sekund nebo více s výrazným rytmem.',
+  SILENCE:'V souboru je ticho nebo příliš slabý signál. Zkus nahrát zvuk s jasně slyšitelnými beaty.',
+  NO_RHYTHM:'Pravidelný rytmus se nepodařilo spolehlivě najít. Zkus jiný úsek hudby nebo použij Tap tempo.',
+  DECODE:'Zvukovou stopu se nepodařilo přečíst. Soubor může být poškozený, bez zvuku nebo používat nepodporovaný kodek. Zkus WAV/MP3 nebo MP4 se zvukem AAC v aktuálním prohlížeči.',
+  TIMEOUT:'Analýza trvá příliš dlouho. Zkus kratší úsek nebo menší soubor.'
+};
+const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
+const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.',',');
+function announce(text) { ui['live-status'].textContent=text; }
+function showError(message) { ui.error.textContent=message; ui.error.hidden=false; }
+let toastTimer;
+function toast(text) { $('#toast').textContent=text; $('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,2500); }
+function setBusy(busy) {
+  state.busy=busy;ui.processing.hidden=!busy;ui['upload-empty'].hidden=busy||!!state.buffer;ui['track-content'].hidden=busy||!state.buffer;
+  $('#try-demo').disabled=busy;ui['drop-zone'].setAttribute('aria-busy',String(busy));
+  ui['result-status'].replaceChildren(document.createTextNode(busy?'ANALYZUJI':'ČEKÁM NA TRACK'),document.createElement('i'));
+}
+function stopPlayback() {
+  if(state.source){state.source.onended=null;try{state.source.stop();}catch{}state.source.disconnect();state.source=null;}
+  state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Přehrát track');
+}
+function reset() {
+  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
+  ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
+}
+async function processFile(file) {
+  if(!file||state.busy)return;
+  ui.error.hidden=true;
+  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Tento formát zatím nepodporujeme. Vyber soubor WAV, MP3 nebo MP4.');return;}
+  if(file.size>100*1024*1024){showError('Soubor je větší než 100 MB. Vyber menší soubor nebo kratší úsek.');return;}
+  if(file.size===0){showError('Soubor je prázdný. Zkus jiný soubor.');return;}
+  reset();const generation=state.generation;setBusy(true);announce('Načítám zvuk a hledám tempo.');$('#progress-detail').textContent='Načítám zvukovou stopu…';
+  try {
+    const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    if(!OfflineContext)throw new Error('Tvůj prohlížeč nepodporuje analýzu audia. Otevři aplikaci v aktuálním Chrome, Safari, Edge nebo Firefoxu.');
+    let buffer;
+    try { const decoder=new OfflineContext(1,1,22050);buffer=await decoder.decodeAudioData(await file.arrayBuffer()); }
+    catch { throw new Error('DECODE'); }
+    if(generation!==state.generation)return;
+    if(buffer.duration>1200)throw new Error('Track je delší než 20 minut. Vyber kratší úsek pro analýzu.');
+    if(buffer.duration<6)throw new Error('TOO_SHORT');
+    $('#progress-detail').textContent='Hledám opakující se beaty…';
+    // Use the most energetic channel to avoid phase cancellation in stereo recordings.
+    let bestChannel=0,bestEnergy=-1;
+    for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
+    const samples=buffer.getChannelData(bestChannel).slice();
+    const result=await new Promise((resolve,reject)=>{
+      const worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});state.worker=worker;
+      const timeout=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
+      state.cancelWorker=()=>{clearTimeout(timeout);worker.terminate();reject(new Error('CANCELLED'));};
+      worker.onmessage=({data})=>{clearTimeout(timeout);worker.terminate();if(state.worker===worker){state.worker=null;state.cancelWorker=null;}data.error?reject(new Error(data.error)):resolve(data.result);};
+      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analýzu se nepodařilo spustit. Obnov stránku a zkus to znovu.'));};
+      worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
+    });
+    if(generation!==state.generation)return;
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analýza hotová. Odhadované tempo ${bpmLabel(result.bpm)} BPM.`);
+  } catch(error) {
+    if(generation!==state.generation)return;
+    setBusy(false);showError(messages[error.message]||error.message);announce('Analýzu nelze dokončit.');
+  }
+}
+function renderResult(file) {
+  $('#track-name').textContent=file.name;$('#track-name').title=file.name;
+  $('#track-type').textContent=file.name.split('.').pop().toUpperCase();
+  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
+  $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
+  ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
+  const confidence={high:'VÝRAZNÝ RYTMUS',medium:'ODHAD TEMPA',low:'NEJISTÝ RYTMUS'}[state.result.confidence];
+  ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
+  ui['result-note'].textContent=state.result.confidence==='low'?'Rytmus není jednoznačný. Ber výsledek jako orientační a ověř ho poslechem nebo pomocí Tap tempo.':'BPM je odhad. Pokud hudbu vnímáš v polovičním nebo dvojnásobném tempu, použij ÷ 2 nebo × 2. Metronom slouží k ověření rychlosti, není synchronizovaný s prvním beatem.';
+  updateTempo();drawWaveform();
+}
+function updateTempo() {
+  ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',!Number.isInteger(state.bpm));
+  $('#reset-tempo').hidden=Math.abs(state.bpm-state.result.bpm)<.01;
+  $('#half-tempo').disabled=state.bpm/2<20;$('#double-tempo').disabled=state.bpm*2>400;
+}
+function changeTempo(multiplier) {
+  if(!state.result)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
+}
+function drawWaveform() {
+  if(!state.result)return;
+  const canvas=$('#waveform'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=state.result.waveform,bar=rect.width/peaks.length;
+  const progress=Number($('#seek').value)/state.buffer.duration;
+  for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
+  ctx.fillStyle='#f5f4f0';ctx.fillRect(progress*rect.width-1,0,1,rect.height);
+}
+async function getAudioContext() {
+  const Context=window.AudioContext||window.webkitAudioContext;
+  state.context||=new Context();if(state.context.state==='suspended')await state.context.resume();return state.context;
+}
+function currentPosition() {return state.playing?Math.min(state.buffer.duration,state.offset+state.context.currentTime-state.startedAt):state.offset;}
+function animatePlayback() {
+  if(!state.playing)return;
+  const position=currentPosition();$('#current-time').textContent=timeLabel(position);$('#seek').value=position;$('#seek').setAttribute('aria-valuetext',`${timeLabel(position)} z ${timeLabel(state.buffer.duration)}`);drawWaveform();state.raf=requestAnimationFrame(animatePlayback);
+}
+async function play() {
+  if(!state.buffer||state.starting)return;
+  if(state.playing){state.offset=currentPosition();stopPlayback();return;}
+  const generation=state.generation;state.starting=true;
+  try {
+    const context=await getAudioContext();if(generation!==state.generation||!state.buffer)return;
+    if(state.offset>=state.buffer.duration-.05)state.offset=0;
+    const source=context.createBufferSource();source.buffer=state.buffer;source.connect(context.destination);state.source=source;state.startedAt=context.currentTime;state.playing=true;
+    source.onended=()=>{state.offset=0;stopPlayback();$('#seek').value=0;$('#current-time').textContent='0:00';drawWaveform();};source.start(0,state.offset);
+    $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pozastavit track');animatePlayback();
+  } catch {toast('Přehrávání nelze spustit. Zkus to znovu.');} finally {state.starting=false;}
+}
+async function startMetronome() {
+  if(!state.bpm)return;const generation=state.generation;
+  try {await getAudioContext();}catch{toast('Zvuk se nepodařilo spustit.');return;}
+  if(generation!==state.generation||state.metroTimer)return;
+  state.metroNext=state.context.currentTime+.05;state.metroBeat=0;$('#metronome').setAttribute('aria-pressed','true');
+  function schedule() {
+    while(state.metroNext<state.context.currentTime+.1){
+      const when=state.metroNext,index=state.metroBeat%4;const oscillator=state.context.createOscillator(),gain=state.context.createGain();
+      oscillator.frequency.value=index===0?1300:950;gain.gain.setValueAtTime(.12,when);gain.gain.exponentialRampToValueAtTime(.001,when+.04);oscillator.connect(gain).connect(state.context.destination);oscillator.start(when);oscillator.stop(when+.05);state.metroNodes.add(oscillator);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();state.metroNodes.delete(oscillator);};
+      const timer=setTimeout(()=>{state.beatTimers.delete(timer);document.querySelectorAll('.beat-dots i').forEach((dot,i)=>dot.classList.toggle('on',i===index));},Math.max(0,(when-state.context.currentTime)*1000));state.beatTimers.add(timer);state.metroNext+=60/state.bpm;state.metroBeat++;
+    }
+  }
+  state.metroTimer=setInterval(schedule,25);schedule();
+}
+function stopMetronome() {
+  clearInterval(state.metroTimer);state.metroTimer=null;state.beatTimers.forEach(clearTimeout);state.beatTimers.clear();state.metroNodes.forEach(node=>{try{node.stop();}catch{}});state.metroNodes.clear();$('#metronome').setAttribute('aria-pressed','false');document.querySelectorAll('.beat-dots i').forEach(dot=>dot.classList.remove('on'));
+}
+async function copy(value) {
+  try {
+    if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(String(value));
+    else {const input=document.createElement('textarea');input.value=String(value);input.style.cssText='position:fixed;opacity:0;pointer-events:none';const parent=document.querySelector('dialog[open]')||document.body;parent.append(input);input.select();const success=document.execCommand('copy');input.remove();if(!success)throw new Error('COPY');}
+    toast(`${bpmLabel(Number(value))} BPM zkopírováno.`);
+  }catch{toast('Kopírování není dostupné. BPM můžeš označit a zkopírovat ručně.');}
+}
+$('#choose-file').onclick=$('#replace-file').onclick=()=>ui['file-input'].click();
+ui['file-input'].onchange=event=>processFile(event.target.files[0]);
+$('#remove-file').onclick=()=>{reset();announce('Soubor odebrán.');$('#choose-file').focus();};
+$('#cancel-analysis').onclick=()=>{reset();announce('Analýza zrušena.');$('#choose-file').focus();};
+let dragDepth=0;
+window.addEventListener('dragover',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
+window.addEventListener('drop',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
+ui['drop-zone'].addEventListener('dragenter',event=>{if(event.dataTransfer.types.includes('Files')){event.preventDefault();dragDepth++;if(!state.busy)ui['drop-zone'].classList.add('is-dragging');}});
+ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');}});
+ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Nahraj prosím jeden soubor. Každý track analyzujeme samostatně.');return;}processFile(event.dataTransfer.files[0]);});
+$('#play-track').onclick=play;
+$('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
+$('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
+new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
+for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
+document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>button.closest('dialog').close());
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}}));
+let taps=[],tapBpm=null,tapVisualTimer;
+function resetTaps(){taps=[];tapBpm=null;$('#tap-value').textContent='TAP';$('#tap-hint').textContent='Klikni do rytmu';$('#tap-count').textContent='0 úderů';$('#tap-copy').hidden=true;}
+function tap() {
+  const now=performance.now();if(taps.length&&now-taps.at(-1)>2500)resetTaps();if(taps.length&&now-taps.at(-1)<100)return;taps.push(now);if(taps.length>16)taps.shift();
+  $('#tap-count').textContent=`${taps.length} ${taps.length===1?'úder':taps.length<5?'údery':'úderů'}`;$('#tap-hint').textContent=taps.length<4?`Ještě ${4-taps.length}×`:'BPM · tvoje tempo';
+  if(taps.length>=4){const intervals=taps.slice(1).map((value,i)=>value-taps[i]).sort((a,b)=>a-b);const median=intervals[Math.floor(intervals.length/2)];const good=intervals.filter(value=>Math.abs(value-median)<median*.3);tapBpm=Math.round(60000/(good.reduce((a,b)=>a+b,0)/good.length)*10)/10;$('#tap-value').textContent=bpmLabel(tapBpm);$('#tap-copy').hidden=false;}
+  $('#tap-pad').classList.add('pressed');clearTimeout(tapVisualTimer);tapVisualTimer=setTimeout(()=>$('#tap-pad').classList.remove('pressed'),90);
+}
+$('#tap-pad').onclick=tap;$('#tap-reset').onclick=resetTaps;$('#tap-copy').onclick=()=>tapBpm&&copy(tapBpm);
+$('#tap-dialog').addEventListener('keydown',event=>{if(event.code==='Space'&&!event.repeat&&!event.altKey&&!event.ctrlKey&&!event.metaKey){event.preventDefault();tap();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMetronome();if(state.playing){state.offset=currentPosition();stopPlayback();}}});
+window.addEventListener('pagehide',()=>{reset();state.context?.close();});
+// A local, original 120 BPM groove exercises the same WAV decoding and analysis path.
+function makeDemo() {
+  const sr=22050,seconds=20,data=new Float32Array(sr*seconds);let seed=237;
+  const noise=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296*2-1;};
+  for(let beat=0;beat<40;beat++){
+    const start=Math.round(beat*.5*sr);
+    for(let j=0;j<sr*.22&&start+j<data.length;j++){const t=j/sr;data[start+j]+=.75*Math.sin(2*Math.PI*(48*t+1.5*(1-Math.exp(-t*35))))*Math.exp(-t*24);if(beat%2===1)data[start+j]+=.27*noise()*Math.exp(-t*32);}
+    for(let half=0;half<2;half++){const off=start+Math.round(half*.25*sr);for(let j=0;j<sr*.04&&off+j<data.length;j++)data[off+j]+=.07*noise()*Math.exp(-j/sr*100);}
+  }
+  const wav=new ArrayBuffer(44+data.length*2),view=new DataView(wav);const str=(offset,text)=>[...text].forEach((ch,i)=>view.setUint8(offset+i,ch.charCodeAt(0)));
+  str(0,'RIFF');view.setUint32(4,wav.byteLength-8,true);str(8,'WAVE');str(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,sr,true);view.setUint32(28,sr*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);str(36,'data');view.setUint32(40,data.length*2,true);for(let i=0;i<data.length;i++)view.setInt16(44+i*2,Math.max(-1,Math.min(1,data[i]))*32767,true);
+  return new File([wav],'Pulse — demo groove.wav',{type:'audio/wav'});
+}
+$('#try-demo').onclick=()=>processFile(makeDemo());
+initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm}));

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f4f0">
+  <meta name="description" content="Najdi tempo svého tracku. Pulse změří BPM z WAV, MP3 i MP4 přímo v prohlížeči. Tvoje soubory zůstávají u tebe.">
+  <title>Pulse Studio 2.2 — BPM, WAV, YouTube a sample cutter</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="arrow-up" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+  <symbol id="arrow-ne" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></symbol>
+  <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M16 8V3H3v13h5"/></symbol>
+  <symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></symbol>
+</defs></svg>
+<div class="shell">
+  <header class="header">
+    <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
+    <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link youtube-entry" id="open-youtube">YouTube → WAV <span aria-hidden="true">↗</span></a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
+    <span class="header-note"><span class="tiny-dot"></span> Jen ty a tvůj rytmus.</span>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy"><p class="eyebrow"><span class="small-cross">+</span> AUDIO IN. IDEAS OUT.</p><h1 id="hero-title">Najdi svůj<br><span>rytmus.</span></h1><p class="intro">BPM, tónina, konverze i dokonalý loop.<br>Tvůj produkční toolkit na jednom místě.</p><a href="#toolkit" id="hero-youtube" class="hero-quicklink">Stáhnout audio z YouTube <span aria-hidden="true">↗</span></a></div>
+      <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
+    </section>
+    <section id="analyzer" aria-label="Analyzátor tempa">
+      <div class="section-label"><h2>01 / ANALYZÁTOR TEMPA</h2><span>TVŮJ SOUBOR. TVOJE SOUKROMÍ.</span></div>
+      <div class="workspace">
+        <div class="upload-panel" id="drop-zone">
+          <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Vybrat WAV, MP3 nebo MP4" hidden>
+          <div class="upload-empty" id="upload-empty">
+            <span class="upload-icon"><svg><use href="#arrow-up"/></svg></span>
+            <h3>Pusť sem svůj track.</h3><p>Přetáhni audio nebo video.<br class="mobile-break"> O zbytek se postará Pulse.</p>
+            <button class="button button-light" id="choose-file">Vybrat soubor <svg><use href="#arrow-ne"/></svg></button>
+            <span class="file-limit">WAV, MP3 nebo MP4 <span>·</span> max. 100 MB / 20 min</span>
+          </div>
+          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Poslouchám rytmus.</h3><p id="progress-detail">Načítám zvukovou stopu…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Zrušit analýzu</button></div>
+          <div class="track-content" id="track-content" hidden>
+            <div class="track-top"><span class="track-type" id="track-type">WAV</span><button class="icon-button" id="remove-file" aria-label="Odebrat soubor"><svg><use href="#close"/></svg></button></div>
+            <h3 id="track-name"></h3><p class="track-meta" id="track-meta"></p>
+            <div class="waveform-wrap"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Pozice přehrávání"></div>
+            <div class="player"><button class="play-button" id="play-track" aria-label="Přehrát track"><svg><use href="#play"/></svg></button><span class="player-time"><span id="current-time">0:00</span><span class="time-separator">/</span><span id="total-time">0:00</span></span><button class="text-button replace" id="replace-file">Jiný soubor <span aria-hidden="true">↗</span></button></div>
+          </div>
+          <p class="privacy-note"><svg><use href="#lock"/></svg> Zpracování v prohlížeči. Soubory nikam neodesíláme.</p>
+          <div class="drag-overlay" aria-hidden="true"><span>Sem s ním.</span><svg><use href="#arrow-up"/></svg></div>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-top"><h3>TVOJE TEMPO</h3><span id="result-status">ČEKÁM NA TRACK <i></i></span></div>
+          <div class="tempo-circle" id="tempo-circle"><span class="bpm-number" id="bpm-number">—</span><span class="bpm-label">BEATS PER MINUTE</span><i class="orbit-dot"></i></div>
+          <div class="result-empty" id="result-empty"><span>Všechno začíná prvním beatem.</span><span aria-hidden="true">↗</span></div>
+          <div class="result-controls" id="result-controls" hidden><div class="tempo-actions"><div class="tempo-multipliers" aria-label="Interpretace tempa"><button id="half-tempo" title="Poloviční tempo">÷ 2</button><button id="double-tempo" title="Dvojnásobné tempo">× 2</button><button id="reset-tempo" title="Původně naměřené tempo" hidden>↺</button></div><button class="copy-button" id="copy-bpm" aria-label="Zkopírovat BPM"><svg><use href="#copy"/></svg><span>Kopírovat</span></button></div><div class="metronome-row"><button id="metronome" aria-pressed="false"><span class="switch"><i></i></span>Poslechnout tempo</button><span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div>
+        </div>
+      </div>
+      <div class="message error-message" id="error" role="alert" hidden></div>
+      <p class="result-note" id="result-note" hidden></p>
+      <div class="demo-line"><span>Ještě nemáš track po ruce?</span><button id="try-demo">Vyzkoušet na ukázce <span aria-hidden="true">↗</span></button></div>
+    </section>
+    <section id="toolkit" class="toolkit" aria-labelledby="toolkit-title">
+      <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2><span>JEDEN TRACK. VÍC MOŽNOSTÍ.</span></div>
+      <div class="toolkit-heading"><div><p class="eyebrow"><span class="small-cross">+</span> WORK SMARTER. SOUND BETTER.</p><h2 id="toolkit-title">Tvůj zvuk.<br><span>Tvoje pravidla.</span></h2></div><p>Konvertuj audio, objev tóninu, vystřihni loop nebo získej zvuk z YouTube v nejlepší dostupné kvalitě. Vlastní soubory zůstávají v prohlížeči.</p></div>
+      <div class="tool-tabs" role="tablist" aria-label="Produkční nástroje">
+        <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
+        <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
+        <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter"><span>03</span> Loop Cutter <b>↗</b></button>
+        <button class="tool-tab" id="tab-youtube" role="tab" aria-selected="false" aria-controls="panel-youtube" tabindex="-1" data-tool="youtube"><span>04</span> YouTube Audio <b>&#8599;</b></button>
+      </div>
+      <div class="tool-board">
+        <div class="tool-source" id="tool-drop-zone">
+          <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
+          <input type="file" id="tool-file-input" accept=".wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.aiff,.aif,audio/*,video/mp4" hidden aria-label="Vybrat audio nebo video pro toolkit">
+          <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Začni se zvukem.</h3><p>Přetáhni sem WAV, MP3 nebo podporované audio/video.</p><button class="tool-action tool-action-light" id="tool-select-file">Vybrat soubor <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
+          <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Odebrat soubor">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Vlnový průběh nahraného zvuku"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Přehrát zvuk">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Vyměnit ↗</button></div></div>
+          <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Použít track z BPM analyzátoru ↗</button>
+          <p class="tool-source-foot"><svg><use href="#lock"/></svg> Soubor zůstává v prohlížeči.</p>
+        </div>
+        <div class="tool-source youtube-source" id="youtube-source" hidden>
+          <div class="tool-head"><span>01 / YOUTUBE URL</span><span class="tiny-status" id="yt-helper">PŘIPOJUJI CLOUD</span></div>
+          <div class="yt-source-body">
+            <span class="yt-emblem" aria-hidden="true">&#9654;</span>
+            <h3>Maximum dostupn&#233; kvality.</h3>
+            <p>Vlo&#382; odkaz na video. Pulse vybere nejkvalitn&#283;j&#353;&#237; dostupnou audio stopu. Pou&#382;&#237;vej pouze obsah, k jeho&#382; sta&#382;en&#237; m&#225;&#353; opr&#225;vn&#283;n&#237;.</p>
+            <label class="yt-input-label" for="yt-url">ODKAZ NA VIDEO</label>
+            <input id="yt-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://www.youtube.com/watch?v=..." aria-describedby="yt-help">
+            <button class="tool-action tool-action-light yt-check" id="yt-check">Načíst video <span>&#8599;</span></button>
+            <p id="yt-help" class="yt-helper-note">Ověřuji dostupnost online stahování...</p>
+
+            <div class="yt-source-info" id="yt-source-info" hidden>
+              <span class="yt-kicker">BEST AVAILABLE STREAM</span>
+              <h4 id="yt-title">&#8212;</h4>
+              <div class="yt-metrics">
+                <div><small>KODEK</small><strong id="yt-codec">&#8212;</strong></div>
+                <div><small>BITRATE</small><strong id="yt-bitrate">&#8212;</strong></div>
+                <div><small>SAMPLE RATE</small><strong id="yt-rate">&#8212;</strong></div>
+                <div><small>D&#201;LKA</small><strong id="yt-length">&#8212;</strong></div>
+                <div><small>KONTEJNER</small><strong id="yt-container">&#8212;</strong></div>
+              </div>
+            </div>
+          </div>
+          <p class="tool-source-foot">YouTube poskytuje komprimovan&#253; zvuk. WAV neobnov&#237; ztracen&#233; detaily.</p>
+        </div>
+        <div class="tool-settings">
+          <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter"><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Změň formát.<br><span>Ne kvalitu práce.</span></h3><p class="tool-description">Převeď zvuk do WAV nebo MP3. Zvol sample rate a kvalitu exportu.</p>
+            <div class="tool-fields"><label>Výstupní formát<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="44100">44.1 kHz</option><option value="48000" selected>48 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
+            <button class="tool-action tool-action-dark" id="conv-export" disabled>Konvertovat & stáhnout <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Vyber soubor a výstupní parametry.</p></div>
+          <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key" hidden><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Najdi tóninu.<br><span>Chyť harmonii.</span></h3><p class="tool-description">Odhadni hudební tóninu a Camelot označení pro rychlejší produkci i mix.</p>
+            <div class="key-idle" id="key-idle"><span class="tool-circle-decoration">♪</span><p>Připraveno na analýzu tóniny</p></div><div class="key-result" id="key-result" hidden><div class="key-bubble"><strong id="key-name">—</strong><span id="key-mode">—</span></div><div class="key-extra"><span>CAMELOT</span><strong id="key-camelot">—</strong><span id="key-confidence">—</span></div></div><p class="key-alternatives" id="key-alternatives" hidden></p><button class="tool-action tool-action-dark" id="key-analyze" disabled>Analyzovat tóninu <span>↗</span></button><p class="tool-footnote" id="key-status" role="status">Výsledek je orientační, zejména u bicích a krátkých samplů.</p></div>
+          <div id="panel-cutter" class="tool-view" role="tabpanel" aria-labelledby="tab-cutter" hidden><div class="tool-view-header"><span>02 / LOOP CUTTER</span><span>PRECISION EDIT</span></div><h3>Vyřízni beat.<br><span>Ne potenciál.</span></h3><p class="tool-description">Nastav rozsah na waveformu nebo podle taktů. Přehraj výběr a exportuj WAV s fade-out.</p>
+            <div class="tool-fields"><label>Tempo pro beat grid (BPM)<input id="cut-bpm" type="number" min="20" max="400" step="0.1" value="120"></label><label>Délka ve 4/4 taktech<select id="cut-bars"><option value="1">1 takt</option><option value="2">2 takty</option><option value="4" selected>4 takty</option><option value="8">8 taktů</option><option value="16">16 taktů</option><option value="custom">Vlastní rozsah</option></select></label></div>
+            <div class="cut-sliders"><label>START <output id="cut-start-label">00:00.00</output><input id="cut-start" type="range" min="0" max="100" step="0.01" value="0"></label><label>END <output id="cut-end-label">00:08.00</output><input id="cut-end" type="range" min="0" max="100" step="0.01" value="8"></label></div>
+            <div class="tool-fields cut-bottom"><label>Fade in / out<select id="cut-fade"><option value="0">Off</option><option value="5" selected>5 ms · clean cut</option><option value="20">20 ms</option><option value="100">100 ms</option></select></label><label>WAV bit depth<select id="cut-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label></div>
+            <button class="tool-action tool-action-dark" id="cut-export" disabled>Exportovat loop (WAV) <span>↗</span></button><p class="tool-footnote" id="cut-status" role="status">Výběr můžeš přehrát tlačítkem vlevo.</p></div>
+          <div id="panel-youtube" class="tool-view" role="tabpanel" aria-labelledby="tab-youtube" hidden>
+            <div class="tool-view-header"><span>02 / QUALITY EXPORT</span><span>SOURCE-FIRST AUDIO</span></div>
+            <h3>&#381;&#225;dn&#225; dal&#353;&#237;<br><span>ztr&#225;ta kvality.</span></h3>
+            <p class="tool-description">Pulse vybere nejlep&#353;&#237; dostupnou audio stopu. M&#367;&#382;e&#353; ji ulo&#382;it bez zm&#283;ny, nebo dek&#243;dovat do WAV bez dal&#353;&#237; ztr&#225;tov&#233; komprese.</p>
+            <div class="yt-quality-list"><div><b>01</b><span>Nejkvalitn&#283;j&#353;&#237; dostupn&#225; zvukov&#225; stopa</span></div><div><b>02</b><span>Bez normalizace a audio efekt&#367;</span></div><div><b>03</b><span>Zachov&#225;n&#237; zdrojov&#233;ho sample rate</span></div></div>
+            <div class="tool-fields"><label>V&#253;stupn&#237; form&#225;t<select id="yt-format"><option value="wav24" selected>WAV &#183; 24-bit PCM</option><option value="wav16">WAV &#183; 16-bit PCM</option><option value="native">P&#367;vodn&#237; YouTube stream &#183; bez konverze</option><option value="mp3">MP3 &#183; 320 kb/s (znovu komprimovan&#233;)</option></select></label></div>
+            <p class="yt-format-note" id="yt-format-note">WAV 24-bit je vhodn&#253; pro DAW, ale nezlep&#353;&#237; komprimovan&#253; zdroj z YouTube.</p>
+            <button class="tool-action tool-action-dark" id="yt-download" disabled>St&#225;hnout WAV <span>&#8599;</span></button>
+            <p class="tool-footnote" id="yt-status" role="status">Nejd&#345;&#237;v zkontroluj zdroj.</p>
+            <p class="yt-result" id="yt-result" hidden></p>
+            <a class="yt-save-link" id="yt-save-link" hidden>St&#225;hnout p&#345;ipraven&#253; soubor &#8599;</a>
+            <p class="yt-error" id="yt-error" role="alert" hidden></p>
+          </div>
+        </div>
+      </div>
+      <div class="toolkit-bottom"><span>◉ PRIVATE BY DESIGN</span><span>YOUTUBE IMPORT ZPRACOVÁVÁ CLOUDOVÝ SERVER. VLASTNÍ NAHRANÉ AUDIO ZŮSTÁVÁ V PROHLÍŽEČI.</span></div>
+      <p class="message" id="tool-error" role="alert" hidden></p>
+    </section>
+    <section class="steps" aria-label="Tři kroky k tempu"><article><span class="step-number">01</span><div><h3>Nahraj.</h3><p>Audio i video. Stačí jeden soubor.</p></div></article><article><span class="step-number">02</span><div><h3>Najdi tempo.</h3><p>Pulse zachytí rytmus a odhadne BPM.</p></div></article><article><span class="step-number">03</span><div><h3>Chyť svůj flow.</h3><p>Pro střih, mix i tvůj další projekt.</p></div></article></section>
+  </main>
+  <footer><span class="footer-wordmark"><i></i> Pulse</span><span>MADE FOR YOUR NEXT BEAT.</span><button id="open-privacy">Soukromí <span aria-hidden="true">↗</span></button></footer>
+</div>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">MALÝ NÁVOD. VELKÝ RYTMUS.</p><h2 id="help-title">Od tracku<br>k tempu.</h2><ol class="help-list"><li><strong>Vyber WAV, MP3 nebo MP4.</strong><span>Maximálně 100 MB a 20 minut. Pro spolehlivější odhad použij alespoň 15 sekund hudby s výrazným rytmem; minimum je 6 sekund.</span></li><li><strong>Nech Pulse najít rytmus.</strong><span>Analyzujeme zvukové nástupy a jejich opakování. U MP4 čteme zvukovou stopu. Podpora konkrétního kodeku závisí na prohlížeči.</span></li><li><strong>Ověř tempo poslechem.</strong><span>Zapni metronom nebo použij Tap tempo. Vnímání rytmu se může lišit o polovinu či dvojnásobek — k tomu slouží ÷ 2 a × 2.</span></li></ol><p class="dialog-footnote">BPM je odhad. Proměnlivé tempo, mluvené slovo a hudba bez pravidelných beatů nemusí mít jednoznačný výsledek.</p></dialog>
+<dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">CÍTÍŠ TO? ŤUKEJ.</p><h2 id="tap-title">Tvoje ruce.<br>Tvoje tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Klikni do rytmu</span></button><p class="tap-instruction">Klikni alespoň 4× nebo použij mezerník.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 úderů</span><button id="tap-reset">Začít znovu ↺</button><button id="tap-copy" hidden>Kopírovat BPM ↗</button></div></dialog>
+<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">JEN U TEBE.</p><h2 id="privacy-title">Tvůj track<br>zůstává tvůj.</h2><p class="privacy-copy">Vlastní audio a video zpracováváme přímo v prohlížeči, nikam je neodesíláme. YouTube Audio používá cloudovou službu, která stahuje audio z YouTube a dočasně ho ukládá pro export. Připravené soubory automaticky expirují po 10 minutách. Vlastní soubory nahrané do BPM analyzátoru nebo dalších nástrojů na server neodesíláme.</p><p class="privacy-copy">Po odebrání souboru nebo zavření stránky se data z této relace uvolní. Webové rozhraní běží na Vercelu. YouTube import probíhá na odděleném serveru.</p></dialog>
+<div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
+</body></html>

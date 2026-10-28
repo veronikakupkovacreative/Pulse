@@ -1,0 +1,11 @@
+node_modules
+.git
+public
+source
+scripts
+tests
+*.zip
+preview*.png
+*.md
+__pycache__
+*.command

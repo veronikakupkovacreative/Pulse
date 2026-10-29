@@ -24,7 +24,14 @@ export function initStudioTools(getBpmTrack){
     if(!tools.buffer){el('tool-loaded').hidden=true;el('tool-empty').hidden=false;updatePlayhead(0);return;}
     const buffer=tools.buffer;
     tools.peaks=getAudioPeaks(buffer.getChannelData(0),2160);
-    tools.from=0;tools.to=Math.min(buffer.duration,8);resetWaveView(buffer.duration);
+    tools.from=0;tools.to=Math.min(buffer.duration,8);
+    // Keep the producer's timeline context through Apply / Undo / Redo.
+    tools.playhead=clampPlayhead(tools.playhead,buffer.duration);
+    tools.viewStart=viewportRange(buffer.duration,tools.zoom,tools.viewStart).start;
+    tools.loopFrom=clampPlayhead(tools.loopFrom,buffer.duration);
+    tools.loopTo=clampPlayhead(tools.loopTo,buffer.duration);
+    if(tools.loopTo-tools.loopFrom<.05){tools.loopEnabled=false;tools.loopFrom=0;tools.loopTo=buffer.duration;}
+    updateWaveControls();
     el('tool-name').textContent=tools.file?.name||'Audio';
     status('tool-details',`${durationText(buffer.duration)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
     el('tool-loaded').hidden=false;el('tool-empty').hidden=true;

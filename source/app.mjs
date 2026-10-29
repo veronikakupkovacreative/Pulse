@@ -37,11 +37,17 @@ async function processFile(file) {
   if(file.size===0){showError('Empty file. Try another.');return;}
   reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Loading audio…';
   try {
+    // iOS Safari can reject OfflineAudioContext decoding even for supported files.
+    // Prefer an ordinary AudioContext and reuse its buffer for playback.
+    const Context=window.AudioContext||window.webkitAudioContext;
     const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    if(!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
+    if(!Context&&!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
     let buffer;
-    try { const decoder=new OfflineContext(1,1,22050);buffer=await decoder.decodeAudioData(await file.arrayBuffer()); }
-    catch { throw new Error('DECODE'); }
+    try {
+      const bytes=await file.arrayBuffer();
+      const decoder=Context?(state.context||=new Context()):new OfflineContext(1,1,22050);
+      buffer=await decoder.decodeAudioData(bytes.slice(0));
+    } catch { throw new Error('DECODE'); }
     if(generation!==state.generation)return;
     if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');

@@ -236,8 +236,16 @@ export function initStudioTools(getBpmTrack){
       tools.context||=new Ctx();
       const bytes=await file.arrayBuffer(),fileRate=nativeWavRate(bytes);
       const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-      const decoder=fileRate&&Offline?new Offline(1,1,fileRate):tools.context;
-      const buffer=await decoder.decodeAudioData(bytes);
+      let buffer;
+      try {
+        const decoder=fileRate&&Offline?new Offline(1,1,fileRate):tools.context;
+        buffer=await decoder.decodeAudioData(bytes.slice(0));
+      } catch (decodeError) {
+        // WebKit supports fewer OfflineAudioContext decoder combinations.
+        // Retry on the regular AudioContext without altering the source file.
+        if(!fileRate||!Offline)throw decodeError;
+        buffer=await tools.context.decodeAudioData(bytes.slice(0));
+      }
       if(token!==tools.operation)return;
       if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
       tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.load(buffer,file);tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),2160);tools.from=0;

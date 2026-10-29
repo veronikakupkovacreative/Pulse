@@ -11,7 +11,7 @@ function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.m
 export function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
   const workspace=createAudioWorkspace({maxUndo:4});
-  const tools={category:'analyze',masterCandidate:null,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120};
+  const tools={category:'analyze',masterCandidate:null,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
@@ -115,7 +115,7 @@ export function initStudioTools(getBpmTrack){
   function setBusy(busy){tools.loading=busy;for(const id of ['master-render','master-preview-a','master-preview-b','master-apply','master-export'])el(id).disabled=busy||!tools.buffer||(id!=='master-render'&&!tools.masterCandidate&&id!=='master-preview-a');for(const id of ['pt-preview','pt-apply','pt-export','tuner-analyze','tuner-preview','tuner-apply','tuner-export','slice-auto','slice-preview','slice-export-one','slice-export-all'])el(id).disabled=busy||!tools.buffer;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('cut-audition').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
   function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;if(mp3&&el('conv-rate').value==='96000')el('conv-rate').value='48000';el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
-  function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;el('cut-bpm').value=other.bpm;}}
+  function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;tools.bpmOffset=Number(other.beatOffset)||0;el('cut-bpm').value=other.bpm;}}
   function resetKey(){
     tools.keyResult=null;tools.tunerResult=null;
     updatePitchKey();el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;
@@ -394,7 +394,7 @@ export function initStudioTools(getBpmTrack){
     }
     if(tools.snap&&Number.isFinite(tools.bpm)&&tools.bpm>=20&&tools.bpm<=400){
       const step=60/tools.bpm;
-      if(view.span/step<=120){ctx.fillStyle='rgba(255,43,32,.21)';for(let t=Math.ceil(view.start/step)*step;t<=view.end;t+=step)ctx.fillRect(px(t),17,1,h-17);}
+      if(view.span/step<=120){ctx.fillStyle='rgba(255,43,32,.21)';for(let t=Math.ceil((view.start-tools.bpmOffset)/step)*step+tools.bpmOffset;t<=view.end;t+=step)ctx.fillRect(px(t),17,1,h-17);}
     }
     if(selection){ctx.fillStyle='rgba(0,0,0,.27)';ctx.fillRect(0,17,Math.max(0,px(selection[0])),h-17);ctx.fillRect(Math.max(0,px(selection[1])),17,w-Math.max(0,px(selection[1])),h-17);}
     if(tools.loopEnabled){ctx.fillStyle='rgba(255,43,32,.10)';ctx.fillRect(Math.max(0,px(tools.loopFrom)),17,Math.max(0,Math.min(w,px(tools.loopTo))-Math.max(0,px(tools.loopFrom))),h-17);}
@@ -658,7 +658,7 @@ export function initStudioTools(getBpmTrack){
       status('slice-status',all?'ZIP obsahuje všechny aktuální slices.':'Slice exportován do WAV.');
     }catch(e){error(e.message);}finally{setBusy(false);}
   }
-  function slicePosition(event){const rect=el('tool-waveform').getBoundingClientRect();const time=viewportTime(event.clientX,rect.left,rect.width,tools.buffer.duration,tools.zoom,tools.viewStart);return tools.snap?snapBeat(time,tools.bpm,tools.buffer.duration):time;}
+  function slicePosition(event){const rect=el('tool-waveform').getBoundingClientRect();const time=viewportTime(event.clientX,rect.left,rect.width,tools.buffer.duration,tools.zoom,tools.viewStart);return tools.snap?snapBeat(time,tools.bpm,tools.buffer.duration,tools.bpmOffset):time;}
   function slicePointerDown(event){
     if(tools.tab!=='slicer'||!tools.buffer||tools.loading)return false;
     const value=slicePosition(event),markers=tools.markers;
@@ -888,7 +888,7 @@ export function initStudioTools(getBpmTrack){
   window.addEventListener('pulse:bpm-track-ready',updateButtons);
   window.addEventListener('pulse:tempo-apply',event=>{
     const bpm=Number(event.detail?.bpm);if(!Number.isFinite(bpm)||bpm<20||bpm>400)return;
-    tools.bpm=bpm;tools.bpmEdited=true;
+    tools.bpm=bpm;tools.bpmOffset=Number.isFinite(Number(event.detail?.beatOffset))?Number(event.detail.beatOffset):0;tools.bpmEdited=true;
     for(const id of ['calc-bpm','pt-original','pt-target','cut-bpm'])el(id).value=String(bpm);
     if(el('cut-bars').value!=='custom')setByBars();
     updateCalculator();updateWaveControls();drawToolWave();

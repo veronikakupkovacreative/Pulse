@@ -28,3 +28,8 @@ test('compiled HTML exposes both accessible seeking surfaces and visual playhead
   assert.match(html,/Shift\+klik/);
   assert.match(html,/function seekTool\(time,autoplay=true,sourceTransport/);
 });
+
+test('phase-aware snapping respects a nonzero onset grid offset',()=>{
+ assert.equal(snapBeat(1.18,120,10,.18),1.18);
+ assert.equal(snapBeat(1.40,120,10,.18),1.18);
+});

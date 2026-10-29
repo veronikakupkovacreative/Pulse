@@ -92,6 +92,27 @@ export function analyzeTempo(samples, sampleRate) {
   });
   const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;
   const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';
+  // Fold onset peaks into the detected beat period to locate the beat grid.
+  // This is an onset phase, NOT a guaranteed musical downbeat.
+  const periodFrames = rate * 60 / best.bpm;
+  const bins = Math.max(8, Math.round(periodFrames));
+  const phaseEnergy = new Float64Array(bins);
+  for (let i = 2; i < envelope.length - 1; i++) {
+    if (envelope[i] <= envelope[i-1] || envelope[i] < envelope[i+1]) continue;
+    const phase = i % periodFrames;
+    const bin = Math.round(phase / periodFrames * bins) % bins;
+    phaseEnergy[bin] += envelope[i];
+  }
+  let bestBin = 0, bestPhaseScore = -1;
+  for (let i = 0; i < bins; i++) {
+    const score = phaseEnergy[(i+bins-2)%bins] * .15 +
+      phaseEnergy[(i+bins-1)%bins] * .55 + phaseEnergy[i] +
+      phaseEnergy[(i+1)%bins] * .55 + phaseEnergy[(i+2)%bins] * .15;
+    if (score > bestPhaseScore) {bestPhaseScore = score; bestBin = i;}
+  }
+  const beatOffsetSeconds = Math.round(bestBin / bins * 60 / best.bpm * 1000) / 1000;
+  const alternativeBpms = candidates.filter(c => Math.abs(Math.log2(c.bpm / best.bpm)) > .06)
+    .slice(0, 3).map(c => Math.round(c.bpm * 10) / 10);
   const waveform = Array.from({length:220}, (_,i) => {
     const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);
     let sum = 0, count = 0;
@@ -99,6 +120,6 @@ export function analyzeTempo(samples, sampleRate) {
     return Math.sqrt(sum / (count || 1));
   });
   const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};
+  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms};
 }
 

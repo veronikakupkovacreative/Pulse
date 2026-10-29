@@ -74,6 +74,11 @@ function renderResult(file) {
   const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
   ui['result-note'].textContent=state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Tempo is an estimate. Verify by ear or use half/double tempo.';
+  if (Number.isFinite(state.result.beatOffsetSeconds)) {
+    const offset = state.result.beatOffsetSeconds.toFixed(2);
+    const alternatives = (state.result.alternativeBpms||[]).slice(0,2);
+    ui['result-note'].textContent += ` · Beat grid offset: ${offset}s${alternatives.length ? ' · Other tempo candidates: '+alternatives.join(' / ')+' BPM' : ''}`;
+  }
   updateTempo();drawWaveform();
 }
 function updateTempo() {
@@ -183,7 +188,7 @@ $('#seek').addEventListener('keydown',event=>{
   }
 });
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#bpm-override').onchange=event=>setTempo(event.target.value);
-$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
+$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
 $('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
@@ -215,4 +220,4 @@ function makeDemo() {
   return new File([wav],'Pulse — demo groove.wav',{type:'audio/wav'});
 }
 $('#try-demo').onclick=()=>processFile(makeDemo());
-initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm}));
+initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));

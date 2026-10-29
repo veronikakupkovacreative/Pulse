@@ -27,10 +27,11 @@ export function viewportPercent(time,duration,zoom=1,start=0){
   const range=viewportRange(duration,zoom,start);
   return range.span>0?(time-range.start)/range.span*100:0;
 }
-export function snapBeat(time,bpm,duration){
+export function snapBeat(time,bpm,duration,offset=0){
   if(!Number.isFinite(bpm)||bpm<20||bpm>400)return clampPlayhead(time,duration);
   const secondsPerBeat=60/bpm;
-  return clampPlayhead(Math.round(time/secondsPerBeat)*secondsPerBeat,duration);
+  const origin=Number.isFinite(offset)?offset:0;
+  return clampPlayhead(Math.round((time-origin)/secondsPerBeat)*secondsPerBeat+origin,duration);
 }
 
 // Position of a native Web Audio loop. Continuous modulo timing avoids resetting the

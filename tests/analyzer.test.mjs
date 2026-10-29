@@ -29,3 +29,17 @@ test('rejects unstructured noise',()=>{
   const noise=Float32Array.from({length:22050*20},()=>{seed=(seed*1664525+1013904223)>>>0;return (seed/4294967296*2-1)*.5;});
   assert.throws(()=>analyzeTempo(noise,22050),/NO_RHYTHM/);
 });
+
+test('returns a beat phase and alternative candidates without claiming a downbeat',()=>{
+ const sr=22050,bpm=120,shift=.135;
+ const raw=beat(bpm,18);
+ const shifted=new Float32Array(raw.length);
+ shifted.set(raw.subarray(0,raw.length-Math.round(sr*shift)),Math.round(sr*shift));
+ const result=analyzeTempo(shifted,sr);
+ assert.ok(Math.abs(result.bpm-bpm)<1.1);
+ assert.ok(Number.isFinite(result.beatOffsetSeconds));
+ assert.ok(result.beatOffsetSeconds>=0&&result.beatOffsetSeconds<60/result.bpm);
+ const distance=Math.abs(result.beatOffsetSeconds-shift);
+ assert.ok(Math.min(distance,Math.abs(distance-.5))<.075,`expected phase near ${shift}s, got ${result.beatOffsetSeconds}s`);
+ assert.ok(Array.isArray(result.alternativeBpms));
+});

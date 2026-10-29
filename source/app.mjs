@@ -1,5 +1,6 @@
 import {initStudioTools} from './tools.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
+import {audioFileError} from './file-support.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
@@ -8,12 +9,16 @@ const messages = {
   SILENCE:'Silent or weak audio. Try a track with a clear beat.',
   NO_RHYTHM:'No steady beat detected. Try another section or Tap Tempo.',
   DECODE:'Cannot decode audio. Try WAV, MP3 or MP4 with AAC audio.',
-  TIMEOUT:'Analysis timed out. Try a shorter track.'
+  TIMEOUT:'Analysis timed out. Try a shorter track.',
+  READ_FILE:'Could not read this file from Files. Download it to your device and try again.'
 };
 const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
 const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1);
 function announce(text) { ui['live-status'].textContent=text; }
-function showError(message) { ui.error.textContent=message; ui.error.hidden=false; }
+function showError(message) {
+  ui.error.textContent=message;ui.error.hidden=false;
+  const feedback=$('#file-feedback');if(feedback){feedback.textContent=message;feedback.hidden=false;}
+}
 let toastTimer;
 function toast(text) { $('#toast').textContent=text; $('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,2500); }
 function setBusy(busy) {
@@ -27,15 +32,14 @@ function stopPlayback() {
 }
 function reset() {
   state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;$('#bpm-override').value='';
-  ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
+  ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;$('#file-feedback').hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
 }
 async function processFile(file) {
   if(!file||state.busy)return;
   ui.error.hidden=true;
-  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Unsupported format. Use WAV, MP3 or MP4.');return;}
-  if(file.size>100*1024*1024){showError('File exceeds 100 MB.');return;}
-  if(file.size===0){showError('Empty file. Try another.');return;}
-  reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Loading audio…';
+  const invalid=audioFileError(file);
+  if(invalid){showError(invalid);announce(invalid);return;}
+  reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Reading '+file.name+'…';
   try {
     // iOS Safari can reject OfflineAudioContext decoding even for supported files.
     // Prefer an ordinary AudioContext and reuse its buffer for playback.
@@ -44,10 +48,12 @@ async function processFile(file) {
     if(!Context&&!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
     let buffer;
     try {
-      const bytes=await file.arrayBuffer();
+      let bytes;
+      try{bytes=await file.arrayBuffer();}
+      catch{throw new Error('READ_FILE');}
       const decoder=Context?(state.context||=new Context()):new OfflineContext(1,1,22050);
       buffer=await decoder.decodeAudioData(bytes.slice(0));
-    } catch { throw new Error('DECODE'); }
+    } catch(error) { throw new Error(error?.message==='READ_FILE'?'READ_FILE':'DECODE'); }
     if(generation!==state.generation)return;
     if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
@@ -161,7 +167,14 @@ async function copy(value) {
   }catch{toast('Copy failed. Select and copy BPM manually.');}
 }
 $('#choose-file').onclick=$('#replace-file').onclick=()=>ui['file-input'].click();
-ui['file-input'].onchange=event=>processFile(event.target.files[0]);
+const selectBpmFile=event=>{
+  const input=event.currentTarget,file=input.files?.[0];
+  if(!file)return;
+  input.value=''; // Re-selecting the same iOS Files document must still trigger change.
+  void processFile(file);
+};
+ui['file-input'].addEventListener('input',selectBpmFile);
+ui['file-input'].addEventListener('change',selectBpmFile);
 $('#remove-file').onclick=()=>{reset();announce('File removed.');$('#choose-file').focus();};
 $('#cancel-analysis').onclick=()=>{reset();announce('Analysis canceled.');$('#choose-file').focus();};
 let dragDepth=0;

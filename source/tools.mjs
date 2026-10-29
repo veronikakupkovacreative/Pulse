@@ -4,6 +4,7 @@ import {createAudioWorkspace} from './core/audio-workspace.mjs';
 import {createStoredZip} from './dsp/zip-store.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead,viewportRange,viewportTime,viewportPercent,snapBeat,loopTime} from './playhead.mjs';
 import {analysisRange,midiLabel,tuningCorrection} from './dsp/harmonic-workflow.mjs';
+import {audioFileError} from './file-support.mjs';
 
 function createProductionWorker(){return new Worker(new URL('./production-worker.mjs',import.meta.url),{type:'module'});}
 function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'});}
@@ -110,8 +111,8 @@ export function initStudioTools(getBpmTrack){
     }catch(e){target.replaceChildren();status('calc-status',e.message);}
   }
   function status(id,text){el(id).textContent=text;}
-  function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;}
-  function clearError(){el('tool-error').hidden=true;}
+  function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;const near=el('tool-file-feedback');if(near){near.textContent=message;near.hidden=false;}}
+  function clearError(){el('tool-error').hidden=true;const near=el('tool-file-feedback');if(near)near.hidden=true;}
   function setBusy(busy){tools.loading=busy;for(const id of ['master-render','master-preview-a','master-preview-b','master-apply','master-export'])el(id).disabled=busy||!tools.buffer||(id!=='master-render'&&!tools.masterCandidate&&id!=='master-preview-a');for(const id of ['pt-preview','pt-apply','pt-export','tuner-analyze','tuner-preview','tuner-apply','tuner-export','slice-auto','slice-preview','slice-export-one','slice-export-all'])el(id).disabled=busy||!tools.buffer;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('cut-audition').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
   function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;el('conv-dither-box').hidden=mp3||el('conv-depth').value!=='16';const sourceRate=tools.buffer?.sampleRate||48000;const selected=el('conv-rate').value;const rate=selected==='original'?sourceRate:Number(selected);if(mp3&&![44100,48000].includes(rate)){el('conv-rate').value='48000';}el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
@@ -225,16 +226,17 @@ export function initStudioTools(getBpmTrack){
     clearError();
     if(tools.loading)return;
     if(!file)return;
-    if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Neznámý soubor. Zkus WAV, MP3, M4A, MP4 nebo jiný podporovaný audioformát.');return;}
-    if(file.size>100*1024*1024||file.size===0){error('Soubor musí mít 1 B až 100 MB.');return;}
+    const invalid=audioFileError(file);if(invalid){error(invalid);return;}
     const token=++tools.operation;tools.bpmEdited=false;
     stopPreview();tools.keyWorker?.terminate();tools.keyWorker=null;
-    setBusy(true);status('conv-status','Loading audio…');
+    setBusy(true);status('conv-status','Loading audio…');const feedback=el('tool-file-feedback');feedback.textContent='Reading '+file.name+'…';feedback.hidden=false;
     try{
       const Ctx=window.AudioContext||window.webkitAudioContext;
       if(!Ctx)throw new Error('Prohlížeč nepodporuje dekódování audia.');
       tools.context||=new Ctx();
-      const bytes=await file.arrayBuffer(),fileRate=nativeWavRate(bytes);
+      let bytes;
+      try{bytes=await file.arrayBuffer();}catch{throw new Error('Could not read from Files. Save the audio locally and retry.');}
+      const fileRate=nativeWavRate(bytes);
       const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
       let buffer;
       try {
@@ -254,7 +256,7 @@ export function initStudioTools(getBpmTrack){
       status('tool-ext',file.name.split('.').pop().toUpperCase());
       status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
       el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();drawToolWave();
-      syncOutput();status('conv-status','Ready to export.');status('cut-status','Uprav délku nebo vyber počet taktů.');
+      syncOutput();el('tool-file-feedback').hidden=true;status('conv-status','Ready to export.');status('cut-status','Uprav délku nebo vyber počet taktů.');
       updatePlayhead(0);
     }catch(e){if(token===tools.operation){error('Nelze přečíst zvuk: '+(e?.message||'nepodporovaný kodek')+'. Podpora MP4/M4A/FLAC závisí na prohlížeči.');status('conv-status','Nepodařilo se načíst soubor.');}}
     finally{if(token===tools.operation){setBusy(false);updateButtons();if(tools.buffer?.duration>=6)detectTrackBpm();}}
@@ -816,7 +818,14 @@ export function initStudioTools(getBpmTrack){
   el('norm-mode').onchange=()=>{el('norm-peak-field').hidden=el('norm-mode').value!=='peak';el('norm-lufs-field').hidden=el('norm-mode').value!=='lufs';clearQuick();};
   for(const id of ['norm-peak','norm-lufs','norm-ceiling'])el(id).oninput=clearQuick;
   el('tool-select-file').onclick=el('tool-change').onclick=()=>el('tool-file-input').click();
-  el('tool-file-input').onchange=e=>decode(e.target.files[0]);
+  const selectToolkitFile=e=>{
+    const input=e.currentTarget,file=input.files?.[0];
+    if(!file)return;
+    input.value='';
+    void decode(file);
+  };
+  el('tool-file-input').addEventListener('input',selectToolkitFile);
+  el('tool-file-input').addEventListener('change',selectToolkitFile);
   el('tool-remove').onclick=remove;
   el('tool-preview').onclick=preview;
   el('wave-loop').onclick=()=>{

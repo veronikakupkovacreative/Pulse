@@ -398,3 +398,12 @@
 .cut-loop-actions button{text-align:left;border:1px solid #19191990;padding:12px 13px;min-height:40px;font-size:11px;font-weight:600}
 .cut-loop-actions span{font-size:10px;color:#62625d;line-height:1.4}
 @media(max-width:600px){.bpm-override{gap:6px}.bpm-override button{font-size:9px;padding:6px}.bpm-override input{max-width:92px}}
+
+/* Mobile file picker feedback must remain adjacent to Choose file. */
+.file-feedback{font-size:12px;line-height:1.4;max-width:360px;margin:12px auto 0;color:#fff1ec;overflow-wrap:anywhere;text-align:center}
+.file-feedback:not([hidden]){display:block}
+.upload-empty .file-feedback,.tool-empty .file-feedback{margin-top:12px;margin-bottom:0;color:#fff1ec}
+@media(max-width:580px){
+  #choose-file,#tool-select-file{min-height:48px;touch-action:manipulation}
+  .upload-empty .file-feedback,.tool-empty .file-feedback{font-size:12px;padding-inline:8px}
+}

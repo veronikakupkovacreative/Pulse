@@ -34,12 +34,12 @@
       <div class="section-label"><h2>01 / BPM ANALYZER</h2></div>
       <div class="workspace">
         <div class="upload-panel" id="drop-zone">
-          <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Choose WAV, MP3 or MP4" hidden>
+          <input type="file" id="file-input" accept=".wav,.wave,.mp3,.mp4,.m4a,.aac,.aif,.aiff,.caf,.flac,.ogg,audio/*,video/mp4" aria-label="Choose audio from Files" hidden>
           <div class="upload-empty" id="upload-empty">
             <span class="upload-icon"><svg><use href="#arrow-up"/></svg></span>
             <h3>Drop your track.</h3><p></p>
-            <button class="button button-light" id="choose-file">Choose file <svg><use href="#arrow-ne"/></svg></button>
-            <span class="file-limit">WAV, MP3 nebo MP4 <span>·</span> max. 100 MB / 20 min</span>
+            <button class="button button-light" id="choose-file" type="button">Choose file <svg><use href="#arrow-ne"/></svg></button><p class="file-feedback" id="file-feedback" role="alert" hidden></p>
+            <span class="file-limit">WAV · MP3 · M4A · AAC · MP4 <span>·</span> max. 100 MB / 20 min</span>
           </div>
           <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Analyzing the beat.</h3><p id="progress-detail">Loading audio…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Cancel analysis</button></div>
           <div class="track-content" id="track-content" hidden>
@@ -84,8 +84,8 @@
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
           <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
-          <input type="file" id="tool-file-input" accept=".wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.aiff,.aif,audio/*,video/mp4" hidden aria-label="Choose audio or video for toolkit">
-          <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Load your audio.</h3><p></p><button class="tool-action tool-action-light" id="tool-select-file">Choose file <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
+          <input type="file" id="tool-file-input" accept=".wav,.wave,.mp3,.mp4,.m4a,.aac,.aiff,.aif,.caf,.ogg,.flac,audio/*,video/mp4" hidden aria-label="Choose audio or video for toolkit">
+          <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Load your audio.</h3><p></p><button class="tool-action tool-action-light" id="tool-select-file" type="button">Choose file <span>↗</span></button><p class="file-feedback" id="tool-file-feedback" role="alert" hidden></p><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
           <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Remove file">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><div class="waveform-toolbar" role="group" aria-label="Waveform controls"><div class="waveform-actions"><button type="button" id="wave-loop" aria-pressed="false" title="Loop selected region (L)">LOOP OFF</button><button type="button" id="wave-mark-in" title="Set loop in (I)">IN</button><button type="button" id="wave-mark-out" title="Set loop out (O)">OUT</button><button type="button" id="wave-snap" aria-pressed="false" title="Snap to grid from start of file">SNAP OFF</button></div><div class="waveform-navigation"><button type="button" id="wave-pan-left" aria-label="Pan left" title="Pan left">←</button><button type="button" id="wave-zoom-out" aria-label="Zoom out" title="Zoom out (−)">−</button><output id="wave-zoom-label" aria-live="polite">1×</output><button type="button" id="wave-zoom-in" aria-label="Zoom in" title="Zoom in (+)">+</button><button type="button" id="wave-pan-right" aria-label="Pan right" title="Pan right">→</button></div></div><div class="tool-waveform-wrap" id="tool-waveform-wrap"><canvas id="tool-waveform" width="720" height="190" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0:00" aria-label="Waveform – pozice přehrávání, klikni nebo táhni pro přesun"></canvas><div class="tool-playhead" id="tool-playhead" aria-hidden="true"></div></div><p class="tool-seek-hint" id="tool-seek-hint">Click or drag to seek · I/O loop · L toggle · +/− zoom · Arrows ±1s, Shift ±5s.</p><p class="waveform-loop-info" id="wave-loop-info" role="status">SMYČKA 00:00.00 – 00:00.00 · OFF</p><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Play audio">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Replace ↗</button></div></div>
           <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Use track from BPM Analyzer ↗</button>
           <div class="pulse-workspace-actions" id="pulse-workspace-actions" role="group" aria-label="Edit history"><button id="workspace-undo" disabled>↶ Undo</button><button id="workspace-redo" disabled>Redo ↷</button><button id="workspace-original" disabled>Reset to Original</button><span id="workspace-state" role="status">ORIGINAL</span></div>

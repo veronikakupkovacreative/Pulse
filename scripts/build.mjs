@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport,audioImport]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/audio-import.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
@@ -45,6 +45,7 @@ const bundledScript=`(() => {
   ${noExports(playhead)}
   ${noExports(harmonicWorkflow)}
   ${noExports(fileSupport)}
+  ${noExports(audioImport)}
   ${noExports(quickDsp)}
   ${noExports(audioWorkspace)}
   ${noExports(productionDsp)}

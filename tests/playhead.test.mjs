@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {clampPlayhead,pointerToTime,nudgePlayhead} from '../source/playhead.mjs';
+import {clampPlayhead,pointerToTime,nudgePlayhead,snapBeat} from '../source/playhead.mjs';
 import {readFileSync} from 'node:fs';
 
 test('playhead maps positions within audio duration, including bounds and invalid dimensions',()=>{

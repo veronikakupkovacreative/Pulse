@@ -1,5 +1,5 @@
 // Audio utilities used by the production toolkit. No remote processing.
-export function encodeWav(channels, sampleRate, bitDepth=16) {
+export function encodeWav(channels, sampleRate, bitDepth=16, {dither=false, random=Math.random}={}) {
   if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
   if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
   if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');
@@ -16,7 +16,9 @@ export function encodeWav(channels, sampleRate, bitDepth=16) {
   str(36,'data');view.setUint32(40,dataBytes,true);
   let position=44;
   for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){
-    const sample=Math.min(1,Math.max(-1,channels[c][i]||0));
+    // TPDF dither is optional for 16-bit delivery; avoid extra noise on 24-bit masters.
+    const raw=channels[c][i]||0;
+    const sample=Math.min(1,Math.max(-1,raw+(dither&&bitDepth===16?(random()+random()-1)/65536:0)));
     if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}
     else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}
   }

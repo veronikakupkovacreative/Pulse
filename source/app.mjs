@@ -1,4 +1,5 @@
 import {initStudioTools} from './tools.mjs';
+import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
@@ -90,7 +91,7 @@ function drawWaveform() {
   const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=state.result.waveform,bar=rect.width/peaks.length;
   const progress=Number($('#seek').value)/state.buffer.duration;
   for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
-  ctx.fillStyle='#f5f4f0';ctx.fillRect(progress*rect.width-1,0,1,rect.height);
+  $('#bpm-playhead').style.left=`${Math.max(0,Math.min(100,progress*100))}%`;
 }
 async function getAudioContext() {
   const Context=window.AudioContext||window.webkitAudioContext;
@@ -103,13 +104,13 @@ function animatePlayback() {
 }
 async function play() {
   if(!state.buffer||state.starting)return;
-  if(state.playing){state.offset=currentPosition();stopPlayback();return;}
+  if(state.playing){state.offset=currentPosition();stopPlayback();drawWaveform();return;}
   const generation=state.generation;state.starting=true;
   try {
     const context=await getAudioContext();if(generation!==state.generation||!state.buffer)return;
     if(state.offset>=state.buffer.duration-.05)state.offset=0;
     const source=context.createBufferSource();source.buffer=state.buffer;source.connect(context.destination);state.source=source;state.startedAt=context.currentTime;state.playing=true;
-    source.onended=()=>{state.offset=0;stopPlayback();$('#seek').value=0;$('#current-time').textContent='0:00';drawWaveform();};source.start(0,state.offset);
+    source.onended=()=>{if(state.source!==source)return;state.offset=state.buffer.duration;stopPlayback();$('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);drawWaveform();};source.start(0,state.offset);
     $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pozastavit track');animatePlayback();
   } catch {toast('Přehrávání nelze spustit. Zkus to znovu.');} finally {state.starting=false;}
 }
@@ -148,7 +149,28 @@ ui['drop-zone'].addEventListener('dragenter',event=>{if(event.dataTransfer.types
 ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');}});
 ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Nahraj prosím jeden soubor. Každý track analyzujeme samostatně.');return;}processFile(event.dataTransfer.files[0]);});
 $('#play-track').onclick=play;
-$('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
+let bpmScrubbing=false;
+function seekBpm(time,{autoplay=false}={}){
+  if(!state.buffer)return;
+  const wasPlaying=state.playing;
+  stopPlayback();state.offset=clampPlayhead(time,state.buffer.duration);
+  $('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);
+  $('#seek').setAttribute('aria-valuetext',`${timeLabel(state.offset)} z ${timeLabel(state.buffer.duration)}`);
+  drawWaveform();
+  if((autoplay||wasPlaying)&&!bpmScrubbing)void play();
+}
+$('#seek').addEventListener('pointerdown',()=>{bpmScrubbing=true;});
+$('#seek').addEventListener('input',()=>seekBpm(Number($('#seek').value)));
+$('#seek').addEventListener('change',()=>{bpmScrubbing=false;seekBpm(Number($('#seek').value),{autoplay:true});});
+$('#seek').addEventListener('pointerup',()=>{bpmScrubbing=false;});
+$('#seek').addEventListener('pointercancel',()=>{bpmScrubbing=false;});
+$('#seek').addEventListener('keydown',event=>{
+  if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){
+    event.preventDefault();
+    const current=state.offset,delta=(event.shiftKey?5:1)*(event.key==='ArrowRight'?1:-1);
+    seekBpm(event.key==='Home'?0:event.key==='End'?state.buffer?.duration:nudgePlayhead(current,state.buffer?.duration,delta),{autoplay:state.playing});
+  }
+});
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};

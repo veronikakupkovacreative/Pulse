@@ -97,3 +97,15 @@ server-enforced access are not yet live; Phase 1 does not add fake billing.
 Pitch & Time (WSOLA-like offline DSP), 808 Tuner (YIN-derived estimation), and Sample Slicer (transient markers, manual edits, WAV/ZIP exports) now build on the Phase 1 shared audio workspace. All processing runs in the browser; the supplied YouTube importer remains disabled.
 
 Read [Phase 2 implementation notes](docs/phase-2.md). The $1 one-time lifetime payment remains a separate prototype and is **not enabled** in this branch; production access is not gated.
+
+## PULSE 3.2 - Waveform playhead
+
+The BPM waveform and the shared producer-tool waveform now support direct click-to-seek and scrub-to-seek. A high-contrast vertical playhead and red position marker indicate the current transport position. While playing, the cursor animates with Web Audio timing; on pause it stays at the selected position.
+
+- **Click**: seek and play from the selected location; **drag**: scrub and resume from the release point.
+- **Keyboard focus on the producer waveform**: arrows move +/- 1 second, Shift+arrows +/- 5 seconds, Home/End jump to the track edges, Space toggles Play/Pause.
+- **Loop Cutter**: normal click seeks, Shift+click adjusts a selection edge, while START/END sliders remain available.
+- **Sample Slicer**: normal click seeks; dragging a nearby marker moves it; Shift+click inserts/deletes markers.
+- Preview playback for Quick Tools, Pitch & Time, 808 Tuner and Smart Master follows the transport position where practical. The source/working audio remains immutable.
+
+See `docs/playhead-v1.md` for integration and regression checks. No billing configuration, YouTube access, or deployment change is required.

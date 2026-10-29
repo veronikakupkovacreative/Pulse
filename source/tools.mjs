@@ -1,17 +1,18 @@
 import {encodeWav,extractSegment,getAudioPeaks} from './studio-audio.mjs';
 import {reverseAudio,bpmDurations,detectSilenceBounds,trimAudio,normalizeAudio} from './dsp/quick-tools.mjs';
-import {createAudioWorkspace} from './core/audio-workspace.mjs';
+import {sharedAudioWorkspace} from './core/audio-workspace.mjs';
 import {createStoredZip} from './dsp/zip-store.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead,viewportRange,viewportTime,viewportPercent,snapBeat,loopTime} from './playhead.mjs';
 import {analysisRange,midiLabel,tuningCorrection} from './dsp/harmonic-workflow.mjs';
 import {audioFileError} from './file-support.mjs';
+import {decodeSourceAudio} from './core/audio-import.mjs';
 
 function createProductionWorker(){return new Worker(new URL('./production-worker.mjs',import.meta.url),{type:'module'});}
 function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'});}
 
 export function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
-  const workspace=createAudioWorkspace({maxUndo:4});
+  const workspace=sharedAudioWorkspace;
   const tools={category:'analyze',masterCandidate:null,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
@@ -207,21 +208,6 @@ export function initStudioTools(getBpmTrack){
     if(autoplay)await playBuffer(buffer,clampPlayhead(next,buffer.duration),end,volume);
   }
   function remove(){tools.masterCandidate=null;resetMasterUI();tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.markers=[];workspace.clear();tools.quickCandidate=null;tools.quickBounds=null;el('workspace-undo').disabled=true;el('workspace-redo').disabled=true;el('workspace-original').disabled=true;status('workspace-state','ORIGINAL');tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;tools.playhead=0;resetWaveView(0);tools.transport=null;updatePlayhead(0);el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
-  function nativeWavRate(data){
-    // Most WAV files advertise sample rate in the fmt chunk (not always byte 24).
-    if(data.byteLength<44)return null;
-    const view=new DataView(data),string=off=>String.fromCharCode(...new Uint8Array(data,off,4));
-    if(string(0)!=='RIFF'||string(8)!=='WAVE')return null;
-    let p=12;
-    while(p+8<=data.byteLength&&p<1024*1024){
-      const size=view.getUint32(p+4,true);if(string(p)==='fmt '&&size>=16&&p+24<=data.byteLength){
-        const rate=view.getUint32(p+12,true);
-        return rate>=8000&&rate<=192000?rate:null;
-      }
-      p+=8+size+(size%2);
-    }
-    return null;
-  }
   async function decode(file){
     clearError();
     if(tools.loading)return;
@@ -231,26 +217,10 @@ export function initStudioTools(getBpmTrack){
     stopPreview();tools.keyWorker?.terminate();tools.keyWorker=null;
     setBusy(true);status('conv-status','Loading audio…');const feedback=el('tool-file-feedback');feedback.textContent='Reading '+file.name+'…';feedback.hidden=false;
     try{
-      const Ctx=window.AudioContext||window.webkitAudioContext;
-      if(!Ctx)throw new Error('Prohlížeč nepodporuje dekódování audia.');
-      tools.context||=new Ctx();
-      let bytes;
-      try{bytes=await file.arrayBuffer();}catch{throw new Error('Could not read from Files. Save the audio locally and retry.');}
-      const fileRate=nativeWavRate(bytes);
-      const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-      let buffer;
-      try {
-        const decoder=fileRate&&Offline?new Offline(1,1,fileRate):tools.context;
-        buffer=await decoder.decodeAudioData(bytes.slice(0));
-      } catch (decodeError) {
-        // WebKit supports fewer OfflineAudioContext decoder combinations.
-        // Retry on the regular AudioContext without altering the source file.
-        if(!fileRate||!Offline)throw decodeError;
-        buffer=await tools.context.decodeAudioData(bytes.slice(0));
-      }
+      const {buffer,metadata}=await decodeSourceAudio(file,{context:tools.context});
       if(token!==tools.operation)return;
       if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
-      tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.load(buffer,file);tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),2160);tools.from=0;
+      tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.load(buffer,file,metadata);tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),2160);tools.from=0;
       tools.to=Math.min(buffer.duration,8);tools.playhead=0;resetWaveView(buffer.duration);updatePlayhead(0);updateBpmFromAnalyzer();
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
@@ -824,7 +794,6 @@ export function initStudioTools(getBpmTrack){
     input.value='';
     void decode(file);
   };
-  el('tool-file-input').addEventListener('input',selectToolkitFile);
   el('tool-file-input').addEventListener('change',selectToolkitFile);
   el('tool-remove').onclick=remove;
   el('tool-preview').onclick=preview;
@@ -840,7 +809,7 @@ export function initStudioTools(getBpmTrack){
   el('wave-mark-in').onclick=()=>markLoop('in');el('wave-mark-out').onclick=()=>markLoop('out');
   el('wave-zoom-in').onclick=()=>setZoom(tools.zoom*2);el('wave-zoom-out').onclick=()=>setZoom(tools.zoom/2);
   el('wave-pan-left').onclick=()=>panWave(-1);el('wave-pan-right').onclick=()=>panWave(1);
-  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.productionWorker?.terminate();tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),2160);tools.from=0;tools.to=Math.min(8,x.buffer.duration);tools.playhead=0;resetWaveView(x.buffer.duration);updatePlayhead(0);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.productionWorker?.terminate();tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.snapshot().original!==x.buffer&&workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),2160);tools.from=0;tools.to=Math.min(8,x.buffer.duration);tools.playhead=0;resetWaveView(x.buffer.duration);updatePlayhead(0);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
   el('conv-format').onchange=syncOutput;el('conv-depth').onchange=syncOutput;el('conv-rate').onchange=syncOutput;
   el('conv-export').onclick=exportConvert;
   el('key-analyze').onclick=analyzeKey;
@@ -903,9 +872,10 @@ export function initStudioTools(getBpmTrack){
   drop.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();if(!tools.loading)drop.classList.add('tool-dragover');}});
   drop.addEventListener('dragleave',e=>{if(!drop.contains(e.relatedTarget))drop.classList.remove('tool-dragover');});
   drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Upload one file at a time.');return;}decode(e.dataTransfer.files[0]);});
-  window.addEventListener('pulse:bpm-track-ready',updateButtons);
+  window.addEventListener('pulse:bpm-track-ready',()=>{const source=getBpmTrack();if(source?.buffer&&source?.file&&workspace.snapshot().original!==source.buffer){workspace.load(source.buffer,source.file);tools.playhead=0;workingChanged();}updateButtons();});
   window.addEventListener('pulse:tempo-apply',event=>{
     const bpm=Number(event.detail?.bpm);if(!Number.isFinite(bpm)||bpm<20||bpm>400)return;
+    if(workspace.snapshot().original)workspace.setTempo(bpm,Number(event.detail?.beatOffset)||0);
     tools.bpm=bpm;tools.bpmOffset=Number.isFinite(Number(event.detail?.beatOffset))?Number(event.detail.beatOffset):0;tools.bpmEdited=true;
     for(const id of ['calc-bpm','pt-original','pt-target','cut-bpm'])el(id).value=String(bpm);
     if(el('cut-bars').value!=='custom')setByBars();

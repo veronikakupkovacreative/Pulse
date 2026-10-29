@@ -109,3 +109,12 @@ The BPM waveform and the shared producer-tool waveform now support direct click-
 - Preview playback for Quick Tools, Pitch & Time, 808 Tuner and Smart Master follows the transport position where practical. The source/working audio remains immutable.
 
 See `docs/playhead-v1.md` for integration and regression checks. No billing configuration, YouTube access, or deployment change is required.
+
+## Toolkit card consistency (UI update)
+
+The latest UI update unifies the background, dimensions and spacing for Analyze shortcuts (BPM Analyzer / Tap Tempo), tool cards and disabled YouTube entry. Selected tool and category remain black. See [`docs/toolkit-card-consistency.md`](docs/toolkit-card-consistency.md). 
+
+
+### 3.2.1 Navigation update
+
+Main categories are filled and sequentially numbered 01–04; all subtools are stroke-only, unnumbered cards with arrows (YouTube remains Coming Soon). See `docs/toolkit-card-consistency.md`.

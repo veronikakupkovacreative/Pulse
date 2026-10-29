@@ -205,3 +205,170 @@
 .tool-playhead{z-index:2;}
 .tool-seek-hint{color:#c8c7c1!important;font-size:10px!important;line-height:1.5!important;margin:10px 0 14px!important;max-width:none!important;}
 @media (max-width:760px){.tool-seek-hint{font-size:11px!important}}
+
+/* Pulse / unified toolkit navigation
+   All inactive tool choices share the same neutral filled tile. The active
+   tool/category remains black, and unavailable tools use a muted fill. */
+.tool-category-nav button,
+.tool-tab,
+.tool-shortcut {
+  background:#e5e3dd;
+  color:#191919;
+  border:1px solid transparent;
+}
+.tool-category-nav button:hover:not(.is-active),
+.tool-tab:not(.selected):not(:disabled):hover,
+.tool-shortcut:hover {
+  background:#d5d3cd;
+  border-color:transparent;
+}
+.tool-category-nav + .analyze-shortcuts {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:8px;
+}
+.tool-tabs { gap:8px; }
+.tool-shortcut {
+  min-width:0;
+  width:100%;
+  min-height:60px;
+  padding:15px 19px;
+  font-size:18px;
+  font-weight:400;
+  letter-spacing:-.4px;
+  gap:16px;
+}
+.tool-shortcut span { font-size:15px; margin-left:auto; }
+.tool-tab.selected,
+.tool-category-nav button.is-active {
+  background:#191919;
+  border-color:#191919;
+  color:#f5f4f0;
+}
+.coming-soon-note {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 13px;
+}
+.coming-soon-note .coming-soon-link {
+  box-sizing:border-box;
+  min-width:0;
+  min-height:60px;
+  padding:15px 19px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#edebe5;
+  border:1px solid transparent;
+  font-size:14px;
+  color:#77756f;
+  opacity:1;
+  gap:8px;
+}
+.coming-soon-note .coming-soon-link b {
+  color:#77756f;
+  border:1px solid #b0aea7;
+  padding:5px 6px;
+  font-size:8px;
+  white-space:nowrap;
+  margin-left:auto;
+}
+.coming-soon-note>span {
+  min-height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#edebe5;
+  border:1px solid transparent;
+  padding:15px 19px;
+}
+@media(max-width:1100px){
+  .tool-shortcut {font-size:14px;gap:8px;padding:14px;}
+  .coming-soon-note .coming-soon-link {font-size:12px;padding:12px;}
+}
+@media(max-width:760px){
+  .tool-category-nav + .analyze-shortcuts,
+  .coming-soon-note {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .tool-shortcut {flex:initial;}
+}
+@media(max-width:580px){
+  .tool-shortcut {min-height:60px;padding:12px;font-size:13px;}
+  .tool-shortcut span {font-size:14px;}
+  .coming-soon-note .coming-soon-link {min-height:60px;padding:12px;font-size:12px;}
+}
+
+/* PULSE 3.2.1 / category hierarchy: only the four categories are filled.
+   Tool choices are stroke-only, including the selected choice. */
+.tool-category-nav button {
+  background:#e5e3dd;
+  border:1px solid #e5e3dd;
+  color:#191919;
+}
+.tool-category-nav button.is-active {
+  background:#191919;
+  color:#f5f4f0;
+  border-color:#191919;
+}
+.tool-category-nav button.is-active span { color:#ff2b20; }
+.tool-category-nav button:hover:not(.is-active) { background:#d5d3cd; border-color:#d5d3cd; }
+.tool-category-nav + .analyze-shortcuts .tool-shortcut,
+.tool-tabs .tool-tab {
+  min-height:60px;
+  display:flex;
+  align-items:center;
+  flex-direction:row;
+  justify-content:space-between;
+  background:transparent;
+  border:1px solid #b7b5ac;
+  box-shadow:none;
+  color:#191919;
+  font-weight:400;
+  opacity:1;
+  transition:border-color .15s ease, color .15s ease;
+}
+.tool-category-nav + .analyze-shortcuts .tool-shortcut:hover,
+.tool-tabs .tool-tab:not(:disabled):hover {
+  background:transparent;
+  border-color:#191919;
+  color:#191919;
+}
+.tool-tabs .tool-tab.selected {
+  background:transparent;
+  color:#191919;
+  border:2px solid #191919;
+  font-weight:700;
+}
+.tool-tabs .tool-tab b,
+.tool-category-nav + .analyze-shortcuts .tool-shortcut span {
+  display:block;
+  margin-left:auto;
+  font-size:18px;
+  line-height:1;
+  font-weight:400;
+  color:inherit;
+}
+.tool-tabs .tool-tab:focus-visible,
+.tool-category-nav + .analyze-shortcuts .tool-shortcut:focus-visible {
+  outline:3px solid #191919;
+  outline-offset:3px;
+}
+.coming-soon-note .coming-soon-link,
+.coming-soon-note>span {
+  background:transparent;
+  border:1px solid #d5d3cb;
+  box-shadow:none;
+  color:#77756f;
+}
+.coming-soon-note .coming-soon-link b { color:#77756f; }
+@media (max-width:580px) {
+  .tool-tabs .tool-tab {
+    min-height:60px;
+    flex-direction:row;
+    align-items:center;
+    gap:8px;
+  }
+  .tool-tabs .tool-tab b { display:block; font-size:16px; }
+  .tool-category-nav + .analyze-shortcuts .tool-shortcut span { font-size:16px; }
+}

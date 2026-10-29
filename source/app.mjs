@@ -4,14 +4,14 @@ const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
 const messages = {
-  TOO_SHORT:'Tenhle track je moc krátký. Potřebujeme alespoň 6 sekund, ideálně 15 sekund nebo více s výrazným rytmem.',
-  SILENCE:'V souboru je ticho nebo příliš slabý signál. Zkus nahrát zvuk s jasně slyšitelnými beaty.',
-  NO_RHYTHM:'Pravidelný rytmus se nepodařilo spolehlivě najít. Zkus jiný úsek hudby nebo použij Tap tempo.',
-  DECODE:'Zvukovou stopu se nepodařilo přečíst. Soubor může být poškozený, bez zvuku nebo používat nepodporovaný kodek. Zkus WAV/MP3 nebo MP4 se zvukem AAC v aktuálním prohlížeči.',
-  TIMEOUT:'Analýza trvá příliš dlouho. Zkus kratší úsek nebo menší soubor.'
+  TOO_SHORT:'Track too short. Use at least 6 seconds.',
+  SILENCE:'Silent or weak audio. Try a track with a clear beat.',
+  NO_RHYTHM:'No steady beat detected. Try another section or Tap Tempo.',
+  DECODE:'Cannot decode audio. Try WAV, MP3 or MP4 with AAC audio.',
+  TIMEOUT:'Analysis timed out. Try a shorter track.'
 };
 const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
-const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.',',');
+const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1);
 function announce(text) { ui['live-status'].textContent=text; }
 function showError(message) { ui.error.textContent=message; ui.error.hidden=false; }
 let toastTimer;
@@ -19,11 +19,11 @@ function toast(text) { $('#toast').textContent=text; $('#toast').hidden=false;cl
 function setBusy(busy) {
   state.busy=busy;ui.processing.hidden=!busy;ui['upload-empty'].hidden=busy||!!state.buffer;ui['track-content'].hidden=busy||!state.buffer;
   $('#try-demo').disabled=busy;ui['drop-zone'].setAttribute('aria-busy',String(busy));
-  ui['result-status'].replaceChildren(document.createTextNode(busy?'ANALYZUJI':'ČEKÁM NA TRACK'),document.createElement('i'));
+  ui['result-status'].replaceChildren(document.createTextNode(busy?'ANALYZING':'AWAITING TRACK'),document.createElement('i'));
 }
 function stopPlayback() {
   if(state.source){state.source.onended=null;try{state.source.stop();}catch{}state.source.disconnect();state.source=null;}
-  state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Přehrát track');
+  state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Play track');
 }
 function reset() {
   state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;$('#bpm-override').value='';
@@ -32,20 +32,20 @@ function reset() {
 async function processFile(file) {
   if(!file||state.busy)return;
   ui.error.hidden=true;
-  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Tento formát zatím nepodporujeme. Vyber soubor WAV, MP3 nebo MP4.');return;}
-  if(file.size>100*1024*1024){showError('Soubor je větší než 100 MB. Vyber menší soubor nebo kratší úsek.');return;}
-  if(file.size===0){showError('Soubor je prázdný. Zkus jiný soubor.');return;}
-  reset();const generation=state.generation;setBusy(true);announce('Načítám zvuk a hledám tempo.');$('#progress-detail').textContent='Načítám zvukovou stopu…';
+  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Unsupported format. Use WAV, MP3 or MP4.');return;}
+  if(file.size>100*1024*1024){showError('File exceeds 100 MB.');return;}
+  if(file.size===0){showError('Empty file. Try another.');return;}
+  reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Loading audio…';
   try {
     const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    if(!OfflineContext)throw new Error('Tvůj prohlížeč nepodporuje analýzu audia. Otevři aplikaci v aktuálním Chrome, Safari, Edge nebo Firefoxu.');
+    if(!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
     let buffer;
     try { const decoder=new OfflineContext(1,1,22050);buffer=await decoder.decodeAudioData(await file.arrayBuffer()); }
     catch { throw new Error('DECODE'); }
     if(generation!==state.generation)return;
-    if(buffer.duration>1200)throw new Error('Track je delší než 20 minut. Vyber kratší úsek pro analýzu.');
+    if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
-    $('#progress-detail').textContent='Hledám opakující se beaty…';
+    $('#progress-detail').textContent='Finding the beat…';
     // Use the most energetic channel to avoid phase cancellation in stereo recordings.
     let bestChannel=0,bestEnergy=-1;
     for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
@@ -55,25 +55,25 @@ async function processFile(file) {
       const timeout=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
       state.cancelWorker=()=>{clearTimeout(timeout);worker.terminate();reject(new Error('CANCELLED'));};
       worker.onmessage=({data})=>{clearTimeout(timeout);worker.terminate();if(state.worker===worker){state.worker=null;state.cancelWorker=null;}data.error?reject(new Error(data.error)):resolve(data.result);};
-      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analýzu se nepodařilo spustit. Obnov stránku a zkus to znovu.'));};
+      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analysis failed to start. Refresh and retry.'));};
       worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analýza hotová. Odhadované tempo ${bpmLabel(result.bpm)} BPM.`);
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
   } catch(error) {
     if(generation!==state.generation)return;
-    setBusy(false);showError(messages[error.message]||error.message);announce('Analýzu nelze dokončit.');
+    setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
   }
 }
 function renderResult(file) {
   $('#track-name').textContent=file.name;$('#track-name').title=file.name;
   $('#track-type').textContent=file.name.split('.').pop().toUpperCase();
-  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
+  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
-  const confidence={high:'VÝRAZNÝ RYTMUS',medium:'ODHAD TEMPA',low:'NEJISTÝ RYTMUS'}[state.result.confidence];
+  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
-  ui['result-note'].textContent=state.result.confidence==='low'?'Rytmus není jednoznačný. Ber výsledek jako orientační a ověř ho poslechem nebo pomocí Tap tempo.':'BPM je odhad. Pokud hudbu vnímáš v polovičním nebo dvojnásobném tempu, použij ÷ 2 nebo × 2. Metronom slouží k ověření rychlosti, není synchronizovaný s prvním beatem.';
+  ui['result-note'].textContent=state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Tempo is an estimate. Verify by ear or use half/double tempo.';
   updateTempo();drawWaveform();
 }
 function updateTempo() {
@@ -85,12 +85,12 @@ function setTempo(value) {
   if(!state.result)return false;
   const next=Number(String(value).replace(',','.'));
   if(!Number.isFinite(next)||next<20||next>400){
-    $('#bpm-override').value=String(state.bpm);toast('Zadej tempo od 20 do 400 BPM.');return false;
+    $('#bpm-override').value=String(state.bpm);toast('Enter 20–400 BPM.');return false;
   }
   const running=!!state.metroTimer;if(running)stopMetronome();
   state.bpm=Math.round(next*10)/10;state.factor=state.bpm/state.result.bpm;
   updateTempo();if(running)void startMetronome();
-  announce(`Tempo upraveno na ${bpmLabel(state.bpm)} BPM.`);return true;
+  announce(`Tempo updated to ${bpmLabel(state.bpm)} BPM.`);return true;
 }
 function changeTempo(multiplier){
   if(!state.result)return;setTempo(multiplier?state.bpm*multiplier:state.result.bpm);
@@ -111,7 +111,7 @@ async function getAudioContext() {
 function currentPosition() {return state.playing?Math.min(state.buffer.duration,state.offset+state.context.currentTime-state.startedAt):state.offset;}
 function animatePlayback() {
   if(!state.playing)return;
-  const position=currentPosition();$('#current-time').textContent=timeLabel(position);$('#seek').value=position;$('#seek').setAttribute('aria-valuetext',`${timeLabel(position)} z ${timeLabel(state.buffer.duration)}`);drawWaveform();state.raf=requestAnimationFrame(animatePlayback);
+  const position=currentPosition();$('#current-time').textContent=timeLabel(position);$('#seek').value=position;$('#seek').setAttribute('aria-valuetext',`${timeLabel(position)} of ${timeLabel(state.buffer.duration)}`);drawWaveform();state.raf=requestAnimationFrame(animatePlayback);
 }
 async function play() {
   if(!state.buffer||state.starting)return;
@@ -122,12 +122,12 @@ async function play() {
     if(state.offset>=state.buffer.duration-.05)state.offset=0;
     const source=context.createBufferSource();source.buffer=state.buffer;source.connect(context.destination);state.source=source;state.startedAt=context.currentTime;state.playing=true;
     source.onended=()=>{if(state.source!==source)return;state.offset=state.buffer.duration;stopPlayback();$('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);drawWaveform();};source.start(0,state.offset);
-    $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pozastavit track');animatePlayback();
-  } catch {toast('Přehrávání nelze spustit. Zkus to znovu.');} finally {state.starting=false;}
+    $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pause track');animatePlayback();
+  } catch {toast('Playback failed. Try again.');} finally {state.starting=false;}
 }
 async function startMetronome() {
   if(!state.bpm)return;const generation=state.generation;
-  try {await getAudioContext();}catch{toast('Zvuk se nepodařilo spustit.');return;}
+  try {await getAudioContext();}catch{toast('Audio could not start.');return;}
   if(generation!==state.generation||state.metroTimer)return;
   state.metroNext=state.context.currentTime+.05;state.metroBeat=0;$('#metronome').setAttribute('aria-pressed','true');
   function schedule() {
@@ -146,19 +146,19 @@ async function copy(value) {
   try {
     if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(String(value));
     else {const input=document.createElement('textarea');input.value=String(value);input.style.cssText='position:fixed;opacity:0;pointer-events:none';const parent=document.querySelector('dialog[open]')||document.body;parent.append(input);input.select();const success=document.execCommand('copy');input.remove();if(!success)throw new Error('COPY');}
-    toast(`${bpmLabel(Number(value))} BPM zkopírováno.`);
-  }catch{toast('Kopírování není dostupné. BPM můžeš označit a zkopírovat ručně.');}
+    toast(`${bpmLabel(Number(value))} BPM copied.`);
+  }catch{toast('Copy failed. Select and copy BPM manually.');}
 }
 $('#choose-file').onclick=$('#replace-file').onclick=()=>ui['file-input'].click();
 ui['file-input'].onchange=event=>processFile(event.target.files[0]);
-$('#remove-file').onclick=()=>{reset();announce('Soubor odebrán.');$('#choose-file').focus();};
-$('#cancel-analysis').onclick=()=>{reset();announce('Analýza zrušena.');$('#choose-file').focus();};
+$('#remove-file').onclick=()=>{reset();announce('File removed.');$('#choose-file').focus();};
+$('#cancel-analysis').onclick=()=>{reset();announce('Analysis canceled.');$('#choose-file').focus();};
 let dragDepth=0;
 window.addEventListener('dragover',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
 window.addEventListener('drop',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
 ui['drop-zone'].addEventListener('dragenter',event=>{if(event.dataTransfer.types.includes('Files')){event.preventDefault();dragDepth++;if(!state.busy)ui['drop-zone'].classList.add('is-dragging');}});
 ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');}});
-ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Nahraj prosím jeden soubor. Každý track analyzujeme samostatně.');return;}processFile(event.dataTransfer.files[0]);});
+ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Upload one track at a time.');return;}processFile(event.dataTransfer.files[0]);});
 $('#play-track').onclick=play;
 let bpmScrubbing=false;
 function seekBpm(time,{autoplay=false}={}){
@@ -166,7 +166,7 @@ function seekBpm(time,{autoplay=false}={}){
   const wasPlaying=state.playing;
   stopPlayback();state.offset=clampPlayhead(time,state.buffer.duration);
   $('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);
-  $('#seek').setAttribute('aria-valuetext',`${timeLabel(state.offset)} z ${timeLabel(state.buffer.duration)}`);
+  $('#seek').setAttribute('aria-valuetext',`${timeLabel(state.offset)} of ${timeLabel(state.buffer.duration)}`);
   drawWaveform();
   if((autoplay||wasPlaying)&&!bpmScrubbing)void play();
 }
@@ -183,17 +183,17 @@ $('#seek').addEventListener('keydown',event=>{
   }
 });
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#bpm-override').onchange=event=>setTempo(event.target.value);
-$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm}}));toast(`${bpmLabel(state.bpm)} BPM použito v produkčních nástrojích.`);};
+$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
 $('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
 document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>button.closest('dialog').close());
 document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}}));
 let taps=[],tapBpm=null,tapVisualTimer;
-function resetTaps(){taps=[];tapBpm=null;$('#tap-value').textContent='TAP';$('#tap-hint').textContent='Klikni do rytmu';$('#tap-count').textContent='0 úderů';$('#tap-copy').hidden=true;}
+function resetTaps(){taps=[];tapBpm=null;$('#tap-value').textContent='TAP';$('#tap-hint').textContent='Tap the beat';$('#tap-count').textContent='0 taps';$('#tap-copy').hidden=true;}
 function tap() {
   const now=performance.now();if(taps.length&&now-taps.at(-1)>2500)resetTaps();if(taps.length&&now-taps.at(-1)<100)return;taps.push(now);if(taps.length>16)taps.shift();
-  $('#tap-count').textContent=`${taps.length} ${taps.length===1?'úder':taps.length<5?'údery':'úderů'}`;$('#tap-hint').textContent=taps.length<4?`Ještě ${4-taps.length}×`:'BPM · tvoje tempo';
+  $('#tap-count').textContent=`${taps.length} ${'taps'}`;$('#tap-hint').textContent=taps.length<4?`${4-taps.length}×`:'BPM · YOUR TEMPO';
   if(taps.length>=4){const intervals=taps.slice(1).map((value,i)=>value-taps[i]).sort((a,b)=>a-b);const median=intervals[Math.floor(intervals.length/2)];const good=intervals.filter(value=>Math.abs(value-median)<median*.3);tapBpm=Math.round(60000/(good.reduce((a,b)=>a+b,0)/good.length)*10)/10;$('#tap-value').textContent=bpmLabel(tapBpm);$('#tap-copy').hidden=false;}
   $('#tap-pad').classList.add('pressed');clearTimeout(tapVisualTimer);tapVisualTimer=setTimeout(()=>$('#tap-pad').classList.remove('pressed'),90);
 }

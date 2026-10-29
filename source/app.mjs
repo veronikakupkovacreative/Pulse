@@ -1,6 +1,8 @@
 import {initStudioTools} from './tools.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
 import {audioFileError} from './file-support.mjs';
+import {decodeSourceAudio} from './core/audio-import.mjs';
+import {sharedAudioWorkspace} from './core/audio-workspace.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
@@ -41,19 +43,7 @@ async function processFile(file) {
   if(invalid){showError(invalid);announce(invalid);return;}
   reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Reading '+file.name+'…';
   try {
-    // iOS Safari can reject OfflineAudioContext decoding even for supported files.
-    // Prefer an ordinary AudioContext and reuse its buffer for playback.
-    const Context=window.AudioContext||window.webkitAudioContext;
-    const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    if(!Context&&!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
-    let buffer;
-    try {
-      let bytes;
-      try{bytes=await file.arrayBuffer();}
-      catch{throw new Error('READ_FILE');}
-      const decoder=Context?(state.context||=new Context()):new OfflineContext(1,1,22050);
-      buffer=await decoder.decodeAudioData(bytes.slice(0));
-    } catch(error) { throw new Error(error?.message==='READ_FILE'?'READ_FILE':'DECODE'); }
+    const {buffer,metadata}=await decodeSourceAudio(file,{context:state.context});
     if(generation!==state.generation)return;
     if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
@@ -71,7 +61,7 @@ async function processFile(file) {
       worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
+    sharedAudioWorkspace.load(buffer,file,metadata);sharedAudioWorkspace.setTempo(result.bpm,Number(result.beatOffsetSeconds)||0);state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
   } catch(error) {
     if(generation!==state.generation)return;
     setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
@@ -80,7 +70,7 @@ async function processFile(file) {
 function renderResult(file) {
   $('#track-name').textContent=file.name;$('#track-name').title=file.name;
   $('#track-type').textContent=file.name.split('.').pop().toUpperCase();
-  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
+  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'} · ${(state.buffer.sampleRate/1000).toFixed(1)} kHz`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
   const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
@@ -105,7 +95,7 @@ function setTempo(value) {
     $('#bpm-override').value=String(state.bpm);toast('Enter 20–400 BPM.');return false;
   }
   const running=!!state.metroTimer;if(running)stopMetronome();
-  state.bpm=Math.round(next*10)/10;state.factor=state.bpm/state.result.bpm;
+  state.bpm=Math.round(next*10)/10;state.factor=state.bpm/state.result.bpm;sharedAudioWorkspace.setTempo(state.bpm,Number(state.result.beatOffsetSeconds)||0);
   updateTempo();if(running)void startMetronome();
   announce(`Tempo updated to ${bpmLabel(state.bpm)} BPM.`);return true;
 }
@@ -173,7 +163,6 @@ const selectBpmFile=event=>{
   input.value=''; // Re-selecting the same iOS Files document must still trigger change.
   void processFile(file);
 };
-ui['file-input'].addEventListener('input',selectBpmFile);
 ui['file-input'].addEventListener('change',selectBpmFile);
 $('#remove-file').onclick=()=>{reset();announce('File removed.');$('#choose-file').focus();};
 $('#cancel-analysis').onclick=()=>{reset();announce('Analysis canceled.');$('#choose-file').focus();};

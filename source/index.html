@@ -23,7 +23,7 @@
 <div class="shell">
   <header class="header">
     <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
-    <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
+    <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link">BPM</a><a href="#toolkit" class="nav-link" data-group-nav="analyze">ANALYZE</a><a href="#toolkit" class="nav-link" data-group-nav="edit">EDIT</a><a href="#toolkit" class="nav-link" data-group-nav="export">EXPORT</a><a href="#toolkit" class="nav-link" data-group-nav="ai">AI STUDIO</a><button class="nav-link" id="open-help">Nápověda ↗</button></nav>
   </header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
@@ -65,19 +65,22 @@
     <section id="toolkit" class="toolkit" aria-labelledby="toolkit-title">
       <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2></div>
       <div class="toolkit-heading"><div><h2 id="toolkit-title">Tvůj zvuk.<br><span>Tvoje pravidla.</span></h2></div></div>
-      <div class="tool-tabs" role="tablist" aria-label="Produkční nástroje">
-        <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
-        <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
-        <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter"><span>03</span> Loop Cutter <b>↗</b></button>
-        <button class="tool-tab" id="tab-reverse" role="tab" aria-selected="false" aria-controls="panel-reverse" tabindex="-1" data-tool="reverse"><span>04</span> Reverse <b>↗</b></button>
-        <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim"><span>05</span> Silence Trim <b>↗</b></button>
-        <button class="tool-tab" id="tab-calculator" role="tab" aria-selected="false" aria-controls="panel-calculator" tabindex="-1" data-tool="calculator"><span>06</span> BPM Calculator <b>↗</b></button>
-        <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer"><span>07</span> Normalizer <b>↗</b></button>
-        <button class="tool-tab" id="tab-pitch" role="tab" aria-selected="false" aria-controls="panel-pitch" tabindex="-1" data-tool="pitch"><span>08</span> Pitch &amp; Time <b>↗</b></button>
-        <button class="tool-tab" id="tab-tuner" role="tab" aria-selected="false" aria-controls="panel-tuner" tabindex="-1" data-tool="tuner"><span>09</span> 808 Tuner <b>↗</b></button>
-        <button class="tool-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="panel-slicer" tabindex="-1" data-tool="slicer"><span>10</span> Sample Slicer <b>↗</b></button>
-        <button class="tool-tab tool-tab-disabled" id="tab-youtube" type="button" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1" disabled><span>11</span> YouTube Audio <b>COMING SOON</b></button>
+      <div class="tool-category-nav" role="group" aria-label="Kategorie nástrojů"><button type="button" data-category="analyze" class="is-active" aria-pressed="true">ANALYZE <span>03</span></button><button type="button" data-category="edit" aria-pressed="false">EDIT <span>05</span></button><button type="button" data-category="export" aria-pressed="false">EXPORT <span>02</span></button><button type="button" data-category="ai" aria-pressed="false">AI STUDIO <span>01</span></button></div>
+      <div class="analyze-shortcuts" id="analyze-shortcuts"><a href="#analyzer" class="tool-shortcut">BPM Analyzer <span>↗</span></a><button type="button" id="open-tap" class="tool-shortcut">Tap Tempo <span>↗</span></button></div>
+      <div class="tool-tabs" role="tablist" aria-label="Nástroje vybrané kategorie">
+        <button class="tool-tab selected" id="tab-key" role="tab" aria-selected="true" aria-controls="panel-key" tabindex="0" data-tool="key" data-group="analyze"><span>01</span> Key Finder <b>↗</b></button>
+        <button class="tool-tab" id="tab-tuner" role="tab" aria-selected="false" aria-controls="panel-tuner" tabindex="-1" data-tool="tuner" data-group="analyze"><span>02</span> 808 Tuner <b>↗</b></button>
+        <button class="tool-tab" id="tab-calculator" role="tab" aria-selected="false" aria-controls="panel-calculator" tabindex="-1" data-tool="calculator" data-group="analyze"><span>03</span> BPM Calculator <b>↗</b></button>
+        <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter" data-group="edit" hidden><span>01</span> Loop Cutter <b>↗</b></button>
+        <button class="tool-tab" id="tab-pitch" role="tab" aria-selected="false" aria-controls="panel-pitch" tabindex="-1" data-tool="pitch" data-group="edit" hidden><span>02</span> Pitch & Time <b>↗</b></button>
+        <button class="tool-tab" id="tab-slicer" role="tab" aria-selected="false" aria-controls="panel-slicer" tabindex="-1" data-tool="slicer" data-group="edit" hidden><span>03</span> Sample Slicer <b>↗</b></button>
+        <button class="tool-tab" id="tab-reverse" role="tab" aria-selected="false" aria-controls="panel-reverse" tabindex="-1" data-tool="reverse" data-group="edit" hidden><span>04</span> Reverse <b>↗</b></button>
+        <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim" data-group="edit" hidden><span>05</span> Silence Trim <b>↗</b></button>
+        <button class="tool-tab" id="tab-converter" role="tab" aria-selected="false" aria-controls="panel-converter" tabindex="-1" data-tool="converter" data-group="export" hidden><span>01</span> Converter <b>↗</b></button>
+        <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer" data-group="export" hidden><span>02</span> Normalizer <b>↗</b></button>
+        <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden><span>01</span> Smart Master <b>↗</b></button>
       </div>
+      <div class="coming-soon-note"><button class="tool-tab tool-tab-disabled coming-soon-link" id="tab-youtube" type="button" aria-disabled="true" disabled>YouTube Audio <b>COMING SOON</b></button><span id="ai-mix-coming" hidden>AI Mix <small>PLANNED · MULTITRACK</small></span></div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
           <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
@@ -89,10 +92,10 @@
           <p class="tool-source-foot"><svg><use href="#lock"/></svg> Soubor zůstává v prohlížeči.</p>
         </div>
         <div class="tool-settings">
-          <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter"><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Změň formát.<br><span>Ne kvalitu práce.</span></h3><p class="tool-description">Převeď zvuk do WAV nebo MP3. Zvol sample rate a kvalitu exportu.</p>
+          <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter" hidden><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Změň formát.<br><span>Ne kvalitu práce.</span></h3><p class="tool-description">Převeď zvuk do WAV nebo MP3. Zvol sample rate a kvalitu exportu.</p>
             <div class="tool-fields"><label>Výstupní formát<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="44100">44.1 kHz</option><option value="48000" selected>48 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
             <button class="tool-action tool-action-dark" id="conv-export" disabled>Konvertovat & stáhnout <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Vyber soubor a výstupní parametry.</p></div>
-          <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key" hidden><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Najdi tóninu.<br><span>Chyť harmonii.</span></h3><p class="tool-description">Odhadni hudební tóninu a Camelot označení pro rychlejší produkci i mix.</p>
+          <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key"><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Najdi tóninu.<br><span>Chyť harmonii.</span></h3><p class="tool-description">Odhadni hudební tóninu a Camelot označení pro rychlejší produkci i mix.</p>
             <div class="key-idle" id="key-idle"><span class="tool-circle-decoration">♪</span><p>Připraveno na analýzu tóniny</p></div><div class="key-result" id="key-result" hidden><div class="key-bubble"><strong id="key-name">—</strong><span id="key-mode">—</span></div><div class="key-extra"><span>CAMELOT</span><strong id="key-camelot">—</strong><span id="key-confidence">—</span></div></div><p class="key-alternatives" id="key-alternatives" hidden></p><button class="tool-action tool-action-dark" id="key-analyze" disabled>Analyzovat tóninu <span>↗</span></button><p class="tool-footnote" id="key-status" role="status">Výsledek je orientační, zejména u bicích a krátkých samplů.</p></div>
           <div id="panel-cutter" class="tool-view" role="tabpanel" aria-labelledby="tab-cutter" hidden><div class="tool-view-header"><span>02 / LOOP CUTTER</span><span>PRECISION EDIT</span></div><h3>Vyřízni beat.<br><span>Ne potenciál.</span></h3><p class="tool-description">Nastav rozsah na waveformu nebo podle taktů. Přehraj výběr a exportuj WAV s fade-out.</p>
             <div class="tool-fields"><label>Tempo pro beat grid (BPM)<input id="cut-bpm" type="number" min="20" max="400" step="0.1" value="120"></label><label>Délka ve 4/4 taktech<select id="cut-bars"><option value="1">1 takt</option><option value="2">2 takty</option><option value="4" selected>4 takty</option><option value="8">8 taktů</option><option value="16">16 taktů</option><option value="custom">Vlastní rozsah</option></select></label></div>
@@ -149,6 +152,29 @@
             <div class="tool-view-header"><span>02 / NORMALIZER</span><span>GAIN CONTROL</span></div><h3>Správná úroveň.<br><span>Bez clippingu.</span></h3><p class="tool-description">Peak nebo gated integrated LUFS (K-weighted). Automatický gain bez komprese a bez překročení nastaveného ceilingu.</p>
             <div class="tool-fields"><label>Mode<select id="norm-mode"><option value="peak">Peak dBFS</option><option value="lufs">Integrated LUFS</option></select></label><label id="norm-peak-field">Target peak (dBFS)<input id="norm-peak" type="number" min="-40" max="0" step="0.5" value="-1"></label><label id="norm-lufs-field" hidden>Target LUFS<input id="norm-lufs" type="number" min="-45" max="0" step="0.5" value="-14"></label><label>Peak ceiling (dBFS)<input id="norm-ceiling" type="number" min="-30" max="0" step="0.5" value="-1"></label></div>
             <p id="norm-status" class="tool-footnote" role="status">Nahraj soubor a vyber normalizaci.</p><div class="quick-actions"><button data-quick-preview="normalizer">▶ Preview</button><button data-quick-apply="normalizer">Apply to Workspace</button><button data-quick-export="normalizer">Export WAV ↗</button></div>
+          </div>
+          <div id="panel-master" class="tool-view" role="tabpanel" aria-labelledby="tab-master" hidden>
+            <div class="tool-view-header"><span>02 / SMART MASTER</span><span>LOCAL ADAPTIVE DSP · NO UPLOAD</span></div>
+            <h3>Finální zvuk.<br><span>Pod kontrolou.</span></h3>
+            <p class="tool-description">Automatický mastering založený na analýze, jemném EQ, stereo-linked kompresi a look-ahead limiteru. Nejedná se zatím o neuronový AI model.</p>
+            <div class="master-presets" role="group" aria-label="Charakter masteru">
+              <label><input type="radio" name="master-preset" value="balanced" checked><span>BALANCED</span></label>
+              <label><input type="radio" name="master-preset" value="warm"><span>WARM</span></label>
+              <label><input type="radio" name="master-preset" value="loud"><span>LOUD</span></label>
+            </div>
+            <div class="tool-fields master-fields"><label>Cílová hlasitost (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label><label>Ceiling <span class="master-static">−1.2 dBFS (sample peak)</span></label></div>
+            <div class="master-readouts" id="master-readouts" aria-label="Mastering výsledky" aria-live="polite">
+              <div><span>BEFORE</span><strong id="master-before">—</strong><small>LUFS integrated</small></div>
+              <div><span>AFTER</span><strong id="master-after">—</strong><small>LUFS integrated</small></div>
+              <div><span>OUTPUT PEAK</span><strong id="master-peak">—</strong><small>dBFS (sample)</small></div>
+            </div>
+            <div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
+            <button type="button" id="master-render" class="tool-action tool-action-dark" disabled>Generate Master <span>↗</span></button>
+            <div class="master-actions"><button type="button" id="master-preview-a" disabled>▶ A / ORIGINAL</button><button type="button" id="master-preview-b" disabled>▶ B / MASTER</button></div>
+            <label class="master-match"><input type="checkbox" id="master-match" checked> Loudness-match A/B náhled</label>
+            <div class="quick-actions master-finish"><button id="master-apply" disabled>Apply to Workspace</button><button id="master-export" disabled>Export WAV 24-bit ↗</button></div>
+            <p class="tool-footnote" id="master-status" role="status">Nahraj stereo track a vygeneruj první master. Výsledek je nedestruktivní.</p>
+            <p class="master-disclaimer">V1 · Bez ML modelu a bez true-peak certifikace. Poslouchej A/B; výsledek je výchozí návrh, ne náhrada studiového masteringu.</p>
           </div>
         </div>
       </div>

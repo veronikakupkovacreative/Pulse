@@ -1,3 +1,15 @@
+# PULSE STUDIO 3.1 — Smart Master + Grouped Toolkit
+
+New in this development version: **ANALYZE / EDIT / EXPORT / AI STUDIO** navigation and a functional local **Smart Master v1** using adaptive DSP, real LUFS measurement, before/after preview, and 24-bit WAV export. AI Mix is still planned. See [implementation and limitations](docs/ai-studio-master-v1.md).
+
+```bash
+npm test
+npm run build
+python3 -m http.server 8080 --directory public
+```
+
+---
+
 # Pulse Studio 2.2 — Web + Cloud YouTube Audio
 
 Tato verze řeší chybu **LOCAL HELPER OFFLINE**. Návštěvník veřejného webu **nic neinstaluje**. Web na Vercelu posílá pouze YouTube URL a zvolený výstupní formát cloudové API službě, která provede zpracování a vrátí soubor ke stažení.

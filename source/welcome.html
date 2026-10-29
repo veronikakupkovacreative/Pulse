@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light"><meta name="theme-color" content="#F5F4F0">
+<title>Pulse. — Lifetime Access</title>
+<meta name="description" content="Pulse Studio. Všechny produkční nástroje za jednorázový dolar, nebo zdarma se slevovým kódem.">
+<link rel="stylesheet" href="./access.css"><script src="./access.mjs" type="module"></script>
+</head>
+<body>
+<div class="frame">
+<header class="top"><a class="logo" href="/" aria-label="Pulse Studio – úvod">Pulse<i></i></a><div class="top-side"><span class="micro muted">ONE PLAN. ALL TOOLS.</span><a href="#access" class="top-link">LIFETIME ACCESS ↗</a></div></header>
+<main class="hero" id="top">
+<section class="art" aria-label="Identita PULSE Studio"><div class="pads" aria-hidden="true"><span class="pad"></span><span class="pad"></span><span class="pad outline"></span><span class="pad"></span><span class="pad black"></span><span class="pad"></span><span class="pad outline"></span><span class="pad"></span><span class="pad"></span></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span class="arrow">↙</span></div></section>
+<section class="detail" id="access">
+<p class="kicker micro">LIFETIME ACCESS</p>
+<h1>Pulse<span>.</span><br>Yours forever.</h1>
+<p class="description">Všechny produkční nástroje pro tvůj sound. Jedna platba. Žádné měsíční předplatné.</p>
+<div class="price-card"><div class="price-row"><strong class="price">$1</strong><div class="price-detail"><strong>ONE TIME.</strong><br>NO SUBSCRIPTION.<br>LIFETIME ACCESS.</div></div><p class="price-note">Jednorázově 1 USD · bez automatického obnovení · přístup po dobu provozu služby.</p></div>
+<div class="features" aria-label="Zahrnuté funkce"><span>BPM Analyzer ↗</span><span>Key Finder ↗</span><span>808 Tuner ↗</span><span>Loop Cutter ↗</span><span>Sample Slicer ↗</span><span>Smart Master ↗</span></div>
+<div class="access-box">
+<div class="access-heading"><span class="micro">01 / IDENTIFIKACE</span><span id="auth-state" class="micro muted">SECURE ACCESS</span></div>
+<form id="email-form"><label for="email">TVŮJ E-MAIL</label><div class="input-row"><input id="email" type="email" autocomplete="email" required placeholder="music@studio.com" maxlength="254"><button type="submit" id="send-code">Poslat kód ↗</button></div><p class="help">Pošleme jednorázový přihlašovací kód. Účet slouží k obnovení přístupu i na jiném zařízení.</p></form>
+<form id="verify-form" hidden><label for="otp">OVĚŘOVACÍ KÓD</label><div class="input-row"><input id="otp" inputmode="numeric" autocomplete="one-time-code" required minlength="6" maxlength="8" pattern="[0-9]{6,8}" placeholder="123456"><button type="submit" id="verify-code">Ověřit ↗</button></div><button type="button" class="text-link" id="change-email">Změnit e-mail</button></form>
+<div id="access-actions" hidden><div class="signed-in">PŘIHLÁŠENO JAKO <strong id="user-email"></strong><button type="button" id="logout">Odhlásit se</button></div>
+<button class="cta" type="button" id="checkout-button"><span>Unlock Pulse — $1 once</span><span aria-hidden="true">↗</span></button>
+<div class="divider"><span>NEBO MÁŠ SLEVOVÝ KÓD?</span></div>
+<form id="promo-form"><label for="promo">SLEVOVÝ KÓD</label><div class="input-row"><input id="promo" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="Zadej slevový kód"><button type="submit" id="redeem-code">Použít ↗</button></div></form>
+</div>
+<div id="unlocked" hidden><p class="unlock-title">PŘÍSTUP AKTIVNÍ.</p><a class="cta" href="/api/studio"><span>Otevřít PULSE Studio</span><span>↗</span></a></div>
+<p id="access-status" class="status" role="status" aria-live="polite">Připravujeme zabezpečený přístup…</p>
+</div>
+</section>
+</main>
+<footer><strong>Pulse<span>.</span></strong><span>PAY ONCE. MAKE MUSIC.</span><span>© 2026 Pulse Studio</span></footer>
+</div>
+</body></html>

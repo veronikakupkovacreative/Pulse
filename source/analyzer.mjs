@@ -101,3 +101,4 @@ export function analyzeTempo(samples, sampleRate) {
   const peak = Math.max(...waveform) || 1;
   return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};
 }
+

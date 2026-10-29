@@ -26,7 +26,7 @@ function stopPlayback() {
   state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Přehrát track');
 }
 function reset() {
-  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
+  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;$('#bpm-override').value='';
   ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
 }
 async function processFile(file) {
@@ -78,11 +78,22 @@ function renderResult(file) {
 }
 function updateTempo() {
   ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',!Number.isInteger(state.bpm));
-  $('#reset-tempo').hidden=Math.abs(state.bpm-state.result.bpm)<.01;
+  $('#bpm-override').value=String(state.bpm);$('#reset-tempo').hidden=Math.abs(state.bpm-state.result.bpm)<.01;
   $('#half-tempo').disabled=state.bpm/2<20;$('#double-tempo').disabled=state.bpm*2>400;
 }
-function changeTempo(multiplier) {
-  if(!state.result)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
+function setTempo(value) {
+  if(!state.result)return false;
+  const next=Number(String(value).replace(',','.'));
+  if(!Number.isFinite(next)||next<20||next>400){
+    $('#bpm-override').value=String(state.bpm);toast('Zadej tempo od 20 do 400 BPM.');return false;
+  }
+  const running=!!state.metroTimer;if(running)stopMetronome();
+  state.bpm=Math.round(next*10)/10;state.factor=state.bpm/state.result.bpm;
+  updateTempo();if(running)void startMetronome();
+  announce(`Tempo upraveno na ${bpmLabel(state.bpm)} BPM.`);return true;
+}
+function changeTempo(multiplier){
+  if(!state.result)return;setTempo(multiplier?state.bpm*multiplier:state.result.bpm);
 }
 function drawWaveform() {
   if(!state.result)return;
@@ -171,7 +182,9 @@ $('#seek').addEventListener('keydown',event=>{
     seekBpm(event.key==='Home'?0:event.key==='End'?state.buffer?.duration:nudgePlayhead(current,state.buffer?.duration,delta),{autoplay:state.playing});
   }
 });
-$('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
+$('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#bpm-override').onchange=event=>setTempo(event.target.value);
+$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm}}));toast(`${bpmLabel(state.bpm)} BPM použito v produkčních nástrojích.`);};
+$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
 document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>button.closest('dialog').close());

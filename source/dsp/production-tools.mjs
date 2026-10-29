@@ -59,7 +59,7 @@ export function detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){
     const hz=targetRate/(lag+shift),confidence=clamp(1-bestVal,0,1);
     if(hz>=minHz&&hz<=maxHz)windows.push({hz,confidence,rms});
   }
-  if(!windows.length)return {hz:null,confidence:0,label:'Nelze určit fundamentální frekvenci',note:null,frames:0};
+  if(!windows.length)return {hz:null,confidence:0,label:'Nelze určit fundamentální frekvenci',note:null,frames:0,stableFrames:0,spreadCents:null};
   // Weighted median is stable under sparse pitched sections.
   const sorted=windows.sort((a,b)=>a.hz-b.hz),weights=sorted.reduce((a,b)=>a+b.rms*b.confidence*b.confidence,0),half=weights/2;
   let running=0,median=sorted[Math.floor(sorted.length/2)].hz;
@@ -68,7 +68,8 @@ export function detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){
   const consistency=near.length/sorted.length;
   const confidence=clamp((near.reduce((a,b)=>a+b.confidence,0)/(near.length||1))*consistency,0,1);
   const hz=near.reduce((a,b)=>a+b.hz*b.confidence,0)/(near.reduce((a,b)=>a+b.confidence,0)||1);
-  return {hz:hz||median,confidence,label:confidence>=.75?'Vyšší':confidence>=.52?'Střední':'Nízká',note:frequencyNote(hz||median),frames:windows.length};
+  const spreadCents=near.length?Math.sqrt(near.reduce((acc,w)=>acc+Math.pow(1200*Math.log2(w.hz/(hz||median)),2),0)/near.length):null;
+  return {hz:hz||median,confidence,label:confidence>=.75?'Vyšší':confidence>=.52?'Střední':'Nízká',note:frequencyNote(hz||median),frames:windows.length,stableFrames:near.length,spreadCents};
 }
 
 // Waveform Similarity Overlap Add: phase-coherent multi-channel alignment.

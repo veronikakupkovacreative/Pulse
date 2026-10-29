@@ -115,3 +115,4 @@ export function detectKey(samples,sampleRate){
   const [top,second]=candidates;
   return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};
 }
+

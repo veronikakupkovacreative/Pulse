@@ -8,7 +8,7 @@ export function initStudioTools(getBpmTrack){
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
-  const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB`;
+  const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('en-US',{maximumFractionDigits:1})} MB`;
   function status(id,text){el(id).textContent=text;}
   function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;}
   function clearError(){el('tool-error').hidden=true;}
@@ -16,38 +16,38 @@ export function initStudioTools(getBpmTrack){
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
   function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;if(mp3&&el('conv-rate').value==='96000')el('conv-rate').value='48000';el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
   function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;el('cut-bpm').value=other.bpm;}}
-  function resetKey(){tools.keyResult=null;el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Výsledek je orientační, zejména u bicích a krátkých samplů.');}
+  function resetKey(){tools.keyResult=null;el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Key detection is an estimate.');}
   function stopPreview(){
     clearInterval(tools.previewTimer);tools.previewTimer=null;
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
-    tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Přehrát zvuk');
+    tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Play audio');
   }
   function remove(){tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
   async function decode(file){
     clearError();
     if(tools.loading)return;
     if(!file)return;
-    if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Neznámý soubor. Zkus WAV, MP3, M4A, MP4 nebo jiný podporovaný audioformát.');return;}
-    if(file.size>100*1024*1024||file.size===0){error('Soubor musí mít 1 B až 100 MB.');return;}
+    if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Unsupported file. Try WAV, MP3, M4A or MP4.');return;}
+    if(file.size>100*1024*1024||file.size===0){error('File must be between 1 B and 100 MB.');return;}
     const token=++tools.operation;
     stopPreview();tools.keyWorker?.terminate();tools.keyWorker=null;
-    setBusy(true);status('conv-status','Načítám zvuk…');
+    setBusy(true);status('conv-status','Loading audio…');
     try{
       const Ctx=window.AudioContext||window.webkitAudioContext;
-      if(!Ctx)throw new Error('Prohlížeč nepodporuje dekódování audia.');
+      if(!Ctx)throw new Error('Audio decoding is not supported in this browser.');
       tools.context||=new Ctx();
       const buffer=await tools.context.decodeAudioData(await file.arrayBuffer());
       if(token!==tools.operation)return;
-      if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
+      if(buffer.duration>1200)throw new Error('Maximum duration: 20 minutes.');
       tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
       tools.to=Math.min(buffer.duration,8);updateBpmFromAnalyzer();
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
-      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
+      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
       el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();drawToolWave();
-      status('conv-status','Připraveno k exportu.');status('cut-status','Uprav délku nebo vyber počet taktů.');
+      status('conv-status','Ready to export.');status('cut-status','Set your loop length.');
       status('tool-time',`${durationText(0)} / ${durationText(buffer.duration)}`);
-    }catch(e){if(token===tools.operation){error('Nelze přečíst zvuk: '+(e?.message||'nepodporovaný kodek')+'. Podpora MP4/M4A/FLAC závisí na prohlížeči.');status('conv-status','Nepodařilo se načíst soubor.');}}
+    }catch(e){if(token===tools.operation){error('Cannot decode audio: '+(e?.message||'unsupported codec')+'. Format support depends on your browser.');status('conv-status','Failed to load file.');}}
     finally{if(token===tools.operation){setBusy(false);updateButtons();}}
   }
   function channels(buffer){return Array.from({length:Math.min(buffer.numberOfChannels,2)},(_,i)=>buffer.getChannelData(i));}
@@ -57,7 +57,7 @@ export function initStudioTools(getBpmTrack){
     if(original.sampleRate===targetSampleRate)return channels(original);
     const count=Math.ceil(original.duration*targetSampleRate),ch=Math.min(2,original.numberOfChannels);
     const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    if(!Offline)throw new Error('Převzorkování není v prohlížeči podporované.');
+    if(!Offline)throw new Error('Resampling is not supported in this browser.');
     const ctx=new Offline(ch,count,targetSampleRate),source=ctx.createBufferSource();source.buffer=original;source.connect(ctx.destination);source.start(0);
     const out=await ctx.startRendering();return channels(out);
   }
@@ -67,22 +67,22 @@ export function initStudioTools(getBpmTrack){
     if(lamePromise)return lamePromise;
     lamePromise=new Promise((resolve,reject)=>{
       const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.all.min.js';script.async=true;
-      script.onload=()=>window.lamejs?.Mp3Encoder?resolve(window.lamejs):reject(new Error('MP3 enkodér není dostupný.'));
-      script.onerror=()=>reject(new Error('Nelze načíst MP3 enkodér. Zkontroluj připojení k internetu nebo exportuj WAV.'));
+      script.onload=()=>window.lamejs?.Mp3Encoder?resolve(window.lamejs):reject(new Error('MP3 encoder unavailable.'));
+      script.onerror=()=>reject(new Error('Cannot load MP3 encoder. Check connection or export WAV.'));
       document.head.appendChild(script);
     }).catch(e=>{lamePromise=null;throw e;});
     return lamePromise;
   }
   const int16=(float,offset,size)=>{const out=new Int16Array(size);for(let i=0;i<size;i++){const x=Math.max(-1,Math.min(1,float[offset+i]||0));out[i]=x<0?Math.round(32768*x):Math.round(32767*x);}return out;};
   async function toMp3(data,sampleRate,bitrate,token){
-    const lame=await loadLame();if(token!==tools.operation)throw new Error('Operace byla zrušena.');
+    const lame=await loadLame();if(token!==tools.operation)throw new Error('Operation canceled.');
     const encoder=new lame.Mp3Encoder(data.length,sampleRate,bitrate),parts=[],size=1152;
     for(let i=0;i<data[0].length;i+=size){
-      if(token!==tools.operation)throw new Error('Operace byla zrušena.');
+      if(token!==tools.operation)throw new Error('Operation canceled.');
       const len=Math.min(size,data[0].length-i),left=int16(data[0],i,len),right=data[1]&&int16(data[1],i,len);
       const chunk=right?encoder.encodeBuffer(left,right):encoder.encodeBuffer(left);
       if(chunk.length)parts.push(new Uint8Array(chunk));
-      if((i/size)%90===0){status('conv-status',`Kóduji MP3… ${Math.round(i/data[0].length*100)} %`);await new Promise(r=>setTimeout(r,0));}
+      if((i/size)%90===0){status('conv-status',`Encoding MP3… ${Math.round(i/data[0].length*100)} %`);await new Promise(r=>setTimeout(r,0));}
     }
     const last=encoder.flush();if(last.length)parts.push(new Uint8Array(last));return new Blob(parts,{type:'audio/mpeg'});
   }
@@ -93,13 +93,13 @@ export function initStudioTools(getBpmTrack){
       const format=el('conv-format').value,rate=Number(el('conv-rate').value),bitDepth=Number(el('conv-depth').value),bitrate=Number(el('conv-bitrate').value);
       if(format==='mp3'&&!([44100,48000].includes(rate)))throw new Error('MP3 podporuje jen 44,1 nebo 48 kHz.');
       const approx=tools.buffer.duration*rate*Math.min(2,tools.buffer.numberOfChannels)*(bitDepth/8);
-      if(format==='wav'&&approx>300*1024*1024)throw new Error('Výstupní WAV by přesáhl 300 MB. Zvol menší sample rate nebo kratší track.');
-      status('conv-status','Převzorkovávám audio…');
+      if(format==='wav'&&approx>300*1024*1024)throw new Error('WAV would exceed 300 MB. Reduce sample rate or track length.');
+      status('conv-status','Resampling audio…');
       const data=await renderedChannels(rate);
       if(token!==tools.operation)return;
-      if(format==='wav'){status('conv-status','Kóduji WAV…');const blob=encodeWav(data,rate,bitDepth);download(blob,filename('wav'));status('conv-status',`WAV je připravený (${readableSize(blob.size)}).`);}
-      else{status('conv-status','Načítám MP3 enkodér…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 je připravené (${readableSize(blob.size)}).`);}
-    }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export se nepodařil.');}}
+      if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth);download(blob,filename('wav'));status('conv-status',`WAV ready (${readableSize(blob.size)}).`);}
+      else{status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ready (${readableSize(blob.size)}).`);}
+    }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
   }
   function selectTab(which){
@@ -136,7 +136,7 @@ export function initStudioTools(getBpmTrack){
     tools.to=Math.min(duration,tools.from+span);
     if(tools.to-tools.from<.02)tools.from=Math.max(0,duration-span);
     updateTrimInputs();drawToolWave();
-    status('cut-status',span>duration-tools.from+.001?'Track je kratší než zvolený počet taktů.':'Délka loopu: '+precise(tools.to-tools.from));
+    status('cut-status',span>duration-tools.from+.001?'Track is shorter than selected bars.':'Loop length: '+precise(tools.to-tools.from));
   }
   function drawToolWave(){
     const canvas=el('tool-waveform');if(!canvas||!tools.buffer)return;
@@ -170,23 +170,23 @@ export function initStudioTools(getBpmTrack){
       tools.source=src;tools.playing=true;src.start(0,from,to-from);
       const started=tools.context.currentTime;el('tool-preview').textContent='Ⅱ';el('tool-preview').setAttribute('aria-label','Zastavit zvuk');
       tools.previewTimer=setInterval(()=>status('tool-time',`${durationText(Math.min(to-from,tools.context.currentTime-started))} / ${durationText(to-from)}`),100);
-    }catch(e){stopPreview();error('Přehrávání se nepodařilo spustit: '+e.message);}
+    }catch(e){stopPreview();error('Playback failed: '+e.message);}
   }
   async function exportCut(){
     if(!tools.buffer||tools.loading)return;
     const token=++tools.operation;clearError();setBusy(true);stopPreview();
     try{
-      if(tools.to-tools.from<.03)throw new Error('Loop musí mít alespoň 30 ms.');
+      if(tools.to-tools.from<.03)throw new Error('Loop must be at least 30 ms.');
       const data=extractSegment(channels(tools.buffer),tools.buffer.sampleRate,tools.from,tools.to,Number(el('cut-fade').value));
       const bitDepth=Number(el('cut-depth').value),bytes=data[0].length*data.length*(bitDepth/8);
-      if(bytes>300*1024*1024)throw new Error('Loop je příliš dlouhý. Zkrať výběr.');
-      status('cut-status','Připravuji loop…');await new Promise(r=>setTimeout(r,0));
+      if(bytes>300*1024*1024)throw new Error('Loop too long. Shorten the selection.');
+      status('cut-status','Rendering loop…');await new Promise(r=>setTimeout(r,0));
       if(token!==tools.operation)return;
       const wav=encodeWav(data,tools.buffer.sampleRate,bitDepth);
       const stem=(tools.file.name||'loop').replace(/\.[^.]+$/,'');
       download(wav,`${stem}_${Math.round(Number(el('cut-bpm').value))}bpm_loop.wav`);
-      status('cut-status',`Loop exportován (${precise(tools.to-tools.from)}, ${readableSize(wav.size)}).`);
-    }catch(e){if(token===tools.operation){error(e.message);status('cut-status','Export se nepodařil.');}}
+      status('cut-status',`Loop exported (${precise(tools.to-tools.from)}, ${readableSize(wav.size)}).`);
+    }catch(e){if(token===tools.operation){error(e.message);status('cut-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
   }
   function getKeyInput(buffer){
@@ -206,19 +206,19 @@ export function initStudioTools(getBpmTrack){
       const worker=createKeyWorker();tools.keyWorker=worker;
       const samples=getKeyInput(tools.buffer);
       const result=await new Promise((resolve,reject)=>{
-        const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Analýza trvá příliš dlouho.'));},30000);
+        const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Analysis timed out.'));},30000);
         worker.onmessage=({data})=>{clearTimeout(timeout);data.error?reject(new Error(data.error)):resolve(data.result);};
-        worker.onerror=()=>{clearTimeout(timeout);reject(new Error('Analýzu nelze spustit.'));};
+        worker.onerror=()=>{clearTimeout(timeout);reject(new Error('Analysis failed to start.'));};
         worker.postMessage(samples,[samples.samples.buffer]);
       });
       worker.terminate();if(token!==tools.operation)return;
       tools.keyResult=result;el('key-result').hidden=false;el('key-idle').hidden=true;el('key-alternatives').hidden=false;
       status('key-name',result.primary.display);status('key-mode',result.primary.mode==='major'?'MAJOR':'MINOR');
       status('key-camelot',result.primary.camelot);
-      status('key-confidence',({higher:'SILNĚJŠÍ SHODA',moderate:'ORIENTAČNÍ',low:'NÍZKÁ JISTOTA'})[result.confidence]);
-      status('key-alternatives','Další možné tóniny: '+result.alternatives.map(a=>`${a.display} (${a.camelot})`).join(' · '));
-      status('key-status','Algoritmický odhad z chromatické analýzy. U změn tóniny nemusí být jednoznačný.');
-    }catch(e){if(token===tools.operation){error(e.message);status('key-status','Tóninu se nepodařilo určit.');}}
+      status('key-confidence',({higher:'HIGH MATCH',moderate:'MODERATE',low:'LOW CONFIDENCE'})[result.confidence]);
+      status('key-alternatives','Possible keys: '+result.alternatives.map(a=>`${a.display} (${a.camelot})`).join(' · '));
+      status('key-status','Estimated key. Check by ear.');
+    }catch(e){if(token===tools.operation){error(e.message);status('key-status','Key not detected.');}}
     finally{tools.keyWorker?.terminate();tools.keyWorker=null;if(token===tools.operation)setBusy(false);}
   }
   // Events
@@ -231,7 +231,7 @@ export function initStudioTools(getBpmTrack){
   el('tool-file-input').onchange=e=>decode(e.target.files[0]);
   el('tool-remove').onclick=remove;
   el('tool-preview').onclick=preview;
-  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} ch. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Loaded from BPM Analyzer.');updateButtons();}};
   el('conv-format').onchange=syncOutput;
   el('conv-export').onclick=exportConvert;
   el('key-analyze').onclick=analyzeKey;
@@ -248,7 +248,7 @@ export function initStudioTools(getBpmTrack){
   const drop=el('tool-drop-zone');
   drop.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();if(!tools.loading)drop.classList.add('tool-dragover');}});
   drop.addEventListener('dragleave',e=>{if(!drop.contains(e.relatedTarget))drop.classList.remove('tool-dragover');});
-  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Nahraj vždy jeden soubor.');return;}decode(e.dataTransfer.files[0]);});
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Upload one file at a time.');return;}decode(e.dataTransfer.files[0]);});
   window.addEventListener('pulse:bpm-track-ready',updateButtons);
   const resize=new ResizeObserver(()=>drawToolWave());resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.keyWorker?.terminate();tools.context?.close();});

@@ -1,12 +1,12 @@
 // Audio utilities used by the production toolkit. No remote processing.
 export function encodeWav(channels, sampleRate, bitDepth=16) {
-  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
-  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
-  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');
+  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Mono or stereo only.');
+  if(![16,24].includes(bitDepth))throw new Error('Unsupported bit depth.');
+  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Invalid sample rate.');
   const length=channels[0].length;
-  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');
+  if(channels.some(ch=>ch.length!==length))throw new Error('Channels have different lengths.');
   const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;
-  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');
+  if(dataBytes+44>0xffffffff)throw new Error('WAV exceeds the standard file size limit.');
   const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);
   const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));
   str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');
@@ -23,7 +23,7 @@ export function encodeWav(channels, sampleRate, bitDepth=16) {
   return new Blob([array],{type:'audio/wav'});
 }
 export function extractSegment(channels, sampleRate, from, to, fadeMs=5) {
-  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');
+  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Select a longer range.');
   const length=channels[0].length;
   const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));
   const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));
@@ -77,9 +77,9 @@ function correlation(a,b){
 }
 // Chroma-based key estimation: approximate, especially for short or percussive material.
 export function detectKey(samples,sampleRate){
-  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');
+  if(samples.length<sampleRate*2)throw new Error('Key detection requires at least 2 seconds.');
   const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);
-  if(samples.length<size)throw new Error('Soubor je příliš krátký.');
+  if(samples.length<size)throw new Error('File too short.');
   const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);
   const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));
   let total=0,frames=0;
@@ -104,7 +104,7 @@ export function detectKey(samples,sampleRate){
     }
     frames++;
   }
-  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');
+  if(total<1||frames<2)throw new Error('Key not detected. Try a melodic section.');
   const candidates=[];
   for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){
     const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5f4f0">
-  <meta name="description" content="Najdi tempo svého tracku. Pulse změří BPM z WAV, MP3 i MP4 přímo v prohlížeči. Tvoje soubory zůstávají u tebe.">
+  <meta name="description" content="BPM, key detection, conversion and loops for producers.">
   <title>Pulse Studio — BPM Analyzer & Producer Toolkit</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
   <style>
@@ -97,51 +97,51 @@
 </defs></svg>
 <div class="shell">
   <header class="header">
-    <a class="brand" href="./" aria-label="Pulse – úvod"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
-    <nav aria-label="Hlavní navigace"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Nápověda <span aria-hidden="true">↗</span></button></nav>
+    <a class="brand" href="./" aria-label="Pulse Studio home"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
+    <nav aria-label="Main navigation"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Help <span aria-hidden="true">↗</span></button></nav>
     
   </header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy"><h1 id="hero-title">Najdi svůj<br><span>rytmus.</span></h1><p class="intro">BPM, tónina, konverze i dokonalý loop.<br>Tvůj produkční toolkit na jednom místě.</p></div>
+      <div class="hero-copy"><h1 id="hero-title">Find your<br><span>rhythm.</span></h1></div>
       <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
     </section>
-    <section id="analyzer" aria-label="Analyzátor tempa">
-      <div class="section-label"><h2>01 / ANALYZÁTOR TEMPA</h2></div>
+    <section id="analyzer" aria-label="BPM analyzer">
+      <div class="section-label"><h2>01 / BPM ANALYZER</h2></div>
       <div class="workspace">
         <div class="upload-panel" id="drop-zone">
-          <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Vybrat WAV, MP3 nebo MP4" hidden>
+          <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Select WAV, MP3 or MP4" hidden>
           <div class="upload-empty" id="upload-empty">
             <span class="upload-icon"><svg><use href="#arrow-up"/></svg></span>
-            <h3>Pusť sem svůj track.</h3><p>Přetáhni audio nebo video.<br class="mobile-break"> O zbytek se postará Pulse.</p>
-            <button class="button button-light" id="choose-file">Vybrat soubor <svg><use href="#arrow-ne"/></svg></button>
-            <span class="file-limit">WAV, MP3 nebo MP4 <span>·</span> max. 100 MB / 20 min</span>
+            <h3>Drop your track.</h3>
+            <button class="button button-light" id="choose-file">Choose file <svg><use href="#arrow-ne"/></svg></button>
+            <span class="file-limit">WAV, MP3 or MP4 <span>·</span> max. 100 MB / 20 min</span>
           </div>
-          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Poslouchám rytmus.</h3><p id="progress-detail">Načítám zvukovou stopu…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Zrušit analýzu</button></div>
+          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Finding the beat.</h3><p id="progress-detail">Loading audio…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Cancel analysis</button></div>
           <div class="track-content" id="track-content" hidden>
-            <div class="track-top"><span class="track-type" id="track-type">WAV</span><button class="icon-button" id="remove-file" aria-label="Odebrat soubor"><svg><use href="#close"/></svg></button></div>
+            <div class="track-top"><span class="track-type" id="track-type">WAV</span><button class="icon-button" id="remove-file" aria-label="Remove file"><svg><use href="#close"/></svg></button></div>
             <h3 id="track-name"></h3><p class="track-meta" id="track-meta"></p>
-            <div class="waveform-wrap"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Pozice přehrávání"></div>
-            <div class="player"><button class="play-button" id="play-track" aria-label="Přehrát track"><svg><use href="#play"/></svg></button><span class="player-time"><span id="current-time">0:00</span><span class="time-separator">/</span><span id="total-time">0:00</span></span><button class="text-button replace" id="replace-file">Jiný soubor <span aria-hidden="true">↗</span></button></div>
+            <div class="waveform-wrap"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Playback position"></div>
+            <div class="player"><button class="play-button" id="play-track" aria-label="Play track"><svg><use href="#play"/></svg></button><span class="player-time"><span id="current-time">0:00</span><span class="time-separator">/</span><span id="total-time">0:00</span></span><button class="text-button replace" id="replace-file">Replace file <span aria-hidden="true">↗</span></button></div>
           </div>
-          <p class="privacy-note"><svg><use href="#lock"/></svg> Zpracování v prohlížeči. Soubory nikam neodesíláme.</p>
-          <div class="drag-overlay" aria-hidden="true"><span>Sem s ním.</span><svg><use href="#arrow-up"/></svg></div>
+          <p class="privacy-note"><svg><use href="#lock"/></svg> Audio stays on your device.</p>
+          <div class="drag-overlay" aria-hidden="true"><span>DROP IT HERE.</span><svg><use href="#arrow-up"/></svg></div>
         </div>
         <div class="result-panel" id="result-panel">
-          <div class="result-top"><h3>TVOJE TEMPO</h3><span id="result-status">ČEKÁM NA TRACK <i></i></span></div>
+          <div class="result-top"><h3>YOUR TEMPO</h3><span id="result-status">AWAITING TRACK <i></i></span></div>
           <div class="tempo-circle" id="tempo-circle"><span class="bpm-number" id="bpm-number">—</span><span class="bpm-label">BEATS PER MINUTE</span><i class="orbit-dot"></i></div>
-          <div class="result-empty" id="result-empty"><span>Všechno začíná prvním beatem.</span><span aria-hidden="true">↗</span></div>
-          <div class="result-controls" id="result-controls" hidden><div class="tempo-actions"><div class="tempo-multipliers" aria-label="Interpretace tempa"><button id="half-tempo" title="Poloviční tempo">÷ 2</button><button id="double-tempo" title="Dvojnásobné tempo">× 2</button><button id="reset-tempo" title="Původně naměřené tempo" hidden>↺</button></div><button class="copy-button" id="copy-bpm" aria-label="Zkopírovat BPM"><svg><use href="#copy"/></svg><span>Kopírovat</span></button></div><div class="metronome-row"><button id="metronome" aria-pressed="false"><span class="switch"><i></i></span>Poslechnout tempo</button><span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div>
+          <div class="result-empty" id="result-empty"><span>Start with a beat.</span><span aria-hidden="true">↗</span></div>
+          <div class="result-controls" id="result-controls" hidden><div class="tempo-actions"><div class="tempo-multipliers" aria-label="Tempo controls"><button id="half-tempo" title="Half tempo">÷ 2</button><button id="double-tempo" title="Double tempo">× 2</button><button id="reset-tempo" title="Original tempo" hidden>↺</button></div><button class="copy-button" id="copy-bpm" aria-label="Copy BPM"><svg><use href="#copy"/></svg><span>Copy</span></button></div><div class="metronome-row"><button id="metronome" aria-pressed="false"><span class="switch"><i></i></span>Hear tempo</button><span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div>
         </div>
       </div>
       <div class="message error-message" id="error" role="alert" hidden></div>
       <p class="result-note" id="result-note" hidden></p>
-      <div class="demo-line"><span>Ještě nemáš track po ruce?</span><button id="try-demo">Vyzkoušet na ukázce <span aria-hidden="true">↗</span></button></div>
+      <div class="demo-line"><button id="try-demo">Try demo <span aria-hidden="true">↗</span></button></div>
     </section>
     <section id="toolkit" class="toolkit" aria-labelledby="toolkit-title">
       <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2></div>
-      <div class="toolkit-heading"><div><h2 id="toolkit-title">Tvůj zvuk.<br><span>Tvoje pravidla.</span></h2></div></div>
-      <div class="tool-tabs" role="tablist" aria-label="Produkční nástroje">
+      <div class="toolkit-heading"><div><h2 id="toolkit-title">Your sound.<br><span>Your rules.</span></h2></div></div>
+      <div class="tool-tabs" role="tablist" aria-label="Production tools">
         <button class="tool-tab selected" id="tab-converter" role="tab" aria-selected="true" aria-controls="panel-converter" data-tool="converter"><span>01</span> Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-key" role="tab" aria-selected="false" aria-controls="panel-key" tabindex="-1" data-tool="key"><span>02</span> Key Finder <b>↗</b></button>
         <button class="tool-tab" id="tab-cutter" role="tab" aria-selected="false" aria-controls="panel-cutter" tabindex="-1" data-tool="cutter"><span>03</span> Loop Cutter <b>↗</b></button>
@@ -150,43 +150,43 @@
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
           <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
-          <input type="file" id="tool-file-input" accept=".wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.aiff,.aif,audio/*,video/mp4" hidden aria-label="Vybrat audio nebo video pro toolkit">
-          <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Začni se zvukem.</h3><p>Přetáhni sem WAV, MP3 nebo podporované audio/video.</p><button class="tool-action tool-action-light" id="tool-select-file">Vybrat soubor <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
-          <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Odebrat soubor">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Vlnový průběh nahraného zvuku"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Přehrát zvuk">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Vyměnit ↗</button></div></div>
-          <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Použít track z BPM analyzátoru ↗</button>
-          <p class="tool-source-foot"><svg><use href="#lock"/></svg> Soubor zůstává v prohlížeči.</p>
+          <input type="file" id="tool-file-input" accept=".wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.aiff,.aif,audio/*,video/mp4" hidden aria-label="Select audio/video for toolkit">
+          <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Make some noise.</h3><button class="tool-action tool-action-light" id="tool-select-file">Choose file <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
+          <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Remove file">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Uploaded audio waveform"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Play audio">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Replace ↗</button></div></div>
+          <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Use BPM Analyzer track ↗</button>
+          <p class="tool-source-foot"><svg><use href="#lock"/></svg> Audio stays in your browser.</p>
         </div>
         <div class="tool-settings">
-          <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter"><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Změň formát.<br><span>Ne kvalitu práce.</span></h3><p class="tool-description">Převeď zvuk do WAV nebo MP3. Zvol sample rate a kvalitu exportu.</p>
-            <div class="tool-fields"><label>Výstupní formát<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="44100">44.1 kHz</option><option value="48000" selected>48 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
-            <button class="tool-action tool-action-dark" id="conv-export" disabled>Konvertovat & stáhnout <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Vyber soubor a výstupní parametry.</p></div>
-          <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key" hidden><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Najdi tóninu.<br><span>Chyť harmonii.</span></h3><p class="tool-description">Odhadni hudební tóninu a Camelot označení pro rychlejší produkci i mix.</p>
-            <div class="key-idle" id="key-idle"><span class="tool-circle-decoration">♪</span><p>Připraveno na analýzu tóniny</p></div><div class="key-result" id="key-result" hidden><div class="key-bubble"><strong id="key-name">—</strong><span id="key-mode">—</span></div><div class="key-extra"><span>CAMELOT</span><strong id="key-camelot">—</strong><span id="key-confidence">—</span></div></div><p class="key-alternatives" id="key-alternatives" hidden></p><button class="tool-action tool-action-dark" id="key-analyze" disabled>Analyzovat tóninu <span>↗</span></button><p class="tool-footnote" id="key-status" role="status">Výsledek je orientační, zejména u bicích a krátkých samplů.</p></div>
-          <div id="panel-cutter" class="tool-view" role="tabpanel" aria-labelledby="tab-cutter" hidden><div class="tool-view-header"><span>02 / LOOP CUTTER</span><span>PRECISION EDIT</span></div><h3>Vyřízni beat.<br><span>Ne potenciál.</span></h3><p class="tool-description">Nastav rozsah na waveformu nebo podle taktů. Přehraj výběr a exportuj WAV s fade-out.</p>
-            <div class="tool-fields"><label>Tempo pro beat grid (BPM)<input id="cut-bpm" type="number" min="20" max="400" step="0.1" value="120"></label><label>Délka ve 4/4 taktech<select id="cut-bars"><option value="1">1 takt</option><option value="2">2 takty</option><option value="4" selected>4 takty</option><option value="8">8 taktů</option><option value="16">16 taktů</option><option value="custom">Vlastní rozsah</option></select></label></div>
+          <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter"><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Change format.<br><span>Keep creating.</span></h3>
+            <div class="tool-fields"><label>Output format<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="44100">44.1 kHz</option><option value="48000" selected>48 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
+            <button class="tool-action tool-action-dark" id="conv-export" disabled>Convert & download <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Select audio to convert.</p></div>
+          <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key" hidden><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Find the key.<br><span>Build the harmony.</span></h3>
+            <div class="key-idle" id="key-idle"><span class="tool-circle-decoration">♪</span><p>Ready to analyze</p></div><div class="key-result" id="key-result" hidden><div class="key-bubble"><strong id="key-name">—</strong><span id="key-mode">—</span></div><div class="key-extra"><span>CAMELOT</span><strong id="key-camelot">—</strong><span id="key-confidence">—</span></div></div><p class="key-alternatives" id="key-alternatives" hidden></p><button class="tool-action tool-action-dark" id="key-analyze" disabled>Find key <span>↗</span></button><p class="tool-footnote" id="key-status" role="status">Key detection is an estimate.</p></div>
+          <div id="panel-cutter" class="tool-view" role="tabpanel" aria-labelledby="tab-cutter" hidden><div class="tool-view-header"><span>02 / LOOP CUTTER</span><span>PRECISION EDIT</span></div><h3>Cut the loop.<br><span>Keep the groove.</span></h3>
+            <div class="tool-fields"><label>Beat grid (BPM)<input id="cut-bpm" type="number" min="20" max="400" step="0.1" value="120"></label><label>Length (4/4 bars)<select id="cut-bars"><option value="1">1 bar</option><option value="2">2 bars</option><option value="4" selected>4 bars</option><option value="8">8 bars</option><option value="16">16 bars</option><option value="custom">Custom range</option></select></label></div>
             <div class="cut-sliders"><label>START <output id="cut-start-label">00:00.00</output><input id="cut-start" type="range" min="0" max="100" step="0.01" value="0"></label><label>END <output id="cut-end-label">00:08.00</output><input id="cut-end" type="range" min="0" max="100" step="0.01" value="8"></label></div>
             <div class="tool-fields cut-bottom"><label>Fade in / out<select id="cut-fade"><option value="0">Off</option><option value="5" selected>5 ms · clean cut</option><option value="20">20 ms</option><option value="100">100 ms</option></select></label><label>WAV bit depth<select id="cut-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option></select></label></div>
-            <button class="tool-action tool-action-dark" id="cut-export" disabled>Exportovat loop (WAV) <span>↗</span></button><p class="tool-footnote" id="cut-status" role="status">Výběr můžeš přehrát tlačítkem vlevo.</p></div>
+            <button class="tool-action tool-action-dark" id="cut-export" disabled>Export loop (WAV) <span>↗</span></button><p class="tool-footnote" id="cut-status" role="status">Preview the loop on the left.</p></div>
 
         </div>
       </div>
       
       <p class="message" id="tool-error" role="alert" hidden></p>
     </section>
-    <section class="steps" aria-label="Tři kroky k tempu"><article><span class="step-number">01</span><div><h3>Nahraj.</h3><p>Audio i video. Stačí jeden soubor.</p></div></article><article><span class="step-number">02</span><div><h3>Najdi tempo.</h3><p>Pulse zachytí rytmus a odhadne BPM.</p></div></article><article><span class="step-number">03</span><div><h3>Chyť svůj flow.</h3><p>Pro střih, mix i tvůj další projekt.</p></div></article></section>
+    
   </main>
-  <footer><span class="footer-wordmark"><i></i> Pulse</span><span>MADE FOR YOUR NEXT BEAT.</span><button id="open-privacy">Soukromí <span aria-hidden="true">↗</span></button></footer>
+  <footer><span class="footer-wordmark"><i></i> Pulse</span><button id="open-privacy">Privacy <span aria-hidden="true">↗</span></button></footer>
 </div>
-<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">MALÝ NÁVOD. VELKÝ RYTMUS.</p><h2 id="help-title">Od tracku<br>k tempu.</h2><ol class="help-list"><li><strong>Vyber WAV, MP3 nebo MP4.</strong><span>Maximálně 100 MB a 20 minut. Pro spolehlivější odhad použij alespoň 15 sekund hudby s výrazným rytmem; minimum je 6 sekund.</span></li><li><strong>Nech Pulse najít rytmus.</strong><span>Analyzujeme zvukové nástupy a jejich opakování. U MP4 čteme zvukovou stopu. Podpora konkrétního kodeku závisí na prohlížeči.</span></li><li><strong>Ověř tempo poslechem.</strong><span>Zapni metronom nebo použij Tap tempo. Vnímání rytmu se může lišit o polovinu či dvojnásobek — k tomu slouží ÷ 2 a × 2.</span></li></ol><p class="dialog-footnote">BPM je odhad. Proměnlivé tempo, mluvené slovo a hudba bez pravidelných beatů nemusí mít jednoznačný výsledek.</p></dialog>
-<dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">CÍTÍŠ TO? ŤUKEJ.</p><h2 id="tap-title">Tvoje ruce.<br>Tvoje tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Klikni do rytmu</span></button><p class="tap-instruction">Klikni alespoň 4× nebo použij mezerník.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 úderů</span><button id="tap-reset">Začít znovu ↺</button><button id="tap-copy" hidden>Kopírovat BPM ↗</button></div></dialog>
-<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Zavřít"><svg><use href="#close"/></svg></button><p class="eyebrow">JEN U TEBE.</p><h2 id="privacy-title">Tvůj track<br>zůstává tvůj.</h2><p class="privacy-copy">Vlastní audio a video zpracováváme přímo v prohlížeči, nikam je neodesíláme. YouTube Audio momentálně není dostupné a je označeno jako Coming soon. Vlastní soubory nahrané do BPM analyzátoru nebo dalších aktivních nástrojů na server neodesíláme.</p><p class="privacy-copy">Po odebrání souboru nebo zavření stránky se data z této relace uvolní. Webové rozhraní běží na Vercelu. Neaktivní YouTube modul během používání webu neodesílá žádné požadavky.</p></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">QUICK START.</p><h2 id="help-title">From track<br>to tempo.</h2><ol class="help-list"><li><strong>Choose WAV, MP3 or MP4.</strong><span>Max 100 MB / 20 min. Use 6+ seconds of audio.</span></li><li><strong>Find the rhythm.</strong><span>Pulse detects the beat locally.</span></li><li><strong>Check by ear.</strong><span>Use the metronome, Tap Tempo, or ÷2 / ×2.</span></li></ol><p class="dialog-footnote">Tempo is an estimate, especially with irregular beats.</p></dialog>
+<dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">FEEL THE BEAT.</p><h2 id="tap-title">Your hands.<br>Your tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Tap the beat</span></button><p class="tap-instruction">Tap four times or press Space.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 taps</span><button id="tap-reset">Reset ↺</button><button id="tap-copy" hidden>Copy BPM ↗</button></div></dialog>
+<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Audio processing stays in your browser. YouTube Audio is not yet available.</p><p class="privacy-copy">Files are released when removed or when the page closes. The inactive YouTube tool makes no API requests.</p></dialog>
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
 <script>
 (() => {
   'use strict';
   const PULSE_API_BASE_URL="";
   const ANALYSIS_WORKER_SOURCE="// Multi-band onset envelope and normalized tempo autocorrelation.\n// Confidence describes rhythmic periodicity, not a calibrated probability.\nfunction analyzeTempo(samples, sampleRate) {\n  const duration = samples.length / sampleRate;\n  if (duration < 6) throw new Error('TOO_SHORT');\n  const hop = Math.round(sampleRate / 200);\n  const rate = sampleRate / hop;\n  const frames = Math.floor(samples.length / hop);\n  const energy = [new Float32Array(frames), new Float32Array(frames), new Float32Array(frames)];\n  const lowA = 1 - Math.exp(-2 * Math.PI * 180 / sampleRate);\n  const highA = 1 - Math.exp(-2 * Math.PI * 2200 / sampleRate);\n  let low = 0, high = 0, total = 0;\n  for (let f = 0; f < frames; f++) {\n    let a = 0, b = 0, c = 0;\n    for (let j = 0; j < hop; j++) {\n      const x = samples[f * hop + j];\n      low += lowA * (x - low); high += highA * (x - high);\n      a += low * low; b += (x - high) ** 2; c += x * x;\n    }\n    total += c;\n    energy[0][f] = Math.log1p(100 * Math.sqrt(a / hop));\n    energy[1][f] = Math.log1p(100 * Math.sqrt(b / hop));\n    energy[2][f] = Math.log1p(100 * Math.sqrt(c / hop));\n  }\n  if (Math.sqrt(total / samples.length) < 0.00005) throw new Error('SILENCE');\n  // Ignore tiny frame-boundary ripples of a sustained tone.\n  let dynamicMin = Infinity, dynamicMax = 0;\n  for (let i = Math.round(rate); i < frames; i++) { dynamicMin = Math.min(dynamicMin, energy[2][i]); dynamicMax = Math.max(dynamicMax, energy[2][i]); }\n  if (dynamicMax - dynamicMin < 0.12) throw new Error('NO_RHYTHM');\n  const envelope = new Float32Array(frames);\n  for (const band of energy) {\n    const delta = new Float32Array(frames);\n    let sum = 0;\n    for (let i = 2; i < frames; i++) {\n      delta[i] = Math.max(0, band[i] - band[i - 2]);\n      sum += delta[i];\n    }\n    const mean = sum / frames;\n    if (mean > 0.00001) for (let i = 0; i < frames; i++) envelope[i] += Math.min(8, Math.max(0, delta[i] - mean * 0.5) / mean);\n  }\n  let onsetEnergy = 0;\n  for (const x of envelope) onsetEnergy += x * x;\n  if (onsetEnergy / frames < 0.01) throw new Error('NO_RHYTHM');\n  const windowFrames = Math.min(frames, Math.round(rate * 40));\n  const starts = frames <= windowFrames ? [0] : [0, Math.floor((frames - windowFrames) / 2), frames - windowFrames];\n  const maxLag = Math.ceil(rate * 60 / 45) * 3 + 2;\n  const corr = new Float64Array(maxLag + 1);\n  for (let lag = 1; lag <= maxLag; lag++) {\n    let dot = 0, aa = 0, bb = 0;\n    for (const start of starts) {\n      for (let i = start + lag; i < start + windowFrames; i++) {\n        const a = envelope[i], b = envelope[i - lag];\n        dot += a * b; aa += a * a; bb += b * b;\n      }\n    }\n    corr[lag] = dot / (Math.sqrt(aa * bb) || 1);\n  }\n  const at = lag => {\n    const lo = Math.floor(lag), fraction = lag - lo;\n    return (corr[lo] || 0) * (1 - fraction) + (corr[lo + 1] || 0) * fraction;\n  };\n  const candidates = [];\n  for (let lag = Math.floor(rate * 60 / 220); lag <= Math.ceil(rate * 60 / 45); lag++) {\n    if (corr[lag] <= corr[lag - 1] || corr[lag] < corr[lag + 1]) continue;\n    const curvature = corr[lag - 1] - 2 * corr[lag] + corr[lag + 1];\n    const offset = curvature ? Math.max(-0.5, Math.min(0.5, 0.5 * (corr[lag - 1] - corr[lag + 1]) / curvature)) : 0;\n    const period = lag + offset;\n    const bpm = 60 * rate / period;\n    if (bpm < 45 || bpm > 220) continue;\n    const periodicity = at(period);\n    const prior = Math.exp(-0.5 * (Math.log(bpm / 115) / 0.65) ** 2);\n    const score = (periodicity + 0.45 * at(period * 2) + 0.2 * at(period * 3)) * (0.84 + 0.16 * prior);\n    candidates.push({bpm, score, periodicity});\n  }\n  candidates.sort((a,b) => b.score - a.score);\n  if (!candidates.length || candidates[0].periodicity < 0.14) throw new Error('NO_RHYTHM');\n  const best = candidates[0];\n  const backgroundValues = Array.from(corr.slice(Math.floor(rate*60/220),Math.ceil(rate*60/45))).sort((a,b)=>a-b);\n  const background = backgroundValues[Math.floor(backgroundValues.length/2)];\n  const prominence = (best.periodicity-background)/(1-background || 1);\n  if (prominence < 0.06) throw new Error('NO_RHYTHM');\n  const windows = starts.map(start => {\n    let winner = null;\n    for (const candidate of candidates.slice(0, 8)) {\n      const lag = Math.round(60 * rate / candidate.bpm);\n      let dot = 0, power = 0;\n      for (let i = start + lag; i < start + windowFrames; i++) { dot += envelope[i] * envelope[i-lag]; power += envelope[i] ** 2; }\n      const score = dot / (power || 1);\n      if (!winner || score > winner.score) winner = {bpm:candidate.bpm,score};\n    }\n    return winner.bpm;\n  });\n  const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;\n  const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';\n  const waveform = Array.from({length:220}, (_,i) => {\n    const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);\n    let sum = 0, count = 0;\n    for (let j = start; j < end; j += 8) { sum += samples[j] ** 2; count++; }\n    return Math.sqrt(sum / (count || 1));\n  });\n  const peak = Math.max(...waveform) || 1;\n  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};\n}\n\nself.onmessage = ({data}) => {\n  try { self.postMessage({result:analyzeTempo(data.samples,data.sampleRate)}); }\n  catch(error) { self.postMessage({error:error.message}); }\n};\n";
-  const KEY_WORKER_SOURCE="// Audio utilities used by the production toolkit. No remote processing.\nfunction encodeWav(channels, sampleRate, bitDepth=16) {\n  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');\n  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');\n  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');\n  const length=channels[0].length;\n  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');\n  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;\n  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');\n  const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);\n  const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));\n  str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');\n  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels.length,true);\n  view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*blockAlign,true);\n  view.setUint16(32,blockAlign,true);view.setUint16(34,bitDepth,true);\n  str(36,'data');view.setUint32(40,dataBytes,true);\n  let position=44;\n  for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){\n    const sample=Math.min(1,Math.max(-1,channels[c][i]||0));\n    if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}\n    else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}\n  }\n  return new Blob([array],{type:'audio/wav'});\n}\nfunction extractSegment(channels, sampleRate, from, to, fadeMs=5) {\n  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');\n  const length=channels[0].length;\n  const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));\n  const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));\n  const fade=Math.min(Math.round(sampleRate*fadeMs/1000),Math.floor((last-first)/2));\n  return channels.map(source=>{\n    const out=source.slice(first,last);\n    for(let i=0;i<fade;i++){const factor=(i+1)/Math.max(1,fade);out[i]*=factor;out[out.length-i-1]*=factor;}\n    return out;\n  });\n}\nfunction getAudioPeaks(samples,count=240) {\n  const peaks=new Float32Array(count);\n  for(let i=0;i<count;i++){\n    let sum=0,n=0;const a=Math.floor(i*samples.length/count),b=Math.floor((i+1)*samples.length/count);\n    const step=Math.max(1,Math.floor((b-a)/70));\n    for(let j=a;j<b;j+=step){sum+=samples[j]*samples[j];n++;}\n    peaks[i]=Math.sqrt(sum/(n||1));\n  }\n  const max=Math.max(...peaks)||1;\n  return Array.from(peaks,x=>x/max);\n}\nconst NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];\nconst MAJOR=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];\nconst MINOR=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];\nconst MAJOR_CAM=['8B','3B','10B','5B','12B','7B','2B','9B','4B','11B','6B','1B'];\nconst MINOR_CAM=['5A','12A','7A','2A','9A','4A','11A','6A','1A','8A','3A','10A'];\nfunction fft(real,imag){\n  const n=real.length;\n  for(let i=1,j=0;i<n;i++){\n    let bit=n>>1;\n    for(;j&bit;bit>>=1)j^=bit;\n    j^=bit;\n    if(i<j){[real[i],real[j]]=[real[j],real[i]];[imag[i],imag[j]]=[imag[j],imag[i]];}\n  }\n  for(let size=2;size<=n;size*=2){\n    const half=size/2,angle=-2*Math.PI/size,cos=Math.cos(angle),sin=Math.sin(angle);\n    for(let start=0;start<n;start+=size){let wr=1,wi=0;\n      for(let i=0;i<half;i++){\n        const a=start+i,b=a+half,rr=wr*real[b]-wi*imag[b],ii=wr*imag[b]+wi*real[b];\n        real[b]=real[a]-rr;imag[b]=imag[a]-ii;real[a]+=rr;imag[a]+=ii;\n        const nr=wr*cos-wi*sin;wi=wr*sin+wi*cos;wr=nr;\n      }\n    }\n  }\n}\nfunction correlation(a,b){\n  const am=a.reduce((x,y)=>x+y,0)/12,bm=b.reduce((x,y)=>x+y,0)/12;\n  let numerator=0,aa=0,bb=0;\n  for(let i=0;i<12;i++){const x=a[i]-am,y=b[i]-bm;numerator+=x*y;aa+=x*x;bb+=y*y;}\n  return numerator/(Math.sqrt(aa*bb)||1);\n}\n// Chroma-based key estimation: approximate, especially for short or percussive material.\nfunction detectKey(samples,sampleRate){\n  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');\n  const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);\n  if(samples.length<size)throw new Error('Soubor je příliš krátký.');\n  const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);\n  const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));\n  let total=0,frames=0;\n  for(let frame=0;frame<count;frame++){\n    const start=Math.min(samples.length-size,frame*step);\n    let rms=0;\n    for(let i=0;i<size;i++){const x=samples[start+i];real[i]=x*(0.5-0.5*Math.cos(2*Math.PI*i/(size-1)));imag[i]=0;rms+=x*x;}\n    if(rms/size<0.0000002)continue;\n    fft(real,imag);\n    const magnitudes=new Float64Array(size/2);\n    for(let bin=0;bin<magnitudes.length;bin++)magnitudes[bin]=Math.hypot(real[bin],imag[bin]);\n    for(let bin=2;bin<magnitudes.length-1;bin++){\n      const hz=bin*sampleRate/size;\n      if(hz<65||hz>1700)continue;\n      const v=magnitudes[bin];\n      if(v<magnitudes[bin-1]||v<magnitudes[bin+1])continue;\n      const midi=69+12*Math.log2(hz/440),rounded=Math.round(midi);\n      if(Math.abs(midi-rounded)>.32)continue;\n      const pc=((rounded%12)+12)%12;\n      const weight=Math.sqrt(v)*Math.pow(110/Math.max(hz,110),0.2);\n      chroma[pc]+=weight;total+=weight;\n    }\n    frames++;\n  }\n  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');\n  const candidates=[];\n  for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){\n    const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);\n    const score=correlation(chroma,rotated);\n    candidates.push({name:NOTE_NAMES[root],mode,display:NOTE_NAMES[root]+(mode==='minor'?'m':''),camelot:camelot[root],score});\n  }\n  candidates.sort((a,b)=>b.score-a.score);\n  const [top,second]=candidates;\n  return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};\n}\n\nself.onmessage=({data})=>{\n  try{self.postMessage({result:detectKey(data.samples,data.sampleRate)});}\n  catch(error){self.postMessage({error:error.message});}\n};\n";
+  const KEY_WORKER_SOURCE="// Audio utilities used by the production toolkit. No remote processing.\nfunction encodeWav(channels, sampleRate, bitDepth=16) {\n  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Mono or stereo only.');\n  if(![16,24].includes(bitDepth))throw new Error('Unsupported bit depth.');\n  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Invalid sample rate.');\n  const length=channels[0].length;\n  if(channels.some(ch=>ch.length!==length))throw new Error('Channels have different lengths.');\n  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;\n  if(dataBytes+44>0xffffffff)throw new Error('WAV exceeds the standard file size limit.');\n  const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);\n  const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));\n  str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');\n  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels.length,true);\n  view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*blockAlign,true);\n  view.setUint16(32,blockAlign,true);view.setUint16(34,bitDepth,true);\n  str(36,'data');view.setUint32(40,dataBytes,true);\n  let position=44;\n  for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){\n    const sample=Math.min(1,Math.max(-1,channels[c][i]||0));\n    if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}\n    else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}\n  }\n  return new Blob([array],{type:'audio/wav'});\n}\nfunction extractSegment(channels, sampleRate, from, to, fadeMs=5) {\n  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Select a longer range.');\n  const length=channels[0].length;\n  const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));\n  const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));\n  const fade=Math.min(Math.round(sampleRate*fadeMs/1000),Math.floor((last-first)/2));\n  return channels.map(source=>{\n    const out=source.slice(first,last);\n    for(let i=0;i<fade;i++){const factor=(i+1)/Math.max(1,fade);out[i]*=factor;out[out.length-i-1]*=factor;}\n    return out;\n  });\n}\nfunction getAudioPeaks(samples,count=240) {\n  const peaks=new Float32Array(count);\n  for(let i=0;i<count;i++){\n    let sum=0,n=0;const a=Math.floor(i*samples.length/count),b=Math.floor((i+1)*samples.length/count);\n    const step=Math.max(1,Math.floor((b-a)/70));\n    for(let j=a;j<b;j+=step){sum+=samples[j]*samples[j];n++;}\n    peaks[i]=Math.sqrt(sum/(n||1));\n  }\n  const max=Math.max(...peaks)||1;\n  return Array.from(peaks,x=>x/max);\n}\nconst NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];\nconst MAJOR=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];\nconst MINOR=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];\nconst MAJOR_CAM=['8B','3B','10B','5B','12B','7B','2B','9B','4B','11B','6B','1B'];\nconst MINOR_CAM=['5A','12A','7A','2A','9A','4A','11A','6A','1A','8A','3A','10A'];\nfunction fft(real,imag){\n  const n=real.length;\n  for(let i=1,j=0;i<n;i++){\n    let bit=n>>1;\n    for(;j&bit;bit>>=1)j^=bit;\n    j^=bit;\n    if(i<j){[real[i],real[j]]=[real[j],real[i]];[imag[i],imag[j]]=[imag[j],imag[i]];}\n  }\n  for(let size=2;size<=n;size*=2){\n    const half=size/2,angle=-2*Math.PI/size,cos=Math.cos(angle),sin=Math.sin(angle);\n    for(let start=0;start<n;start+=size){let wr=1,wi=0;\n      for(let i=0;i<half;i++){\n        const a=start+i,b=a+half,rr=wr*real[b]-wi*imag[b],ii=wr*imag[b]+wi*real[b];\n        real[b]=real[a]-rr;imag[b]=imag[a]-ii;real[a]+=rr;imag[a]+=ii;\n        const nr=wr*cos-wi*sin;wi=wr*sin+wi*cos;wr=nr;\n      }\n    }\n  }\n}\nfunction correlation(a,b){\n  const am=a.reduce((x,y)=>x+y,0)/12,bm=b.reduce((x,y)=>x+y,0)/12;\n  let numerator=0,aa=0,bb=0;\n  for(let i=0;i<12;i++){const x=a[i]-am,y=b[i]-bm;numerator+=x*y;aa+=x*x;bb+=y*y;}\n  return numerator/(Math.sqrt(aa*bb)||1);\n}\n// Chroma-based key estimation: approximate, especially for short or percussive material.\nfunction detectKey(samples,sampleRate){\n  if(samples.length<sampleRate*2)throw new Error('Key detection requires at least 2 seconds.');\n  const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);\n  if(samples.length<size)throw new Error('File too short.');\n  const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);\n  const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));\n  let total=0,frames=0;\n  for(let frame=0;frame<count;frame++){\n    const start=Math.min(samples.length-size,frame*step);\n    let rms=0;\n    for(let i=0;i<size;i++){const x=samples[start+i];real[i]=x*(0.5-0.5*Math.cos(2*Math.PI*i/(size-1)));imag[i]=0;rms+=x*x;}\n    if(rms/size<0.0000002)continue;\n    fft(real,imag);\n    const magnitudes=new Float64Array(size/2);\n    for(let bin=0;bin<magnitudes.length;bin++)magnitudes[bin]=Math.hypot(real[bin],imag[bin]);\n    for(let bin=2;bin<magnitudes.length-1;bin++){\n      const hz=bin*sampleRate/size;\n      if(hz<65||hz>1700)continue;\n      const v=magnitudes[bin];\n      if(v<magnitudes[bin-1]||v<magnitudes[bin+1])continue;\n      const midi=69+12*Math.log2(hz/440),rounded=Math.round(midi);\n      if(Math.abs(midi-rounded)>.32)continue;\n      const pc=((rounded%12)+12)%12;\n      const weight=Math.sqrt(v)*Math.pow(110/Math.max(hz,110),0.2);\n      chroma[pc]+=weight;total+=weight;\n    }\n    frames++;\n  }\n  if(total<1||frames<2)throw new Error('Key not detected. Try a melodic section.');\n  const candidates=[];\n  for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){\n    const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);\n    const score=correlation(chroma,rotated);\n    candidates.push({name:NOTE_NAMES[root],mode,display:NOTE_NAMES[root]+(mode==='minor'?'m':''),camelot:camelot[root],score});\n  }\n  candidates.sort((a,b)=>b.score-a.score);\n  const [top,second]=candidates;\n  return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};\n}\n\nself.onmessage=({data})=>{\n  try{self.postMessage({result:detectKey(data.samples,data.sampleRate)});}\n  catch(error){self.postMessage({error:error.message});}\n};\n";
   function createAnalysisWorker(){
     const url=URL.createObjectURL(new Blob([ANALYSIS_WORKER_SOURCE],{type:'text/javascript'}));
     let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}
@@ -199,13 +199,13 @@
   }
   // Audio utilities used by the production toolkit. No remote processing.
 function encodeWav(channels, sampleRate, bitDepth=16) {
-  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
-  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
-  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');
+  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Mono or stereo only.');
+  if(![16,24].includes(bitDepth))throw new Error('Unsupported bit depth.');
+  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Invalid sample rate.');
   const length=channels[0].length;
-  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');
+  if(channels.some(ch=>ch.length!==length))throw new Error('Channels have different lengths.');
   const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;
-  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');
+  if(dataBytes+44>0xffffffff)throw new Error('WAV exceeds the standard file size limit.');
   const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);
   const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));
   str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');
@@ -222,7 +222,7 @@ function encodeWav(channels, sampleRate, bitDepth=16) {
   return new Blob([array],{type:'audio/wav'});
 }
 function extractSegment(channels, sampleRate, from, to, fadeMs=5) {
-  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');
+  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Select a longer range.');
   const length=channels[0].length;
   const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));
   const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));
@@ -276,9 +276,9 @@ function correlation(a,b){
 }
 // Chroma-based key estimation: approximate, especially for short or percussive material.
 function detectKey(samples,sampleRate){
-  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');
+  if(samples.length<sampleRate*2)throw new Error('Key detection requires at least 2 seconds.');
   const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);
-  if(samples.length<size)throw new Error('Soubor je příliš krátký.');
+  if(samples.length<size)throw new Error('File too short.');
   const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);
   const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));
   let total=0,frames=0;
@@ -303,7 +303,7 @@ function detectKey(samples,sampleRate){
     }
     frames++;
   }
-  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');
+  if(total<1||frames<2)throw new Error('Key not detected. Try a melodic section.');
   const candidates=[];
   for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){
     const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);
@@ -324,7 +324,7 @@ function initStudioTools(getBpmTrack){
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
-  const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB`;
+  const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('en-US',{maximumFractionDigits:1})} MB`;
   function status(id,text){el(id).textContent=text;}
   function error(message){el('tool-error').textContent=message;el('tool-error').hidden=false;}
   function clearError(){el('tool-error').hidden=true;}
@@ -332,38 +332,38 @@ function initStudioTools(getBpmTrack){
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
   function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;if(mp3&&el('conv-rate').value==='96000')el('conv-rate').value='48000';el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
   function updateBpmFromAnalyzer(){const other=getBpmTrack();if(other?.bpm){tools.bpm=other.bpm;el('cut-bpm').value=other.bpm;}}
-  function resetKey(){tools.keyResult=null;el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Výsledek je orientační, zejména u bicích a krátkých samplů.');}
+  function resetKey(){tools.keyResult=null;el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;status('key-status','Key detection is an estimate.');}
   function stopPreview(){
     clearInterval(tools.previewTimer);tools.previewTimer=null;
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
-    tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Přehrát zvuk');
+    tools.playing=false;el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Play audio');
   }
   function remove(){tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;el('tool-file-input').value='';el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
   async function decode(file){
     clearError();
     if(tools.loading)return;
     if(!file)return;
-    if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Neznámý soubor. Zkus WAV, MP3, M4A, MP4 nebo jiný podporovaný audioformát.');return;}
-    if(file.size>100*1024*1024||file.size===0){error('Soubor musí mít 1 B až 100 MB.');return;}
+    if(!/\.(wav|mp3|mp4|m4a|aac|ogg|flac|aiff|aif)$/i.test(file.name)){error('Unsupported file. Try WAV, MP3, M4A or MP4.');return;}
+    if(file.size>100*1024*1024||file.size===0){error('File must be between 1 B and 100 MB.');return;}
     const token=++tools.operation;
     stopPreview();tools.keyWorker?.terminate();tools.keyWorker=null;
-    setBusy(true);status('conv-status','Načítám zvuk…');
+    setBusy(true);status('conv-status','Loading audio…');
     try{
       const Ctx=window.AudioContext||window.webkitAudioContext;
-      if(!Ctx)throw new Error('Prohlížeč nepodporuje dekódování audia.');
+      if(!Ctx)throw new Error('Audio decoding is not supported in this browser.');
       tools.context||=new Ctx();
       const buffer=await tools.context.decodeAudioData(await file.arrayBuffer());
       if(token!==tools.operation)return;
-      if(buffer.duration>1200)throw new Error('Maximální délka je 20 minut.');
+      if(buffer.duration>1200)throw new Error('Maximum duration: 20 minutes.');
       tools.file=file;tools.buffer=buffer;tools.peaks=getAudioPeaks(buffer.getChannelData(0),270);tools.from=0;
       tools.to=Math.min(buffer.duration,8);updateBpmFromAnalyzer();
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
-      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
+      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
       el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();drawToolWave();
-      status('conv-status','Připraveno k exportu.');status('cut-status','Uprav délku nebo vyber počet taktů.');
+      status('conv-status','Ready to export.');status('cut-status','Set your loop length.');
       status('tool-time',`${durationText(0)} / ${durationText(buffer.duration)}`);
-    }catch(e){if(token===tools.operation){error('Nelze přečíst zvuk: '+(e?.message||'nepodporovaný kodek')+'. Podpora MP4/M4A/FLAC závisí na prohlížeči.');status('conv-status','Nepodařilo se načíst soubor.');}}
+    }catch(e){if(token===tools.operation){error('Cannot decode audio: '+(e?.message||'unsupported codec')+'. Format support depends on your browser.');status('conv-status','Failed to load file.');}}
     finally{if(token===tools.operation){setBusy(false);updateButtons();}}
   }
   function channels(buffer){return Array.from({length:Math.min(buffer.numberOfChannels,2)},(_,i)=>buffer.getChannelData(i));}
@@ -373,7 +373,7 @@ function initStudioTools(getBpmTrack){
     if(original.sampleRate===targetSampleRate)return channels(original);
     const count=Math.ceil(original.duration*targetSampleRate),ch=Math.min(2,original.numberOfChannels);
     const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    if(!Offline)throw new Error('Převzorkování není v prohlížeči podporované.');
+    if(!Offline)throw new Error('Resampling is not supported in this browser.');
     const ctx=new Offline(ch,count,targetSampleRate),source=ctx.createBufferSource();source.buffer=original;source.connect(ctx.destination);source.start(0);
     const out=await ctx.startRendering();return channels(out);
   }
@@ -383,22 +383,22 @@ function initStudioTools(getBpmTrack){
     if(lamePromise)return lamePromise;
     lamePromise=new Promise((resolve,reject)=>{
       const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.all.min.js';script.async=true;
-      script.onload=()=>window.lamejs?.Mp3Encoder?resolve(window.lamejs):reject(new Error('MP3 enkodér není dostupný.'));
-      script.onerror=()=>reject(new Error('Nelze načíst MP3 enkodér. Zkontroluj připojení k internetu nebo exportuj WAV.'));
+      script.onload=()=>window.lamejs?.Mp3Encoder?resolve(window.lamejs):reject(new Error('MP3 encoder unavailable.'));
+      script.onerror=()=>reject(new Error('Cannot load MP3 encoder. Check connection or export WAV.'));
       document.head.appendChild(script);
     }).catch(e=>{lamePromise=null;throw e;});
     return lamePromise;
   }
   const int16=(float,offset,size)=>{const out=new Int16Array(size);for(let i=0;i<size;i++){const x=Math.max(-1,Math.min(1,float[offset+i]||0));out[i]=x<0?Math.round(32768*x):Math.round(32767*x);}return out;};
   async function toMp3(data,sampleRate,bitrate,token){
-    const lame=await loadLame();if(token!==tools.operation)throw new Error('Operace byla zrušena.');
+    const lame=await loadLame();if(token!==tools.operation)throw new Error('Operation canceled.');
     const encoder=new lame.Mp3Encoder(data.length,sampleRate,bitrate),parts=[],size=1152;
     for(let i=0;i<data[0].length;i+=size){
-      if(token!==tools.operation)throw new Error('Operace byla zrušena.');
+      if(token!==tools.operation)throw new Error('Operation canceled.');
       const len=Math.min(size,data[0].length-i),left=int16(data[0],i,len),right=data[1]&&int16(data[1],i,len);
       const chunk=right?encoder.encodeBuffer(left,right):encoder.encodeBuffer(left);
       if(chunk.length)parts.push(new Uint8Array(chunk));
-      if((i/size)%90===0){status('conv-status',`Kóduji MP3… ${Math.round(i/data[0].length*100)} %`);await new Promise(r=>setTimeout(r,0));}
+      if((i/size)%90===0){status('conv-status',`Encoding MP3… ${Math.round(i/data[0].length*100)} %`);await new Promise(r=>setTimeout(r,0));}
     }
     const last=encoder.flush();if(last.length)parts.push(new Uint8Array(last));return new Blob(parts,{type:'audio/mpeg'});
   }
@@ -409,13 +409,13 @@ function initStudioTools(getBpmTrack){
       const format=el('conv-format').value,rate=Number(el('conv-rate').value),bitDepth=Number(el('conv-depth').value),bitrate=Number(el('conv-bitrate').value);
       if(format==='mp3'&&!([44100,48000].includes(rate)))throw new Error('MP3 podporuje jen 44,1 nebo 48 kHz.');
       const approx=tools.buffer.duration*rate*Math.min(2,tools.buffer.numberOfChannels)*(bitDepth/8);
-      if(format==='wav'&&approx>300*1024*1024)throw new Error('Výstupní WAV by přesáhl 300 MB. Zvol menší sample rate nebo kratší track.');
-      status('conv-status','Převzorkovávám audio…');
+      if(format==='wav'&&approx>300*1024*1024)throw new Error('WAV would exceed 300 MB. Reduce sample rate or track length.');
+      status('conv-status','Resampling audio…');
       const data=await renderedChannels(rate);
       if(token!==tools.operation)return;
-      if(format==='wav'){status('conv-status','Kóduji WAV…');const blob=encodeWav(data,rate,bitDepth);download(blob,filename('wav'));status('conv-status',`WAV je připravený (${readableSize(blob.size)}).`);}
-      else{status('conv-status','Načítám MP3 enkodér…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 je připravené (${readableSize(blob.size)}).`);}
-    }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export se nepodařil.');}}
+      if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth);download(blob,filename('wav'));status('conv-status',`WAV ready (${readableSize(blob.size)}).`);}
+      else{status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ready (${readableSize(blob.size)}).`);}
+    }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
   }
   function selectTab(which){
@@ -452,7 +452,7 @@ function initStudioTools(getBpmTrack){
     tools.to=Math.min(duration,tools.from+span);
     if(tools.to-tools.from<.02)tools.from=Math.max(0,duration-span);
     updateTrimInputs();drawToolWave();
-    status('cut-status',span>duration-tools.from+.001?'Track je kratší než zvolený počet taktů.':'Délka loopu: '+precise(tools.to-tools.from));
+    status('cut-status',span>duration-tools.from+.001?'Track is shorter than selected bars.':'Loop length: '+precise(tools.to-tools.from));
   }
   function drawToolWave(){
     const canvas=el('tool-waveform');if(!canvas||!tools.buffer)return;
@@ -486,23 +486,23 @@ function initStudioTools(getBpmTrack){
       tools.source=src;tools.playing=true;src.start(0,from,to-from);
       const started=tools.context.currentTime;el('tool-preview').textContent='Ⅱ';el('tool-preview').setAttribute('aria-label','Zastavit zvuk');
       tools.previewTimer=setInterval(()=>status('tool-time',`${durationText(Math.min(to-from,tools.context.currentTime-started))} / ${durationText(to-from)}`),100);
-    }catch(e){stopPreview();error('Přehrávání se nepodařilo spustit: '+e.message);}
+    }catch(e){stopPreview();error('Playback failed: '+e.message);}
   }
   async function exportCut(){
     if(!tools.buffer||tools.loading)return;
     const token=++tools.operation;clearError();setBusy(true);stopPreview();
     try{
-      if(tools.to-tools.from<.03)throw new Error('Loop musí mít alespoň 30 ms.');
+      if(tools.to-tools.from<.03)throw new Error('Loop must be at least 30 ms.');
       const data=extractSegment(channels(tools.buffer),tools.buffer.sampleRate,tools.from,tools.to,Number(el('cut-fade').value));
       const bitDepth=Number(el('cut-depth').value),bytes=data[0].length*data.length*(bitDepth/8);
-      if(bytes>300*1024*1024)throw new Error('Loop je příliš dlouhý. Zkrať výběr.');
-      status('cut-status','Připravuji loop…');await new Promise(r=>setTimeout(r,0));
+      if(bytes>300*1024*1024)throw new Error('Loop too long. Shorten the selection.');
+      status('cut-status','Rendering loop…');await new Promise(r=>setTimeout(r,0));
       if(token!==tools.operation)return;
       const wav=encodeWav(data,tools.buffer.sampleRate,bitDepth);
       const stem=(tools.file.name||'loop').replace(/\.[^.]+$/,'');
       download(wav,`${stem}_${Math.round(Number(el('cut-bpm').value))}bpm_loop.wav`);
-      status('cut-status',`Loop exportován (${precise(tools.to-tools.from)}, ${readableSize(wav.size)}).`);
-    }catch(e){if(token===tools.operation){error(e.message);status('cut-status','Export se nepodařil.');}}
+      status('cut-status',`Loop exported (${precise(tools.to-tools.from)}, ${readableSize(wav.size)}).`);
+    }catch(e){if(token===tools.operation){error(e.message);status('cut-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
   }
   function getKeyInput(buffer){
@@ -522,19 +522,19 @@ function initStudioTools(getBpmTrack){
       const worker=createKeyWorker();tools.keyWorker=worker;
       const samples=getKeyInput(tools.buffer);
       const result=await new Promise((resolve,reject)=>{
-        const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Analýza trvá příliš dlouho.'));},30000);
+        const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Analysis timed out.'));},30000);
         worker.onmessage=({data})=>{clearTimeout(timeout);data.error?reject(new Error(data.error)):resolve(data.result);};
-        worker.onerror=()=>{clearTimeout(timeout);reject(new Error('Analýzu nelze spustit.'));};
+        worker.onerror=()=>{clearTimeout(timeout);reject(new Error('Analysis failed to start.'));};
         worker.postMessage(samples,[samples.samples.buffer]);
       });
       worker.terminate();if(token!==tools.operation)return;
       tools.keyResult=result;el('key-result').hidden=false;el('key-idle').hidden=true;el('key-alternatives').hidden=false;
       status('key-name',result.primary.display);status('key-mode',result.primary.mode==='major'?'MAJOR':'MINOR');
       status('key-camelot',result.primary.camelot);
-      status('key-confidence',({higher:'SILNĚJŠÍ SHODA',moderate:'ORIENTAČNÍ',low:'NÍZKÁ JISTOTA'})[result.confidence]);
-      status('key-alternatives','Další možné tóniny: '+result.alternatives.map(a=>`${a.display} (${a.camelot})`).join(' · '));
-      status('key-status','Algoritmický odhad z chromatické analýzy. U změn tóniny nemusí být jednoznačný.');
-    }catch(e){if(token===tools.operation){error(e.message);status('key-status','Tóninu se nepodařilo určit.');}}
+      status('key-confidence',({higher:'HIGH MATCH',moderate:'MODERATE',low:'LOW CONFIDENCE'})[result.confidence]);
+      status('key-alternatives','Possible keys: '+result.alternatives.map(a=>`${a.display} (${a.camelot})`).join(' · '));
+      status('key-status','Estimated key. Check by ear.');
+    }catch(e){if(token===tools.operation){error(e.message);status('key-status','Key not detected.');}}
     finally{tools.keyWorker?.terminate();tools.keyWorker=null;if(token===tools.operation)setBusy(false);}
   }
   // Events
@@ -547,7 +547,7 @@ function initStudioTools(getBpmTrack){
   el('tool-file-input').onchange=e=>decode(e.target.files[0]);
   el('tool-remove').onclick=remove;
   el('tool-preview').onclick=preview;
-  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato z BPM analyzátoru.');updateButtons();}};
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),270);tools.from=0;tools.to=Math.min(8,x.buffer.duration);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} ch. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Loaded from BPM Analyzer.');updateButtons();}};
   el('conv-format').onchange=syncOutput;
   el('conv-export').onclick=exportConvert;
   el('key-analyze').onclick=analyzeKey;
@@ -564,7 +564,7 @@ function initStudioTools(getBpmTrack){
   const drop=el('tool-drop-zone');
   drop.addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();if(!tools.loading)drop.classList.add('tool-dragover');}});
   drop.addEventListener('dragleave',e=>{if(!drop.contains(e.relatedTarget))drop.classList.remove('tool-dragover');});
-  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Nahraj vždy jeden soubor.');return;}decode(e.dataTransfer.files[0]);});
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('tool-dragover');if(e.dataTransfer.files.length!==1){error('Upload one file at a time.');return;}decode(e.dataTransfer.files[0]);});
   window.addEventListener('pulse:bpm-track-ready',updateButtons);
   const resize=new ResizeObserver(()=>drawToolWave());resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.keyWorker?.terminate();tools.context?.close();});
@@ -576,11 +576,11 @@ function initStudioTools(getBpmTrack){
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
 const messages = {
-  TOO_SHORT:'Tenhle track je moc krátký. Potřebujeme alespoň 6 sekund, ideálně 15 sekund nebo více s výrazným rytmem.',
-  SILENCE:'V souboru je ticho nebo příliš slabý signál. Zkus nahrát zvuk s jasně slyšitelnými beaty.',
-  NO_RHYTHM:'Pravidelný rytmus se nepodařilo spolehlivě najít. Zkus jiný úsek hudby nebo použij Tap tempo.',
-  DECODE:'Zvukovou stopu se nepodařilo přečíst. Soubor může být poškozený, bez zvuku nebo používat nepodporovaný kodek. Zkus WAV/MP3 nebo MP4 se zvukem AAC v aktuálním prohlížeči.',
-  TIMEOUT:'Analýza trvá příliš dlouho. Zkus kratší úsek nebo menší soubor.'
+  TOO_SHORT:'Track too short. Use at least 6 seconds.',
+  SILENCE:'Silence or weak audio. Try a track with a clear beat.',
+  NO_RHYTHM:'No steady beat detected. Try another section or Tap Tempo.',
+  DECODE:'Cannot decode audio. Try WAV, MP3 or MP4 with AAC audio.',
+  TIMEOUT:'Analysis timed out. Try a shorter track.'
 };
 const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
 const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.',',');
@@ -591,11 +591,11 @@ function toast(text) { $('#toast').textContent=text; $('#toast').hidden=false;cl
 function setBusy(busy) {
   state.busy=busy;ui.processing.hidden=!busy;ui['upload-empty'].hidden=busy||!!state.buffer;ui['track-content'].hidden=busy||!state.buffer;
   $('#try-demo').disabled=busy;ui['drop-zone'].setAttribute('aria-busy',String(busy));
-  ui['result-status'].replaceChildren(document.createTextNode(busy?'ANALYZUJI':'ČEKÁM NA TRACK'),document.createElement('i'));
+  ui['result-status'].replaceChildren(document.createTextNode(busy?'ANALYZING':'AWAITING TRACK'),document.createElement('i'));
 }
 function stopPlayback() {
   if(state.source){state.source.onended=null;try{state.source.stop();}catch{}state.source.disconnect();state.source=null;}
-  state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Přehrát track');
+  state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Play track');
 }
 function reset() {
   state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
@@ -604,20 +604,20 @@ function reset() {
 async function processFile(file) {
   if(!file||state.busy)return;
   ui.error.hidden=true;
-  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Tento formát zatím nepodporujeme. Vyber soubor WAV, MP3 nebo MP4.');return;}
-  if(file.size>100*1024*1024){showError('Soubor je větší než 100 MB. Vyber menší soubor nebo kratší úsek.');return;}
-  if(file.size===0){showError('Soubor je prázdný. Zkus jiný soubor.');return;}
-  reset();const generation=state.generation;setBusy(true);announce('Načítám zvuk a hledám tempo.');$('#progress-detail').textContent='Načítám zvukovou stopu…';
+  if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Unsupported format. Use WAV, MP3 or MP4.');return;}
+  if(file.size>100*1024*1024){showError('File exceeds 100 MB. Choose a smaller file.');return;}
+  if(file.size===0){showError('Empty file. Try another.');return;}
+  reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Loading audio…';
   try {
     const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    if(!OfflineContext)throw new Error('Tvůj prohlížeč nepodporuje analýzu audia. Otevři aplikaci v aktuálním Chrome, Safari, Edge nebo Firefoxu.');
+    if(!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
     let buffer;
     try { const decoder=new OfflineContext(1,1,22050);buffer=await decoder.decodeAudioData(await file.arrayBuffer()); }
     catch { throw new Error('DECODE'); }
     if(generation!==state.generation)return;
-    if(buffer.duration>1200)throw new Error('Track je delší než 20 minut. Vyber kratší úsek pro analýzu.');
+    if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
-    $('#progress-detail').textContent='Hledám opakující se beaty…';
+    $('#progress-detail').textContent='Finding the beat…';
     // Use the most energetic channel to avoid phase cancellation in stereo recordings.
     let bestChannel=0,bestEnergy=-1;
     for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
@@ -627,25 +627,25 @@ async function processFile(file) {
       const timeout=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
       state.cancelWorker=()=>{clearTimeout(timeout);worker.terminate();reject(new Error('CANCELLED'));};
       worker.onmessage=({data})=>{clearTimeout(timeout);worker.terminate();if(state.worker===worker){state.worker=null;state.cancelWorker=null;}data.error?reject(new Error(data.error)):resolve(data.result);};
-      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analýzu se nepodařilo spustit. Obnov stránku a zkus to znovu.'));};
+      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analysis failed to start. Refresh and retry.'));};
       worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analýza hotová. Odhadované tempo ${bpmLabel(result.bpm)} BPM.`);
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
   } catch(error) {
     if(generation!==state.generation)return;
-    setBusy(false);showError(messages[error.message]||error.message);announce('Analýzu nelze dokončit.');
+    setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
   }
 }
 function renderResult(file) {
   $('#track-name').textContent=file.name;$('#track-name').title=file.name;
   $('#track-type').textContent=file.name.split('.').pop().toUpperCase();
-  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('cs-CZ',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
+  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
-  const confidence={high:'VÝRAZNÝ RYTMUS',medium:'ODHAD TEMPA',low:'NEJISTÝ RYTMUS'}[state.result.confidence];
+  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
-  ui['result-note'].textContent=state.result.confidence==='low'?'Rytmus není jednoznačný. Ber výsledek jako orientační a ověř ho poslechem nebo pomocí Tap tempo.':'BPM je odhad. Pokud hudbu vnímáš v polovičním nebo dvojnásobném tempu, použij ÷ 2 nebo × 2. Metronom slouží k ověření rychlosti, není synchronizovaný s prvním beatem.';
+  ui['result-note'].textContent=state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
   updateTempo();drawWaveform();
 }
 function updateTempo() {
@@ -684,11 +684,11 @@ async function play() {
     const source=context.createBufferSource();source.buffer=state.buffer;source.connect(context.destination);state.source=source;state.startedAt=context.currentTime;state.playing=true;
     source.onended=()=>{state.offset=0;stopPlayback();$('#seek').value=0;$('#current-time').textContent='0:00';drawWaveform();};source.start(0,state.offset);
     $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pozastavit track');animatePlayback();
-  } catch {toast('Přehrávání nelze spustit. Zkus to znovu.');} finally {state.starting=false;}
+  } catch {toast('Playback failed. Try again.');} finally {state.starting=false;}
 }
 async function startMetronome() {
   if(!state.bpm)return;const generation=state.generation;
-  try {await getAudioContext();}catch{toast('Zvuk se nepodařilo spustit.');return;}
+  try {await getAudioContext();}catch{toast('Audio could not start.');return;}
   if(generation!==state.generation||state.metroTimer)return;
   state.metroNext=state.context.currentTime+.05;state.metroBeat=0;$('#metronome').setAttribute('aria-pressed','true');
   function schedule() {
@@ -707,19 +707,19 @@ async function copy(value) {
   try {
     if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(String(value));
     else {const input=document.createElement('textarea');input.value=String(value);input.style.cssText='position:fixed;opacity:0;pointer-events:none';const parent=document.querySelector('dialog[open]')||document.body;parent.append(input);input.select();const success=document.execCommand('copy');input.remove();if(!success)throw new Error('COPY');}
-    toast(`${bpmLabel(Number(value))} BPM zkopírováno.`);
-  }catch{toast('Kopírování není dostupné. BPM můžeš označit a zkopírovat ručně.');}
+    toast(`${bpmLabel(Number(value))} BPM copied.`);
+  }catch{toast('Copy failed. Select and copy BPM manually.');}
 }
 $('#choose-file').onclick=$('#replace-file').onclick=()=>ui['file-input'].click();
 ui['file-input'].onchange=event=>processFile(event.target.files[0]);
-$('#remove-file').onclick=()=>{reset();announce('Soubor odebrán.');$('#choose-file').focus();};
-$('#cancel-analysis').onclick=()=>{reset();announce('Analýza zrušena.');$('#choose-file').focus();};
+$('#remove-file').onclick=()=>{reset();announce('File removed.');$('#choose-file').focus();};
+$('#cancel-analysis').onclick=()=>{reset();announce('Analysis canceled.');$('#choose-file').focus();};
 let dragDepth=0;
 window.addEventListener('dragover',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
 window.addEventListener('drop',event=>{if(event.dataTransfer.types.includes('Files'))event.preventDefault();});
 ui['drop-zone'].addEventListener('dragenter',event=>{if(event.dataTransfer.types.includes('Files')){event.preventDefault();dragDepth++;if(!state.busy)ui['drop-zone'].classList.add('is-dragging');}});
 ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');}});
-ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Nahraj prosím jeden soubor. Každý track analyzujeme samostatně.');return;}processFile(event.dataTransfer.files[0]);});
+ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Upload one track at a time.');return;}processFile(event.dataTransfer.files[0]);});
 $('#play-track').onclick=play;
 $('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
@@ -728,10 +728,10 @@ for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialo
 document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>button.closest('dialog').close());
 document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}}));
 let taps=[],tapBpm=null,tapVisualTimer;
-function resetTaps(){taps=[];tapBpm=null;$('#tap-value').textContent='TAP';$('#tap-hint').textContent='Klikni do rytmu';$('#tap-count').textContent='0 úderů';$('#tap-copy').hidden=true;}
+function resetTaps(){taps=[];tapBpm=null;$('#tap-value').textContent='TAP';$('#tap-hint').textContent='Tap the beat';$('#tap-count').textContent='0 taps';$('#tap-copy').hidden=true;}
 function tap() {
   const now=performance.now();if(taps.length&&now-taps.at(-1)>2500)resetTaps();if(taps.length&&now-taps.at(-1)<100)return;taps.push(now);if(taps.length>16)taps.shift();
-  $('#tap-count').textContent=`${taps.length} ${taps.length===1?'úder':taps.length<5?'údery':'úderů'}`;$('#tap-hint').textContent=taps.length<4?`Ještě ${4-taps.length}×`:'BPM · tvoje tempo';
+  $('#tap-count').textContent=`${taps.length} ${'taps'}`;$('#tap-hint').textContent=taps.length<4?`${4-taps.length}×`:'BPM · YOUR TEMPO';
   if(taps.length>=4){const intervals=taps.slice(1).map((value,i)=>value-taps[i]).sort((a,b)=>a-b);const median=intervals[Math.floor(intervals.length/2)];const good=intervals.filter(value=>Math.abs(value-median)<median*.3);tapBpm=Math.round(60000/(good.reduce((a,b)=>a+b,0)/good.length)*10)/10;$('#tap-value').textContent=bpmLabel(tapBpm);$('#tap-copy').hidden=false;}
   $('#tap-pad').classList.add('pressed');clearTimeout(tapVisualTimer);tapVisualTimer=setTimeout(()=>$('#tap-pad').classList.remove('pressed'),90);
 }

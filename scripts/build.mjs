@@ -6,23 +6,27 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
 const workerSource=noExports(analyzer)+'\n'+noImports(worker);
 const keySource=noExports(studioAudio)+'\n'+noImports(keyWorker);
-new vm.Script(workerSource);new vm.Script(keySource);
+const productionSource=noExports(productionDsp)+'\n'+noExports(analyzer)+'\n'+noExports(quickDsp)+'\n'+noImports(noExports(mastering))+'\n'+noImports(productionWorker);
+new vm.Script(workerSource);new vm.Script(keySource);new vm.Script(productionSource);
 const originalWorker="new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'})";
 const originalKeyWorker="new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'})";
+const originalProductionWorker="new Worker(new URL('./production-worker.mjs',import.meta.url),{type:'module'})";
 
 assert.equal(app.split(originalWorker).length,2,'Expected one BPM worker constructor');
 
 app=noImports(app).replace(originalWorker,'createAnalysisWorker()');
 assert.equal(tools.split(originalKeyWorker).length,2,'Expected one key worker constructor');
 tools=noImports(tools).replace(originalKeyWorker,'createBundledKeyWorker()');
+assert.equal(tools.split(originalProductionWorker).length,2,'Expected one production worker constructor');
+tools=tools.replace(originalProductionWorker,'createBundledProductionWorker()');
 const createBlobWorker=source=>`function ${source==='bpm'?'createAnalysisWorker':'createBundledKeyWorker'}(){\n    const url=URL.createObjectURL(new Blob([${source==='bpm'?'ANALYSIS_WORKER_SOURCE':'KEY_WORKER_SOURCE'}],{type:'text/javascript'}));\n    let worker;try{worker=new Worker(url);}catch(error){URL.revokeObjectURL(url);throw error;}\n    const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;\n  }`;
 const rawApiBase=(process.env.PULSE_API_BASE_URL||'').trim();
 if(rawApiBase && !/^https:\/\/[^\s/]+\/?$/i.test(rawApiBase) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(rawApiBase)) {
@@ -33,9 +37,17 @@ const bundledScript=`(() => {
   const PULSE_API_BASE_URL=${JSON.stringify(rawApiBase.replace(/\/$/,''))};
   const ANALYSIS_WORKER_SOURCE=${JSON.stringify(workerSource)};
   const KEY_WORKER_SOURCE=${JSON.stringify(keySource)};
+  const PRODUCTION_WORKER_SOURCE=${JSON.stringify(productionSource)};
   ${createBlobWorker('bpm')}
   ${createBlobWorker('key')}
+  function createBundledProductionWorker(){const url=URL.createObjectURL(new Blob([PRODUCTION_WORKER_SOURCE],{type:'text/javascript'}));const worker=new Worker(url);const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;}
   ${noExports(studioAudio)}
+  ${noExports(playhead)}
+  ${noExports(harmonicWorkflow)}
+  ${noExports(quickDsp)}
+  ${noExports(audioWorkspace)}
+  ${noExports(productionDsp)}
+  ${noExports(zipStore)}
   ${noExports(tools)}
   ${app}
 })();`;
@@ -48,7 +60,14 @@ html=html.replace('<link rel="stylesheet" href="./style.css">',()=>'<style>\n'+c
   .replace('</body>',()=>'<script>\n'+bundledScript.replace(/<\/script/gi,'<\\/script')+'\n</script>\n</body>');
 assert(!/<link[^>]+rel=["']stylesheet/.test(html));
 assert(!/<script[^>]+src=/.test(html));
+const [welcome,accessCss,accessJs]=await Promise.all([read('welcome.html'),read('access.css'),read('access.mjs')]);
+const publicWelcome=welcome.replace('<link rel="stylesheet" href="./access.css">',()=>'<style>\n'+accessCss.replace(/<\/style/gi,'<\\/style')+'\n</style>')
+  .replace('<script src="./access.mjs" type="module"></script>','')
+  .replace('</body>',()=>'<script type="module">\n'+accessJs.replace(/<\/script/gi,'<\\/script')+'\n</script>\n</body>');
+// Public build contains only the access screen; DSP source is served through authenticated /api/studio.
 await mkdir(path.join(root,'public'),{recursive:true});
-await writeFile(path.join(root,'public/index.html'),html);
-await writeFile(path.join(root,'index.html'),html);
-console.log(`Built standalone Pulse Studio index.html (${Math.round(Buffer.byteLength(html)/1024)} KiB).`);
+await mkdir(path.join(root,'private'),{recursive:true});
+await writeFile(path.join(root,'public/index.html'),publicWelcome);
+await writeFile(path.join(root,'private/studio.html'),html.replace('<head>','<head>\n<base href="/">'));
+await writeFile(path.join(root,'index.html'),html); // local/offline QA only, outside Vercel's public outputDirectory
+console.log(`Built protected Pulse Studio (${Math.round(Buffer.byteLength(html)/1024)} KiB) + public lifetime access screen.`);

@@ -17,7 +17,8 @@
  * Reference: https://github.com/sevagh/demucs.onnx
  */
 
-// Adapted from joverval/sdemux (MIT). Original: https://github.com/joverval/sdemux\nconst ort=self.ort;
+// Adapted from joverval/sdemux (MIT). Original: https://github.com/joverval/sdemux
+const ort=self.ort;
 
 const MODELS = {
   primary: 'https://github.com/joverval/sdemux/releases/download/v1.0.0-model/htdemucs_embedded.onnx',

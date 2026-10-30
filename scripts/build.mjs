@@ -1,4 +1,4 @@
-import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,copyFile,readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -77,6 +77,32 @@ await mkdir(path.join(root,'public'),{recursive:true});
 await mkdir(path.join(root,'public','vendor'),{recursive:true});
 await copyFile(path.join(root,'node_modules','@breezystack','lamejs','dist','lamejs.iife.js'),path.join(root,'public','vendor','lamejs.iife.js'));
 await copyFile(path.join(root,'node_modules','@breezystack','lamejs','LICENSE'),path.join(root,'public','vendor','lamejs-LICENSE.txt'));
+// On-device Demucs runs only on user request. No model is downloaded on page load.
+const vendor=path.join(root,'public','vendor'),ortVendor=path.join(vendor,'onnx');
+await mkdir(ortVendor,{recursive:true});
+const ortDir=path.join(root,'node_modules','onnxruntime-web','dist');
+await copyFile(path.join(ortDir,'ort.min.js'),path.join(ortVendor,'ort.min.js'));
+for(const name of await readdir(ortDir)){
+  if(/^ort-wasm.*\\.(?:wasm|mjs)$/.test(name))
+    await copyFile(path.join(ortDir,name),path.join(ortVendor,name));
+}
+const demucsLoader=await read('vendor/demucs-loader.mjs');
+const demucsWorker=await read('vendor/demucs-worker.js');
+const workerWithLoader=demucsWorker.replace('let session=null,active=false;',noExports(demucsLoader)+'\\nlet session=null,active=false;');
+new vm.Script(workerWithLoader);
+await writeFile(path.join(vendor,'demucs-worker.js'),workerWithLoader);
+await writeFile(path.join(vendor,'demucs-NOTICE.txt'),`Demucs ONNX loader adapted from joverval/sdemux (MIT), https://github.com/joverval/sdemux
+Model: htdemucs_embedded.onnx, model origin https://huggingface.co/timcsy/demucs-web-onnx
+The pretrained model is fetched on demand. Trained-model licensing and source-data rights need review for commercial use.
+Copyright (c) 2026 joverval/sdemux contributors and respective authors.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom
+the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+`);
 await writeFile(path.join(root,'public/index.html'),html);
 await writeFile(path.join(root,'index.html'),html);
 console.log(`Built standalone Pulse Studio index.html (${Math.round(Buffer.byteLength(html)/1024)} KiB).`);

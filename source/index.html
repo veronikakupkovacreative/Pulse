@@ -176,6 +176,11 @@
             <div class="tool-view-header"><span>02 / AI MIX</span><span>ASSISTED MULTITRACK DSP</span></div>
             <h3>Build your mix.</h3>
             <p class="tool-footnote">Import 2–8 time-aligned stems, adjust gain and pan, and audition a stereo mix. Gain suggestions use measured RMS and peaks, not a neural model.</p>
+            <div class="master-reference"><strong>AI STEM SEPARATION · LOCAL DEMUCS (EXPERIMENTAL)</strong>
+            <p class="tool-footnote">Separate Vocals / Drums / Bass / Other using a real ONNX model. The first run downloads ~170 MB. Desktop browsers only; use a 0.5–45 s working clip. No audio is uploaded to our servers. High memory usage; inference can take several minutes.</p>
+            <div class="quick-actions"><button type="button" id="mix-separate" disabled>Separate into 4 stems ↗</button><button type="button" id="mix-cancel-separation" disabled>Cancel separation</button></div>
+            <p class="tool-footnote" id="mix-separation-status" role="status">Load a short working audio clip to enable local AI separation.</p>
+            <p class="tool-footnote">Model attribution and licensing: <a href="/vendor/demucs-NOTICE.txt" target="_blank" rel="noopener">Demucs / ONNX notice</a>.</p></div>
             <div class="master-reference"><strong>QUICK FIX · ONE FINISHED TRACK</strong><p class="tool-footnote">Uses the current shared stereo track. Individual instruments are not separated.</p>
               <div class="tool-fields"><label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option><option value="clean">Clean</option></select></label>
               <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label></div>

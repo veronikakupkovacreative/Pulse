@@ -7,12 +7,10 @@ const bundle=await readFile(new URL('../source/index.html',import.meta.url),'utf
 const toolkit=await readFile(new URL('../source/tools.mjs',import.meta.url),'utf8');
 const build=await readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8');
 
-test('YouTube opens a cloud-gated conversion dialog',()=>{
-  for(const html of [source,bundle]){
-    assert.match(html,/id="tab-youtube"/);
-    assert.match(html,/id="youtube-dialog"/);
-    assert.doesNotMatch(html,/id="yt-url"|id="yt-download"|id="yt-check"|id="youtube-source"/);
-  }
+test('YouTube Audio is removed from visible tool navigation',()=>{
+ assert.doesNotMatch(source,/id="tab-youtube"|data-open-tool="youtube"/);
+ assert.match(source,/id="tab-stems"/);
+ assert.match(source,/id="tab-vocals"/);
 });
 
 test('Active audio toolkit never attempts YouTube API calls',()=>{
@@ -21,7 +19,7 @@ test('Active audio toolkit never attempts YouTube API calls',()=>{
   assert.doesNotMatch(bundle,/function initYoutubeTool\(/);
 });
 
-test('AI Mix and Equalizer are active tools and YouTube remains planned',()=>{
+test('AI Mix and Equalizer remain active tools',()=>{
  assert.match(source,/id="tab-mix"[^>]+data-tool="mix"/);
  assert.match(source,/id="tab-equalizer"[^>]+data-tool="equalizer"/);
  assert.doesNotMatch(source,/AI Mix <small>PLANNED/);

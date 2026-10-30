@@ -545,3 +545,107 @@
 .stem-automation-graph{display:block;width:100%;height:105px;max-width:100%;border:1px solid #333;cursor:crosshair;touch-action:none}
 .stem-automation-graph:focus-visible{outline:3px solid #fff;outline-offset:2px}
 @media(max-width:520px){.mix-ducking-setup{grid-template-columns:1fr}}
+
+/* Equalizer waveform UX v3.1 — exact source design language, fewer controls. */
+.tool-board:has(#eq-overview:not([hidden])){grid-template-columns:minmax(0,1.52fr) minmax(0,.94fr);gap:12px}
+.tool-source:has(#eq-overview:not([hidden])) .tool-loaded{
+  justify-content:flex-start;padding:17px 0 0;min-width:0;
+}
+.tool-source:has(#eq-overview:not([hidden])) .tool-loaded h3{
+  font-size:clamp(17px,1.55vw,24px);margin:10px 0 5px;letter-spacing:-.4px;
+}
+.tool-source:has(#eq-overview:not([hidden])) .waveform-toolbar{margin:17px 0 10px}
+.tool-source:has(#eq-overview:not([hidden])) #wave-mark-in,
+.tool-source:has(#eq-overview:not([hidden])) #wave-mark-out,
+.tool-source:has(#eq-overview:not([hidden])) #wave-snap,
+.tool-source:has(#eq-overview:not([hidden])) #tool-seek-hint,
+.tool-source:has(#eq-overview:not([hidden])) #wave-loop-info{display:none!important}
+.tool-source:has(#eq-overview:not([hidden])) .tool-waveform-wrap{
+  height:230px!important;margin:0!important;border:1px solid #5c5c56;
+  background:#1c1e1d;overflow:hidden;
+}
+.tool-source:has(#eq-overview:not([hidden])) #tool-waveform{
+  height:100%!important;width:100%!important;margin:0!important;display:block;
+}
+.tool-source:has(#eq-overview:not([hidden])) #tool-playhead{
+  background:#f7f6f0;width:2px;box-shadow:0 0 8px #000b;
+}
+.eq-overview{margin:9px 0 0;display:grid;gap:7px;}
+.eq-overview[hidden]{display:none!important}
+.eq-overview-top,.eq-overview-bottom{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font:600 9px/1.4 Arial,sans-serif;letter-spacing:.07em;color:#a5a59d;
+}
+.eq-overview-top span:last-child{color:#f2e07b;font-variant-numeric:tabular-nums;}
+.eq-overview-canvas-wrap{height:68px;position:relative;border:1px solid #555650;background:#202222;cursor:crosshair}
+.tool-loaded .eq-overview-canvas-wrap canvas,#eq-overview-canvas{
+  display:block;width:100%!important;height:68px!important;margin:0!important;touch-action:none;cursor:crosshair;
+}
+.eq-overview-window{
+  position:absolute;top:0;bottom:0;left:0;width:100%;
+  border:1px solid #f4e16a;background:rgba(243,225,106,.10);pointer-events:none;
+}
+.eq-overview-playhead{position:absolute;top:0;bottom:0;left:0;width:1px;background:#ff3429;pointer-events:none;box-shadow:0 0 0 1px #201e1e}
+.eq-overview-bottom label{display:flex;align-items:center;gap:5px;color:#d2d0ca;cursor:pointer;white-space:nowrap;}
+.eq-overview-bottom label input{accent-color:#f6de5a;}
+.eq-overview-bottom button{padding:5px 8px;min-height:30px;border:1px solid #676760;color:#f2f0e9;font-size:9px;cursor:pointer}
+.eq-overview-bottom button:hover{border-color:#f6e05b;color:#f6e05b}
+.eq-overview-bottom span{font-variant-numeric:tabular-nums}
+.tool-source:has(#eq-overview:not([hidden])) .eq-wave-editor{
+  margin:10px 0 0;padding:11px 0 0;gap:9px;border-top:1px solid #4d4d47;
+}
+.tool-source:has(#eq-overview:not([hidden])) .eq-wave-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.tool-source:has(#eq-overview:not([hidden])) .eq-wave-actions button{
+  min-height:36px;font-size:10px;letter-spacing:.01em;padding:7px 10px;
+}
+.tool-source:has(#eq-overview:not([hidden])) #eq-ab-toggle[aria-pressed=true]{
+  color:#171717;background:#f3df61;border-color:#f3df61;
+}
+.tool-source:has(#eq-overview:not([hidden])) #eq-ab-toggle[aria-pressed=false]{
+  background:transparent;color:#d2d0c9;border-color:#777;
+}
+.tool-source:has(#eq-overview:not([hidden])) .eq-time-fields{grid-template-columns:1fr 1fr auto;gap:9px}
+.tool-source:has(#eq-overview:not([hidden])) .eq-time-fields input{
+  background:#242421;border-color:#4d4c47;min-height:34px;
+}
+.tool-source:has(#eq-overview:not([hidden])) .eq-wave-editor #eq-wave-help{margin:0;font-size:10px!important;}
+.tool-source:has(#eq-overview:not([hidden])) .wave-edit-details{
+  margin:2px 0 0;padding:0;border:0;order:5;
+}
+.tool-source:has(#eq-overview:not([hidden])) .wave-edit-details summary{
+  min-height:28px;color:#a2a198;font-size:9px;
+}
+.tool-source:has(#eq-overview:not([hidden])) .pulse-eq-left{
+  margin:12px 0 12px;padding-top:13px;border-top:1px solid #575750;
+}
+.pulse-eq-left .pulse-eq-stage{
+  background:#161a1e;border:1px solid #454d50;isolation:isolate;
+}
+.pulse-eq-left .pulse-eq-graph{z-index:2!important;}
+.pulse-eq-left .pulse-eq-live{z-index:1!important;opacity:.85}
+.tool-source:has(#eq-overview:not([hidden])) .pulse-eq-left .pulse-eq-editor-note{font-size:10px;}
+.tool-source:has(#eq-overview:not([hidden])) .tool-player{
+  margin:13px 0 0;padding:10px 0;border-top:1px solid #3c3c38;
+}
+#panel-equalizer .tool-view h3{font-size:clamp(28px,3vw,40px);margin:23px 0 10px}
+#panel-equalizer .tool-footnote{line-height:1.55;font-size:11px}
+#panel-equalizer #eq-scope-info{display:none}
+#panel-equalizer .eq-mode-controls{margin:17px 0 12px}
+#panel-equalizer .eq-band-picker{margin:5px 0 3px}
+#panel-equalizer .quick-actions{margin-top:13px}
+#panel-equalizer #eq-status{margin-top:12px}
+@media(max-width:1100px){
+ .tool-board:has(#eq-overview:not([hidden])){grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+}
+@media(max-width:760px){
+ .tool-board:has(#eq-overview:not([hidden])){grid-template-columns:1fr}
+ .tool-source:has(#eq-overview:not([hidden])) .tool-waveform-wrap{height:205px!important}
+ .tool-source:has(#eq-overview:not([hidden])) #tool-waveform{height:100%!important}
+ .eq-overview-top,.eq-overview-bottom{font-size:9px}
+ .tool-source:has(#eq-overview:not([hidden])) .eq-wave-actions button{min-height:43px}
+}
+@media(max-width:420px){
+ .eq-overview-bottom{flex-wrap:wrap}
+ .tool-source:has(#eq-overview:not([hidden])) .eq-time-fields{grid-template-columns:1fr 1fr}
+ .tool-source:has(#eq-overview:not([hidden])) .eq-time-fields output{grid-column:1/-1}
+}

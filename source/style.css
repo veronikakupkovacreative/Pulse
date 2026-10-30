@@ -523,3 +523,16 @@
  .tool-insights .master-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(prefers-reduced-motion:reduce){.eq-band-picker button,.pulse-eq-left svg{transition:none!important}}
+
+.wave-edit-details{border-top:1px solid #595852;padding:11px 0;margin-top:4px}
+.wave-edit-details summary{cursor:pointer;font-size:10px;letter-spacing:.08em;color:#e4e3dc;min-height:36px;display:flex;align-items:center;}
+.wave-edit-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 13px}
+.wave-edit-actions button{min-height:42px;border:1px solid #777;color:#ebe9e3;background:#20201e;padding:9px 8px;font:600 11px Arial,sans-serif;cursor:pointer}
+.wave-edit-actions button:hover:not(:disabled){border-color:#ffe25b;color:#ffe25b}
+.wave-edit-actions button:disabled{opacity:.4;cursor:not-allowed}
+.wave-clean-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;font-size:11px}
+.wave-clean-options label{display:grid;gap:5px}
+.wave-clean-options input{width:100%;min-height:36px;background:#242421;border:1px solid #777;color:#fff;padding:7px}
+.wave-clean-options input[type=range]{padding:0;min-height:25px;accent-color:#ffe25b}
+.wave-edit-details p{color:#bab8b1!important;font-size:11px!important;line-height:1.5!important;margin:10px 0!important}
+@media(max-width:530px){.wave-clean-options,.wave-edit-actions{grid-template-columns:1fr}}

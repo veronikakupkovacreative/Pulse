@@ -100,7 +100,22 @@
     <label>OUT <input id="eq-region-out" type="number" min="0" step="0.01" value="0" aria-label="EQ selection end in seconds"></label>
     <output id="eq-range-length" aria-live="polite">FULL TRACK</output>
   </div>
-  <p id="eq-wave-help">Tap to seek. Enable SELECT RANGE, then drag over the waveform to choose a section. Shift + drag also selects.</p>
+  <p id="eq-wave-help">Tap to seek. Select Range + drag to edit; Shift + drag also works. Zoom to millisecond detail.</p>
+<details class="wave-edit-details"><summary>CLIP EDITING · CUT / SPLIT / CLEAN</summary>
+  <div class="wave-edit-actions">
+    <button type="button" id="wave-trim-range" disabled>Trim to selection</button>
+    <button type="button" id="wave-delete-range" disabled>Delete selection</button>
+    <button type="button" id="wave-split">Split at playhead</button>
+    <button type="button" id="wave-remove-pauses">Remove long pauses</button>
+    <button type="button" id="wave-denoise">Reduce background noise</button>
+  </div>
+  <div class="wave-clean-options">
+    <label>Silence threshold <input id="wave-quiet-db" type="number" value="-42" min="-90" max="-12" step="1"> dBFS</label>
+    <label>Minimum pause <input id="wave-quiet-ms" type="number" value="450" min="100" max="5000" step="50"> ms</label>
+    <label>Noise reduction <input id="wave-noise-reduction" type="range" min="3" max="24" value="12" step="1"><output id="wave-noise-level">12 dB</output></label>
+  </div>
+  <p id="wave-edit-status" role="status">5 ms micro-fades protect clip boundaries. Noise reduction uses a conservative local expander, not neural denoising.</p>
+</details>
 </div><div class="waveform-toolbar" role="group" aria-label="Waveform controls"><div class="waveform-actions"><button type="button" id="wave-loop" aria-pressed="false" title="Loop selected region (L)">LOOP OFF</button><button type="button" id="wave-mark-in" title="Set loop in (I)">IN</button><button type="button" id="wave-mark-out" title="Set loop out (O)">OUT</button><button type="button" id="wave-snap" aria-pressed="false" title="Snap to grid from start of file">SNAP OFF</button></div><div class="waveform-navigation"><button type="button" id="wave-pan-left" aria-label="Pan left" title="Pan left">←</button><button type="button" id="wave-zoom-out" aria-label="Zoom out" title="Zoom out (−)">−</button><output id="wave-zoom-label" aria-live="polite">1×</output><button type="button" id="wave-zoom-in" aria-label="Zoom in" title="Zoom in (+)">+</button><button type="button" id="wave-pan-right" aria-label="Pan right" title="Pan right">→</button></div></div><div class="tool-waveform-wrap" id="tool-waveform-wrap"><canvas id="tool-waveform" width="720" height="190" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0:00" aria-label="Waveform playback position; click or drag to seek"></canvas><div class="tool-playhead" id="tool-playhead" aria-hidden="true"></div></div>
 <div class="pulse-eq-left" id="pulse-eq-left" hidden>
   <div class="eq-left-heading"><strong>PARAMETRIC EQ · LIVE RESPONSE</strong><span>20 Hz — 20 kHz</span></div>

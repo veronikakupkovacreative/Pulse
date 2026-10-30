@@ -9,10 +9,10 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   let dragBand=-1;
   const presets={
     flat:EQ_DEFAULT_BANDS.map(x=>({...x})),
-    vocal:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,gain:[0,0,-2,2.5,-1,1][i],
+    vocal:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,gain:[0,0,-2,0,2.5,-1,0,1][i],
       frequency:i===0?85:x.frequency})),
-    bass:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:i!==0,gain:[0,2.5,-2,0,0,0][i]})),
-    air:EQ_DEFAULT_BANDS.map((x,i)=>({...x,gain:i===5?2.5:0})),
+    bass:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:i!==0,gain:[0,2.5,-2,0,0,0,0,0][i]})),
+    air:EQ_DEFAULT_BANDS.map((x,i)=>({...x,gain:i===7?2.5:0})),
     clean:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,
       frequency:i===0?45:x.frequency,gain:0}))
   };
@@ -64,7 +64,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const ny=Math.min(1,Math.max(0,(event.clientY-rect.top)/rect.height));
     const band=eqState.bands[dragBand],hzMax=Math.min(20000,tools.buffer?.sampleRate*.45||21600);
     band.frequency=Math.max(20,Math.round(20*(hzMax/20)**nx));
-    if(!['highpass','lowpass'].includes(band.type))band.gain=Math.round((12-24*ny)*10)/10;
+    if(!['highpass','lowpass','notch'].includes(band.type))band.gain=Math.round((12-24*ny)*10)/10;
     refreshEq();
   });
   el('eq-response-graph').addEventListener('pointerup',()=>{dragBand=-1;});
@@ -90,20 +90,21 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       row.querySelector('[name="freq"]').value=String(b.frequency);
       row.querySelector('[name="gain"]').value=String(b.gain);
       row.querySelector('[name="q"]').value=String(b.q);
-      row.querySelector('[name="enable"]').checked=b.enabled;
+      row.querySelector('[name="enable"]').checked=b.enabled;row.querySelector('[name="type"]').value=b.type;
     }
     eqNodeUpdate();
   }
   eqState.bands.forEach((band,i)=>{
     const row=document.createElement('div');row.className='pulse-eq-band';row.dataset.band=String(i);
-    row.innerHTML='<label><input type="checkbox" name="enable"> BAND '+(i+1)+'</label>'+
+    row.innerHTML='<label><input type="checkbox" name="enable"> BAND '+(i+1)+'</label>'+ 
+    '<label>Filter <select name="type"><option value="peaking">Bell</option><option value="lowshelf">Low shelf</option><option value="highshelf">High shelf</option><option value="highpass">High pass</option><option value="lowpass">Low pass</option><option value="notch">Notch</option></select></label>'+
     '<label>Frequency <span data-value="freq"></span><input type="range" name="freq" min="20" max="20000" step="1"></label>'+
     '<label>Gain <span data-value="gain"></span><input type="range" name="gain" min="-12" max="12" step=".1"></label>'+
     '<label>Q <span data-value="q"></span><input type="range" name="q" min=".25" max="10" step=".05"></label>';
     eqInputs.append(row);
-    for(const [name,field] of [['enable','enabled'],['freq','frequency'],['gain','gain'],['q','q']]){
+    for(const [name,field] of [['enable','enabled'],['type','type'],['freq','frequency'],['gain','gain'],['q','q']]){
       row.querySelector('[name="'+name+'"]').addEventListener('input',event=>{
-        band[field]=name==='enable'?event.target.checked:Number(event.target.value);refreshEq();
+        band[field]=name==='enable'?event.target.checked:name==='type'?event.target.value:Number(event.target.value);refreshEq();
         eqNotice('EQ settings changed. Preview live or export to render.');
       });
     }

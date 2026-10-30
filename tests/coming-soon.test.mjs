@@ -20,3 +20,11 @@ test('Active audio toolkit never attempts YouTube API calls',()=>{
   assert.doesNotMatch(build, /noExports\(youtube\)|read\('youtube\.mjs'\)/);
   assert.doesNotMatch(bundle,/function initYoutubeTool\(/);
 });
+
+test('AI Mix and Equalizer are active tools and YouTube remains planned',()=>{
+ assert.match(source,/id="tab-mix"[^>]+data-tool="mix"/);
+ assert.match(source,/id="tab-equalizer"[^>]+data-tool="equalizer"/);
+ assert.doesNotMatch(source,/AI Mix <small>PLANNED/);
+ assert.match(bundle,/id="panel-mix"/);
+ assert.match(bundle,/id="panel-equalizer"/);
+});

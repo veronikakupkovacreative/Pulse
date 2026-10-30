@@ -55,7 +55,7 @@ test('AI Studio navigation represents all active tools and marks unfinished modu
    assert.match(html,new RegExp(`id="tab-${tool}"`));
    assert.match(js,new RegExp(`'${tool}'`));
  }
- assert.match(html,/AI Mix <small>PLANNED/);
+ assert.match(html,/id="tab-mix"/);assert.match(html,/id="panel-mix"/);
  assert.match(html,/id="tab-youtube"[^>]*disabled/);
 });
 

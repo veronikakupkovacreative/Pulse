@@ -21,7 +21,7 @@ test('category numbers denote fixed order 01-04, not tool counts',()=>{
 
 test('subtools have no numbers and retain navigation arrow; YouTube stays disabled',()=>{
   const tabs=[...html.matchAll(/<button class="tool-tab(?: selected)?"[^>]*>([\s\S]*?)<\/button>/g)];
-  assert.equal(tabs.length,11);
+  assert.equal(tabs.length,13);
   for(const [,label] of tabs){assert.doesNotMatch(label,/<span>\d{2}<\/span>/); assert.match(label,/<b>↗<\/b>/);}
   assert.match(html,/id="tab-youtube"[^>]*disabled/);
   assert.match(html,/id="analyze-shortcuts"/);

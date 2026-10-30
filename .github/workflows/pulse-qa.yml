@@ -33,3 +33,4 @@ jobs:
           name: pulse-equalizer-qa-screenshots
           path: .artifacts/equalizer-*.png
           if-no-files-found: ignore
+          include-hidden-files: true

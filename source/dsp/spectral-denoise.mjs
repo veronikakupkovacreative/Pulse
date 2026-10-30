@@ -41,9 +41,9 @@ export function captureSpectralProfile(audioChannels,sampleRate,fromSeconds=0,to
   const result=new Float32Array(HALF+1);for(let k=0;k<=HALF;k++)result[k]=profile[k]/frames;
   return result;
 }
-export function spectralSettings({amount=65,smoothing=65,floor=8,rumbleHz=0,hiss=0,gateDb=-72,blend=100,sampleRate=48000}={}){
+export function spectralSettings({amount=65,smoothing=65,floor=8,rumbleHz=0,hiss=0,gateDb=-90,blend=100,sampleRate=48000}={}){
   const bounded=(n,low,high,def)=>Number.isFinite(Number(n))?Math.min(high,Math.max(low,Number(n))):def;
-  return {amount:bounded(amount,0,100,65),smoothing:bounded(smoothing,0,100,65),floor:bounded(floor,3,30,8),rumbleHz:bounded(rumbleHz,0,150,0),hiss:bounded(hiss,0,100,0),gateDb:bounded(gateDb,-90,-24,-72),blend:bounded(blend,0,100,100),sampleRate:bounded(sampleRate,8000,192000,48000)};
+  return {amount:bounded(amount,0,100,65),smoothing:bounded(smoothing,0,100,65),floor:bounded(floor,3,30,8),rumbleHz:bounded(rumbleHz,0,150,0),hiss:bounded(hiss,0,100,0),gateDb:bounded(gateDb,-90,-24,-90),blend:bounded(blend,0,100,100),sampleRate:bounded(sampleRate,8000,192000,48000)};
 }
 export function spectralProcessFrame(re,im,profile,settings,memory,targetScratch=null){
   const {amount,smoothing,floor,hiss}=spectralSettings(settings);
@@ -71,7 +71,7 @@ export function spectralProcessFrame(re,im,profile,settings,memory,targetScratch
 export function renderSpectralDenoise(input,profile,options={},onProgress){
   if(!(input instanceof Float32Array))throw Error('Expected Float32Array audio.');
   const settings=spectralSettings({...options,sampleRate:options.sampleRate||48000});
-  if(settings.amount===0&&settings.rumbleHz===0&&settings.gateDb<=-90)return input.slice();
+  if(settings.amount===0&&settings.rumbleHz===0&&settings.hiss===0&&settings.gateDb<=-90)return input.slice();
   const out=new Float32Array(input.length),weights=new Float32Array(input.length);
   const re=new Float64Array(FFT_SIZE),im=new Float64Array(FFT_SIZE),memory=new Float64Array(HALF+1),scratch=new Float64Array(HALF+1);
   const frames=Math.ceil((input.length+FFT_SIZE)/HOP);

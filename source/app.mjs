@@ -353,3 +353,66 @@ pulseProject.subscribe(({type,origin,state:project})=>{
   document.getElementById('toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
  });
 })();
+
+
+/* Connected Help, advanced-feature status and EQ inspector actions. */
+(() => {
+ const help=document.getElementById('help-dialog');
+ const editable=e=>Boolean(e.target?.closest?.('input,textarea,select,[contenteditable],button,a'));
+ const inDialog=()=>Boolean(document.querySelector('dialog[open]'));
+ document.addEventListener('keydown',event=>{
+   if(event.key==='?'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!editable(event)&&!inDialog()){
+     event.preventDefault();help?.showModal();return;
+   }
+   if(event.ctrlKey||event.metaKey||event.altKey||event.repeat||editable(event)||inDialog())return;
+   const loaded=document.getElementById('tool-loaded');
+   if(!loaded||loaded.hidden)return;
+   if(event.code==='Space'){event.preventDefault();document.getElementById('tool-preview')?.click();return;}
+   const map={'i':'wave-mark-in','o':'wave-mark-out','l':'wave-loop','+':'wave-zoom-in','=':'wave-zoom-in','-':'wave-zoom-out'};
+   const action=map[event.key.toLowerCase()];
+   if(action){event.preventDefault();document.getElementById(action)?.click();return;}
+   if(event.key.toLowerCase()==='c' && document.getElementById('tab-equalizer')?.getAttribute('aria-selected')==='true'){
+     event.preventDefault();document.getElementById('wave-split')?.click();
+   }
+ });
+ const featureDescriptions={
+  sidechain:'Sidechain compression requires a multitrack routing engine. This control is not yet available in the current editor.',
+  autotune:'Natural and hard pitch correction need a real-time pitch-shifting DSP engine. This control is not yet available.',
+  modulation:'Chorus, phaser and flanger controls require integration with the current FX routing. This control is not yet available.',
+  plugins:'Custom Web Audio plugin loading requires module registration and validation. This control is not yet available.',
+  stretch:'Pitch-preserving time stretching and Match BPM are not yet integrated into the published editor.',
+  'volume-pan':'Per-clip gain and pan require clip-level routing in the timeline. This control is not yet available.'
+ };
+ const dialog=document.getElementById('pulse-feature-dialog');
+ document.addEventListener('click',event=>{
+  const btn=event.target.closest?.('[data-feature-info]');
+  if(!btn||!dialog)return;
+  const key=btn.dataset.featureInfo;
+  const heading=document.getElementById('feature-label-'+key);
+  document.getElementById('pulse-feature-dialog-title').textContent=heading?.textContent||'Advanced processor';
+  document.getElementById('pulse-feature-dialog-body').textContent=featureDescriptions[key]||'This module is not yet available in the current editor.';
+  dialog.showModal();
+ });
+ document.getElementById('pulse-feature-dialog-close')?.addEventListener('click',()=>dialog.close());
+ document.getElementById('eq-compare')?.addEventListener('click',()=>{
+   const bypass=document.getElementById('eq-bypass');
+   if(!bypass)return;
+   bypass.click();
+ });
+ const bypass=document.getElementById('eq-bypass');
+ const compare=document.getElementById('eq-compare');
+ function syncCompare(){
+  if(!bypass||!compare)return;
+  compare.setAttribute('aria-pressed',String(bypass.checked));
+  compare.textContent=bypass.checked?'COMPARE WITH EQ / FILTERS ↗':'COMPARE WITHOUT EQ / FILTERS ↗';
+ }
+ bypass?.addEventListener('change',syncCompare);
+ syncCompare();
+ const split=document.getElementById('eq-split-view');
+ const original=document.getElementById('eq-split-channels');
+ if(split&&original){
+  split.checked=original.checked;
+  split.addEventListener('change',()=>{original.checked=split.checked;original.dispatchEvent(new Event('change',{bubbles:true}));});
+  original.addEventListener('change',()=>{split.checked=original.checked;});
+ }
+})();

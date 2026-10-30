@@ -1165,3 +1165,92 @@ body{background:var(--paper)}
  .pulse-footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 22px}
  .pulse-footer-bottom{flex-wrap:wrap;font-size:8px;row-gap:10px}
 }
+
+
+/* PULSE screenshot-matched toolkit, Arial regular typography, red EQ inspector. */
+:root{--ink:#191919;--red:#ff2b20}
+body{color:#191919;font-family:Arial,Helvetica,sans-serif}
+.pulse-directory{margin:90px 0 95px;padding-top:0;border:0}
+.pulse-directory-eyebrow{color:#191919;font-family:'Courier New',monospace;letter-spacing:.04em;font-size:11px;margin-bottom:30px}
+.pulse-directory-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:18px;align-items:start}
+.pulse-directory-column{display:flex;flex-direction:column;gap:14px;min-width:0}
+.pulse-directory-column:nth-child(1){padding-top:25px}
+.pulse-directory-column:nth-child(2){padding-top:0}
+.pulse-directory-column:nth-child(3){padding-top:25px}
+.pulse-directory-card{min-height:200px;padding:22px 21px 17px;gap:12px;border:1px solid #b5b5b2;background:transparent;display:flex;flex-direction:column;color:#191919}
+.pulse-directory-card.is-featured{background:var(--red);border-color:var(--red);color:#191919}
+.pulse-directory-card.is-dark{background:#191919;border-color:#191919;color:#fff}
+.pulse-card-head{display:flex;align-items:flex-start;gap:9px;justify-content:space-between}
+.pulse-card-head h3{font:400 18px/1.22 Arial,Helvetica,sans-serif!important;letter-spacing:0!important;color:inherit;max-width:calc(100% - 24px);margin:0}
+.pulse-card-head>span{font:700 10px/1.2 Arial,Helvetica,sans-serif}
+.pulse-directory-card p{font:400 12px/1.5 Arial,Helvetica,sans-serif;margin:0 0 12px;flex:1}
+.pulse-card-action{min-height:42px;background:#e7e5de;color:#191919;padding:10px 17px;font:600 12px/1.2 Arial,Helvetica,sans-serif}
+.pulse-card-action:hover{background:#191919;color:#fff}
+.pulse-directory-card.is-featured .pulse-card-action,.pulse-directory-card.is-dark .pulse-card-action{background:#fff;color:#191919}
+.pulse-directory-card.is-dark .pulse-card-action:hover{background:var(--red)}
+.pulse-directory-note{padding:29px 5px 0;color:#191919;max-width:255px}
+.pulse-directory-note strong{font:700 10px/1.4 'Courier New',monospace;letter-spacing:.06em;color:var(--red)}
+.pulse-directory-note p{font:400 13px/1.5 Arial,Helvetica,sans-serif;margin:16px 0 0}
+.tool-tabs .tool-tab,.tool-category-nav+.analyze-shortcuts .tool-shortcut{font:400 18px/1.15 Arial,Helvetica,sans-serif!important;letter-spacing:0!important;color:#191919!important;min-height:60px}
+.tool-tabs .tool-tab b{font-size:16px}
+.pulse-editorial-intro h2,.pulse-editorial-intro h2 span{font-family:Arial,Helvetica,sans-serif}
+.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:minmax(0,1.35fr) minmax(290px,.82fr);gap:8px}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-source{background:#191919!important;color:#fff!important;padding:26px}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{background:var(--red)!important;color:#191919!important;border-left:0!important;padding:26px}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .tool-view-header,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer h3,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .tool-footnote,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .tool-fields label,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band label,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer #eq-character-description,
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer #eq-output-label{color:#191919!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band{background:transparent!important;border-color:rgba(25,25,25,.38)!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band select{background:#f5f1e9!important;color:#191919!important;border-color:#191919!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .eq-band-picker button{background:transparent!important;color:#191919!important;border:1px solid #191919!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .eq-band-picker button[aria-pressed=true]{background:#191919!important;color:#fff!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .quick-actions button{background:transparent!important;color:#191919!important;border-color:#191919!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .quick-actions button:last-child{background:#191919!important;color:#fff!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer input[type=range]{accent-color:#191919!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer h3{font-size:34px!important;letter-spacing:-.05em}
+.pulse-eq-left .pulse-eq-stage{background:#0c0c0c!important;border:1px solid #3e3e3e!important;border-radius:0!important;overflow:hidden;min-width:0}
+.pulse-eq-left .pulse-eq-graph{width:100%;aspect-ratio:720/300}
+.pulse-eq-left .eq-mode-pills button,.pulse-eq-left .eq-preset-pills button{font:400 12px/1.2 Arial,Helvetica,sans-serif;border-radius:0!important}
+.pulse-eq-left .eq-mode-pills button[aria-pressed=true]{background:#ffe58e!important;border-color:#ffe58e!important;color:#191919!important}
+.pulse-eq-left .eq-mode-pills button{background:transparent!important;border-color:#686868!important;color:#f6f6f6!important;padding:11px 13px;min-height:40px}
+.pulse-eq-left .eq-left-heading{font-family:'Courier New',monospace;letter-spacing:.04em}
+.pulse-eq-right-presets{padding:20px 0 0;border-top:1px solid rgba(25,25,25,.4);margin-top:18px}
+.pulse-eq-right-presets h4{font:700 11px/1.2 Arial,Helvetica,sans-serif;letter-spacing:.07em;margin:0 0 12px;color:#191919}
+#panel-equalizer .eq-preset-pills{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+#panel-equalizer .eq-preset-pills button{font:400 11px/1.2 Arial,Helvetica,sans-serif;border:1px solid #191919!important;border-radius:0!important;background:transparent!important;color:#191919!important;padding:9px 10px;min-height:38px}
+#panel-equalizer .eq-preset-pills button[aria-pressed=true]{background:#191919!important;color:#fff!important}
+#panel-equalizer .eq-preset-description{font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#191919;margin:0 0 18px}
+#panel-equalizer .pulse-eq-compare{font:700 11px/1.35 Arial,Helvetica,sans-serif;letter-spacing:.025em;color:#191919;border:1px solid #191919;background:transparent;padding:13px;width:100%;text-align:left;margin:3px 0 16px}
+#panel-equalizer .pulse-eq-compare[aria-pressed=true]{background:#191919;color:#fff}
+#panel-equalizer .pulse-eq-lr-toggle{font:400 12px/1.3 Arial,Helvetica,sans-serif;display:flex;align-items:center;gap:10px;color:#191919}
+#panel-equalizer .pulse-eq-lr-toggle input{accent-color:#191919}
+.pulse-shortcuts-dialog{max-width:min(670px,calc(100vw - 26px));width:100%;max-height:90vh;overflow:auto}
+.pulse-shortcuts-dialog h2 span{color:var(--red)}
+.pulse-shortcut-intro{font-size:13px;line-height:1.5;max-width:450px}
+.pulse-shortcut-list{display:grid;gap:0;margin-top:24px;border-top:1px solid #c9c7c1}
+.pulse-shortcut-list h3{font:700 10px/1.2 Arial,Helvetica,sans-serif;letter-spacing:.09em;color:var(--red);margin:26px 0 8px}
+.pulse-shortcut-list>div{display:flex;gap:10px;align-items:center;min-height:43px;padding:9px 0;border-bottom:1px solid #d3d1cb}
+.pulse-shortcut-list>div span{font:400 13px/1.4 Arial,Helvetica,sans-serif;margin-left:auto;text-align:right;color:#191919}
+.pulse-shortcut-list kbd{font:700 11px/1.2 'Courier New',monospace;background:#e3e0d8;border:1px solid #bab8b1;padding:7px 9px;white-space:nowrap}
+.pulse-feature-dialog{max-width:480px;width:calc(100vw - 32px)}
+.pulse-feature-dialog #pulse-feature-dialog-close{margin-top:18px}
+@media(max-width:900px){
+ .tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:1fr}
+ .pulse-directory-columns{column-gap:10px}
+ .pulse-directory-card{padding:16px}
+ .pulse-card-head h3{font-size:18px!important}
+}
+@media(max-width:650px){
+ .pulse-directory-columns{grid-template-columns:1fr;gap:10px}
+ .pulse-directory-column:nth-child(n){padding-top:0}
+ .pulse-directory-column{gap:10px}
+ .pulse-directory-note{max-width:none;padding:18px 0 27px}
+ .tool-tabs .tool-tab,.tool-category-nav+.analyze-shortcuts .tool-shortcut{font-size:18px!important}
+ .tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{padding:20px}
+ .pulse-shortcut-list>div span{font-size:12px}
+}

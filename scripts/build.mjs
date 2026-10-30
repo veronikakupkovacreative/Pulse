@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,masterPresets,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix,mixCharacter,classicEq,eqRegion,eqBandModes,eqPresets,waveEdit,spectralDsp,spectralWorker,spectralUi]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,masterPresets,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix,mixCharacter,classicEq,eqRegion,eqBandModes,eqPresets,waveEdit,spectralDsp,spectralWorker,spectralUi,youtubeUi]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/master-presets.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/mix-character.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/eq-presets.mjs'),read('dsp/waveform-edit.mjs'),read('dsp/spectral-denoise.mjs'),read('spectral-worker.js'),read('spectral-denoise-ui.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/master-presets.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/mix-character.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/eq-presets.mjs'),read('dsp/waveform-edit.mjs'),read('dsp/spectral-denoise.mjs'),read('spectral-worker.js'),read('spectral-denoise-ui.mjs'),read('youtube-dialog.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const spectralWorkerSource=noExports(spectralDsp)+'\n'+spectralWorker;
@@ -73,9 +73,16 @@ const bundledScript=`(() => {
   ${noExports(mixDsp)}
   ${noExports(extraTools)}
   ${noExports(spectralUi)}
+  ${noExports(youtubeUi)}
   ${noExports(zipStore)}
   ${noExports(tools)}
   ${app}
+  initYoutubeAudio();
+  function syncPulseSliders(){document.querySelectorAll('.tool-settings input[type=range]').forEach(input=>{const low=Number(input.min||0),high=Number(input.max||100),value=Number(input.value);input.style.setProperty('--pulse-fill',(high>low?Math.max(0,Math.min(100,100*(value-low)/(high-low))):50)+'%');});}
+  document.addEventListener('input',event=>{if(event.target?.matches?.('.tool-settings input[type=range]'))syncPulseSliders();});
+  document.addEventListener('change',event=>{if(event.target?.matches?.('.tool-settings input[type=range]'))syncPulseSliders();});
+  new MutationObserver(syncPulseSliders).observe(document.querySelector('.tool-settings'),{attributes:true,subtree:true,attributeFilter:['value']});
+  syncPulseSliders();
 })();`;
 new vm.Script(bundledScript);
 assert(!bundledScript.includes('import.meta'),'Standalone app cannot reference import.meta');

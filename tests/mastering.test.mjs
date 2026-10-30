@@ -24,7 +24,7 @@ test('master works on stereo audio without mutating original and produces bounde
    assert.equal(result.channels[c].length,src[c].length);
    assert.deepEqual(src[c],copy[c]);
  }
- assert.ok(peakDb(result.channels)<=-1.19,'sample peaks below -1.2 dBFS');
+ assert.ok(result.after.truePeakDb<=-0.95,'output true peak stays below selected ceiling');
  assert.ok(Number.isFinite(result.before.lufs)&&Number.isFinite(result.after.lufs));
  assert.ok(Math.abs(result.after.lufs-(-13))<2.5,`expected loudness near target, got ${result.after.lufs}`);
  assert.ok(result.settings.appliedGainDb>-9,'EQ should not create excess amplification');
@@ -36,7 +36,7 @@ test('master output differs by preset and remains finite for mono and stereo',()
      const r=processMaster(src,rate,{preset});
      assert.equal(r.channels.length,count);
      for(const ch of r.channels)for(let i=0;i<ch.length;i+=173)assert.ok(Number.isFinite(ch[i]));
-     assert.ok(peakDb(r.channels)<=-1.19);
+     assert.ok(r.after.truePeakDb<=-0.95);
    }
  }
 });
@@ -57,4 +57,20 @@ test('AI Studio navigation represents all active tools and marks unfinished modu
  }
  assert.match(html,/AI Mix <small>PLANNED/);
  assert.match(html,/id="tab-youtube"[^>]*disabled/);
+});
+
+test('true-peak ceiling, intensity and punchy preset use measurable processing',()=>{
+ const input=sample(1.2);
+ for(const ceilingDb of [-2,-1,-.3]){
+   const result=processMaster(input,rate,{preset:'punchy',intensity:80,ceilingDb});
+   assert.ok(result.after.truePeakDb<=ceilingDb+.08,`true peak ${result.after.truePeakDb} exceeded ${ceilingDb}`);
+   assert.ok(result.settings.maxReductionDb>=0);
+   assert.ok(Number.isFinite(result.after.crestDb));
+   assert.ok(Number.isFinite(result.after.correlation));
+ }
+ const subtle=processMaster(input,rate,{intensity:0});
+ const strong=processMaster(input,rate,{intensity:100});
+ assert.equal(subtle.settings.ratio,1);
+ assert.ok(strong.settings.ratio>subtle.settings.ratio);
+ assert.ok(strong.settings.lowDb!==subtle.settings.lowDb||strong.settings.highDb!==subtle.settings.highDb);
 });

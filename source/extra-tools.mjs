@@ -120,7 +120,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       const y=yOf(db);
       node('line',{x1:left,y1:y,x2:right,y2:y,
         stroke:db===0?'#FFFFFF':'#8996A1',opacity:db===0?.40:.15,'stroke-width':db===0?1.4:1});
-      const label=node('text',{x:5,y:y-4,fill:'#CDD4DA','font-size':9});
+      const label=node('text',{x:5,y:y-4,fill:'#FFFFFF','font-size':9});
       label.textContent=(db>0?'+':'')+db;
     }
     for(const hz of [20,50,100,200,500,1000,2000,5000,10000,20000]){
@@ -158,7 +158,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       if(!band.enabled)return;
       const x=xOf(band.frequency),y=yOf(band.gain),selected=index===selectedBand;
       const circle=node('circle',{cx:x,cy:y,r:selected?8.9:7.1,
-        fill:'#001321',stroke:selected?'#FF0000':'#FFFFFF','stroke-width':selected?3:2.4,
+        fill:'#000000',stroke:selected?'#FF0000':'#FFFFFF','stroke-width':selected?3:2.4,
         role:'button',tabindex:0,'aria-label':'EQ band '+(index+1)+' · '+Math.round(band.frequency)+' Hz · '+band.gain.toFixed(1)+' dB'});
       circle.addEventListener('click',()=>{selectedBand=index;refreshEq(true);});
       circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectedBand=index;refreshEq(true);}});

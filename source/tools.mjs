@@ -683,10 +683,10 @@ export function initStudioTools(getBpmTrack){
     const min=.02;if(value-markers[index-1]<min||markers[index]-value<min)return true;
     markers.splice(index,0,value);tools.selectedSlice=index-1;updateSliceUI();return true;
   }
-  function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value)};}
+  function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value),stereoWidth:Number(el('master-width').value)/100};}
   function resetMasterUI(){
     for(const id of ['master-before','master-after','master-peak','master-crest','master-correlation','master-gr'])status(id,'—');
-    el('master-eq').hidden=true;
+    el('master-eq').hidden=true;el('master-mix-health').hidden=true;
     status('master-status','Load a track, choose preset and Generate Master.');
     for(const id of ['master-preview-b','master-apply','master-export'])el(id).disabled=true;
   }
@@ -700,6 +700,8 @@ export function initStudioTools(getBpmTrack){
     status('master-low','LOW '+result.settings.lowDb.toFixed(1)+' dB');
     status('master-high','HIGH '+result.settings.highDb.toFixed(1)+' dB');
     el('master-eq').hidden=false;
+    const health=el('master-mix-health');health.replaceChildren();
+    for(const finding of result.findings||[]){const line=document.createElement('p');line.textContent=finding.label+' · '+finding.evidence+' — '+finding.detail;health.append(line);}health.hidden=false;
     status('master-status',`Done · ${result.settings.preset.toUpperCase()} · target ${result.settings.targetLufs} LUFS, measured ${masterMetric(result.after.lufs)} LUFS. True-peak estimate ${masterMetric(result.after.truePeakDb)} dBTP · ceiling ${result.settings.ceilingDb.toFixed(1)} dBTP.`);
   }
   async function prepareMaster(){
@@ -761,7 +763,7 @@ export function initStudioTools(getBpmTrack){
     const defaults={balanced:-13,warm:-14,loud:-10,punchy:-12};el('master-lufs').value=defaults[input.value];
     tools.masterCandidate=null;resetMasterUI();updateButtons();
   }));
-  el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');tools.masterCandidate=null;resetMasterUI();updateButtons();});
+  el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity','master-width'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');status('master-width-label',el('master-width').value+'%');tools.masterCandidate=null;resetMasterUI();updateButtons();});
   el('master-render').onclick=()=>masterAction('render');
   el('master-preview-a').onclick=()=>masterAction('original');
   el('master-preview-b').onclick=()=>masterAction('mastered');

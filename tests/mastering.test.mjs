@@ -74,3 +74,14 @@ test('true-peak ceiling, intensity and punchy preset use measurable processing',
  assert.ok(strong.settings.ratio>subtle.settings.ratio);
  assert.ok(strong.settings.lowDb!==subtle.settings.lowDb||strong.settings.highDb!==subtle.settings.highDb);
 });
+
+test('mix health supports stereo analysis and optional processing',()=>{
+ const channels=sample(1.1);const original=channels.map(c=>c.slice());
+ const result=processMaster(channels,rate,{stereoWidth:1.15,intensity:55});
+ assert.ok(Array.isArray(result.findings)&&result.findings.length>=1);
+ assert.equal(result.settings.stereoWidth,1.15);
+ assert.ok(Number.isFinite(result.after.balanceDb));
+ assert.ok(Number.isFinite(result.after.widthRatio));
+ assert.deepEqual(channels,original);
+ assert.ok(result.after.truePeakDb<=-.95);
+});

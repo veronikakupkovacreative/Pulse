@@ -1,5 +1,6 @@
 import {integratedLoudness} from './quick-tools.mjs';
 import {truePeakDb,limitTruePeak} from './true-peak.mjs';
+import {stereoHealth,mixHealthFindings,applyStereoWidth} from './mix-health.mjs';
 // Pulse Smart Master v1: adaptive, deterministic offline DSP. No neural model.
 // All operations happen on the client, and no source channel is mutated.
 const masterClamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
@@ -93,9 +94,9 @@ export function analyzeMaster(channels,rate){
   const lowShare=Math.sqrt(low.low/Math.max(1e-12,low.total));
   const highShare=Math.sqrt(high.high/Math.max(1e-12,high.total));
   const loudness=integratedLoudness(channels,rate);
-  const dynamics=shortTermAndRange(channels,rate);
+  const dynamics=shortTermAndRange(channels,rate),stereo=stereoHealth(channels);
   return {peakDb:db(peak),truePeakDb:truePeakDb(channels),rmsDb:db(r),crestDb:db(peak/r),
-    lufs:loudness,...dynamics,correlation:stereoCorrelation(channels),
+    lufs:loudness,...dynamics,...stereo,
     lowShare,highShare,channels:channels.length,rate,duration:channels[0].length/rate};
 }
 export function designMaster(analysis,preset='balanced',targetLufs,{intensity=45,ceilingDb=-1}={}){
@@ -133,19 +134,21 @@ function compress(channels,rate,settings){
   }
   return result;
 }
-export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1}={}){
+export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1,stereoWidth=1}={}){
   validate(channels,rate);
   const before=analyzeMaster(channels,rate),settings=designMaster(before,preset,targetLufs,{intensity,ceilingDb});
   const low=biquad(rate,180,settings.lowDb,'low'),high=biquad(rate,4000,settings.highDb,'high');
   const eq=channels.map(ch=>filter(filter(ch,low),high));
   const compressed=settings.ratio>1.001?compress(eq,rate,settings):eq;
-  const measured=integratedLoudness(compressed,rate);
+  const widened=applyStereoWidth(compressed,stereoWidth);
+  const measured=integratedLoudness(widened,rate);
   const correction=masterClamp(settings.targetLufs-measured,-9,9);
   const multiplier=10**(correction/20);
-  const gained=compressed.map(ch=>Float32Array.from(ch,s=>s*multiplier));
+  const gained=widened.map(ch=>Float32Array.from(ch,s=>s*multiplier));
   const limited=limitTruePeak(gained,rate,settings.ceilingDb);
   const output=limited.channels,after=analyzeMaster(output,rate);
-  return {channels:output,settings:{...settings,appliedGainDb:correction,
+  const findings=mixHealthFindings(before);
+  return {channels:output,findings,settings:{...settings,stereoWidth,appliedGainDb:correction,
       maxReductionDb:limited.maxReductionDb,safetyTrimDb:limited.safetyTrimDb},
     before,after,notes:[
       'Local deterministic mastering DSP; no neural mastering model.',

@@ -226,7 +226,12 @@
               <div class="quick-actions"><button id="mix-quick-analyze" type="button">Analyze Mix</button><button id="mix-quick-generate" type="button">Generate Quick Fix</button><button id="mix-quick-preview" type="button" disabled>▶ Preview</button><button id="mix-quick-send" type="button" disabled>Send to Smart Master ↗</button><button id="mix-quick-auto" type="button" disabled>Mix → Master · Apply &amp; Generate ↗</button></div>
               <p class="tool-footnote" id="mix-quick-report" role="status">Load a track in the shared workspace to begin.</p><div id="mix-fix-advice" class="master-mix-health" role="status" hidden></div>
             </div><details><summary>Advanced · Multitrack stem mixer (use your own stems)</summary><div class="pulse-mix-import"><label for="mix-files">Add stems (WAV, MP3, M4A)</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
-            <div id="mix-stems" class="pulse-mix-tracks"></div><div id="mix-advice" class="master-mix-health" role="status" hidden></div>
+            <div class="mix-ducking-setup">
+  <label>VOICE / DIALOGUE<select id="mix-duck-source" aria-label="Voice stem for automatic ducking"></select></label>
+  <label>MUSIC / BED<select id="mix-duck-target" aria-label="Music stem to duck"></select></label>
+  <button id="mix-auto-duck" type="button" disabled>Generate Ducking Keyframes</button>
+</div>
+<div id="mix-stems" class="pulse-mix-tracks"></div><div id="mix-advice" class="master-mix-health" role="status" hidden></div>
             <div class="quick-actions"><button type="button" id="mix-balance" disabled>Suggest Levels</button><button type="button" id="mix-render" disabled>Generate Mix</button><button type="button" id="mix-play" disabled>▶ Preview Mix</button><button type="button" id="mix-export" disabled>Export Stereo WAV ↗</button></div>
             <p class="tool-footnote" id="mix-status" role="status">Add at least two stems. They must start at the same timeline position.</p>
             <p class="master-disclaimer">AI MIX (assisted beta) uses transparent, deterministic DSP. No stem separation, model-based mixing or cloud processing.</p></details>

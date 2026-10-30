@@ -80,9 +80,9 @@ def dependencies():
     return missing
 
 
-def ydl_options(directory=None):
+def ydl_options(directory=None, video=False):
     options = {
-        'format': 'bestaudio', 'noplaylist': True,
+        'format': ('bv*[height<=720][vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4][height<=720]/bv*[height<=720]+ba/b[height<=720]' if video else 'bestaudio'), 'noplaylist': True,
         'quiet': True, 'no_warnings': True, 'retries': 2,
         'fragment_retries': 2, 'socket_timeout': 25,
         'max_filesize': MAX_NATIVE_BYTES,
@@ -90,16 +90,21 @@ def ydl_options(directory=None):
     }
     if directory is not None:
         options['outtmpl'] = str(Path(directory) / 'source.%(ext)s')
+        if video:
+            options['merge_output_format'] = 'mp4'
     return options
 
 
-def extract_info(url, directory=None):
+def extract_info(url, directory=None, video=False):
     from yt_dlp import YoutubeDL
-    with YoutubeDL(ydl_options(directory)) as ydl:
+    with YoutubeDL(ydl_options(directory, video=video)) as ydl:
         info = ydl.extract_info(url, download=(directory is not None))
         if not info or info.get('_type') == 'playlist' or info.get('entries'):
             raise PulseError('Vyber jedno video, ne playlist.')
-        if info.get('acodec') == 'none' or info.get('vcodec') not in (None, 'none'):
+        if video:
+            if info.get('vcodec') in (None, 'none'):
+                raise PulseError('Video stream neni dostupny.')
+        elif info.get('acodec') == 'none' or info.get('vcodec') not in (None, 'none'):
             raise PulseError('Nebyla nalezena samostatna audio stopa.')
         duration = info.get('duration')
         if not duration or not isinstance(duration, (int, float)) or duration > MAX_DURATION:
@@ -126,11 +131,11 @@ def safe_filename(title, ext):
 
 
 def prepare_download(url, output):
-    if output not in ('wav24', 'wav16', 'native', 'mp3'):
+    if output not in ('wav24', 'wav16', 'native', 'mp3', 'm4a', 'flac', 'mp4'):
         raise PulseError('Neznamy vystupni format.')
     directory = Path(tempfile.mkdtemp(prefix='pulse-youtube-'))
     try:
-        info = extract_info(url, directory)
+        info = extract_info(url, directory, video=True) if output == 'mp4' else extract_info(url, directory)
         candidates = [file for file in directory.iterdir()
                       if file.is_file() and file.name.startswith('source.')
                       and not file.name.endswith(('.part', '.ytdl'))]
@@ -143,25 +148,39 @@ def prepare_download(url, output):
             final = original
             extension = original.suffix.lstrip('.').lower() or 'audio'
         else:
-            extension = 'mp3' if output == 'mp3' else 'wav'
+            extension = {'mp3': 'mp3', 'm4a': 'm4a', 'flac': 'flac', 'mp4': 'mp4'}.get(output, 'wav')
             final = directory / ('pulse-output.' + extension)
-            # Preserve source sampling rate; no normalize, filters, speed shifts or upsampling.
-            codec = ['-c:a', 'libmp3lame', '-b:a', '320k'] if output == 'mp3' else [
-                '-c:a', 'pcm_s24le' if output == 'wav24' else 'pcm_s16le']
+            if output == 'mp4':
+                # MP4 includes video; cap it at 720p upstream. Compatible H.264/AAC.
+                # Video transcoding is intentionally bounded to protect CPU and disk.
+                maps = ['-map', '0:v:0', '-map', '0:a:0?']
+                codec = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24',
+                         '-pix_fmt', 'yuv420p', '-threads', '2',
+                         '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart']
+                deadline = 240
+            else:
+                maps = ['-map', '0:a:0', '-vn']
+                codec = {
+                    'mp3': ['-c:a', 'libmp3lame', '-b:a', '320k'],
+                    'm4a': ['-c:a', 'aac', '-b:a', '256k'],
+                    'flac': ['-c:a', 'flac'],
+                    'wav24': ['-c:a', 'pcm_s24le'],
+                    'wav16': ['-c:a', 'pcm_s16le'],
+                }[output]
+                deadline = 120
             args = ['ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error',
-                    '-y', '-i', str(original), '-map', '0:a:0', '-vn', '-sn', '-dn',
-                    *codec, str(final)]
+                    '-y', '-i', str(original), *maps, '-sn', '-dn', *codec, str(final)]
             try:
                 result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                        timeout=120, check=False)
+                                        timeout=deadline, check=False)
             except subprocess.TimeoutExpired:
-                raise PulseError('Prevod trval prilis dlouho.')
+                raise PulseError('Conversion took too long. Try a shorter clip.')
             if result.returncode != 0:
-                raise PulseError('FFmpeg nedokazal vytvorit zvoleny audio format.')
+                raise PulseError('FFmpeg could not create the selected format.')
         if not final.exists() or final.stat().st_size == 0:
             raise PulseError('Vysledny soubor je prazdny.')
         if final.stat().st_size > MAX_OUTPUT_BYTES:
-            raise PulseError('Vystup je prilis velky. Zvol WAV 16-bit nebo originalni stopu.')
+            raise PulseError('Output is too large. Try MP3, M4A or a shorter video.')
         token = secrets.token_urlsafe(32)
         job = {'directory': directory, 'path': final, 'name': safe_filename(info.get('title'), extension),
                'created': time.monotonic(), 'meta': public_info(info)}

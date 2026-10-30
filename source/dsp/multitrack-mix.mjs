@@ -1,4 +1,4 @@
-const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const mixBound=(x,a,b)=>Math.max(a,Math.min(b,x));
 export function stemMeasurements(channels){
   let energy=0,peak=0,count=0;
   for(const channel of channels)for(let i=0;i<channel.length;i++){
@@ -12,7 +12,7 @@ export function suggestedGainDb(channels){
   const {rmsDb,peakDb}=stemMeasurements(channels);
   if(rmsDb< -80)return 0;
   // Conservative per-stem starting point, not a trained AI mix decision.
-  return Math.round(clamp(Math.min(-22-rmsDb,-6-peakDb),-15,6)*10)/10;
+  return Math.round(mixBound(Math.min(-22-rmsDb,-6-peakDb),-15,6)*10)/10;
 }
 export function mixStems(stems,{ceilingDb=-1}={}){
   if(!Array.isArray(stems)||stems.length<2||stems.length>8)throw Error('Load between 2 and 8 stems.');
@@ -27,7 +27,7 @@ export function mixStems(stems,{ceilingDb=-1}={}){
   const output=[new Float32Array(duration),new Float32Array(duration)];
   for(const stem of stems){
     if(stem.mute||(anySolo&&!stem.solo))continue;
-    const pan=clamp(Number(stem.pan)||0,-1,1),gainDb=clamp(Number(stem.gainDb)||0,-24,12);
+    const pan=mixBound(Number(stem.pan)||0,-1,1),gainDb=mixBound(Number(stem.gainDb)||0,-24,12);
     const scalar=10**(gainDb/20),left=Math.cos((pan+1)*Math.PI/4),right=Math.sin((pan+1)*Math.PI/4);
     const source=stem.channels,mono=source.length===1;
     // Mono: constant-power panning. Stereo: preserve L/R unity at centered pan.

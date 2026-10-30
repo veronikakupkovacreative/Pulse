@@ -704,3 +704,34 @@
 .eq-preset-description{font-size:10px;line-height:1.55;color:#b5b2a9;margin:8px 0 4px}
 .eq-band-picker{grid-template-columns:repeat(10,minmax(0,1fr))}
 @media(max-width:720px){.eq-band-picker{grid-template-columns:repeat(5,minmax(0,1fr))}.eq-mode-caption{flex-basis:100%;margin-left:0}}
+
+
+/* Approved EQ preview: dark parameter controls, warm yellow curve, PULSE red waveform. */
+.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:minmax(0,1.7fr) minmax(300px,.72fr);gap:0}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-source{background:#191b19;padding:27px 27px 24px}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{background:#22231f;color:#e6e4dd;border-left:1px solid #44443e;padding:27px 22px}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-view-header{color:#c4c2b9}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer h3{font-size:26px;letter-spacing:-.6px;margin:20px 0 10px;color:#f2f0e9}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .tool-footnote{color:#a8a79d}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .tool-fields{grid-template-columns:1fr;gap:12px}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .tool-fields label{color:#dcdad2}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer input[type=range]{accent-color:#ffe58e;background:transparent;height:auto;padding:0;border:0}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band{border:1px solid #595950;color:#e7e5dc;background:#242520}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band label{color:#d5d3cb}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .pulse-eq-band select{background-color:#282a25;color:#eae9e1;border:1px solid #64645b}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .eq-band-selected{color:#b5b3aa}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .eq-band-picker button{background:#242520;color:#e0ddd3;border:1px solid #5e5d54}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .eq-band-picker button[aria-pressed=true]{background:#ffe58e;color:#171714;border-color:#ffe58e}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .quick-actions button{background:#292b26;color:#eeeae1;border:1px solid #616159}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer .quick-actions button:last-child{background:#ffe58e;color:#191a16;border-color:#ffe58e}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer #eq-character-description{color:#b9b7ae}
+.tool-board:has(#pulse-eq-left:not([hidden])) #panel-equalizer #eq-output-label{color:#ffe58e}
+.pulse-eq-left .pulse-eq-stage{background:radial-gradient(ellipse at 40% 35%,#282a26,#151715 76%);border:1px solid #45463f;border-radius:15px;overflow:hidden}
+.pulse-eq-left .pulse-eq-graph{aspect-ratio:720 / 300}
+.pulse-eq-left .pulse-eq-live{opacity:.62}
+.pulse-eq-left .eq-mode-pills button,.pulse-eq-left .eq-preset-pills button{border-radius:22px;border:1px solid #5c5d56;color:#dad9d2;background:transparent}
+.pulse-eq-left .eq-mode-pills button[aria-pressed=true],.pulse-eq-left .eq-preset-pills button[aria-pressed=true]{background:#ffe58e;border-color:#ffe58e;color:#191a17}
+.pulse-eq-left .eq-preset-pills{margin-top:16px}
+.pulse-eq-left .eq-preset-description{color:#aaa99e}
+@media(max-width:1000px){.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:1fr}.tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{border-left:0;border-top:1px solid #44443e}}
+@media(max-width:600px){.tool-board:has(#pulse-eq-left:not([hidden])) .tool-source{padding:19px 13px}.pulse-eq-left .eq-mode-pills button,.pulse-eq-left .eq-preset-pills button{padding:9px 11px}}

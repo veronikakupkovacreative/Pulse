@@ -479,3 +479,47 @@
  .tool-source:has(#eq-wave-editor:not([hidden])) .tool-waveform-wrap{height:180px!important}
  .eq-wave-actions button{min-height:44px}
 }
+
+/* PULSE Editor 3: left-side DAW-style visualization and restrained spectral palette */
+.pulse-eq-left{display:block;margin:18px 0 16px;border-top:1px solid #4d4c48;padding-top:16px;min-width:0;}
+.pulse-eq-left[hidden],.tool-insights[hidden],.insights-view[hidden]{display:none!important;}
+.eq-left-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;font:600 10px/1.4 Arial,sans-serif;letter-spacing:.08em;color:#e7e5df;margin-bottom:10px}
+.eq-left-heading span{color:#9c9b96;font-size:9px;font-weight:400;}
+.pulse-eq-left .pulse-eq-stage{position:relative;margin:0;overflow:hidden;border:1px solid #494944;background:#181c20;}
+.pulse-eq-left .pulse-eq-graph{display:block;width:100%;height:auto;margin:0!important;background:transparent!important;border:0!important;position:relative;z-index:2;touch-action:none;}
+.pulse-eq-left .pulse-eq-live{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.8;}
+.pulse-eq-left .pulse-eq-spectrum-toggle{display:flex;color:#a6dff3;margin:9px 0 0;font-size:11px;}
+.pulse-eq-editor-note{font:11px/1.5 Arial,sans-serif;color:#c9c8c2;margin:9px 0 0;}
+.eq-mode-controls{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:13px 0 20px}
+.eq-mode-controls>label{display:grid;gap:6px;font-size:10px;font-weight:700;letter-spacing:.07em;min-width:125px}
+.eq-mode-controls select{background:transparent;border:1px solid rgba(0,0,0,.5);padding:11px 12px;font:700 12px Arial,sans-serif;color:#151515;min-height:42px;cursor:pointer}
+.eq-mode-controls>span{font-size:9px;opacity:.7;padding-bottom:10px;text-align:right;}
+.pulse-eq-bands{display:grid!important;grid-template-columns:1fr!important;gap:14px!important;margin-top:10px!important;}
+.eq-band-picker{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px}
+.eq-band-picker button{border:1px solid rgba(15,15,15,.55);background:transparent;color:#141414;padding:10px 3px;min-height:39px;font:700 11px Arial,sans-serif;cursor:pointer}
+.eq-band-picker button[aria-pressed=true]{background:#121212;color:#fce24c;border-color:#111}
+.eq-band-picker button:focus-visible,.eq-mode-controls select:focus-visible{outline:2px solid #111;outline-offset:3px}
+.eq-band-selected{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:10px;letter-spacing:.07em}
+.eq-band-selected strong{font-size:12px}
+.tool-settings .pulse-eq-band{background:transparent;border:1px solid rgba(0,0,0,.5);padding:15px;}
+.pulse-eq-band label{color:#181818;}
+.pulse-eq-left .pulse-eq-graph circle{cursor:grab;}
+.pulse-eq-left .pulse-eq-graph circle:focus-visible{outline:2px solid #fff;}
+.tool-insights{margin:20px 0 0;border-top:1px solid #5a5953;padding-top:17px;color:#ebeae5;}
+.insights-view{display:grid;gap:12px;min-width:0}
+.insights-view>strong{font-size:10px;letter-spacing:.1em}
+.insights-view .master-readouts{grid-template-columns:repeat(2,minmax(0,1fr));}
+.insights-view .master-readouts>div{border-color:#64645e!important;color:#eee!important;}
+.insights-view .master-readouts strong,.insights-view .master-readouts small,.insights-view .master-readouts span{color:#f5f4f0!important}
+.insights-view .master-mix-health,.insights-view .master-eq,.insights-view .master-reference{border-color:#676760!important;background:transparent!important;color:#e7e6df!important;}
+.insights-view p,.insights-view strong,.insights-view span{overflow-wrap:anywhere}
+.insights-view #master-spectrum-bars>div{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #555}
+.insights-view #mix-quick-report{color:#f0eee7!important;border-left:2px solid #f9de52;padding-left:12px}
+.insights-view #mix-fix-advice,.insights-view #mix-advice{color:#fff}
+.advanced-feature>summary{cursor:pointer;font-size:11px;letter-spacing:.02em;border:1px solid rgba(0,0,0,.5);padding:13px;min-height:44px}
+@media(max-width:750px){
+ .eq-band-picker{grid-template-columns:repeat(5,minmax(0,1fr))}
+ .pulse-eq-left .pulse-eq-graph{min-height:205px}
+ .tool-insights .master-readouts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.eq-band-picker button,.pulse-eq-left svg{transition:none!important}}

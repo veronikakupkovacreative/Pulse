@@ -5,6 +5,7 @@ on:
       - feature/pulse-editor-workspace-3
       - feature/pulse-eq-waveform-ui-qa
       - feature/pulse-ai-studio-4-workflow
+      - feature/pulse-character-export-brand-fix
   workflow_dispatch:
 
 permissions:
@@ -12,7 +13,7 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4

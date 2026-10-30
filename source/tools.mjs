@@ -13,13 +13,15 @@ function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.m
 export function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
   const workspace=pulseProject.workspace;
-  const tools={eqNodes:null,eqOutputGain:null,category:'analyze',masterCandidate:null,reference:null,referenceGeneration:0,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
+  const tools={eqNodes:null,eqOutputGain:null,eqAnalyser:null,category:'analyze',masterCandidate:null,reference:null,referenceGeneration:0,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
+  let extraApi=null;
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
   const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('en-US',{maximumFractionDigits:1})} MB`;
   function workingChanged(){
     tools.masterCandidate=null;resetMasterUI();stopPreview();tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;tools.markers=[];tools.selectedSlice=0;tools.quickCandidate=null;tools.quickBounds=null;
+    extraApi?.onWorkspaceChanged?.();
     const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;tools.playhead=clampPlayhead(tools.playhead,tools.buffer?.duration);
     el('workspace-undo').disabled=!snapshot.canUndo;el('workspace-redo').disabled=!snapshot.canRedo;el('workspace-original').disabled=!snapshot.hasChanges;
     status('workspace-state',snapshot.hasChanges?'WORKING AUDIO':'ORIGINAL');
@@ -193,7 +195,7 @@ export function initStudioTools(getBpmTrack){
     clearInterval(tools.previewTimer);tools.previewTimer=null;
     cancelAnimationFrame(tools.raf);tools.raf=0;
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
-    tools.playing=false;tools.transport=null;tools.eqNodes=null;tools.eqOutputGain=null;
+    tools.playing=false;tools.transport=null;tools.eqNodes=null;tools.eqOutputGain=null;tools.eqAnalyser=null;
     el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Play audio');
   }
   function advancePlayhead(){
@@ -603,6 +605,11 @@ export function initStudioTools(getBpmTrack){
       tools.eqOutputGain=tools.context.createGain();tools.eqOutputGain.gain.value=10**(eqGainDb/20);
       previous.connect(tools.eqOutputGain);previous=tools.eqOutputGain;
     }
+    if(eqBands){
+      tools.eqAnalyser=tools.context.createAnalyser();
+      tools.eqAnalyser.fftSize=4096;tools.eqAnalyser.smoothingTimeConstant=.8;
+      previous.connect(tools.eqAnalyser);previous=tools.eqAnalyser;
+    }
     previous.connect(gain);gain.connect(tools.context.destination);
     const startedAt=tools.context.currentTime;
     tools.transport={buffer,from,to,volume,eqBands,eqGainDb,startedAt,loop:looping,loopFrom:tools.loopFrom,loopTo:tools.loopTo};tools.source=src;tools.playing=true;
@@ -702,6 +709,7 @@ export function initStudioTools(getBpmTrack){
   }
   function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value),stereoWidth:Number(el('master-width').value)/100,eqMode:el('master-eq-mode').value,dynamicsMode:el('master-dynamics').value};}
   function resetMasterUI(){
+    el('master-fix-in-mix').disabled=true;
     for(const id of ['master-before','master-after','master-peak','master-crest','master-correlation','master-gr'])status(id,'—');
     el('master-eq').hidden=true;el('master-eq-response').hidden=true;el('master-mix-health').hidden=true;el('master-spectrum').hidden=true;el('master-report').disabled=true;
     status('master-status','Load a track, choose preset and Generate Master.');
@@ -772,6 +780,7 @@ export function initStudioTools(getBpmTrack){
     }finally{if(id===tools.referenceGeneration){setBusy(false);el('master-preview-r').disabled=!tools.reference;}}
   }
   function showMasterResult(result){
+    el('master-fix-in-mix').disabled=false;
     status('master-before',masterMetric(result.before.lufs));
     status('master-after',masterMetric(result.after.lufs));
     status('master-peak',masterMetric(result.after.truePeakDb));status('master-crest',masterMetric(result.after.crestDb));status('master-correlation',masterMetric(result.after.correlation));status('master-gr',masterMetric(result.settings.maxReductionDb));
@@ -853,6 +862,11 @@ export function initStudioTools(getBpmTrack){
     tools.masterCandidate=null;resetMasterUI();updateButtons();
   }));
   el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity','master-width','master-eq-mode','master-dynamics'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');status('master-width-label',el('master-width').value+'%');tools.masterCandidate=null;resetMasterUI();updateButtons();});
+  el('master-fix-in-mix').onclick=()=>{
+    const result=tools.masterCandidate?.analysis;
+    if(!result||tools.masterCandidate?.input!==tools.buffer)return;
+    selectTab('mix');extraApi?.showFixAdvice(result);
+  };
   el('master-render').onclick=()=>masterAction('render');
   el('master-preview-a').onclick=()=>masterAction('original');
   el('master-preview-b').onclick=()=>masterAction('mastered');
@@ -1030,7 +1044,7 @@ export function initStudioTools(getBpmTrack){
   });
   const resize=new ResizeObserver(()=>{drawToolWave();updatePlayhead(tools.playhead);});resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.bpmWorker?.terminate();tools.productionWorker?.terminate();tools.keyWorker?.terminate();tools.context?.close();});
-  initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
+  extraApi=initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
     download,filename,status,decodeLocalAudio,audioFileError,encodeWav});
   selectCategory('analyze',false);syncOutput();updateCalculator();resetWaveView(0);updateButtons();
   return {reset:remove};

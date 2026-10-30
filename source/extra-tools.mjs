@@ -6,7 +6,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   const eqNotice=text=>status('eq-status',text);
   const mixNotice=text=>status('mix-status',text);
   const eqInputs=el('eq-bands');
-  let dragBand=-1;
+  let dragBand=-1,spectrumRaf=0,spectrumStamp=0;
   const presets={
     flat:EQ_DEFAULT_BANDS.map(x=>({...x})),
     vocal:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,gain:[0,0,-2,0,2.5,-1,0,1][i],
@@ -16,6 +16,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     clean:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,
       frequency:i===0?45:x.frequency,gain:0}))
   };
+  for(const key of Object.keys(CLASSIC_EQ_MODES))presets[key]=classicEqBands(key);
   function readEq(){return eqState.bands.map(x=>({...x}));}
   function eqFilterNodes(){
     if(!tools.context)return [];
@@ -69,6 +70,38 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   });
   el('eq-response-graph').addEventListener('pointerup',()=>{dragBand=-1;});
   el('eq-response-graph').addEventListener('pointercancel',()=>{dragBand=-1;});
+  function drawLiveSpectrum(timestamp=0){
+    if(!tools.eqAnalyser||!tools.playing||tools.tab!=='equalizer'||!el('eq-spectrum').checked){
+      spectrumRaf=0;const canvas=el('eq-live-spectrum');canvas.getContext('2d')?.clearRect(0,0,canvas.width,canvas.height);
+      return;
+    }
+    if(timestamp-spectrumStamp>33){
+      spectrumStamp=timestamp;const analyser=tools.eqAnalyser,canvas=el('eq-live-spectrum');
+      const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);
+      const width=rect.width||720,height=rect.height||232;
+      const w=Math.max(1,Math.round(width*dpr)),h=Math.max(1,Math.round(height*dpr));
+      if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+      const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+      const bins=new Float32Array(analyser.frequencyBinCount);analyser.getFloatFrequencyData(bins);
+      const minHz=20,maxHz=Math.min(20000,tools.context.sampleRate*.45);
+      ctx.beginPath();let found=false;
+      for(let i=1;i<bins.length;i++){
+        const hz=i*tools.context.sampleRate/analyser.fftSize;
+        if(hz<minHz||hz>maxHz)continue;
+        const x=Math.log(hz/minHz)/Math.log(maxHz/minHz)*width;
+        const db=Number.isFinite(bins[i])?bins[i]:-110;
+        const y=height-(Math.max(-110,Math.min(-10,db))+110)/100*height;
+        if(!found){ctx.moveTo(x,y);found=true;}else ctx.lineTo(x,y);
+      }
+      if(found){ctx.strokeStyle='rgba(245,244,240,.65)';ctx.lineWidth=1.3;ctx.stroke();}
+    }
+    spectrumRaf=requestAnimationFrame(drawLiveSpectrum);
+  }
+  function beginLiveSpectrum(){if(!spectrumRaf)spectrumRaf=requestAnimationFrame(drawLiveSpectrum);}
+  el('eq-spectrum').onchange=()=>{if(el('eq-spectrum').checked)beginLiveSpectrum();else{
+    cancelAnimationFrame(spectrumRaf);spectrumRaf=0;
+    const canvas=el('eq-live-spectrum');canvas.getContext('2d')?.clearRect(0,0,canvas.width,canvas.height);
+  }};
   function eqNodeUpdate(){
     if(!tools.eqNodes)return;
     for(let i=0;i<tools.eqNodes.length;i++){
@@ -131,7 +164,8 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       if(action==='preview'){
         await playBuffer(tools.buffer,tools.playhead,tools.buffer.duration,1,
           {allowLoop:true,eqBands:el('eq-bypass').checked?[]:readEq(),eqGainDb:eqState.gainDb});
-        eqNotice('Live EQ preview. Adjust filters while playing.');
+        beginLiveSpectrum();
+        eqNotice('Live EQ preview with FFT spectrum. Adjust filters while playing.');
         return;
       }
       eqNotice('Rendering EQ locally…');
@@ -148,7 +182,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-export').onclick=()=>void eqAction('export');
   refreshEq();
 
-  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;}
+  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-quick-auto').disabled=true;}
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};
   el('mix-character').onchange=clearQuickMix;
   el('mix-quick-analyze').onclick=()=>{
@@ -164,7 +198,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       const result=renderStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate,{
         character:el('mix-character').value,intensity:Number(el('mix-intensity').value)});
       quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(result.channels,tools.buffer.sampleRate)};
-      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;
+      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-quick-auto').disabled=false;
       status('mix-quick-report',result.changes.length?result.changes.map(c=>
         c.frequency+' Hz '+c.gainDb.toFixed(1)+' dB').join(' · '):
         'Original tonal balance retained. No corrective EQ was indicated.');
@@ -175,13 +209,28 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     try{await playBuffer(quickMixCandidate.buffer,tools.playhead,quickMixCandidate.buffer.duration,1,{allowLoop:false});}
     catch(error){status('mix-quick-report',error.message);}
   };
-  el('mix-quick-send').onclick=()=>{
+  function sendQuickMix(autoRender=false){
     if(!quickMixCandidate||quickMixCandidate.input!==tools.buffer){status('mix-quick-report','Regenerate your mix after changing source audio.');return;}
     workspace.apply(quickMixCandidate.buffer);
     workingChanged();clearQuickMix();
     document.getElementById('tab-master').click();
-    status('master-status','Quick Fix mix transferred. Generate a new master using the updated working audio.');
-  };
+    status('master-status','Quick Fix applied to working audio; '+(autoRender?'generating a new master.':'Generate a new master to continue.'));
+    if(autoRender)el('master-render').click();
+  }
+  el('mix-quick-send').onclick=()=>sendQuickMix(false);
+  el('mix-quick-auto').onclick=()=>sendQuickMix(true);
+  function showFixAdvice(masterResult){
+    const panel=el('mix-fix-advice');panel.replaceChildren();
+    const title=document.createElement('strong');title.textContent='FIX IN MIX · MASTERING FEEDBACK';panel.append(title);
+    const issues=(masterResult?.findings||[]).filter(x=>x.code!=='balanced');
+    const rows=issues.length?issues.map(x=>x.label+' · '+x.evidence+' — '+x.detail):
+      ['No critical mix-health thresholds triggered. Listen before changing the source.'];
+    for(const message of rows){const item=document.createElement('p');item.textContent=message;panel.append(item);}
+    const note=document.createElement('p');
+    note.textContent='Changes in Mix are non-destructive until Apply. Re-render Smart Master after editing.';
+    panel.append(note);panel.hidden=false;
+    el('mix-quick-analyze').click();
+  }
   function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;}
   function renderMixRows(){
     const list=el('mix-stems');list.replaceChildren();
@@ -272,5 +321,6 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const blob=encodeWav(mixCandidate.channels,mixCandidate.rate,24);
     download(blob,'pulse-multitrack-mix.wav');mixNotice('Multitrack mix exported as stereo WAV.');};
   renderMixRows();
-  return {invalidateMix,clearQuickMix,reset(){mixTracks=[];mixCandidate=null;clearQuickMix();renderMixRows();}};
+  return {invalidateMix,clearQuickMix,showFixAdvice,onWorkspaceChanged(){clearQuickMix();el('mix-fix-advice').hidden=true;},
+    reset(){mixTracks=[];mixCandidate=null;clearQuickMix();renderMixRows();}};
 }

@@ -1,6 +1,7 @@
 import {integratedLoudness} from './quick-tools.mjs';
 import {truePeakDb,limitTruePeak} from './true-peak.mjs';
 import {stereoHealth,mixHealthFindings,applyStereoWidth} from './mix-health.mjs';
+import {analyzeSpectrum,spectrumFindings} from './spectral-health.mjs';
 // Pulse Smart Master v1: adaptive, deterministic offline DSP. No neural model.
 // All operations happen on the client, and no source channel is mutated.
 const masterClamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
@@ -94,9 +95,9 @@ export function analyzeMaster(channels,rate){
   const lowShare=Math.sqrt(low.low/Math.max(1e-12,low.total));
   const highShare=Math.sqrt(high.high/Math.max(1e-12,high.total));
   const loudness=integratedLoudness(channels,rate);
-  const dynamics=shortTermAndRange(channels,rate),stereo=stereoHealth(channels);
+  const dynamics=shortTermAndRange(channels,rate),stereo=stereoHealth(channels),spectrum=analyzeSpectrum(channels,rate);
   return {peakDb:db(peak),truePeakDb:truePeakDb(channels),rmsDb:db(r),crestDb:db(peak/r),
-    lufs:loudness,...dynamics,...stereo,
+    lufs:loudness,...dynamics,...stereo,spectrum,
     lowShare,highShare,channels:channels.length,rate,duration:channels[0].length/rate};
 }
 export function designMaster(analysis,preset='balanced',targetLufs,{intensity=45,ceilingDb=-1}={}){
@@ -147,7 +148,8 @@ export function processMaster(channels,rate,{preset='balanced',targetLufs,intens
   const gained=widened.map(ch=>Float32Array.from(ch,s=>s*multiplier));
   const limited=limitTruePeak(gained,rate,settings.ceilingDb);
   const output=limited.channels,after=analyzeMaster(output,rate);
-  const findings=mixHealthFindings(before);
+  const findings=[...mixHealthFindings(before).filter(x=>x.code!=='balanced'),...spectrumFindings(before.spectrum)];
+  if(!findings.length)findings.push({code:'balanced',label:'NO CRITICAL ISSUES',evidence:'No thresholds exceeded',detail:'Preserve the mix unless listening reveals a problem.'});
   return {channels:output,findings,settings:{...settings,stereoWidth,appliedGainDb:correction,
       maxReductionDb:limited.maxReductionDb,safetyTrimDb:limited.safetyTrimDb},
     before,after,notes:[

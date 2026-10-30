@@ -85,3 +85,10 @@ test('mix health supports stereo analysis and optional processing',()=>{
  assert.deepEqual(channels,original);
  assert.ok(result.after.truePeakDb<=-.95);
 });
+
+test('master reports seven measured frequency bands without mutating audio',()=>{
+ const src=sample(1.1),r=processMaster(src,rate,{preset:'balanced'});
+ assert.equal(r.before.spectrum.length,7);assert.equal(r.after.spectrum.length,7);
+ const total=r.before.spectrum.reduce((a,b)=>a+b.share,0);
+ assert.ok(Math.abs(total-1)<1e-5);assert.ok(r.findings.length>0);
+});

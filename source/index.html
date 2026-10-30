@@ -172,7 +172,7 @@
               <div><span>AFTER</span><strong id="master-after">—</strong><small>LUFS integrated</small></div>
               <div><span>TRUE PEAK</span><strong id="master-peak">—</strong><small>dBTP (4× estimate)</small></div><div><span>CREST</span><strong id="master-crest">—</strong><small>dB</small></div><div><span>STEREO</span><strong id="master-correlation">—</strong><small>correlation</small></div><div><span>MAX GR</span><strong id="master-gr">—</strong><small>dB reduction</small></div>
             </div>
-            <div class="master-mix-health" id="master-mix-health" role="status" hidden></div><div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
+            <div class="master-mix-health" id="master-mix-health" role="status" hidden></div><div id="master-spectrum" class="master-mix-health" hidden><strong>TONAL BALANCE · SOURCE-RELATIVE ENERGY</strong><div id="master-spectrum-bars"></div></div><div class="quick-actions"><button type="button" id="master-report" disabled>Export Analysis JSON ↗</button></div><div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
             <button type="button" id="master-render" class="tool-action tool-action-dark" disabled>Generate Master <span>↗</span></button>
             <div class="master-actions"><button type="button" id="master-preview-a" disabled>▶ A / ORIGINAL</button><button type="button" id="master-preview-b" disabled>▶ B / MASTER</button></div>
             <label class="master-match"><input type="checkbox" id="master-match" checked> Loudness-matched A/B preview</label>

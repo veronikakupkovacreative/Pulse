@@ -686,7 +686,7 @@ export function initStudioTools(getBpmTrack){
   function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value),stereoWidth:Number(el('master-width').value)/100};}
   function resetMasterUI(){
     for(const id of ['master-before','master-after','master-peak','master-crest','master-correlation','master-gr'])status(id,'—');
-    el('master-eq').hidden=true;el('master-mix-health').hidden=true;
+    el('master-eq').hidden=true;el('master-mix-health').hidden=true;el('master-spectrum').hidden=true;el('master-report').disabled=true;
     status('master-status','Load a track, choose preset and Generate Master.');
     for(const id of ['master-preview-b','master-apply','master-export'])el(id).disabled=true;
   }
@@ -702,6 +702,8 @@ export function initStudioTools(getBpmTrack){
     el('master-eq').hidden=false;
     const health=el('master-mix-health');health.replaceChildren();
     for(const finding of result.findings||[]){const line=document.createElement('p');line.textContent=finding.label+' · '+finding.evidence+' — '+finding.detail;health.append(line);}health.hidden=false;
+    const bars=el('master-spectrum-bars');bars.replaceChildren();
+    for(const band of result.before.spectrum||[]){const row=document.createElement('div');const name=document.createElement('span');const amount=document.createElement('span');name.textContent=band.label;amount.textContent=band.available?(band.share*100).toFixed(1)+'%':'N/A';row.append(name,amount);bars.append(row);}el('master-spectrum').hidden=false;el('master-report').disabled=false;
     status('master-status',`Done · ${result.settings.preset.toUpperCase()} · target ${result.settings.targetLufs} LUFS, measured ${masterMetric(result.after.lufs)} LUFS. True-peak estimate ${masterMetric(result.after.truePeakDb)} dBTP · ceiling ${result.settings.ceilingDb.toFixed(1)} dBTP.`);
   }
   async function prepareMaster(){
@@ -769,6 +771,7 @@ export function initStudioTools(getBpmTrack){
   el('master-preview-b').onclick=()=>masterAction('mastered');
   el('master-apply').onclick=()=>masterAction('apply');
   el('master-export').onclick=()=>masterAction('export');
+  el('master-report').onclick=()=>{const data=tools.masterCandidate?.analysis;if(!data)return;const json={version:'Smart Master 2.1',source:tools.file?.name||'Audio',before:data.before,after:data.after,settings:data.settings,findings:data.findings,notes:data.notes};download(new Blob([JSON.stringify(json,null,2)],{type:'application/json'}),filename('master-report.json'));};
   // Phase 2 controls
   for(const id of ['pt-original','pt-target','pt-semitones','pt-cents','pt-preserve'])el(id).addEventListener('input',()=>{if(id==='pt-original'||id==='pt-target')tools.bpmEdited=true;updatePitchLabels();});
   for(const id of ['tuner-semitones','tuner-cents-adjust'])el(id).addEventListener('input',updateTunerLabels);

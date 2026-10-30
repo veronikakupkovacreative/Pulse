@@ -48,7 +48,7 @@ const bundledScript=`(() => {
   ${noExports(quickDsp)}
   ${noExports(audioWorkspace)}
   ${noExports(mediaLoader)}
-  ${noExports(projectSession)}
+  ${noImports(noExports(projectSession))}
   ${noExports(productionDsp)}
   ${noExports(zipStore)}
   ${noExports(tools)}

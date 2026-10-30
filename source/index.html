@@ -133,8 +133,28 @@
   <p id="eq-wave-help">Click waveform to seek · Select Range or Shift+drag · Use the overview to navigate</p>
 </div>
 <div class="pulse-eq-left" id="pulse-eq-left" hidden>
-  <div class="eq-left-heading"><strong>PARAMETRIC EQ · LIVE RESPONSE</strong><span>20 Hz — 20 kHz</span></div>
-  <div class="pulse-eq-stage"><svg id="eq-response-graph" class="pulse-eq-graph" viewBox="0 0 720 232" aria-label="Frequency response curve with draggable band handles" role="img"></svg><canvas id="eq-live-spectrum" class="pulse-eq-live" aria-hidden="true"></canvas></div><label class="pulse-eq-spectrum-toggle"><input type="checkbox" id="eq-spectrum" checked> Live FFT spectrum · post-EQ output</label>
+  <div class="eq-mode-pills" role="group" aria-label="Equalizer band layout">
+  <button type="button" data-eq-bands="3" aria-pressed="false">3 BANDS</button>
+  <button type="button" data-eq-bands="10" aria-pressed="false">10 BANDS</button>
+  <button type="button" data-eq-bands="20" aria-pressed="true">20 BANDS</button>
+  <span class="eq-mode-caption">Applies to both channels together</span>
+</div>
+<div class="eq-left-heading"><strong>PARAMETRIC EQ · LIVE RESPONSE</strong><span>20 Hz — 20 kHz</span></div>
+  <div class="pulse-eq-stage"><svg id="eq-response-graph" class="pulse-eq-graph" viewBox="0 0 720 232" aria-label="Frequency response curve with draggable band handles" role="img"></svg><canvas id="eq-live-spectrum" class="pulse-eq-live" aria-hidden="true"></canvas></div>
+<div class="eq-preset-pills" role="group" aria-label="Equalizer sound presets">
+  <button type="button" data-eq-preset="default" aria-pressed="true">DEFAULT</button>
+  <button type="button" data-eq-preset="custom" aria-pressed="false">CUSTOM</button>
+  <button type="button" data-eq-preset="voice-clarity" aria-pressed="false">VOICE CLARITY</button>
+  <button type="button" data-eq-preset="podcast" aria-pressed="false">PODCAST</button>
+  <button type="button" data-eq-preset="bass-focus" aria-pressed="false">BASS FOCUS</button>
+  <button type="button" data-eq-preset="full-bass" aria-pressed="false">FULL BASS</button>
+  <button type="button" data-eq-preset="bright" aria-pressed="false">BRIGHT</button>
+  <button type="button" data-eq-preset="warm" aria-pressed="false">WARM</button>
+  <button type="button" data-eq-preset="soft" aria-pressed="false">SOFT</button>
+  <button type="button" data-eq-preset="club" aria-pressed="false">CLUB</button>
+  <button type="button" data-eq-preset="rock" aria-pressed="false">ROCK</button>
+</div>
+<p class="eq-preset-description" id="eq-preset-description" role="status">Flat response. No tonal processing.</p><label class="pulse-eq-spectrum-toggle"><input type="checkbox" id="eq-spectrum" checked> Live FFT spectrum · post-EQ output</label>
   <div class="pulse-eq-editor-note" id="eq-active-readout" role="status">Select a band on the curve or in the controls.</div>
 </div><p class="tool-seek-hint" id="tool-seek-hint">Click or drag to seek · I/O loop · L toggle · +/− zoom · Arrows ±1s, Shift ±5s.</p><p class="waveform-loop-info" id="wave-loop-info" role="status">LOOP 00:00.00 – 00:00.00 · OFF</p><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Play audio">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Replace ↗</button></div>
   <section id="tool-insights" class="tool-insights" hidden aria-label="Audio analysis results">
@@ -215,11 +235,11 @@
           </div>
 
           <div id="panel-equalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-equalizer" hidden>
-            <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span>8 BANDS · LOCAL DSP</span></div>
+            <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span id="eq-band-count-note">20 BANDS · LOCAL DSP</span></div>
             <h3>Equalizer.</h3>
             <p class="tool-footnote">Adjust the yellow curve under the waveform. Edit the selected filter here.</p>
-            <div class="eq-mode-controls"><label>Bands<select id="eq-band-count" aria-label="EQ band count"><option value="3">3 BANDS</option><option value="8" selected>8 BANDS</option><option value="10">10 BANDS</option><option value="20">20 BANDS</option></select></label></div>
-<div class="tool-fields"><label>EQ preset<select id="eq-preset"><option value="flat">Flat</option><option value="vocal">Vocal Presence</option><option value="bass">Warm Bass</option><option value="air">Air &amp; Brilliance</option><option value="clean">Low-Cut Clean</option><optgroup label="Classic EQ character"><option value="classic-warm">Classic Warm</option><option value="classic-presence">Classic Presence</option><option value="classic-air">Classic Air</option><option value="classic-tight">Classic Tight</option></optgroup></select></label>
+            <select id="eq-band-count" aria-label="EQ band count" hidden><option value="3">3 BANDS</option><option value="8">8 BANDS</option><option value="10">10 BANDS</option><option value="20" selected>20 BANDS</option></select>
+<div class="tool-fields"><input id="eq-preset" type="hidden" value="default" aria-hidden="true">
             <p class="tool-footnote" id="eq-character-description" hidden>Original PULSE filter curves.</p><label>Output gain <output id="eq-output-label">0.0 dB</output><input type="range" id="eq-output-gain" min="-18" max="12" step=".5" value="0"></label>
             <label><input id="eq-bypass" type="checkbox"> Bypass EQ</label></div>
             

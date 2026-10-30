@@ -18,7 +18,7 @@ class PulseSpectralDenoiser extends AudioWorkletProcessor {
   }
   createChannel(){return {input:new Float32Array(FFT_SIZE),output:new Float32Array(this.ringLength),
     weight:new Float32Array(this.ringLength),real:new Float64Array(FFT_SIZE),imag:new Float64Array(FFT_SIZE),
-    memory:new Float64Array(HALF+1),scratch:new Float64Array(HALF+1)};}
+    memory:new Float64Array(HALF+1),scratch:new Float64Array(HALF+1),hpX:0,hpY:0,gateGain:1};}
   transform(channel,end,profile){
     const {input,real,imag,memory,scratch,output,weight}=channel,start=end-FFT_SIZE+1;
     for(let i=0;i<FFT_SIZE;i++){
@@ -42,12 +42,18 @@ class PulseSpectralDenoiser extends AudioWorkletProcessor {
       const n=this.clock++;
       for(let c=0;c<target.length;c++){
         const state=this.channels[c],src=source?.[c]||source?.[0];
-        state.input[n%FFT_SIZE]=src?.[i]||0;
+        let sample=src?.[i]||0;
+        if(this.options.rumbleHz>0){const alpha=Math.exp(-2*Math.PI*this.options.rumbleHz/sampleRate);const filtered=alpha*(state.hpY+sample-state.hpX);state.hpX=sample;state.hpY=filtered;sample=filtered;}
+        state.input[n%FFT_SIZE]=sample;
         if(n%HOP===HOP-1)this.transform(state,n,this.profile[Math.min(c,this.profile.length-1)]);
         const pos=n-FFT_SIZE;
         if(pos<0){target[c][i]=0;continue;}
         const slot=pos%this.ringLength;
-        target[c][i]=state.weight[slot]>1e-7?state.output[slot]/state.weight[slot]:0;
+        let cleaned=state.weight[slot]>1e-7?state.output[slot]/state.weight[slot]:0;
+        const threshold=Math.pow(10,this.options.gateDb/20),magnitude=Math.abs(sample),targetGain=magnitude<threshold?Math.max(.08,magnitude/Math.max(threshold,1e-9)):1;
+        const coefficient=targetGain<state.gateGain?.025:.18;state.gateGain+=(targetGain-state.gateGain)*(1-Math.exp(-1/(coefficient*sampleRate)));
+        cleaned*=state.gateGain;
+        const blend=this.options.blend/100;target[c][i]=sample*(1-blend)+cleaned*blend;
         state.output[slot]=0;state.weight[slot]=0;
       }
     }

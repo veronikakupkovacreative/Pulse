@@ -6,11 +6,13 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix,classicEq,eqRegion,eqBandModes,waveEdit]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix,classicEq,eqRegion,eqBandModes,waveEdit,spectralDsp,spectralWorker,spectralUi]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/waveform-edit.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/waveform-edit.mjs'),read('dsp/spectral-denoise.mjs'),read('spectral-worker.js'),read('spectral-denoise-ui.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
+const spectralWorkerSource=noExports(spectralDsp)+'\n'+spectralWorker;
+new vm.Script(spectralWorkerSource);
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
 const workerSource=noExports(analyzer)+'\n'+noImports(worker);
 const keySource=noExports(studioAudio)+'\n'+noImports(keyWorker);
@@ -38,6 +40,8 @@ const bundledScript=`(() => {
   const ANALYSIS_WORKER_SOURCE=${JSON.stringify(workerSource)};
   const KEY_WORKER_SOURCE=${JSON.stringify(keySource)};
   const PRODUCTION_WORKER_SOURCE=${JSON.stringify(productionSource)};
+  const SPECTRAL_WORKER_SOURCE=${JSON.stringify(spectralWorkerSource)};
+  function createSpectralWorker(){const url=URL.createObjectURL(new Blob([SPECTRAL_WORKER_SOURCE],{type:'text/javascript'}));const worker=new Worker(url);const originalTerminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);originalTerminate();};return worker;}
   ${createBlobWorker('bpm')}
   ${createBlobWorker('key')}
   function createBundledProductionWorker(){const url=URL.createObjectURL(new Blob([PRODUCTION_WORKER_SOURCE],{type:'text/javascript'}));const worker=new Worker(url);const terminate=worker.terminate.bind(worker);worker.terminate=()=>{URL.revokeObjectURL(url);terminate();};return worker;}
@@ -63,6 +67,7 @@ const bundledScript=`(() => {
   ${noExports(waveEdit)}
   ${noExports(mixDsp)}
   ${noExports(extraTools)}
+  ${noExports(spectralUi)}
   ${noExports(zipStore)}
   ${noExports(tools)}
   ${app}

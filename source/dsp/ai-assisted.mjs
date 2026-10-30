@@ -1,6 +1,6 @@
 // PULSE AI-assisted DSP: measurable audio parameters, model-conditioned recommendations.
 // No neural inference runs in this module. Call recommendAiSettings only with a
-// validated result returned by a trained YAMNet worker.
+// validated four-stem Demucs inference result.
 const clampAi=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||0));
 export function analyzeAudioForAssist(channels,rate){
   if(!Array.isArray(channels)||!channels.length||!Number.isFinite(rate)||rate<8000)
@@ -71,7 +71,7 @@ export function recommendAiSettings(classifications,features,effect){
       break;
     default:throw Error('Unsupported AI-assisted effect.');
   }
-  return {effect,settings,model:'YAMNet · AudioSet 521',label:strongest.label,confidence:strongest.score,
+  return {effect,settings,model:'Demucs · four-stem neural separation',label:strongest.label,confidence:strongest.score,
     // The model predicts sound classes, not optimal mastering settings. DSP
     // parameter mapping is an explicitly labeled heuristic recommendation.
     method:'Model-conditioned DSP suggestion (not a learned parameter optimizer)'};

@@ -85,7 +85,7 @@ export function initStemToolkit(project,encodeWav){
       const output=document.createElement('output');output.textContent=Math.round(volumes[i]*100)+'%';
       gain.oninput=()=>{volumes[i]=Number(gain.value)/100;output.textContent=gain.value+'%';};
       const exportBtn=document.createElement('button');exportBtn.type='button';exportBtn.textContent='Download WAV';
-      exportBtn.onclick=()=>download(stem.channels,stem.rate,'pulse-'+labels[i]+'.wav');
+      exportBtn.onclick=()=>download(stem.channels,stem.rate,'pulse-'+stem.name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.wav');
       row.append(title,soloBtn,muteBtn,gain,output,exportBtn);root.append(row);
     }
   }

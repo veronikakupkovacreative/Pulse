@@ -54,7 +54,7 @@ export function initStudioTools(getBpmTrack){
         const l=mono[Math.max(0,index)]||0,r=stereo?.[Math.max(0,index)]||l;
         const peak=Math.min(1,Math.max(l,r));
         const height=Math.max(1,peak*(h-10));
-        ctx.fillStyle='#92948f';
+        ctx.fillStyle='#ff2b20';
         ctx.fillRect(i*gap,(h-height)/2,Math.max(1,gap*.72),height);
       }
       overviewPaintedFor=key;overviewPaintedWidth=Math.round(w);
@@ -612,7 +612,7 @@ export function initStudioTools(getBpmTrack){
       const t=view.start+(i+.5)/bars*view.span;
       const amp=Math.max(2,Math.pow(peakAt(left,tools.peaks,t),.55)*(h-20)*.78),x=i*bar;
       const isSelected=!selection||(t>=selection[0]&&t<=selection[1]);
-      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?'#f4dd66':'#777770'):(isSelected?'#ff2b20':'#72726c');
+      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?'#ff2b20':'#753d39'):(isSelected?'#ff2b20':'#72726c');
       if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
         const other=Math.max(2,Math.pow(peakAt(right,tools.peaksRight,t),.55)*(h-20)*.37);
         const half=(h-17)/2;

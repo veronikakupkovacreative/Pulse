@@ -19,9 +19,9 @@ test('key detector finds C in a sustained C major triad',()=>{
 });
 
 test('optional TPDF dither affects 16-bit quantization but leaves 24-bit output unchanged',async()=>{
- const source=[new Float32Array(16).fill(.000014)];
+ const source=[new Float32Array(16).fill(0)];
  const plain=new Uint8Array(await encodeWav(source,48000,16).arrayBuffer());
- let i=0;const random=()=>[0,1,.25,.75][i++%4];
+ let i=0;const random=()=>[0,0,1,1][i++%4];
  const dithered=new Uint8Array(await encodeWav(source,48000,16,{dither:true,random}).arrayBuffer());
  assert.notDeepEqual([...plain.slice(44)],[...dithered.slice(44)]);
  const p24=new Uint8Array(await encodeWav(source,48000,24).arrayBuffer());

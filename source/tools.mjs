@@ -22,6 +22,9 @@ export function initStudioTools(getBpmTrack){
   function syncEqEditor(){
     const loaded=Boolean(tools.buffer),eq=tools.tab==='equalizer';
     el('eq-wave-editor').hidden=!eq||!loaded;
+    el('eq-visual-workspace').hidden=!eq||!loaded;
+    el('mix-visual-workspace').hidden=tools.tab!=='mix'||!loaded;
+    el('master-visual-workspace').hidden=tools.tab!=='master'||!loaded;
     el('eq-select-region').setAttribute('aria-pressed',String(tools.eqSelectMode));
     const selection=tools.eqSelection,duration=tools.buffer?.duration||0;
     el('eq-region-in').max=String(duration);el('eq-region-out').max=String(duration);
@@ -638,8 +641,8 @@ export function initStudioTools(getBpmTrack){
       tools.eqNodes=[];
       for(const band of eqBands){
         const filter=tools.context.createBiquadFilter();
-        filter.type=band.enabled?band.type:'allpass';filter.frequency.value=Math.min(band.frequency,tools.context.sampleRate*.49);
-        filter.Q.value=band.q;filter.gain.value=band.gain;
+        filter.type=band.enabled?band.type:'peaking';filter.frequency.value=Math.min(band.frequency,tools.context.sampleRate*.49);
+        filter.Q.value=band.q;filter.gain.value=band.enabled?band.gain:0;
         previous.connect(filter);previous=filter;tools.eqNodes.push(filter);
       }
     }

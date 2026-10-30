@@ -78,6 +78,7 @@
         <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim" data-group="edit" hidden>Silence Trim <b>↗</b></button>
         <button class="tool-tab" id="tab-converter" role="tab" aria-selected="false" aria-controls="panel-converter" tabindex="-1" data-tool="converter" data-group="export" hidden>Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer" data-group="export" hidden>Normalizer <b>↗</b></button>
+        <button class="tool-tab" id="tab-denoise" role="tab" aria-selected="false" aria-controls="panel-denoise" tabindex="-1" data-tool="denoise" data-group="edit" hidden>Spectral Denoise <b>↗</b></button>
         <button class="tool-tab" id="tab-equalizer" role="tab" aria-selected="false" aria-controls="panel-equalizer" tabindex="-1" data-tool="equalizer" data-group="edit" hidden>Equalizer <b>↗</b></button>
         <button class="tool-tab" id="tab-mix" role="tab" aria-selected="false" aria-controls="panel-mix" tabindex="-1" data-tool="mix" data-group="ai" hidden>AI Mix <b>↗</b></button>
         <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden>AI Master <b>↗</b></button>
@@ -225,6 +226,25 @@
             <div id="eq-bands" class="pulse-eq-bands" aria-label="Equalizer band selection and settings"></div>
             <div class="quick-actions"><button id="eq-reset" type="button">RESET</button><button id="eq-preview" type="button">▶ PREVIEW</button><button id="eq-apply" type="button">Apply to Workspace</button><button id="eq-export" type="button">Export WAV ↗</button></div>
             <p class="eq-render-scope" id="eq-scope-info" role="status">PROCESSING SCOPE · ENTIRE TRACK</p><p class="tool-footnote" id="eq-status" role="status">Load your audio in the shared workspace to start.</p>
+          </div>
+          <div id="panel-denoise" class="tool-view pulse-ai-view" role="tabpanel" aria-labelledby="tab-denoise" hidden>
+            <div class="tool-view-header"><span>02 / SPECTRAL DENOISE</span><span>2048 FFT · LOCAL DSP</span></div>
+            <h3>Clean your sound.</h3>
+            <p class="tool-footnote">Select an isolated noise-only region with the waveform IN / OUT markers, then learn the noise fingerprint. Process the whole stereo track without changing the source until Apply.</p>
+            <div class="pulse-ai-kicker">01 / NOISE FINGERPRINT</div>
+            <button type="button" class="tool-action tool-action-dark" id="denoise-learn" disabled>Learn Noise <span>↗</span></button>
+            <p class="tool-footnote" id="denoise-profile-status" role="status">Set IN / OUT around noise without voice or music. Minimum 120 ms.</p>
+            <div class="tool-fields">
+              <label>Reduction amount <output id="denoise-amount-value">65%</output><input id="denoise-amount" type="range" min="0" max="100" value="65" step="5"></label>
+              <label>Artifact smoothing <output id="denoise-smoothing-value">65%</output><input id="denoise-smoothing" type="range" min="0" max="100" value="65" step="5"></label>
+            </div>
+            <details class="pulse-ai-advanced"><summary>Advanced · residual floor</summary><div class="tool-fields"><label>Minimum retained spectral energy <output id="denoise-floor-value">8%</output><input id="denoise-floor" type="range" min="3" max="30" step="1" value="8"></label></div></details>
+            <button id="denoise-process" type="button" class="tool-action tool-action-dark" disabled>Process Audio <span>↗</span></button>
+            <div id="denoise-result" class="pulse-ai-result-actions" hidden>
+              <button id="denoise-preview" type="button" disabled>▶ Preview</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><button id="denoise-export" type="button" disabled>Export WAV 24-bit ↗</button>
+            </div>
+            <p id="denoise-status" class="tool-footnote" role="status">Learn a noise profile to begin.</p>
+            <p class="tool-footnote">STFT · Hann window · frequency/time smoothing · 75% overlap-add. No cloud upload. Noise selection must contain background noise only; excessive reduction can produce artifacts.</p>
           </div>
           <div id="panel-mix" class="tool-view pulse-ai-view" role="tabpanel" aria-labelledby="tab-mix" hidden>
             <div class="tool-view-header"><span>04 / AI STUDIO · MIX</span><span>LOCAL AUDIO PROCESSING</span></div>

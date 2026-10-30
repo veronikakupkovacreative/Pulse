@@ -858,3 +858,11 @@
 .pulse-youtube-retry{padding:10px 14px;border:1px solid currentColor;font:700 11px Arial,sans-serif;border-radius:0!important}
 .mix-character-types label span{border-radius:0!important}
 @media(prefers-reduced-motion:reduce){.pulse-eq-left .pulse-eq-graph circle{transition:none!important}}
+
+/* Remove inherited yellow clip-editor accents on hover/focus. */
+.tool-source:has(#eq-overview:not([hidden])) .wave-edit-actions button:hover:not(:disabled),
+.tool-source:has(#eq-overview:not([hidden])) .wave-edit-actions button:focus-visible {color:#ff0000!important;border-color:#ff0000!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]{accent-color:#ff0000!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-runnable-track{border-radius:0!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-thumb{border-radius:0!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-moz-range-thumb{border-radius:0!important}

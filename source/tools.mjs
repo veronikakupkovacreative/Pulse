@@ -827,7 +827,7 @@ export function initStudioTools(getBpmTrack){
       if(!tools.context.audioWorklet)throw Error('AudioWorklet is unavailable in this browser. Use rendered preview.');
       await tools.context.audioWorklet.addModule('/vendor/pulse-spectral-worklet.js');
       const node=new AudioWorkletNode(tools.context,'pulse-spectral-denoiser',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[Math.min(2,buffer.numberOfChannels)]});
-      node.port.postMessage({type:'configure',profile:spectralProfile,options:spectralOptions});
+      node.port.postMessage({type:'configure',profiles:spectralProfile,sampleRate:buffer.sampleRate,options:spectralOptions});
       previous.connect(node);previous=node;tools.spectralNode=node;
     }
     previous.connect(gain);gain.connect(tools.context.destination);

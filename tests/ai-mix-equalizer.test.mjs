@@ -5,9 +5,9 @@ import {mixStems,stemMeasurements,suggestedGainDb} from '../source/dsp/multitrac
 const rate=48000;
 const sine=(hz,length=48000)=>Float32Array.from({length},(_,i)=>.24*Math.sin(2*Math.PI*hz*i/rate));
 const rms=c=>Math.sqrt(c.reduce((s,x)=>s+x*x,0)/c.length);
-test('6-band EQ default curve is flat, bypass retains signal',()=>{
+test('8-band EQ default curve is flat, bypass retains signal',()=>{
  const bands=EQ_DEFAULT_BANDS.map(x=>({...x}));
- assert.equal(bands.length,6);
+ assert.equal(bands.length,8);
  const curve=eqResponse(bands,rate);
  assert.ok(curve.every(p=>Math.abs(p.db)<.0001));
  const input=sine(440,10000);

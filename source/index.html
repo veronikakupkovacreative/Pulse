@@ -83,7 +83,7 @@
         <button class="tool-tab" id="tab-mix" role="tab" aria-selected="false" aria-controls="panel-mix" tabindex="-1" data-tool="mix" data-group="ai" hidden>AI Mix <b>↗</b></button>
         <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden>AI Master <b>↗</b></button>
       </div>
-      <div class="coming-soon-note"><button class="tool-tab tool-tab-disabled coming-soon-link" id="tab-youtube" type="button" aria-disabled="true" disabled>YouTube Audio <b>COMING SOON</b></button></div>
+      <div class="coming-soon-note"><button class="tool-tab youtube-open" id="tab-youtube" type="button">YouTube Audio <b>↗</b></button></div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
           <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
@@ -237,7 +237,7 @@
           <div id="panel-equalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-equalizer" hidden>
             <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span id="eq-band-count-note">20 BANDS · LOCAL DSP</span></div>
             <h3>Equalizer.</h3>
-            <p class="tool-footnote">Adjust the yellow curve under the waveform. Edit the selected filter here.</p>
+            <p class="tool-footnote">Adjust the red EQ curve under the waveform. The selected filter is edited on the right.</p>
             <select id="eq-band-count" aria-label="EQ band count" hidden><option value="3">3 BANDS</option><option value="8">8 BANDS</option><option value="10">10 BANDS</option><option value="20" selected>20 BANDS</option></select>
 <div class="tool-fields"><input id="eq-preset" type="hidden" value="default" aria-hidden="true">
             <p class="tool-footnote" id="eq-character-description" hidden>Original PULSE filter curves.</p><label>Output gain <output id="eq-output-label">0.0 dB</output><input type="range" id="eq-output-gain" min="-18" max="12" step=".5" value="0"></label>
@@ -288,7 +288,7 @@
                 <label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option></select></label>
                 <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label>
               </div>
-              <details class="pulse-ai-advanced" open><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
+              <details class="pulse-ai-advanced" id="mix-characters"><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
                 <div class="mix-character-types" role="group" aria-label="Saturation character">
                   <label><input name="mix-vibe" type="radio" value="tube" checked><span>TUBE</span></label>
                   <label><input name="mix-vibe" type="radio" value="console"><span>CONSOLE</span></label>
@@ -327,7 +327,7 @@
               <div class="pulse-ai-result-actions" id="mix-multitrack-results" hidden>
                 <button id="mix-play" type="button" disabled>▶ Preview</button>
                 <button id="mix-send-master" class="pulse-ai-next" type="button" disabled>Continue to Master ↗</button>
-                <button id="mix-export" type="button" disabled>Export Stereo WAV ↗</button>
+                <button id="mix-export" type="button" disabled>Export Stereo WAV ↗</button><button id="mix-export-stems" type="button" disabled>Export Stems ZIP ↗</button>
               </div>
               <p class="tool-footnote" id="mix-status" role="status">Add at least two aligned stems to begin.</p>
             </section>
@@ -425,6 +425,26 @@
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">QUICK START.</p><h2 id="help-title">From audio<br>to tempo.</h2><ol class="help-list"><li><strong>Choose WAV, MP3, M4A or MP4.</strong><span>Up to 100 MB and 20 minutes. For a better tempo estimate, use at least 15 seconds with clear beats; minimum 6 seconds.</span></li><li><strong>Let PULSE find the beat.</strong><span>PULSE analyzes rhythmic onsets. MP4 audio support depends on browser and codec.</span></li><li><strong>Verify tempo by listening.</strong><span>Use the metronome or Tap Tempo. Test half-time and double-time with ÷2 and ×2.</span></li></ol><p class="dialog-footnote">BPM is an estimate. Variable tempo, speech and music without regular beats may not have a reliable single tempo.</p></dialog>
 <dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">FEEL THE BEAT.</p><h2 id="tap-title">Your hands.<br>Your tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Tap the beat</span></button><p class="tap-instruction">Tap four times or press Space.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 taps</span><button id="tap-reset">Reset ↺</button><button id="tap-copy" hidden>Copy BPM ↗</button></div></dialog>
-<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Your uploaded audio is processed locally. YouTube Audio is not available yet.</p><p class="privacy-copy">Audio is released when removed or when the page closes.</p></dialog>
+<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Your uploaded audio is processed locally. YouTube Audio, if enabled, sends the supplied video URL to the configured cloud converter.</p><p class="privacy-copy">Audio is released when removed or when the page closes.</p></dialog>
+<dialog id="youtube-dialog" aria-labelledby="youtube-title" class="youtube-dialog">
+  <button class="dialog-close icon-button" id="youtube-close" type="button" aria-label="Close YouTube Audio">×</button>
+  <p class="eyebrow">PULSE / CLOUD IMPORT</p><h2 id="youtube-title">YouTube<br>Audio.</h2>
+  <p class="dialog-footnote">Download audio only from videos you own or are authorized to download. Cloud conversion requires a connected backend. The source stream determines the available quality.</p>
+  <form id="youtube-form">
+    <label for="youtube-url">YouTube video URL</label>
+    <input id="youtube-url" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" required>
+    <label for="youtube-format">Output format</label>
+    <select id="youtube-format">
+      <option value="native">Original audio stream</option>
+      <option value="wav24">WAV · 24-bit</option>
+      <option value="wav16">WAV · 16-bit</option>
+      <option value="mp3">MP3 · 320 kbps</option>
+    </select>
+    <label class="youtube-consent"><input type="checkbox" id="youtube-authorized" required> I have permission to download this audio.</label>
+    <button type="submit" id="youtube-submit" class="tool-action tool-action-dark">Prepare audio <span>↗</span></button>
+  </form>
+  <p id="youtube-status" role="status">Checking cloud converter…</p>
+  <div id="youtube-download" hidden><p id="youtube-file-info"></p><a href="#" id="youtube-download-link" target="_blank" rel="noopener" class="tool-action tool-action-dark">Download file ↗</a></div>
+</dialog>
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
 </body></html>

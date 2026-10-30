@@ -65,9 +65,10 @@ export function initStudioTools(getBpmTrack){
       if(token!==tools.operation)return;
       if(action==='split'){
         const parts=splitWaveform(source,rate,tools.playhead,5);
-        download(encodeWav(parts.left,rate,24),filename('split-A.wav'));
-        download(encodeWav(parts.right,rate,24),filename('split-B.wav'));
-        status(statusId,'Two split WAV files downloaded; the workspace remains unchanged.');
+        const files=[{name:'split-A.wav',data:encodeWav(parts.left,rate,24)},
+          {name:'split-B.wav',data:encodeWav(parts.right,rate,24)}];
+        download(await createStoredZip(files),filename('split-parts.zip'));
+        status(statusId,'Two split WAV clips exported in one ZIP. Workspace unchanged.');
         return;
       }
       let result,report='';

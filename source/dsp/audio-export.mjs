@@ -1,5 +1,5 @@
 // Browser-only lossless FLAC and optional AAC/M4A export. Never uploads audio.
-const assertAudio=(channels,rate)=>{
+const assertExportAudio=(channels,rate)=>{
   if(!Array.isArray(channels)||channels.length<1||channels.length>2
     ||channels.some(ch=>!(ch instanceof Float32Array)||ch.length!==channels[0].length)
     ||!channels[0].length||!Number.isInteger(rate)||rate<8000||rate>192000)
@@ -25,7 +25,7 @@ function pcm16(sample){
   return clamped<0?Math.round(clamped*32768):Math.round(clamped*32767);
 }
 export function encodeFlac16(channels,sampleRate){
-  assertAudio(channels,sampleRate);
+  assertExportAudio(channels,sampleRate);
   const blockSize=4096,total=channels[0].length,metadata=new Uint8Array(42);
   metadata.set([0x66,0x4c,0x61,0x43,0x80,0,0,34]);
   u16(metadata,8,blockSize);u16(metadata,10,blockSize);

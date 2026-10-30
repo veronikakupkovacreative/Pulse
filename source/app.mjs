@@ -1,6 +1,8 @@
 import {initStudioTools} from './tools.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
 import {audioFileError} from './file-support.mjs';
+import {pulseProject} from './core/project-session.mjs';
+import {decodeLocalAudio,decodedAudioBytes,analysisMono} from './core/media-loader.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
@@ -10,7 +12,8 @@ const messages = {
   NO_RHYTHM:'No steady beat detected. Try another section or Tap Tempo.',
   DECODE:'Cannot decode audio. Try WAV, MP3 or MP4 with AAC audio.',
   TIMEOUT:'Analysis timed out. Try a shorter track.',
-  READ_FILE:'Could not read this file from Files. Download it to your device and try again.'
+  READ_FILE:'Could not read this file from Files. Download it to your device and try again.',
+  MEMORY:'Decoded audio exceeds the device memory limit. Use a shorter track.'
 };
 const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
 const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1);
@@ -34,44 +37,45 @@ function reset() {
   state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;$('#bpm-override').value='';
   ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;$('#file-feedback').hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
 }
-async function processFile(file) {
-  if(!file||state.busy)return;
+async function processFile(file,existingBuffer=null) {
+  if(!file)return;
+  if(state.busy){if(!existingBuffer)return;reset();}
   ui.error.hidden=true;
   const invalid=audioFileError(file);
   if(invalid){showError(invalid);announce(invalid);return;}
   reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Reading '+file.name+'…';
   try {
-    // iOS Safari can reject OfflineAudioContext decoding even for supported files.
-    // Prefer an ordinary AudioContext and reuse its buffer for playback.
     const Context=window.AudioContext||window.webkitAudioContext;
     const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     if(!Context&&!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
-    let buffer;
-    try {
-      let bytes;
-      try{bytes=await file.arrayBuffer();}
-      catch{throw new Error('READ_FILE');}
-      const decoder=Context?(state.context||=new Context()):new OfflineContext(1,1,22050);
-      buffer=await decoder.decodeAudioData(bytes.slice(0));
-    } catch(error) { throw new Error(error?.message==='READ_FILE'?'READ_FILE':'DECODE'); }
+    let buffer=existingBuffer;
+    if(!buffer){
+      // Decode at source sample rate for WAV; never use the 22.05 kHz analytical copy for editing.
+      const decoded=await decodeLocalAudio(file,{
+        context:Context?(state.context||=new Context()):null,OfflineContext
+      });
+      buffer=decoded.buffer;
+    }
+    const mobile=typeof navigator!=='undefined'&&/iPhone|iPad|Android/i.test(navigator.userAgent);
+    const pcmBytes=decodedAudioBytes(buffer);
+    if(pcmBytes>(mobile?160:600)*1024*1024)throw new Error('MEMORY');
     if(generation!==state.generation)return;
     if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
     $('#progress-detail').textContent='Finding the beat…';
-    // Use the most energetic channel to avoid phase cancellation in stereo recordings.
-    let bestChannel=0,bestEnergy=-1;
-    for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
-    const samples=buffer.getChannelData(bestChannel).slice();
+    if(!existingBuffer)pulseProject.load(buffer,file,'bpm');
+    // Compact analysis-only copy; the source/working buffers keep all channels and native rate.
+    const {samples,sampleRate:analysisRate}=analysisMono(buffer);
     const result=await new Promise((resolve,reject)=>{
       const worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});state.worker=worker;
       const timeout=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
       state.cancelWorker=()=>{clearTimeout(timeout);worker.terminate();reject(new Error('CANCELLED'));};
       worker.onmessage=({data})=>{clearTimeout(timeout);worker.terminate();if(state.worker===worker){state.worker=null;state.cancelWorker=null;}data.error?reject(new Error(data.error)):resolve(data.result);};
       worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analysis failed to start. Refresh and retry.'));};
-      worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
+      worker.postMessage({samples,sampleRate:analysisRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;pulseProject.setTempo(state.bpm,{beatOffset:result.beatOffsetSeconds||0,origin:'bpm'});setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
   } catch(error) {
     if(generation!==state.generation)return;
     setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
@@ -80,7 +84,7 @@ async function processFile(file) {
 function renderResult(file) {
   $('#track-name').textContent=file.name;$('#track-name').title=file.name;
   $('#track-type').textContent=file.name.split('.').pop().toUpperCase();
-  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
+  $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'} · ${(state.buffer.sampleRate/1000).toFixed(1)} kHz`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
   const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
@@ -173,7 +177,6 @@ const selectBpmFile=event=>{
   input.value=''; // Re-selecting the same iOS Files document must still trigger change.
   void processFile(file);
 };
-ui['file-input'].addEventListener('input',selectBpmFile);
 ui['file-input'].addEventListener('change',selectBpmFile);
 $('#remove-file').onclick=()=>{reset();announce('File removed.');$('#choose-file').focus();};
 $('#cancel-analysis').onclick=()=>{reset();announce('Analysis canceled.');$('#choose-file').focus();};
@@ -207,7 +210,7 @@ $('#seek').addEventListener('keydown',event=>{
   }
 });
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#bpm-override').onchange=event=>setTempo(event.target.value);
-$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
+$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;pulseProject.setTempo(state.bpm,{beatOffset:state.result?.beatOffsetSeconds||0,confirmed:true,origin:'bpm'});window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
 $('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
@@ -240,3 +243,9 @@ function makeDemo() {
 }
 $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
+pulseProject.subscribe(({type,origin,state:project})=>{
+  if(type==='load'&&origin==='toolkit'&&project.working&&project.file){
+    // Re-use the same decoded asset. The BPM worker gets only a lightweight mono copy.
+    void processFile(project.file,project.working);
+  }
+});

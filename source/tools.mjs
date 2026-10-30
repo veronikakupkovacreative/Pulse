@@ -559,6 +559,7 @@ export function initStudioTools(getBpmTrack){
       const selected=which===name,tab=el('tab-'+name);
       tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
     }
+    el('pulse-feature-key').hidden=which!=='key';
     const showingResults=which==='mix'||which==='master';
     el('tool-insights').hidden=!showingResults||!tools.buffer;
     for(const name of ['mix','master'])el('insights-'+name).hidden=which!==name;

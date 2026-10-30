@@ -597,7 +597,8 @@ export function initStudioTools(getBpmTrack){
     };
     const px=time=>(time-view.start)/Math.max(view.span,.001)*w;
     const selection=tools.tab==='equalizer'&&tools.eqSelection?[tools.eqSelection.from,tools.eqSelection.to]:tools.tab==='cutter'?[tools.from,tools.to]:tools.tab==='trim'&&tools.quickBounds?[tools.quickBounds.startSeconds,tools.quickBounds.endSeconds]:null;
-    ctx.fillStyle='#30302d';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle=tools.tab==='equalizer'?'#171817':'#30302d';ctx.fillRect(0,0,w,h);
+    if(tools.tab==='equalizer'){ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(0,(h+17)/2,w,1);}
     // Time ruler remains in the same audio coordinate system as the waveform.
     const tickStep=([.001,.002,.005,.01,.02,.05,.1,.25,.5,1,2,5,10,15,30,60,120,300,600].find(v=>v>=view.span/6)||600);
     ctx.font='9px Arial, sans-serif';ctx.textBaseline='top';
@@ -614,13 +615,14 @@ export function initStudioTools(getBpmTrack){
       const t=view.start+(i+.5)/bars*view.span;
       const amp=Math.max(2,Math.pow(peakAt(left,tools.peaks,t),.55)*(h-20)*.78),x=i*bar;
       const isSelected=!selection||(t>=selection[0]&&t<=selection[1]);
-      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?'#ff2b20':'#753d39'):(isSelected?'#ff2b20':'#72726c');
+      const peakLevel=peakAt(left,tools.peaks,t);
+      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?(peakLevel>.88?'#ff5a50':'#ff2b20'):'#753d39'):(isSelected?'#ff2b20':'#72726c');
       if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
         const other=Math.max(2,Math.pow(peakAt(right,tools.peaksRight,t),.55)*(h-20)*.37);
         const half=(h-17)/2;
         ctx.fillRect(x,17+(half-amp*.48)/2,Math.max(1,bar*.68),amp*.48);
         ctx.fillRect(x,17+half+(half-other)/2,Math.max(1,bar*.68),other);
-      }else ctx.fillRect(x,17+(h-17-amp)/2,Math.max(1,bar*.68),amp);
+      }else ctx.fillRect(x,17+(h-17-amp)/2,Math.max(1,bar*(tools.tab==='equalizer'?.82:.68)),amp);
     }
     if(selection){for(const boundary of selection){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#f5f4f0';ctx.fillRect(x-1,17,2,h-17);ctx.beginPath();ctx.arc(x,(h+17)/2,5,0,Math.PI*2);ctx.fill();}}
     if(tools.loopEnabled){for(const [boundary,label] of [[tools.loopFrom,'IN'],[tools.loopTo,'OUT']]){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#ff2b20';ctx.fillRect(x-1,17,2,h-17);ctx.fillText(label,Math.max(3,Math.min(w-30,x+4)),21);}}

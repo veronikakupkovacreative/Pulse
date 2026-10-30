@@ -2,7 +2,7 @@ self.onmessage=event=>{
   const {id,type,channels,sampleRate,from,to,profile,options}=event.data||{};
   try{
     if(type==='learn'){
-      const selected=event.data.separateChannels?channels:[channels.reduce((sum,channel)=>{const copy=channel.slice();for(let i=0;i<copy.length;i++)copy[i]/=channels.length;sum.push(copy);return sum;},[]) .flat()];
+      const selected=channels;
       const profiles=event.data.separateChannels?selected.map(channel=>captureSpectralProfile([channel],sampleRate,from,to)):[captureSpectralProfile(selected,sampleRate,from,to)];
       self.postMessage({id,type:'profile',profiles},profiles.map(p=>p.buffer));return;
     }

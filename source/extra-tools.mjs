@@ -6,6 +6,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   const eqNotice=text=>status('eq-status',text);
   const mixNotice=text=>status('mix-status',text);
   const eqInputs=el('eq-bands');
+  let dragBand=-1;
   const presets={
     flat:EQ_DEFAULT_BANDS.map(x=>({...x})),
     vocal:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,gain:[0,0,-2,2.5,-1,1][i],
@@ -49,19 +50,25 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     eqState.bands.forEach((band,index)=>{
       if(!band.enabled)return;
       const circle=node('circle',{cx:xOf(Math.min(hzMax,band.frequency)),cy:yOf(band.gain),r:7,fill:'#eee',stroke:'#e8493e','stroke-width':2,role:'button',tabindex:0,'aria-label':'Band '+(index+1)+'; drag to change frequency and gain'});
-      const move=event=>{
-        const rect=svg.getBoundingClientRect();
-        const nx=Math.min(1,Math.max(0,(event.clientX-rect.left)/rect.width));
-        const ny=Math.min(1,Math.max(0,(event.clientY-rect.top)/rect.height));
-        const freq=20*(hzMax/20)**nx;
-        band.frequency=Math.min(20000,Math.max(20,Math.round(freq)));
-        if(band.type!=='highpass'&&band.type!=='lowpass')band.gain=Math.round((12-24*ny)*10)/10;
-        refreshEq();
-      };
-      circle.addEventListener('pointerdown',e=>{e.preventDefault();circle.setPointerCapture(e.pointerId);});
-      circle.addEventListener('pointermove',e=>{if(circle.hasPointerCapture(e.pointerId))move(e);});
+      circle.addEventListener('pointerdown',event=>{
+        event.preventDefault();
+        dragBand=index;
+        svg.setPointerCapture(event.pointerId);
+      });
     });
   }
+  el('eq-response-graph').addEventListener('pointermove',event=>{
+    if(dragBand<0)return;
+    const svg=el('eq-response-graph'),rect=svg.getBoundingClientRect();
+    const nx=Math.min(1,Math.max(0,(event.clientX-rect.left)/rect.width));
+    const ny=Math.min(1,Math.max(0,(event.clientY-rect.top)/rect.height));
+    const band=eqState.bands[dragBand],hzMax=Math.min(20000,tools.buffer?.sampleRate*.45||21600);
+    band.frequency=Math.max(20,Math.round(20*(hzMax/20)**nx));
+    if(!['highpass','lowpass'].includes(band.type))band.gain=Math.round((12-24*ny)*10)/10;
+    refreshEq();
+  });
+  el('eq-response-graph').addEventListener('pointerup',()=>{dragBand=-1;});
+  el('eq-response-graph').addEventListener('pointercancel',()=>{dragBand=-1;});
   function eqNodeUpdate(){
     if(!tools.eqNodes)return;
     const active=eqState.bands.filter(b=>b.enabled);

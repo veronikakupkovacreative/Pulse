@@ -52,6 +52,7 @@ const bundledScript=`(() => {
   ${noImports(noExports(projectSession))}
   ${noExports(productionDsp)}
   ${noExports(referenceCompare)}
+  ${noExports(eqResponse)}
   ${noImports(noExports(eqDsp))}
   ${noExports(mixDsp)}
   ${noExports(extraTools)}

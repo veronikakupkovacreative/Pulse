@@ -1,6 +1,6 @@
 import {processPitchTime,detectTransients,detectFundamental} from './dsp/production-tools.mjs';
 import {analyzeTempo} from './analyzer.mjs';
-import {processMaster} from './dsp/mastering.mjs';
+import {processMaster,analyzeMaster} from './dsp/mastering.mjs';
 import {integratedLoudness} from './dsp/quick-tools.mjs';
 // Bundled with production DSP in the main app build. Runs off the UI thread.
 self.onmessage=event=>{
@@ -8,6 +8,7 @@ self.onmessage=event=>{
   try{
     let result;
     if(kind==='master')result=processMaster(channels,rate,options);
+    else if(kind==='reference')result=analyzeMaster(channels,rate);
     else if(kind==='pitch')result=processPitchTime(channels,rate,options);
     else if(kind==='transients')result=detectTransients(channels,rate,options);
     else if(kind==='tuner')result=detectFundamental(channels,rate,options);

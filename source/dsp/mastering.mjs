@@ -2,7 +2,8 @@ import {integratedLoudness} from './quick-tools.mjs';
 import {truePeakDb,limitTruePeak} from './true-peak.mjs';
 import {stereoHealth,mixHealthFindings,applyStereoWidth} from './mix-health.mjs';
 import {analyzeSpectrum,spectrumFindings} from './spectral-health.mjs';
-// Pulse Smart Master v1: adaptive, deterministic offline DSP. No neural model.
+import {eqResponseCurve,peakingBiquad} from './eq-response.mjs';
+// Pulse Smart Master v2.3: adaptive, deterministic offline DSP. No neural model.
 // All operations happen on the client, and no source channel is mutated.
 const masterClamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 function validate(channels,rate){
@@ -100,24 +101,29 @@ export function analyzeMaster(channels,rate){
     lufs:loudness,...dynamics,...stereo,spectrum,
     lowShare,highShare,channels:channels.length,rate,duration:channels[0].length/rate};
 }
-export function designMaster(analysis,preset='balanced',targetLufs,{intensity=45,ceilingDb=-1}={}){
+export function designMaster(analysis,preset='balanced',targetLufs,{intensity=45,ceilingDb=-1,eqMode='gentle',dynamicsMode='balanced'}={}){
   if(!['balanced','warm','loud','punchy'].includes(preset))throw Error('Invalid mastering preset.');
   const presetTarget={balanced:-13,warm:-14,loud:-10,punchy:-12}[preset];
   const target=targetLufs===undefined?presetTarget:Number(targetLufs);
   if(!Number.isFinite(target)||target<-22||target>-8)throw Error('Target LUFS must be between -22 and -8.');
   if(!Number.isFinite(intensity)||intensity<0||intensity>100)throw Error('Intensity must be 0–100%.');
   if(![-1,-2,-.3].includes(Number(ceilingDb)))throw Error('Unsupported true-peak ceiling.');
-  const strength=intensity/100;
-  const lowDb=masterClamp((.49-analysis.lowShare)*4.4+(preset==='warm'?.65:preset==='loud'?.25:preset==='punchy'?-.25:0),-1.5,1.5)*strength;
-  const highDb=masterClamp((.37-analysis.highShare)*4.2+(preset==='warm'?-.9:preset==='loud'?.25:preset==='punchy'?.10:0),-1.5,1.5)*strength;
+  if(!['gentle','off'].includes(eqMode))throw Error('Invalid EQ mode.');
+  if(!['balanced','preserve','control'].includes(dynamicsMode))throw Error('Invalid dynamics mode.');
+  const strength=intensity/100,eqStrength=eqMode==='off'?0:strength;
+  const lowDb=masterClamp((.49-analysis.lowShare)*4.4+(preset==='warm'?.65:preset==='loud'?.25:preset==='punchy'?-.25:0),-1.5,1.5)*eqStrength;
+  const highDb=masterClamp((.37-analysis.highShare)*4.2+(preset==='warm'?-.9:preset==='loud'?.25:preset==='punchy'?.10:0),-1.5,1.5)*eqStrength;
+  const lowmid=analysis.spectrum?.find(b=>b.id==='lowmid')?.share||0;
+  const midDb=lowmid>.42?-Math.min(.9,(lowmid-.42)*3)*eqStrength:0;
   const targetRatio=analysis.crestDb>15?(preset==='loud'?1.9:preset==='punchy'?1.20:1.45):analysis.crestDb>9?(preset==='loud'?1.5:preset==='punchy'?1.12:1.25):1.07;
   const ratio=1+(targetRatio-1)*strength;
   const thresholdDb=masterClamp(analysis.rmsDb+(preset==='punchy'?7:5.5),-32,-9);
-  return {preset,targetLufs:target,lowDb,highDb,ratio,thresholdDb,ceilingDb:Number(ceilingDb),intensity};
+  const timing={balanced:{attackMs:12,releaseMs:160},preserve:{attackMs:30,releaseMs:220},control:{attackMs:5,releaseMs:95}}[dynamicsMode];
+  return {preset,targetLufs:target,lowDb,midDb,highDb,ratio,thresholdDb,ceilingDb:Number(ceilingDb),intensity,eqMode,dynamicsMode,...timing};
 }
 function compress(channels,rate,settings){
   const result=channels.map(c=>new Float32Array(c.length));
-  const attack=Math.exp(-1/(.012*rate)),release=Math.exp(-1/(.160*rate));
+  const attack=Math.exp(-1/(settings.attackMs*.001*rate)),release=Math.exp(-1/(settings.releaseMs*.001*rate));
   let envelope=0,gain=1;
   for(let i=0;i<channels[0].length;i++){
     let peak=0;for(let c=0;c<channels.length;c++)peak=Math.max(peak,Math.abs(channels[c][i]));
@@ -135,11 +141,13 @@ function compress(channels,rate,settings){
   }
   return result;
 }
-export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1,stereoWidth=1}={}){
+export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1,stereoWidth=1,eqMode='gentle',dynamicsMode='balanced'}={}){
   validate(channels,rate);
-  const before=analyzeMaster(channels,rate),settings=designMaster(before,preset,targetLufs,{intensity,ceilingDb});
+  const before=analyzeMaster(channels,rate),settings=designMaster(before,preset,targetLufs,{intensity,ceilingDb,eqMode,dynamicsMode});
   const low=biquad(rate,180,settings.lowDb,'low'),high=biquad(rate,4000,settings.highDb,'high');
-  const eq=channels.map(ch=>filter(filter(ch,low),high));
+  const mid=peakingBiquad(rate,320,settings.midDb,0.9);
+  const eqCurve=eqResponseCurve([low,mid,high],rate);
+  const eq=channels.map(ch=>filter(filter(filter(ch,low),mid),high));
   const compressed=settings.ratio>1.001?compress(eq,rate,settings):eq;
   const widened=applyStereoWidth(compressed,stereoWidth);
   const measured=integratedLoudness(widened,rate);
@@ -152,7 +160,7 @@ export function processMaster(channels,rate,{preset='balanced',targetLufs,intens
   if(!findings.length)findings.push({code:'balanced',label:'NO CRITICAL ISSUES',evidence:'No thresholds exceeded',detail:'Preserve the mix unless listening reveals a problem.'});
   return {channels:output,findings,settings:{...settings,stereoWidth,appliedGainDb:correction,
       maxReductionDb:limited.maxReductionDb,safetyTrimDb:limited.safetyTrimDb},
-    before,after,notes:[
+    before,after,eqCurve,notes:[
       'Local deterministic mastering DSP; no neural mastering model.',
       'True peak uses 4x windowed-sinc reconstruction. Independent certification is not implied.',
       'Loudness Range is an estimate; requested LUFS may remain unattainable without excessive limiting.'

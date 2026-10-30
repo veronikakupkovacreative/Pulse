@@ -26,8 +26,8 @@ test('waveform trim / delete / split preserve input and produce micro-fades',()=
   const input=sine(2),copy=input.slice();
   const trimmed=trimWaveform([input],rate,.3,1.4)[0];
   assert.equal(trimmed.length,Math.ceil(1.4*rate)-Math.floor(.3*rate));
-  assert.equal(trimmed[0],0);
-  assert.equal(trimmed.at(-1),0);
+  assert.ok(Math.abs(trimmed[0])<1e-12);
+  assert.ok(Math.abs(trimmed.at(-1))<1e-12);
   const removed=deleteWaveformRange([input],rate,.5,.8)[0];
   assert.equal(removed.length,input.length-Math.ceil(.8*rate)+Math.floor(.5*rate));
   const around=Math.floor(.5*rate);

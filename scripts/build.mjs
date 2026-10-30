@@ -1,4 +1,4 @@
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -65,6 +65,9 @@ html=html.replace('<link rel="stylesheet" href="./style.css">',()=>'<style>\n'+c
 assert(!/<link[^>]+rel=["']stylesheet/.test(html));
 assert(!/<script[^>]+src=/.test(html));
 await mkdir(path.join(root,'public'),{recursive:true});
+await mkdir(path.join(root,'public','vendor'),{recursive:true});
+await copyFile(path.join(root,'node_modules','@breezystack','lamejs','dist','lamejs.iife.js'),path.join(root,'public','vendor','lamejs.iife.js'));
+await copyFile(path.join(root,'node_modules','@breezystack','lamejs','LICENSE'),path.join(root,'public','vendor','lamejs-LICENSE.txt'));
 await writeFile(path.join(root,'public/index.html'),html);
 await writeFile(path.join(root,'index.html'),html);
 console.log(`Built standalone Pulse Studio index.html (${Math.round(Buffer.byteLength(html)/1024)} KiB).`);

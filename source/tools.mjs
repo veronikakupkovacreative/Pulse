@@ -272,9 +272,9 @@ export function initStudioTools(getBpmTrack){
     if(window.lamejs?.Mp3Encoder)return Promise.resolve(window.lamejs);
     if(lamePromise)return lamePromise;
     lamePromise=new Promise((resolve,reject)=>{
-      const script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.all.min.js';script.async=true;
+      const script=document.createElement('script');script.src='/vendor/lamejs.iife.js';script.async=true;
       script.onload=()=>window.lamejs?.Mp3Encoder?resolve(window.lamejs):reject(new Error('MP3 encoder unavailable.'));
-      script.onerror=()=>reject(new Error('Cannot load MP3 encoder. Check connection or export WAV.'));
+      script.onerror=()=>reject(new Error('Cannot load locally bundled MP3 encoder. Reload PULSE or export WAV.'));
       document.head.appendChild(script);
     }).catch(e=>{lamePromise=null;throw e;});
     return lamePromise;

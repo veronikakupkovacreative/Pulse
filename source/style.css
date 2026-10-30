@@ -409,3 +409,6 @@
 }
 
 .bpm-grid-settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.bpm-grid-settings label{font-size:10px;display:grid;gap:5px}.bpm-grid-settings input,.bpm-grid-settings select{min-width:0;width:100%;border:1px solid #19191988;background:transparent;color:#191919;padding:8px;font:inherit;font-size:12px;min-height:39px}@media(max-width:370px){.bpm-grid-settings{grid-template-columns:1fr}}
+
+/* Metronome loudness control follows the existing inline transport style. */
+.metro-volume{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.02em;white-space:nowrap}.metro-volume input{width:74px;min-height:35px;accent-color:var(--red)}@media(max-width:440px){.metronome-row{flex-wrap:wrap;gap:12px}.metro-volume input{width:64px}}

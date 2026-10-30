@@ -2,10 +2,11 @@ import {initStudioTools} from './tools.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
 import {audioFileError} from './file-support.mjs';
 import {pulseProject} from './core/project-session.mjs';
+import {beatAtOrAfter} from './metronome-clock.mjs';
 import {decodeLocalAudio,decodedAudioBytes,analysisMono} from './core/media-loader.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
-const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
+const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set(),metroGeneration:0};
 const messages = {
   TOO_SHORT:'Track too short. Use at least 6 seconds.',
   SILENCE:'Silent or weak audio. Try a track with a clear beat.',
@@ -144,26 +145,73 @@ async function play() {
     const context=await getAudioContext();if(generation!==state.generation||!state.buffer)return;
     if(state.offset>=state.buffer.duration-.05)state.offset=0;
     const source=context.createBufferSource();source.buffer=state.buffer;source.connect(context.destination);state.source=source;state.startedAt=context.currentTime;state.playing=true;
-    source.onended=()=>{if(state.source!==source)return;state.offset=state.buffer.duration;stopPlayback();$('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);drawWaveform();};source.start(0,state.offset);
+    source.onended=()=>{if(state.source!==source)return;state.offset=state.buffer.duration;stopPlayback();$('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);drawWaveform();};source.start(0,state.offset);if(state.metroTimer)syncMetronome();
     $('#play-track use').setAttribute('href','#pause');$('#play-track').setAttribute('aria-label','Pause track');animatePlayback();
   } catch {toast('Playback failed. Try again.');} finally {state.starting=false;}
 }
-async function startMetronome() {
-  if(!state.bpm)return;const generation=state.generation;
-  try {await getAudioContext();}catch{toast('Audio could not start.');return;}
-  if(generation!==state.generation||state.metroTimer)return;
-  state.metroNext=state.context.currentTime+.05;state.metroBeat=0;$('#metronome').setAttribute('aria-pressed','true');
-  function schedule() {
-    while(state.metroNext<state.context.currentTime+.1){
-      const when=state.metroNext,index=state.metroBeat%4;const oscillator=state.context.createOscillator(),gain=state.context.createGain();
-      oscillator.frequency.value=index===0?1300:950;gain.gain.setValueAtTime(.12,when);gain.gain.exponentialRampToValueAtTime(.001,when+.04);oscillator.connect(gain).connect(state.context.destination);oscillator.start(when);oscillator.stop(when+.05);state.metroNodes.add(oscillator);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();state.metroNodes.delete(oscillator);};
-      const timer=setTimeout(()=>{state.beatTimers.delete(timer);document.querySelectorAll('.beat-dots i').forEach((dot,i)=>dot.classList.toggle('on',i===index));},Math.max(0,(when-state.context.currentTime)*1000));state.beatTimers.add(timer);state.metroNext+=60/state.bpm;state.metroBeat++;
-    }
+function metroUi(meter=Number($('#bpm-meter').value)||4){
+  const dots=document.querySelector('.beat-dots');
+  if(dots.children.length!==meter){
+    dots.replaceChildren(...Array.from({length:meter},()=>document.createElement('i')));
   }
+}
+function metroVolume(){return Math.max(0,Math.min(1,Number($('#metro-volume').value)/100));}
+async function startMetronome(){
+  if(!state.bpm||!state.buffer)return;
+  const token=++state.metroGeneration,generation=state.generation;
+  let context;
+  try{context=await getAudioContext();}catch{toast('Audio could not start.');return;}
+  if(generation!==state.generation||token!==state.metroGeneration||state.metroTimer)return;
+  const bpm=state.bpm,meter=Number($('#bpm-meter').value)||4;
+  const offset=Number($('#bpm-grid-offset').value)||0;
+  metroUi(meter);
+  // Track seconds and AudioContext seconds share an absolute anchor.
+  // Timer merely fills the lookahead window; clicks are triggered by the audio clock.
+  const lead=.065,now=context.currentTime,position=currentPosition();
+  const first=beatAtOrAfter(position+lead,bpm,offset,meter);
+  state.metroNext=now+lead+(first.seconds-(position+lead));
+  state.metroBeat=first.index;
+  $('#metronome').setAttribute('aria-pressed','true');
+  const schedule=()=>{
+    if(token!==state.metroGeneration||!state.metroTimer)return;
+    if(state.playing&&currentPosition()>=state.buffer.duration-.025){stopMetronome();return;}
+    const horizon=context.currentTime+.13;
+    while(state.metroNext<horizon){
+      if(state.metroNext>=context.currentTime-.015){
+        const when=Math.max(context.currentTime+.003,state.metroNext);
+        const index=((state.metroBeat%meter)+meter)%meter;
+        const oscillator=context.createOscillator(),gain=context.createGain();
+        oscillator.frequency.value=index===0?1450:960;
+        const volume=metroVolume()*(index===0?.17:.105);
+        gain.gain.setValueAtTime(Math.max(.00001,volume),when);
+        gain.gain.exponentialRampToValueAtTime(.00001,when+.037);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start(when);oscillator.stop(when+.047);
+        state.metroNodes.add(oscillator);
+        oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();state.metroNodes.delete(oscillator);};
+        const timer=setTimeout(()=>{
+          state.beatTimers.delete(timer);
+          if(token===state.metroGeneration)document.querySelectorAll('.beat-dots i').forEach((dot,i)=>dot.classList.toggle('on',i===index));
+        },Math.max(0,(when-context.currentTime)*1000));
+        state.beatTimers.add(timer);
+      }
+      state.metroNext+=60/bpm;state.metroBeat++;
+    }
+  };
   state.metroTimer=setInterval(schedule,25);schedule();
 }
-function stopMetronome() {
-  clearInterval(state.metroTimer);state.metroTimer=null;state.beatTimers.forEach(clearTimeout);state.beatTimers.clear();state.metroNodes.forEach(node=>{try{node.stop();}catch{}});state.metroNodes.clear();$('#metronome').setAttribute('aria-pressed','false');document.querySelectorAll('.beat-dots i').forEach(dot=>dot.classList.remove('on'));
+function stopMetronome(){
+  state.metroGeneration++;
+  clearInterval(state.metroTimer);state.metroTimer=null;
+  state.beatTimers.forEach(clearTimeout);state.beatTimers.clear();
+  state.metroNodes.forEach(node=>{try{node.stop();}catch{}});state.metroNodes.clear();
+  $('#metronome').setAttribute('aria-pressed','false');
+  document.querySelectorAll('.beat-dots i').forEach(dot=>dot.classList.remove('on'));
+}
+function syncMetronome(){
+  if(!state.metroTimer)return;
+  stopMetronome();
+  void startMetronome();
 }
 async function copy(value) {
   try {
@@ -197,6 +245,7 @@ function seekBpm(time,{autoplay=false}={}){
   $('#seek').value=state.offset;$('#current-time').textContent=timeLabel(state.offset);
   $('#seek').setAttribute('aria-valuetext',`${timeLabel(state.offset)} of ${timeLabel(state.buffer.duration)}`);
   drawWaveform();
+  if(state.metroTimer)syncMetronome();
   if((autoplay||wasPlaying)&&!bpmScrubbing)void play();
 }
 $('#seek').addEventListener('pointerdown',()=>{bpmScrubbing=true;});
@@ -211,11 +260,11 @@ $('#seek').addEventListener('keydown',event=>{
     seekBpm(event.key==='Home'?0:event.key==='End'?state.buffer?.duration:nudgePlayhead(current,state.buffer?.duration,delta),{autoplay:state.playing});
   }
 });
-$('#bpm-grid-offset').onchange=()=>{if(!state.result)return;const value=Number($('#bpm-grid-offset').value);if(!Number.isFinite(value)||value<0||value>state.buffer.duration){toast('Enter a first-beat position within the track.');return;}pulseProject.setTempo(state.bpm,{beatOffset:value,origin:'bpm'});drawWaveform();};
-$('#bpm-meter').onchange=drawWaveform;
+$('#bpm-grid-offset').onchange=()=>{if(!state.result)return;const value=Number($('#bpm-grid-offset').value);if(!Number.isFinite(value)||value<0||value>state.buffer.duration){toast('Enter a first-beat position within the track.');return;}pulseProject.setTempo(state.bpm,{beatOffset:value,origin:'bpm'});drawWaveform();syncMetronome();};
+$('#bpm-meter').onchange=()=>{metroUi();drawWaveform();syncMetronome();};
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#bpm-override').onchange=event=>setTempo(event.target.value);
 $('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;pulseProject.setTempo(state.bpm,{beatOffset:Number($('#bpm-grid-offset').value)||0,confirmed:true,origin:'bpm'});window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm,beatOffset:Number($('#bpm-grid-offset').value)||0}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
-$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
+$('#copy-bpm').onclick=()=>copy(state.bpm);metroUi();$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};
 document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>button.closest('dialog').close());

@@ -1254,3 +1254,84 @@ body{color:#191919;font-family:Arial,Helvetica,sans-serif}
  .tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{padding:20px}
  .pulse-shortcut-list>div span{font-size:12px}
 }
+
+
+/* PULSE editorial polish v4 — retain existing audio behavior and component IDs. */
+.header .nav-link,.header nav .nav-link{font:400 13px/1.3 Arial,Helvetica,sans-serif!important;letter-spacing:0!important}
+.pulse-editorial-copy strong,.pulse-editorial-copy ol,.pulse-editorial-copy li{font-size:17px!important;line-height:1.55!important}
+.pulse-editorial-copy strong{font-weight:600;margin:0 0 7px}
+.pulse-editorial-copy ol{padding-left:24px}
+.pulse-editorial-copy{max-width:650px}
+.tool-settings{background:#ff2b20}
+.tool-view{gap:0}
+.tool-view h3{font-weight:400;letter-spacing:-.055em}
+.tool-view-header{padding-bottom:16px;border-bottom:1px solid rgba(25,25,25,.32);letter-spacing:.06em}
+.tool-settings .tool-fields{gap:18px}
+.tool-settings .tool-fields label{color:#191919;font-size:12px;line-height:1.4;font-weight:500}
+.tool-settings .tool-fields input:not([type=range]):not([type=checkbox]),.tool-settings .tool-fields select{background:rgba(255,255,255,.17);border:1px solid rgba(25,25,25,.44);color:#191919;min-height:45px;font-size:13px;padding:12px}
+.tool-settings .tool-fields input[type=range]{accent-color:#191919}
+.tool-settings .tool-action-dark,.tool-settings .pulse-ai-primary{background:#191919;color:#fff;border:1px solid #191919;min-height:54px;font:500 13px Arial,sans-serif;padding:14px 19px}
+.pulse-ai-mode{border:1px solid #191919;background:rgba(255,255,255,.09);gap:0}
+.pulse-ai-mode button{font:400 13px Arial,sans-serif;min-height:53px}
+.pulse-ai-mode button[aria-pressed=true]{background:#191919;color:#fff}
+.pulse-ai-kicker{color:#191919;font-size:11px;letter-spacing:.08em;margin-top:24px}
+.pulse-ai-advanced{border-top:1px solid rgba(25,25,25,.4);padding:0}
+.pulse-ai-advanced:last-child{border-bottom:1px solid rgba(25,25,25,.4)}
+.pulse-ai-advanced>summary{font:500 13px/1.4 Arial,sans-serif;padding:19px 0}
+.pulse-ai-pane .tool-footnote,.pulse-ai-view .tool-footnote{font-size:12px;line-height:1.55;color:#191919}
+.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:minmax(0,1.26fr) minmax(320px,.82fr);gap:12px}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-source{background:#191919!important;padding:24px!important}
+.tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{background:#ff2b20!important;padding:24px!important}
+.pulse-eq-left{border-top:1px solid #444;margin:22px 0 8px;padding-top:20px}
+.pulse-eq-section-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+.pulse-eq-section-heading .eq-left-heading{margin:0;flex:1 1 220px}
+.pulse-eq-section-heading .eq-mode-pills{margin:0;display:flex;gap:5px}
+.pulse-eq-section-heading .eq-mode-pills button{border:1px solid #555!important;color:#eee!important;background:#242424!important;min-height:34px;padding:8px 10px;font:400 11px Arial,sans-serif!important}
+.pulse-eq-section-heading .eq-mode-pills button[aria-pressed=true]{background:#fff!important;color:#191919!important;border-color:#fff!important}
+.pulse-eq-section-heading .eq-mode-caption{display:none}
+.pulse-eq-graph-shell{border:1px solid #373737;background:#121212;padding:14px 12px 10px}
+.pulse-eq-left .pulse-eq-stage{background:#121212!important;border:0!important;border-radius:0!important}
+.pulse-eq-graph-axis{display:flex;justify-content:space-between;gap:10px;padding:6px 5px 0;font:400 10px 'Courier New',monospace;color:#939393}
+.pulse-eq-preset-section{margin-top:20px}
+.pulse-eq-minor-heading{font:700 10px/1.5 Arial,sans-serif;color:#bababa;letter-spacing:.08em;margin-bottom:10px}
+.pulse-eq-preset-section .eq-preset-pills{display:flex;gap:6px;flex-wrap:wrap;margin:0}
+.pulse-eq-preset-section .eq-preset-pills button{border:1px solid #484848!important;color:#bbb!important;background:#242424!important;border-radius:0!important;min-height:34px;padding:8px 10px;font:400 11px Arial,sans-serif!important}
+.pulse-eq-preset-section .eq-preset-pills button[aria-pressed=true]{color:#191919!important;background:#fff!important;border-color:#fff!important}
+.pulse-eq-preset-section .eq-preset-description{font:400 11px/1.5 Arial,sans-serif;color:#a6a6a6;margin:10px 0 0}
+.pulse-eq-bottom-controls{margin-top:18px;padding:15px;border:1px solid #343434;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;color:#e8e8e8}
+.pulse-eq-bottom-controls label{font:400 11px/1.4 Arial,sans-serif!important;color:#e8e8e8!important}
+.pulse-eq-bottom-controls input{accent-color:#ff2b20}
+.pulse-eq-inspector .tool-view-header{border-bottom:1px solid rgba(25,25,25,.3)}
+.pulse-eq-inspector-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-top:24px}
+.pulse-eq-inspector-head h3{font:400 clamp(28px,3vw,39px)/1.05 Arial,sans-serif!important;letter-spacing:-.06em;margin:5px 0 0!important;color:#191919!important}
+.pulse-eq-inspector-kicker{font:600 10px Arial,sans-serif;letter-spacing:.08em}
+.pulse-eq-dsp-badge{background:#191919;color:#fff;font:700 10px/1.2 'Courier New',monospace;padding:8px 10px;white-space:nowrap}
+.pulse-eq-inspector-caption{margin:12px 0 20px;color:#191919!important}
+.pulse-eq-control-card,.pulse-eq-matrix-card,.pulse-eq-bypass-card{background:rgba(25,25,25,.09);border:1px solid rgba(25,25,25,.17);padding:17px;margin-bottom:12px}
+.pulse-eq-card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#191919;margin:0 0 14px}
+.pulse-eq-card-heading strong{font:700 11px Arial,sans-serif;letter-spacing:.045em}
+.pulse-eq-card-heading span{font:400 10px 'Courier New',monospace}
+.pulse-eq-card-heading output{font:700 12px 'Courier New',monospace;background:#191919;color:#fff;padding:7px}
+.pulse-eq-gain-control{display:block!important}
+.pulse-eq-gain-control input{width:100%;accent-color:#191919!important}
+.pulse-eq-gain-ticks{display:flex;justify-content:space-between;color:#191919;opacity:.74;font:400 10px 'Courier New',monospace;margin-top:9px}
+.pulse-eq-matrix-card #eq-bands{display:flex;flex-direction:column;gap:12px;margin:0}
+.pulse-eq-matrix-card .eq-band-picker{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.pulse-eq-matrix-card .eq-band-picker button{background:rgba(25,25,25,.16)!important;color:#191919!important;border:1px solid transparent!important;min-height:38px;font:400 12px Arial,sans-serif}
+.pulse-eq-matrix-card .eq-band-picker button[aria-pressed=true]{background:#191919!important;color:#fff!important;border-color:#191919!important}
+.pulse-eq-matrix-card .eq-band-selected{border-top:1px solid rgba(25,25,25,.25);padding-top:15px;color:#191919!important}
+.pulse-eq-matrix-card .pulse-eq-band{background:#191919!important;color:#fff!important;border:1px solid #191919!important;padding:18px;gap:15px}
+.pulse-eq-matrix-card .pulse-eq-band label{color:#f4f4f4!important;font:400 12px Arial,sans-serif!important}
+.pulse-eq-matrix-card .pulse-eq-band span,.pulse-eq-matrix-card .pulse-eq-band output{color:#ff645c}
+.pulse-eq-matrix-card .pulse-eq-band input[type=range]{accent-color:#ff2b20!important}
+.pulse-eq-matrix-card .pulse-eq-band select{background:#303030!important;border:1px solid #555!important;color:#fff!important}
+.pulse-eq-bypass-card{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+.pulse-eq-bypass-card label{font:500 12px Arial,sans-serif;color:#191919;display:flex;gap:8px;align-items:center}
+.pulse-eq-bypass-card input{accent-color:#191919}
+.pulse-eq-bypass-card .pulse-eq-compare{width:auto!important;flex:1 1 210px;margin:0!important;min-height:39px;background:#191919;color:#fff;border:1px solid #191919;padding:10px 13px;text-align:center;font:500 11px Arial,sans-serif}
+.pulse-eq-bypass-card .pulse-eq-compare[aria-pressed=true]{background:#fff;color:#191919}
+.pulse-eq-action-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:6px}
+.pulse-eq-action-bar button{min-height:44px;padding:9px 6px!important;background:#191919!important;color:#fff!important;border:1px solid #191919!important;font:500 11px Arial,sans-serif!important}
+.pulse-eq-action-bar button:last-child{background:#fff!important;color:#191919!important;border-color:#fff!important}
+@media(max-width:970px){.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:1fr}.pulse-eq-action-bar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.header .nav-link,.header nav .nav-link{font-size:13px!important}.pulse-editorial-copy strong,.pulse-editorial-copy ol,.pulse-editorial-copy li{font-size:17px!important}.pulse-eq-section-heading{display:block}.pulse-eq-section-heading .eq-mode-pills{margin-top:14px}.pulse-eq-matrix-card .eq-band-picker{grid-template-columns:repeat(5,minmax(0,1fr))}}

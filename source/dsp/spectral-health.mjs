@@ -52,16 +52,19 @@ export function analyzeSpectrum(channels,rate,{maxFrames=24}={}){
   const mono=new Float32Array(FFT_SIZE);
   for(let frame=0;frame<frames;frame++){
     const start=Math.max(0,Math.min(n-FFT_SIZE,Math.round((frame+.5)/frames*Math.max(0,n-FFT_SIZE))));
-    for(let i=0;i<FFT_SIZE;i++){
-      const at=start+i;let value=0;
-      if(at<n)for(const ch of channels)value+=ch[at];
-      mono[i]=value/channels.length;
-    }
-    const power=fftPower(mono);
-    for(let k=1;k<power.length;k++){
-      const hz=k*rate/FFT_SIZE;
-      const index=SPECTRAL_BANDS.findIndex(b=>hz>=b.from&&hz<Math.min(b.to,nyquist+.001));
-      if(index>=0)powers[index]+=power[k];
+    for(const channel of channels){
+      for(let i=0;i<FFT_SIZE;i++){
+        const at=start+i;
+        mono[i]=at<n?channel[at]:0;
+      }
+      // Sum channel power rather than averaging stereo samples:
+      // opposite-polarity channels should not cancel in the spectrum.
+      const power=fftPower(mono);
+      for(let k=1;k<power.length;k++){
+        const hz=k*rate/FFT_SIZE;
+        const index=SPECTRAL_BANDS.findIndex(b=>hz>=b.from&&hz<Math.min(b.to,nyquist+.001));
+        if(index>=0)powers[index]+=power[k];
+      }
     }
   }
   const total=powers.reduce((a,b)=>a+b,0);

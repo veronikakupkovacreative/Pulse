@@ -356,7 +356,7 @@ pulseProject.subscribe(({type,origin,state:project})=>{
   const name=trigger.dataset.openTool;
   if(name==='bpm'){document.querySelector('#analyzer')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
   if(name==='tap'){document.getElementById('open-tap')?.click();return;}
-  if(name==='youtube'){document.getElementById('tab-youtube')?.click();return;}
+
   const tab=document.getElementById('tab-'+name);
   if(!tab)return;
   tab.click();

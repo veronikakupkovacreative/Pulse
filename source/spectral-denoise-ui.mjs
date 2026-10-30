@@ -46,7 +46,7 @@ function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPre
       const data=await run('learn',{channels:channels(input).map(c=>c.slice()),sampleRate:input.sampleRate,from,to,separateChannels:el('denoise-separate-channels').checked});
       if(tools.buffer!==input)return;
       profile=data.profiles;profileInput=input;
-      status('denoise-profile-status','Noise captured · '+(to-from).toFixed(2)+' s · '+profile.length+' frequency bands.');
+      status('denoise-profile-status','Noise captured · '+(to-from).toFixed(2)+' s · '+profile[0].length+' frequency bands · '+profile.length+' channel profile(s).');
       say('Profile ready. Adjust reduction and select Process Audio.');
       el('denoise-process').disabled=false;
       el('denoise-live').disabled=false;

@@ -224,24 +224,44 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     eqState.gainDb=0;el('eq-output-gain').value='0';status('eq-output-label','0.0 dB');
     el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq();
   };
-  async function eqAction(action){
-    if(!tools.buffer){eqNotice('Load audio in the shared workspace first.');return;}
+  function eqPreviewOptions(){
+    return {allowLoop:false,eqBands:el('eq-bypass').checked?[]:readEq(),eqGainDb:eqState.gainDb};
+  }
+  async function previewEqRange(){
+    if(!tools.buffer){eqNotice('Load audio in the black waveform workspace first.');return;}
+    const region=tools.eqSelection;
+    const from=region?.from??Math.min(tools.playhead,Math.max(0,tools.buffer.duration-.02));
+    const to=region?.to??tools.buffer.duration;
+    if(to-from<.02){eqNotice('Move the playhead earlier or choose a longer range.');return;}
     try{
-      if(action==='preview'){
-        await playBuffer(tools.buffer,tools.playhead,tools.buffer.duration,1,
-          {allowLoop:true,eqBands:el('eq-bypass').checked?[]:readEq(),eqGainDb:eqState.gainDb});
-        beginLiveSpectrum();
-        eqNotice('Live EQ preview with FFT spectrum. Adjust filters while playing.');
-        return;
+      await playBuffer(tools.buffer,from,to,1,eqPreviewOptions());
+      beginLiveSpectrum();
+      eqNotice(region?'Playing selected region with live EQ.':'Playing from playhead with live EQ.');
+    }catch(error){eqNotice('EQ preview failed: '+(error.message||'Unknown error'));}
+  }
+  async function eqAction(action){
+    if(!tools.buffer){eqNotice('Load audio in the black waveform workspace first.');return;}
+    if(action==='preview'){await previewEqRange();return;}
+    const input=tools.buffer,selection=tools.eqSelection?{...tools.eqSelection}:null;
+    try{
+      eqNotice(selection?'Processing selected waveform region…':'Processing complete track…');
+      const result=renderEqRegion(channels(input),input.sampleRate,
+        el('eq-bypass').checked?[]:eqState.bands,eqState.gainDb,selection);
+      if(tools.buffer!==input)throw Error('Audio changed during processing. Try again.');
+      if(action==='apply'){
+        workspace.apply(asAudioBuffer(result,input.sampleRate));
+        workingChanged();
+        eqNotice(selection?'Selected region EQ applied; surrounding audio preserved. Undo is available.':'EQ applied to the complete track. Undo is available.');
+      }else if(action==='export'){
+        // A selected region downloads as an isolated clip; the working audio stays unchanged.
+        const first=selection?Math.floor(selection.from*input.sampleRate):0;
+        const last=selection?Math.min(input.length,Math.ceil(selection.to*input.sampleRate)):input.length;
+        const output=selection?result.map(ch=>ch.slice(first,last)):result;
+        const blob=encodeWav(output,input.sampleRate,24);
+        download(blob,filename(selection?'equalized-selection.wav':'equalized.wav'));
+        eqNotice(selection?'Selected EQ region exported as WAV.':'Full EQ track exported as WAV.');
       }
-      eqNotice('Rendering EQ locally…');
-      const source=channels(tools.buffer);
-      const result=renderEqualizer(source,tools.buffer.sampleRate,
-        el('eq-bypass').checked?[]:eqState.bands,eqState.gainDb);
-      const buffer=asAudioBuffer(result,tools.buffer.sampleRate);
-      if(action==='apply'){workspace.apply(buffer);workingChanged();eqNotice('EQ applied to workspace. Undo is available.');}
-      else if(action==='export'){const blob=encodeWav(result,tools.buffer.sampleRate,24);download(blob,filename('equalized.wav'));eqNotice('Equalized WAV exported.');}
-    }catch(error){eqNotice(error.message||'Equalizer failed.');}
+    }catch(error){eqNotice(error.message||'Equalizer rendering failed.');}
   }
   el('eq-preview').onclick=()=>void eqAction('preview');
   el('eq-apply').onclick=()=>void eqAction('apply');
@@ -396,6 +416,6 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     download(blob,'pulse-multitrack-mix.wav');mixNotice('Multitrack mix exported as stereo WAV.');};
   renderMixRows();
   updateSeparationAvailability();
-  return {invalidateMix,clearQuickMix,showFixAdvice,updateSeparationAvailability,onWorkspaceChanged(){cancelSeparation('');clearQuickMix();el('mix-fix-advice').hidden=true;},
+  return {invalidateMix,clearQuickMix,showFixAdvice,updateSeparationAvailability,eqPreviewOptions,previewEqRange,startSpectrum:beginLiveSpectrum,onWorkspaceChanged(){cancelSeparation('');clearQuickMix();el('mix-fix-advice').hidden=true;},
     reset(){mixTracks=[];mixCandidate=null;clearQuickMix();renderMixRows();}};
 }

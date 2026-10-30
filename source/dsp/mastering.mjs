@@ -1,4 +1,5 @@
 import {integratedLoudness} from './quick-tools.mjs';
+import {getMasterPreset} from './master-presets.mjs';
 import {truePeakDb,limitTruePeak} from './true-peak.mjs';
 import {stereoHealth,mixHealthFindings,applyStereoWidth} from './mix-health.mjs';
 import {analyzeSpectrum,spectrumFindings} from './spectral-health.mjs';
@@ -102,22 +103,22 @@ export function analyzeMaster(channels,rate){
     lowShare,highShare,channels:channels.length,rate,duration:channels[0].length/rate};
 }
 export function designMaster(analysis,preset='balanced',targetLufs,{intensity=45,ceilingDb=-1,eqMode='gentle',dynamicsMode='balanced'}={}){
-  if(!['balanced','warm','loud','punchy'].includes(preset))throw Error('Invalid mastering preset.');
-  const presetTarget={balanced:-13,warm:-14,loud:-10,punchy:-12}[preset];
-  const target=targetLufs===undefined?presetTarget:Number(targetLufs);
+  const profile=getMasterPreset(preset);
+  const target=targetLufs===undefined?profile.targetLufs:Number(targetLufs);
   if(!Number.isFinite(target)||target<-22||target>-8)throw Error('Target LUFS must be between -22 and -8.');
   if(!Number.isFinite(intensity)||intensity<0||intensity>100)throw Error('Intensity must be 0–100%.');
   if(![-1,-2,-.3].includes(Number(ceilingDb)))throw Error('Unsupported true-peak ceiling.');
   if(!['gentle','off'].includes(eqMode))throw Error('Invalid EQ mode.');
   if(!['balanced','preserve','control'].includes(dynamicsMode))throw Error('Invalid dynamics mode.');
   const strength=intensity/100,eqStrength=eqMode==='off'?0:strength;
-  const lowDb=masterClamp((.49-analysis.lowShare)*4.4+(preset==='warm'?.65:preset==='loud'?.25:preset==='punchy'?-.25:0),-1.5,1.5)*eqStrength;
-  const highDb=masterClamp((.37-analysis.highShare)*4.2+(preset==='warm'?-.9:preset==='loud'?.25:preset==='punchy'?.10:0),-1.5,1.5)*eqStrength;
+  const lowDb=masterClamp((.49-analysis.lowShare)*4.4+profile.lowBias,-1.5,1.5)*eqStrength;
+  const highDb=masterClamp((.37-analysis.highShare)*4.2+profile.highBias,-1.5,1.5)*eqStrength;
   const lowmid=analysis.spectrum?.find(b=>b.id==='lowmid')?.share||0;
   const midDb=lowmid>.42?-Math.min(.9,(lowmid-.42)*3)*eqStrength:0;
-  const targetRatio=analysis.crestDb>15?(preset==='loud'?1.9:preset==='punchy'?1.20:1.45):analysis.crestDb>9?(preset==='loud'?1.5:preset==='punchy'?1.12:1.25):1.07;
+  const baseRatio=analysis.crestDb>15?1.45:analysis.crestDb>9?1.25:1.07;
+  const targetRatio=Math.max(1,baseRatio+profile.ratioBias);
   const ratio=1+(targetRatio-1)*strength;
-  const thresholdDb=masterClamp(analysis.rmsDb+(preset==='punchy'?7:5.5),-32,-9);
+  const thresholdDb=masterClamp(analysis.rmsDb+5.5+profile.thresholdOffset,-32,-9);
   const timing={balanced:{attackMs:12,releaseMs:160},preserve:{attackMs:30,releaseMs:220},control:{attackMs:5,releaseMs:95}}[dynamicsMode];
   return {preset,targetLufs:target,lowDb,midDb,highDb,ratio,thresholdDb,ceilingDb:Number(ceilingDb),intensity,eqMode,dynamicsMode,...timing};
 }

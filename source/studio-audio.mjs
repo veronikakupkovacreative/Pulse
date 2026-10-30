@@ -1,12 +1,12 @@
 // Audio utilities used by the production toolkit. No remote processing.
 export function encodeWav(channels, sampleRate, bitDepth=16, {dither=false, random=Math.random}={}) {
-  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
-  if(![16,24,32].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
-  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');
+  if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Only mono or stereo audio is supported.');
+  if(![16,24,32].includes(bitDepth))throw new Error('Unsupported bit depth.');
+  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Invalid sample rate.');
   const length=channels[0].length;
-  if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');
+  if(channels.some(ch=>ch.length!==length))throw new Error('Audio channels must have the same length.');
   const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign, floatWav=bitDepth===32,headerSize=floatWav?56:44;
-  if(dataBytes+headerSize>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');
+  if(dataBytes+headerSize>0xffffffff)throw new Error('WAV exceeds standard RIFF limits.');
   const array=new ArrayBuffer(headerSize+dataBytes), view=new DataView(array);
   const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));
   str(0,'RIFF');view.setUint32(4,headerSize+dataBytes-8,true);str(8,'WAVE');str(12,'fmt ');
@@ -27,7 +27,7 @@ export function encodeWav(channels, sampleRate, bitDepth=16, {dither=false, rand
   return new Blob([array],{type:'audio/wav'});
 }
 export function extractSegment(channels, sampleRate, from, to, fadeMs=5) {
-  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Vyber delší úsek.');
+  if(!channels.length||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)throw new Error('Select a longer audio region.');
   const length=channels[0].length;
   const first=Math.min(length,Math.max(0,Math.round(from*sampleRate)));
   const last=Math.min(length,Math.max(first+1,Math.round(to*sampleRate)));
@@ -81,9 +81,9 @@ function correlation(a,b){
 }
 // Chroma-based key estimation: approximate, especially for short or percussive material.
 export function detectKey(samples,sampleRate){
-  if(samples.length<sampleRate*2)throw new Error('Pro tóninu potřebujeme alespoň 2 sekundy zvuku.');
+  if(samples.length<sampleRate*2)throw new Error('Key detection requires at least 2 seconds of audio.');
   const size=4096,hop=4096,real=new Float64Array(size),imag=new Float64Array(size),chroma=new Float64Array(12);
-  if(samples.length<size)throw new Error('Soubor je příliš krátký.');
+  if(samples.length<size)throw new Error('File is too short.');
   const count=Math.min(145,Math.floor((samples.length-size)/hop)+1);
   const step=Math.max(1,Math.floor((samples.length-size)/Math.max(1,count-1)));
   let total=0,frames=0;
@@ -108,7 +108,7 @@ export function detectKey(samples,sampleRate){
     }
     frames++;
   }
-  if(total<1||frames<2)throw new Error('Tóninu se nepodařilo určit. Zkus hudební úsek s melodií či harmonií.');
+  if(total<1||frames<2)throw new Error('Key could not be detected. Select a melodic or harmonic region.');
   const candidates=[];
   for(let root=0;root<12;root++)for(const [mode,profile,camelot] of [['major',MAJOR,MAJOR_CAM],['minor',MINOR,MINOR_CAM]]){
     const rotated=Array.from({length:12},(_,pc)=>profile[((pc-root+12)%12)]);

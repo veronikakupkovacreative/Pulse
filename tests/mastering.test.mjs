@@ -41,7 +41,7 @@ test('master output differs by preset and remains finite for mono and stereo',()
  }
 });
 test('master rejects silence and invalid targets',()=>{
- assert.throws(()=>analyzeMaster([new Float32Array(rate)],rate),/Tiché audio/);
+ assert.throws(()=>analyzeMaster([new Float32Array(rate)],rate),/Silent audio/);
  const a=analyzeMaster(sample(),rate);
  assert.throws(()=>designMaster(a,'balanced',-25),/LUFS/);
  assert.throws(()=>designMaster(a,'none'),/preset/);

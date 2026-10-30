@@ -116,7 +116,7 @@ export function initStudioTools(getBpmTrack){
   function clearError(){el('tool-error').hidden=true;const near=el('tool-file-feedback');if(near)near.hidden=true;}
   function setBusy(busy){tools.loading=busy;for(const id of ['master-render','master-preview-a','master-preview-b','master-apply','master-export'])el(id).disabled=busy||!tools.buffer||(id!=='master-render'&&!tools.masterCandidate&&id!=='master-preview-a');for(const id of ['pt-preview','pt-apply','pt-export','tuner-analyze','tuner-preview','tuner-apply','tuner-export','slice-auto','slice-preview','slice-export-one','slice-export-all'])el(id).disabled=busy||!tools.buffer;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('cut-audition').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;}
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
-  function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;el('conv-dither-box').hidden=mp3||el('conv-depth').value!=='16';const sourceRate=tools.buffer?.sampleRate||48000;const selected=el('conv-rate').value;const rate=selected==='original'?sourceRate:Number(selected);if(mp3&&![44100,48000].includes(rate)){el('conv-rate').value='48000';}el('conv-rate').querySelector('option[value="96000"]').disabled=mp3;}
+  function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;el('conv-dither-box').hidden=mp3||el('conv-depth').value!=='16';const sourceRate=tools.buffer?.sampleRate||48000;const selected=el('conv-rate').value;const rate=selected==='original'?sourceRate:Number(selected);if(mp3&&![44100,48000].includes(rate)){el('conv-rate').value='48000';}for(const rateValue of ['88200','96000'])el('conv-rate').querySelector('option[value="'+rateValue+'"]').disabled=mp3;}
   function updateBpmFromAnalyzer(){
     const project=pulseProject.snapshot(),other=getBpmTrack();
     const bpm=project.bpm||other?.bpm;
@@ -297,14 +297,14 @@ export function initStudioTools(getBpmTrack){
     const token=++tools.operation;
     try{
       const format=el('conv-format').value,requestedRate=el('conv-rate').value,rate=requestedRate==='original'?tools.buffer.sampleRate:Number(requestedRate),bitDepth=Number(el('conv-depth').value),bitrate=Number(el('conv-bitrate').value),dither=el('conv-dither').checked&&bitDepth===16;
-      if(format==='mp3'&&!([44100,48000].includes(rate)))throw new Error('MP3 podporuje jen 44,1 nebo 48 kHz.');
+      if(format==='mp3'&&!([44100,48000].includes(rate)))throw new Error('MP3 encoder supports only 44.1 or 48 kHz.');
       const approx=tools.buffer.duration*rate*Math.min(2,tools.buffer.numberOfChannels)*(bitDepth/8);
       if(format==='wav'&&approx>300*1024*1024)throw new Error('Výstupní WAV by přesáhl 300 MB. Zvol menší sample rate nebo kratší track.');
-      status('conv-status','Převzorkovávám audio…');
+      status('conv-status',rate===tools.buffer.sampleRate?'Preparing export…':'Resampling audio…');
       const data=await renderedChannels(rate);
       if(token!==tools.operation)return;
-      if(format==='wav'){status('conv-status','Kóduji WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));status('conv-status',`WAV je připravený (${readableSize(blob.size)}).`);}
-      else{status('conv-status','Načítám MP3 enkodér…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 je připravené (${readableSize(blob.size)}).`);}
+      if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));const peak=Math.max(...data.map(channel=>{let m=0;for(let i=0;i<channel.length;i++)m=Math.max(m,Math.abs(channel[i]));return m;}));const peakDb=peak>0?20*Math.log10(peak).toFixed(1):-Infinity;status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb+' dBFS':'silence'}`);}
+      else{status('conv-status','Načítám MP3 enkodér…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ${bitrate} kbps · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${readableSize(blob.size)} (lossy).`);}
     }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
   }

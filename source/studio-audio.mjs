@@ -1,24 +1,26 @@
 // Audio utilities used by the production toolkit. No remote processing.
 export function encodeWav(channels, sampleRate, bitDepth=16, {dither=false, random=Math.random}={}) {
   if(!Array.isArray(channels)||!channels.length||channels.length>2)throw new Error('Podporováno je mono nebo stereo.');
-  if(![16,24].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
+  if(![16,24,32].includes(bitDepth))throw new Error('Nepodporovaná bitová hloubka.');
   if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná vzorkovací frekvence.');
   const length=channels[0].length;
   if(channels.some(ch=>ch.length!==length))throw new Error('Kanály nemají shodnou délku.');
-  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign;
-  if(dataBytes+44>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');
-  const array=new ArrayBuffer(44+dataBytes), view=new DataView(array);
+  const bytes=bitDepth/8, blockAlign=channels.length*bytes, dataBytes=length*blockAlign, floatWav=bitDepth===32,headerSize=floatWav?56:44;
+  if(dataBytes+headerSize>0xffffffff)throw new Error('WAV je příliš velký pro běžný souborový formát.');
+  const array=new ArrayBuffer(headerSize+dataBytes), view=new DataView(array);
   const str=(p,s)=>[...s].forEach((c,i)=>view.setUint8(p+i,c.charCodeAt(0)));
-  str(0,'RIFF');view.setUint32(4,36+dataBytes,true);str(8,'WAVE');str(12,'fmt ');
-  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels.length,true);
+  str(0,'RIFF');view.setUint32(4,headerSize+dataBytes-8,true);str(8,'WAVE');str(12,'fmt ');
+  view.setUint32(16,16,true);view.setUint16(20,floatWav?3:1,true);view.setUint16(22,channels.length,true);
   view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*blockAlign,true);
   view.setUint16(32,blockAlign,true);view.setUint16(34,bitDepth,true);
-  str(36,'data');view.setUint32(40,dataBytes,true);
-  let position=44;
+  if(floatWav){str(36,'fact');view.setUint32(40,4,true);view.setUint32(44,length,true);str(48,'data');view.setUint32(52,dataBytes,true);}
+  else{str(36,'data');view.setUint32(40,dataBytes,true);}
+  let position=headerSize;
   for(let i=0;i<length;i++)for(let c=0;c<channels.length;c++){
     // TPDF dither is optional for 16-bit delivery; avoid extra noise on 24-bit masters.
-    const raw=channels[c][i]||0;
-    const sample=Math.min(1,Math.max(-1,raw+(dither&&bitDepth===16?(random()+random()-1)/65536:0)));
+    const raw=Number.isFinite(channels[c][i])?channels[c][i]:0;
+    if(floatWav){view.setFloat32(position,raw,true);position+=4;continue;}
+    const sample=Math.min(1,Math.max(-1,raw+(dither&&bitDepth===16?(random()+random()-1)/32768:0)));
     if(bitDepth===16){view.setInt16(position,sample<0?Math.round(sample*32768):Math.round(sample*32767),true);position+=2;}
     else {let v=sample<0?Math.round(sample*8388608):Math.round(sample*8388607);if(v<0)v+=0x1000000;view.setUint8(position++,v&255);view.setUint8(position++,(v>>>8)&255);view.setUint8(position++,(v>>>16)&255);}
   }

@@ -29,3 +29,33 @@ test('optional TPDF dither affects 16-bit quantization but leaves 24-bit output 
  const d24=new Uint8Array(await encodeWav(source,48000,24,{dither:true,random}).arrayBuffer());
  assert.deepEqual([...p24],[...d24]);
 });
+
+test('32-bit float stereo WAV includes IEEE float format, fact chunk and exact samples',async()=>{
+  const left=Float32Array.from([0,-1.25,.25,1.1]);
+  const right=Float32Array.from([.5,1,0,-.25]);
+  const blob=encodeWav([left,right],88200,32);
+  const v=new DataView(await blob.arrayBuffer());
+  assert.equal(blob.size,56+left.length*8);
+  assert.equal(v.getUint32(4,true),blob.size-8);
+  assert.equal(v.getUint16(20,true),3);
+  assert.equal(v.getUint16(22,true),2);
+  assert.equal(v.getUint32(24,true),88200);
+  assert.equal(v.getUint16(34,true),32);
+  assert.equal(String.fromCharCode(...new Uint8Array(v.buffer,36,4)),'fact');
+  assert.equal(v.getUint32(44,true),left.length);
+  assert.equal(String.fromCharCode(...new Uint8Array(v.buffer,48,4)),'data');
+  assert.equal(v.getUint32(52,true),left.length*8);
+  for(let i=0;i<left.length;i++){
+    assert.equal(v.getFloat32(56+i*8,true),left[i]);
+    assert.equal(v.getFloat32(60+i*8,true),right[i]);
+  }
+});
+test('16-bit dither yields approximately zero-mean noise with deterministic random inputs',async()=>{
+  let seed=745;
+  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+  const bytes=await encodeWav([new Float32Array(4096)],48000,16,{dither:true,random}).arrayBuffer();
+  const view=new DataView(bytes);let positives=0,negatives=0,sum=0;
+  for(let i=0;i<4096;i++){const s=view.getInt16(44+2*i,true);if(s>0)positives++;if(s<0)negatives++;sum+=s;}
+  assert.ok(positives>150&&negatives>150);
+  assert.ok(Math.abs(sum/4096)<.07);
+});

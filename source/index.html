@@ -166,19 +166,29 @@
               <label><input type="radio" name="master-preset" value="warm"><span>WARM</span></label>
               <label><input type="radio" name="master-preset" value="loud"><span>LOUD</span></label><label><input type="radio" name="master-preset" value="punchy"><span>PUNCHY</span></label>
             </div>
-            <div class="tool-fields master-fields"><label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label><label>True-peak ceiling<select id="master-ceiling"><option value="-1" selected>−1.0 dBTP</option><option value="-2">−2.0 dBTP</option><option value="-0.3">−0.3 dBTP</option></select></label><label>Processing intensity <output id="master-intensity-label">45%</output><input id="master-intensity" type="range" min="0" max="100" step="5" value="45"></label><label>Stereo width <output id="master-width-label">100%</output><input id="master-width" type="range" min="80" max="120" step="5" value="100"></label></div>
+            <div class="tool-fields master-fields"><label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label><label>True-peak ceiling<select id="master-ceiling"><option value="-1" selected>−1.0 dBTP</option><option value="-2">−2.0 dBTP</option><option value="-0.3">−0.3 dBTP</option></select></label><label>Processing intensity <output id="master-intensity-label">45%</output><input id="master-intensity" type="range" min="0" max="100" step="5" value="45"></label><label>Stereo width <output id="master-width-label">100%</output><input id="master-width" type="range" min="80" max="120" step="5" value="100"></label><label>Adaptive EQ<select id="master-eq-mode"><option value="gentle" selected>Gentle · max ±1.5 dB</option><option value="off">Bypass EQ</option></select></label><label>Dynamics<select id="master-dynamics"><option value="balanced" selected>Balanced</option><option value="preserve">Preserve transients</option><option value="control">Tight control</option></select></label></div>
             <div class="master-readouts" id="master-readouts" aria-label="Mastering results" aria-live="polite">
               <div><span>BEFORE</span><strong id="master-before">—</strong><small>LUFS integrated</small></div>
               <div><span>AFTER</span><strong id="master-after">—</strong><small>LUFS integrated</small></div>
               <div><span>TRUE PEAK</span><strong id="master-peak">—</strong><small>dBTP (4× estimate)</small></div><div><span>CREST</span><strong id="master-crest">—</strong><small>dB</small></div><div><span>STEREO</span><strong id="master-correlation">—</strong><small>correlation</small></div><div><span>MAX GR</span><strong id="master-gr">—</strong><small>dB reduction</small></div>
             </div>
-            <div class="master-mix-health" id="master-mix-health" role="status" hidden></div><div id="master-spectrum" class="master-mix-health" hidden><strong>TONAL BALANCE · SOURCE-RELATIVE ENERGY</strong><div id="master-spectrum-bars"></div></div><div class="quick-actions"><button type="button" id="master-report" disabled>Export Analysis JSON ↗</button></div><div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
+            <div class="master-reference" id="master-reference-section">
+              <strong>REFERENCE TRACK · A/B/R MONITORING</strong>
+              <div class="master-reference-control">
+                <label for="master-reference-file">Choose reference audio (WAV, MP3, M4A)</label>
+                <input id="master-reference-file" type="file" accept=".wav,.wave,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*" aria-describedby="master-reference-status">
+                <button type="button" id="master-reference-clear" disabled>Remove reference</button>
+              </div>
+              <p id="master-reference-status" role="status">No reference loaded. Import a track to compare measured loudness and tonal balance.</p>
+              <div id="master-reference-details" hidden></div>
+            </div>
+            <div class="master-mix-health" id="master-mix-health" role="status" hidden></div><div id="master-spectrum" class="master-mix-health" hidden><strong>TONAL BALANCE · SOURCE-RELATIVE ENERGY</strong><div id="master-spectrum-bars"></div></div><div class="quick-actions"><button type="button" id="master-report" disabled>Export Analysis JSON ↗</button></div><div id="master-eq-response" class="master-eq" hidden></div><div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
             <button type="button" id="master-render" class="tool-action tool-action-dark" disabled>Generate Master <span>↗</span></button>
-            <div class="master-actions"><button type="button" id="master-preview-a" disabled>▶ A / ORIGINAL</button><button type="button" id="master-preview-b" disabled>▶ B / MASTER</button></div>
+            <div class="master-actions"><button type="button" id="master-preview-a" disabled>▶ A / ORIGINAL</button><button type="button" id="master-preview-b" disabled>▶ B / MASTER</button><button type="button" id="master-preview-r" disabled>▶ R / REFERENCE</button></div>
             <label class="master-match"><input type="checkbox" id="master-match" checked> Loudness-matched A/B preview</label>
             <div class="quick-actions master-finish"><button id="master-apply" disabled>Apply to Workspace</button><button id="master-export" disabled>Export WAV 24-bit ↗</button></div>
             <p class="tool-footnote" id="master-status" role="status">Load audio to generate a master.</p>
-            <p class="master-disclaimer">V2 · Local DSP with 4× true-peak estimation and stereo-linked lookahead limiting. Validate critical releases with a reference meter.</p>
+            <p class="master-disclaimer">V2.3 · Local deterministic DSP. Reference comparisons are measurements, not automatic matching. True peak is a 4× estimate; validate critical releases with a reference meter.</p>
           </div>
         </div>
       </div>

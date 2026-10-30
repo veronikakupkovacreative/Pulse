@@ -412,3 +412,16 @@
 
 /* Metronome loudness control follows the existing inline transport style. */
 .metro-volume{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.02em;white-space:nowrap}.metro-volume input{width:74px;min-height:35px;accent-color:var(--red)}@media(max-width:440px){.metronome-row{flex-wrap:wrap;gap:12px}.metro-volume input{width:64px}}
+
+/* Smart Master reference section and the measured EQ response. */
+.master-reference{border:1px solid rgba(255,255,255,.25);padding:15px;margin:16px 0;display:grid;gap:12px;}
+.master-reference>strong{font-size:12px;letter-spacing:.08em;}
+.master-reference-control{display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+.master-reference-control label{font-size:12px;}
+.master-reference-control input[type=file]{max-width:100%;font-size:12px;cursor:pointer;}
+.master-reference-control button{border:1px solid currentColor;padding:8px 12px;background:transparent;color:inherit;min-height:42px;font-size:12px;cursor:pointer;}
+.master-reference-control button:disabled{opacity:.42;cursor:not-allowed;}
+#master-reference-status{margin:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere;}
+#master-reference-details{font-size:12px;line-height:1.65;overflow-wrap:anywhere;}
+#master-eq-response{font-variant-numeric:tabular-nums;line-height:1.6;font-size:12px;}
+@media(max-width:600px){.master-reference{padding:12px}.master-reference-control{align-items:flex-start;flex-direction:column}.master-actions{flex-wrap:wrap}.master-actions button{min-height:44px;}}

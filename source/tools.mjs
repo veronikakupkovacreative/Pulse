@@ -501,7 +501,7 @@ export function initStudioTools(getBpmTrack){
   const groups={
     analyze:['key','tuner','calculator'],
     edit:['cutter','pitch','slicer','reverse','trim','equalizer','denoise'],
-    export:['converter','normalizer'],
+    export:['converter','normalizer','youtube'],
     ai:['master','mix']
   };
   function selectCategory(category,selectFirst=true){

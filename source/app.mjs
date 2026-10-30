@@ -302,3 +302,54 @@ pulseProject.subscribe(({type,origin,state:project})=>{
     void processFile(project.file,project.working);
   }
 });
+
+
+/* Reference-design directory navigation and contextual section heading. */
+(() => {
+ const toolMetadata = {
+ key:['Key','Finder.','Harmonic analysis that estimates the musical key of a track, including Camelot notation. It helps with composition, mixing and harmonic transitions.',['Load your track into the main editor.','Start the key analysis in the Key Finder tab.','Verify the estimated key by ear.']],
+ tuner:['808','Tuner.','Identify and tune bass notes and 808 samples before placing them in the mix.',['Load a bass or 808 sample.','Run the pitch analysis.','Compare the detected note with your project key.']],
+ calculator:['BPM','Calculator.','Convert tempo to beat, bar and rhythmic note durations in milliseconds.',['Choose the project tempo.','Select the note division.','Use the calculated timing in your production.']],
+ cutter:['Loop','Cutter.','Cut a precise, tempo-aligned section of audio for loops, samples or transitions.',['Load your audio file.','Adjust the IN and OUT markers.','Preview and export your loop.']],
+ pitch:['Pitch &','Time.','Apply pitch and speed adjustments to samples in a focused workspace.',['Choose a track.','Set pitch or playback speed.','Preview the result before exporting.']],
+ slicer:['Sample','Slicer.','Turn longer recordings into smaller usable samples with accurate cut markers.',['Load your sample.','Adjust the slice markers.','Export the selected slices.']],
+ reverse:['Reverse','Audio.','Reverse a sound or sample for transitions, risers and experimental textures.',['Import audio.','Preview the selected section.','Reverse and export the result.']],
+ trim:['Silence','Trim.','Remove quiet sections at the beginning or end of a recording.',['Load a track.','Set the silence threshold.','Review and export the trimmed version.']],
+ denoise:['Spectral','Denoise.','Reduce unwanted background noise using a captured noise profile and spectral processing.',['Choose an audio track.','Capture a noise-only section.','Apply denoising and check the result.']],
+ equalizer:['Parametric','Equalizer.','Fine-tune frequencies with an interactive EQ response, bands and live waveform.',['Load a recording.','Move EQ nodes or adjust filter parameters.','Preview and export your settings.']],
+ converter:['Audio','Converter.','Convert compatible files into producer-friendly audio formats directly in your browser.',['Choose your source file.','Select format and quality.','Convert and download the output.']],
+ normalizer:['Audio','Normalizer.','Adjust overall loudness and manage peaks before sharing the finished file.',['Load a track.','Set the normalization target.','Preview and export the processed audio.']],
+ mix:['AI Studio','Mix.','Shape the tonal character of a stereo mix or work with aligned stems in a multitrack workflow.',['Load a mix or stems.','Select the mix workflow.','Fine-tune and export the result.']],
+ master:['AI Studio','Master.','Use adaptive audio processing for consistent loudness, tonal balance and stereo control.',['Load your finished mix.','Choose mastering character and loudness.','Inspect the result and export.']]
+ };
+ const title = document.getElementById('toolkit-title');
+ const summary = document.getElementById('pulse-tool-summary');
+ const steps = document.getElementById('pulse-tool-steps');
+ let current='';
+ function update(){
+   const active=document.querySelector('.tool-tabs [data-tool][aria-selected="true"]');
+   const key=active?.dataset.tool||'key';
+   if(key===current||!toolMetadata[key]||!title||!summary||!steps)return;
+   current=key;
+   const [first,second,description,items]=toolMetadata[key];
+   title.replaceChildren(document.createTextNode(first),document.createElement('br'));
+   const accent=document.createElement('span'); accent.textContent=second;title.append(accent);
+   summary.textContent=description;
+   steps.replaceChildren(...items.map(s=>{const li=document.createElement('li');li.textContent=s;return li;}));
+ }
+ const tabs=document.querySelector('.tool-tabs');
+ if(tabs){new MutationObserver(update).observe(tabs,{subtree:true,attributes:true,attributeFilter:['aria-selected']});update();}
+ document.addEventListener('click',event=>{
+  const trigger=event.target.closest('[data-open-tool]');
+  if(!trigger)return;
+  event.preventDefault();
+  const name=trigger.dataset.openTool;
+  if(name==='bpm'){document.querySelector('#analyzer')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
+  if(name==='tap'){document.getElementById('open-tap')?.click();return;}
+  if(name==='youtube'){document.getElementById('tab-youtube')?.click();return;}
+  const tab=document.getElementById('tab-'+name);
+  if(!tab)return;
+  tab.click();
+  document.getElementById('toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+ });
+})();

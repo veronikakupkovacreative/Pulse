@@ -77,10 +77,11 @@ export function renderSpectralDenoise(input,profile,options={},onProgress){
   const frames=Math.ceil((input.length+FFT_SIZE)/HOP);
   let previousX=0,previousY=0,gateGain=1;
   const highpassAlpha=settings.rumbleHz>0?Math.exp(-2*Math.PI*settings.rumbleHz/settings.sampleRate):0;
-  const blend=settings.blend/100;
+  const blend=settings.blend/100,prepared=settings.rumbleHz>0?new Float32Array(input.length):input;
+  if(settings.rumbleHz>0)for(let i=0;i<input.length;i++){const sample=input[i],filtered=highpassAlpha*(previousY+sample-previousX);previousX=sample;previousY=filtered;prepared[i]=filtered;}
   for(let frame=0;frame<frames;frame++){
     const offset=frame*HOP-FFT_SIZE+HOP;
-    for(let i=0;i<FFT_SIZE;i++){const pos=offset+i;let sample=pos>=0&&pos<input.length?input[pos]:0;if(settings.rumbleHz>0){const y=highpassAlpha*(previousY+sample-previousX);previousX=sample;previousY=y;sample=y;}re[i]=sample*WINDOW[i];im[i]=0;}
+    for(let i=0;i<FFT_SIZE;i++){const pos=offset+i;const sample=pos>=0&&pos<input.length?prepared[pos]:0;re[i]=sample*WINDOW[i];im[i]=0;}
     spectralFft(re,im);spectralProcessFrame(re,im,profile,settings,memory,scratch);spectralFft(re,im,true);
     for(let i=0;i<FFT_SIZE;i++){
       const pos=offset+i;if(pos<0||pos>=input.length)continue;

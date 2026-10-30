@@ -78,9 +78,11 @@
         <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim" data-group="edit" hidden>Silence Trim <b>↗</b></button>
         <button class="tool-tab" id="tab-converter" role="tab" aria-selected="false" aria-controls="panel-converter" tabindex="-1" data-tool="converter" data-group="export" hidden>Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer" data-group="export" hidden>Normalizer <b>↗</b></button>
+        <button class="tool-tab" id="tab-equalizer" role="tab" aria-selected="false" aria-controls="panel-equalizer" tabindex="-1" data-tool="equalizer" data-group="edit" hidden>Equalizer <b>↗</b></button>
+        <button class="tool-tab" id="tab-mix" role="tab" aria-selected="false" aria-controls="panel-mix" tabindex="-1" data-tool="mix" data-group="ai" hidden>AI Mix <b>↗</b></button>
         <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden>Smart Master <b>↗</b></button>
       </div>
-      <div class="coming-soon-note"><button class="tool-tab tool-tab-disabled coming-soon-link" id="tab-youtube" type="button" aria-disabled="true" disabled>YouTube Audio <b>COMING SOON</b></button><span id="ai-mix-coming" hidden>AI Mix <small>PLANNED · MULTITRACK</small></span></div>
+      <div class="coming-soon-note"><button class="tool-tab tool-tab-disabled coming-soon-link" id="tab-youtube" type="button" aria-disabled="true" disabled>YouTube Audio <b>COMING SOON</b></button></div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
           <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
@@ -156,6 +158,29 @@
             <div class="tool-view-header"><span>02 / NORMALIZER</span><span>GAIN CONTROL</span></div><h3>Control the level.</h3>
             <div class="tool-fields"><label>Mode<select id="norm-mode"><option value="peak">Peak dBFS</option><option value="lufs">Integrated LUFS</option></select></label><label id="norm-peak-field">Target peak (dBFS)<input id="norm-peak" type="number" min="-40" max="0" step="0.5" value="-1"></label><label id="norm-lufs-field" hidden>Target LUFS<input id="norm-lufs" type="number" min="-45" max="0" step="0.5" value="-14"></label><label>Peak ceiling (dBFS)<input id="norm-ceiling" type="number" min="-30" max="0" step="0.5" value="-1"></label></div>
             <p id="norm-status" class="tool-footnote" role="status">Load audio and select normalization.</p><div class="quick-actions"><button data-quick-preview="normalizer">▶ Preview</button><button data-quick-apply="normalizer">Apply to Workspace</button><button data-quick-export="normalizer">Export WAV ↗</button></div>
+          </div>
+
+          <div id="panel-equalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-equalizer" hidden>
+            <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span>6 BANDS · LOCAL DSP</span></div>
+            <h3>Shape your sound.</h3>
+            <p class="tool-footnote">Adjust six filters on the interactive response curve. Preview in real time, then apply or export.</p>
+            <div class="tool-fields"><label>EQ preset<select id="eq-preset"><option value="flat">Flat</option><option value="vocal">Vocal Presence</option><option value="bass">Warm Bass</option><option value="air">Air &amp; Brilliance</option><option value="clean">Low-Cut Clean</option></select></label>
+            <label>Output gain <output id="eq-output-label">0.0 dB</output><input type="range" id="eq-output-gain" min="-18" max="12" step=".5" value="0"></label>
+            <label><input id="eq-bypass" type="checkbox"> Bypass EQ</label></div>
+            <svg id="eq-response-graph" class="pulse-eq-graph" viewBox="0 0 720 232" aria-label="Frequency response curve with draggable band handles" role="img"></svg>
+            <div id="eq-bands" class="pulse-eq-bands" aria-label="Equalizer band settings"></div>
+            <div class="quick-actions"><button id="eq-reset" type="button">Reset EQ</button><button id="eq-preview" type="button">▶ Live Preview</button><button id="eq-apply" type="button">Apply to Workspace</button><button id="eq-export" type="button">Export WAV ↗</button></div>
+            <p class="tool-footnote" id="eq-status" role="status">Load your audio in the shared workspace to start.</p>
+          </div>
+          <div id="panel-mix" class="tool-view" role="tabpanel" aria-labelledby="tab-mix" hidden>
+            <div class="tool-view-header"><span>02 / AI MIX</span><span>ASSISTED MULTITRACK DSP</span></div>
+            <h3>Build your mix.</h3>
+            <p class="tool-footnote">Import 2–8 time-aligned stems, adjust gain and pan, and audition a stereo mix. Gain suggestions use measured RMS and peaks, not a neural model.</p>
+            <div class="pulse-mix-import"><label for="mix-files">Add stems (WAV, MP3, M4A)</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
+            <div id="mix-stems" class="pulse-mix-tracks"></div>
+            <div class="quick-actions"><button type="button" id="mix-balance" disabled>Suggest Levels</button><button type="button" id="mix-render" disabled>Generate Mix</button><button type="button" id="mix-play" disabled>▶ Preview Mix</button><button type="button" id="mix-export" disabled>Export Stereo WAV ↗</button></div>
+            <p class="tool-footnote" id="mix-status" role="status">Add at least two stems. They must start at the same timeline position.</p>
+            <p class="master-disclaimer">AI MIX (assisted beta) uses transparent, deterministic DSP. No stem separation, model-based mixing or cloud processing.</p>
           </div>
           <div id="panel-master" class="tool-view" role="tabpanel" aria-labelledby="tab-master" hidden>
             <div class="tool-view-header"><span>02 / SMART MASTER</span><span>LOCAL ADAPTIVE DSP · NO UPLOAD</span></div>

@@ -13,7 +13,7 @@ function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.m
 export function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
   const workspace=pulseProject.workspace;
-  const tools={category:'analyze',masterCandidate:null,reference:null,referenceGeneration:0,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
+  const tools={eqNodes:null,eqOutputGain:null,category:'analyze',masterCandidate:null,reference:null,referenceGeneration:0,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
@@ -193,7 +193,7 @@ export function initStudioTools(getBpmTrack){
     clearInterval(tools.previewTimer);tools.previewTimer=null;
     cancelAnimationFrame(tools.raf);tools.raf=0;
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
-    tools.playing=false;tools.transport=null;
+    tools.playing=false;tools.transport=null;tools.eqNodes=null;tools.eqOutputGain=null;
     el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Play audio');
   }
   function advancePlayhead(){
@@ -204,12 +204,12 @@ export function initStudioTools(getBpmTrack){
   async function seekTool(time,autoplay=true,sourceTransport=tools.transport){
     if(!tools.buffer||tools.loading)return;
     const active=sourceTransport;
-    const buffer=active?.buffer||tools.buffer,volume=active?.volume??1;
+    const buffer=active?.buffer||tools.buffer,volume=active?.volume??1,eqBands=active?.eqBands??null,eqGainDb=active?.eqGainDb??0;
     const next=clampPlayhead(time,tools.buffer.duration);
     const inPreviousRange=active&&next>=active.from&&next<active.to;
     const end=inPreviousRange?active.to:buffer.duration;
     stopPreview();updatePlayhead(next);
-    if(autoplay)await playBuffer(buffer,clampPlayhead(next,buffer.duration),end,volume);
+    if(autoplay)await playBuffer(buffer,clampPlayhead(next,buffer.duration),end,volume,{eqBands,eqGainDb});
   }
   function remove(){clearMasterReference();tools.masterCandidate=null;resetMasterUI();tools.bpmWorker?.terminate();tools.bpmWorker=null;tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.markers=[];workspace.clear();tools.quickCandidate=null;tools.quickBounds=null;el('workspace-undo').disabled=true;el('workspace-redo').disabled=true;el('workspace-original').disabled=true;status('workspace-state','ORIGINAL');tools.operation++;tools.keyWorker?.terminate();tools.keyWorker=null;stopPreview();tools.file=null;tools.buffer=null;tools.peaks=[];tools.from=0;tools.to=8;tools.playhead=0;resetWaveView(0);tools.transport=null;updatePlayhead(0);el('tool-file-input').value='';pulseProject.clear('toolkit');el('tool-loaded').hidden=true;el('tool-empty').hidden=false;resetKey();clearError();setBusy(false);updateButtons();}
   function nativeWavRate(data){
@@ -311,9 +311,9 @@ export function initStudioTools(getBpmTrack){
   }
   const groups={
     analyze:['key','tuner','calculator'],
-    edit:['cutter','pitch','slicer','reverse','trim'],
+    edit:['cutter','pitch','slicer','reverse','trim','equalizer'],
     export:['converter','normalizer'],
-    ai:['master']
+    ai:['master','mix']
   };
   function selectCategory(category,selectFirst=true){
     if(!groups[category])return;
@@ -324,7 +324,7 @@ export function initStudioTools(getBpmTrack){
     });
     document.querySelectorAll('[data-group]').forEach(button=>button.hidden=button.dataset.group!==category);
     el('analyze-shortcuts').hidden=category!=='analyze';
-    el('ai-mix-coming').hidden=category!=='ai';
+
     document.querySelectorAll('[data-group-nav]').forEach(link=>{
       const active=link.dataset.groupNav===category;
       link.classList.toggle('active',active);
@@ -579,7 +579,7 @@ export function initStudioTools(getBpmTrack){
     }catch(e){if(token===tools.operation)error(e.message);}
     finally{if(token===tools.operation)setBusy(false);}
   }
-  async function playBuffer(buffer,from=tools.playhead,to=buffer.duration,volume=1,{allowLoop=true}={}){
+  async function playBuffer(buffer,from=tools.playhead,to=buffer.duration,volume=1,{allowLoop=true,eqBands=null,eqGainDb=0}={}){
     stopPreview();const Ctx=window.AudioContext||window.webkitAudioContext;
     tools.context||=new Ctx();if(tools.context.state==='suspended')await tools.context.resume();
     from=clampPlayhead(from,buffer.duration);to=clampPlayhead(to,buffer.duration);
@@ -588,9 +588,24 @@ export function initStudioTools(getBpmTrack){
     if(looping){if(from<tools.loopFrom||from>=tools.loopTo)from=tools.loopFrom;to=tools.loopTo;}
     const src=tools.context.createBufferSource();src.buffer=buffer;
     if(looping){src.loop=true;src.loopStart=tools.loopFrom;src.loopEnd=tools.loopTo;}
-    const gain=tools.context.createGain();gain.gain.value=Math.max(0,volume);src.connect(gain);gain.connect(tools.context.destination);
+    const gain=tools.context.createGain();gain.gain.value=Math.max(0,volume);let previous=src;
+    tools.eqNodes=null;tools.eqOutputGain=null;
+    if(eqBands&&eqBands.length){
+      tools.eqNodes=[];
+      for(const band of eqBands.filter(b=>b.enabled)){
+        const filter=tools.context.createBiquadFilter();
+        filter.type=band.type;filter.frequency.value=Math.min(band.frequency,tools.context.sampleRate*.49);
+        filter.Q.value=band.q;filter.gain.value=band.gain;
+        previous.connect(filter);previous=filter;tools.eqNodes.push(filter);
+      }
+    }
+    if(eqBands){
+      tools.eqOutputGain=tools.context.createGain();tools.eqOutputGain.gain.value=10**(eqGainDb/20);
+      previous.connect(tools.eqOutputGain);previous=tools.eqOutputGain;
+    }
+    previous.connect(gain);gain.connect(tools.context.destination);
     const startedAt=tools.context.currentTime;
-    tools.transport={buffer,from,to,volume,startedAt,loop:looping,loopFrom:tools.loopFrom,loopTo:tools.loopTo};tools.source=src;tools.playing=true;
+    tools.transport={buffer,from,to,volume,eqBands,eqGainDb,startedAt,loop:looping,loopFrom:tools.loopFrom,loopTo:tools.loopTo};tools.source=src;tools.playing=true;
     src.onended=()=>{if(tools.source!==src)return;updatePlayhead(Math.min(to,tools.buffer?.duration||to));stopPreview();};
     if(looping)src.start(0,from);else src.start(0,from,to-from);
     updatePlayhead(Math.min(from,tools.buffer?.duration||from));
@@ -1015,6 +1030,8 @@ export function initStudioTools(getBpmTrack){
   });
   const resize=new ResizeObserver(()=>{drawToolWave();updatePlayhead(tools.playhead);});resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.bpmWorker?.terminate();tools.productionWorker?.terminate();tools.keyWorker?.terminate();tools.context?.close();});
+  initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
+    download,filename,status,decodeLocalAudio,audioFileError,encodeWav});
   selectCategory('analyze',false);syncOutput();updateCalculator();resetWaveView(0);updateButtons();
   return {reset:remove};
 }

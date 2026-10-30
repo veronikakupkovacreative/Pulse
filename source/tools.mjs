@@ -548,8 +548,14 @@ export function initStudioTools(getBpmTrack){
       link.classList.toggle('active',active);
       if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
     });
+    const bpmNav=document.querySelector('[data-nav-bpm]');if(bpmNav){bpmNav.classList.remove('active');bpmNav.removeAttribute('aria-current');}
     if(selectFirst&&!groups[category].includes(tools.tab))selectTab(groups[category][0]);
   }
+  const bpmNav=document.querySelector('[data-nav-bpm]');
+  if(bpmNav)bpmNav.addEventListener('click',()=>{
+    document.querySelectorAll('[data-group-nav]').forEach(link=>{link.classList.remove('active');link.removeAttribute('aria-current');});
+    bpmNav.classList.add('active');bpmNav.setAttribute('aria-current','location');
+  });
   function selectTab(which){
     const category=Object.keys(groups).find(group=>groups[group].includes(which));
     if(!category)return;

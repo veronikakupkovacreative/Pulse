@@ -82,7 +82,7 @@ const bundledScript=`(() => {
   ${noExports(zipStore)}
   ${noExports(tools)}
   ${app}
-  initYoutubeAudio();
+  // YouTube Audio has been removed from the public toolkit.
   function syncPulseSliders(){document.querySelectorAll('.tool-settings input[type=range]').forEach(input=>{const low=Number(input.min||0),high=Number(input.max||100),value=Number(input.value);input.style.setProperty('--pulse-fill',(high>low?Math.max(0,Math.min(100,100*(value-low)/(high-low))):50)+'%');});}
   document.addEventListener('input',event=>{if(event.target?.matches?.('.tool-settings input[type=range]'))syncPulseSliders();});
   document.addEventListener('change',event=>{if(event.target?.matches?.('.tool-settings input[type=range]'))syncPulseSliders();});

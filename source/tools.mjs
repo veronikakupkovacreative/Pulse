@@ -1033,6 +1033,11 @@ export function initStudioTools(getBpmTrack){
     if(event.button!==0||!tools.buffer||tools.loading)return;
     if(slicePointerDown(event))return;
     const time=slicePosition(event);
+    if(tools.tab==='equalizer'&&(tools.eqSelectMode||event.shiftKey)){
+      tools.eqDragId=event.pointerId;tools.eqDragStart=time;stopPreview();
+      tools.eqSelection=null;setEqSelection(time,time);
+      waveform.setPointerCapture(event.pointerId);return;
+    }
     if(tools.tab==='cutter'&&event.shiftKey){
       if(Math.abs(time-tools.from)<Math.abs(time-tools.to))setStart(time,true);else setEnd(time);
       return;
@@ -1042,9 +1047,18 @@ export function initStudioTools(getBpmTrack){
     waveform.setPointerCapture(event.pointerId);
   });
   waveform.addEventListener('pointermove',event=>{
+    if(tools.eqDragId===event.pointerId&&tools.buffer){
+      setEqSelection(tools.eqDragStart,slicePosition(event));return;
+    }
     if(tools.dragSeekId===event.pointerId&&tools.buffer)updatePlayhead(slicePosition(event));
   });
   const finishSeek=event=>{
+    if(tools.eqDragId===event.pointerId){
+      const at=slicePosition(event),start=tools.eqDragStart;
+      tools.eqDragId=null;setEqSelection(start,at);
+      if(!tools.eqSelection)updatePlayhead(at);
+      return;
+    }
     if(tools.dragSeekId!==event.pointerId)return;
     tools.dragSeekId=null;
     updatePlayhead(slicePosition(event));
@@ -1052,7 +1066,7 @@ export function initStudioTools(getBpmTrack){
     void seekTool(tools.playhead,true,transport).catch(e=>error('Playback failed: '+e.message));
   };
   waveform.addEventListener('pointerup',finishSeek);
-  waveform.addEventListener('pointercancel',()=>{tools.dragSeekId=null;tools.scrubTransport=null;});
+  waveform.addEventListener('pointercancel',()=>{tools.dragSeekId=null;tools.scrubTransport=null;tools.eqDragId=null;});
   waveform.addEventListener('keydown',event=>{
     if(!tools.buffer)return;
     let time;

@@ -123,7 +123,7 @@ export function initStemToolkit(project,encodeWav){
   get('stem-ai-stop').onclick=stop;
   get('stem-ai-zip').onclick=async()=>{
     if(!stems)return;
-    try{const zip=await createStoredZip(stems.map((s,i)=>({name:labels[i]+'.wav',data:encodeWav(s.channels,s.rate,24)})));
+    try{const zip=await createStoredZip(stems.map(s=>({name:s.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.wav',data:encodeWav(s.channels,s.rate,24)})));
       const url=URL.createObjectURL(zip),a=document.createElement('a');a.href=url;a.download='pulse-4-stems.zip';
       document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
     }catch(e){status('stem-ai-status',e.message||'ZIP export failed.');}

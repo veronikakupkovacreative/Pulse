@@ -29,12 +29,12 @@ export function initYoutubeTool(){
   function updateFormat(){
     const format=el('yt-format').value;
     const message={
-      wav24:'WAV 24-bit PCM — pro práci v DAW. Dekódování bez další ztrátové komprese, ale neobnoví detaily ztracené na YouTube.',
-      wav16:'WAV 16-bit PCM — menší soubor pro editaci. Dekódování bez další ztrátové komprese.',
-      native:'Nejvěrnější YouTube zdroji: stáhne přesně audio stream, který YouTube poskytuje (obvykle Opus nebo AAC).',
-      mp3:'MP3 320 kb/s — kompatibilnější, ale znamená další ztrátové překódování již komprimovaného YouTube zvuku.'
+      wav24:'WAV 24-bit PCM — for DAW use. Decoding does not restore details lost from the original streaming audio.',
+      wav16:'WAV 16-bit PCM — smaller uncompressed editing file.',
+      native:'Original source stream, typically Opus or AAC, where legally available.',
+      mp3:'MP3 320 kbps — compatible but adds another lossy encoding step.'
     };
-    const button={wav24:'Stáhnout WAV 24-bit',wav16:'Stáhnout WAV 16-bit',native:'Stáhnout původní stopu',mp3:'Stáhnout MP3'};
+    const button={wav24:'Download WAV 24-bit',wav16:'Download WAV 16-bit',native:'Download original audio',mp3:'Download MP3'};
     el('yt-format-note').textContent=message[format];
     el('yt-download').replaceChildren(document.createTextNode(button[format]+' '),(()=>{const span=document.createElement('span');span.setAttribute('aria-hidden','true');span.textContent='↗';return span;})());
     el('yt-result').hidden=true;
@@ -42,25 +42,25 @@ export function initYoutubeTool(){
   }
   async function checkServer(){
     try{
-      if(!apiBase)throw new Error('Služba není nakonfigurovaná.');
+      if(!apiBase)throw new Error('Service is not configured.');
       const response=await fetch(apiUrl('/api/youtube/health'),{cache:'no-store',signal:AbortSignal.timeout(12000)});
-      if(!response.ok)throw new Error('Server nedostupný');
+      if(!response.ok)throw new Error('Server unavailable');
       const data=await response.json();
       state.ready=Boolean(data.ready);
       if(state.ready){
         el('yt-helper').textContent='CLOUD READY';
         el('yt-helper').classList.add('is-ready');
-        el('yt-help').textContent='Online služba je připravena. Vlož odkaz na video a zvol formát.';
+        el('yt-help').textContent='Service ready. Paste a video link and choose a format.';
       }else{
-        el('yt-helper').textContent='SLUŽBA NEDOSTUPNÁ';
+        el('yt-helper').textContent='SERVICE UNAVAILABLE';
         el('yt-helper').classList.remove('is-ready');
-        el('yt-help').textContent='Služba dočasně není dostupná. Zkus to později.';
+        el('yt-help').textContent='Service temporarily unavailable. Try again later.';
       }
     }catch{
       state.ready=false;
       el('yt-helper').textContent='CLOUD OFFLINE';
       el('yt-helper').classList.remove('is-ready');
-      el('yt-help').textContent='Online stahování zatím není dostupné. Provozovatel aplikace musí aktivovat cloudový backend.';
+      el('yt-help').textContent='Online download is unavailable. Cloud processing has not been enabled.';
     }
     update();
     return state.ready;
@@ -76,12 +76,12 @@ export function initYoutubeTool(){
         body:JSON.stringify(payload),signal:controller.signal
       });
     }catch(error){
-      throw new Error(error.name==='AbortError'?'Zpracování trvalo příliš dlouho. Zkus kratší video.':'Online audio služba není dostupná. Zkus to později.');
+      throw new Error(error.name==='AbortError'?'Processing timed out. Try a shorter video.':'Online audio service is unavailable. Try again later.');
     }finally{clearTimeout(timer);}
     let data;
     try{data=await response.json();}
-    catch{throw new Error('Server nevrátil platnou odpověď.');}
-    if(!response.ok)throw new Error(data.error||'YouTube audio není dostupné.');
+    catch{throw new Error('Server returned an invalid response.');}
+    if(!response.ok)throw new Error(data.error||'YouTube audio is unavailable.');
     return data;
   }
   async function check(){
@@ -90,24 +90,24 @@ export function initYoutubeTool(){
     clearError();
     resetSource();
     const url=el('yt-url').value.trim();
-    if(!url){showError('Vlož odkaz na YouTube video.');return;}
+    if(!url){showError('Paste a YouTube video link.');return;}
     state.busy=true;
     update();
-    status('Zjišťuji nejkvalitnější dostupnou audio stopu…');
+    status('Checking available audio formats…');
     try{
-      if(!(await checkServer()))throw new Error('Online YouTube downloader je dočasně nedostupný. Není potřeba nic instalovat.');
+      if(!(await checkServer()))throw new Error('Online YouTube download is temporarily unavailable.');
       const {source}=await api('info',{url});
       state.source=source;
       state.url=url;
       el('yt-title').textContent=source.title;
       el('yt-codec').textContent=(source.codec||'unknown').toUpperCase();
-      el('yt-bitrate').textContent=source.bitrate?`~${source.bitrate} kb/s`:'Nezjištěno';
-      el('yt-rate').textContent=source.sampleRate?`${(source.sampleRate/1000).toLocaleString('cs-CZ')} kHz`:'Nezjištěno';
+      el('yt-bitrate').textContent=source.bitrate?`~${source.bitrate} kb/s`:'Unknown';
+      el('yt-rate').textContent=source.sampleRate?`${(source.sampleRate/1000).toLocaleString('en-US')} kHz`:'Unknown';
       el('yt-length').textContent=fmtSeconds(source.duration);
       el('yt-container').textContent=source.container||'—';
       el('yt-source-info').hidden=false;
-      status('Zdroj ověřen. Vyber formát vpravo a klikni na Stáhnout.');
-    }catch(error){showError(error.message);status('Video se nepodařilo načíst.');}
+      status('Source verified. Choose a format and select Download.');
+    }catch(error){showError(error.message);status('Failed to load video.');}
     finally{state.busy=false;update();}
   }
   async function download(){
@@ -117,27 +117,27 @@ export function initYoutubeTool(){
     clearError();
     el('yt-result').hidden=true;
     el('yt-save-link').hidden=true;
-    status('Stahuji nejlepší dostupný audio stream a připravuji soubor…');
+    status('Preparing audio file…');
     try{
       const data=await api('download',{url:state.url,format:el('yt-format').value});
       const save=el('yt-save-link');
       save.href=apiUrl('/api/youtube/file/'+encodeURIComponent(data.id));
       save.download=data.filename;
       save.hidden=false;
-      const size=(data.bytes/1048576).toLocaleString('cs-CZ',{maximumFractionDigits:1});
-      el('yt-result').textContent=`${data.filename} · ${size} MB · připraveno`;
+      const size=(data.bytes/1048576).toLocaleString('en-US',{maximumFractionDigits:1});
+      el('yt-result').textContent=`${data.filename} · ${size} MB · ready`;
       el('yt-result').hidden=false;
       // Fallback link remains visible if the browser prevents an automatic download.
       save.click();
-      status('Hotovo. Pokud prohlížeč stahování nezahájil, klikni na odkaz pod tlačítkem.');
-    }catch(error){showError(error.message);status('Stahování se nepodařilo dokončit.');}
+      status('Complete. If download did not start, use the link below.');
+    }catch(error){showError(error.message);status('Download failed.');}
     finally{state.busy=false;update();}
   }
   el('yt-url').addEventListener('input',()=>{
     clearTimeout(debounce);
     resetSource();
     clearError();
-    status('Po vložení odkazu se zdroj automaticky načte.');
+    status('Paste a link to load the source.');
     const input=el('yt-url').value.trim();
     if(/^(?:https?:\/\/)?(?:(?:www|m|music)\.)?(?:youtube\.com|youtu\.be)(?:[/?#]|$)/i.test(input))debounce=setTimeout(check,850);
   });

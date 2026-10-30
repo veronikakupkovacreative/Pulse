@@ -35,7 +35,7 @@ export function initStudioTools(getBpmTrack){
     if(tools.loopTo-tools.loopFrom<.05){tools.loopEnabled=false;tools.loopFrom=0;tools.loopTo=buffer.duration;}
     updateWaveControls();
     el('tool-name').textContent=tools.file?.name||'Audio';
-    status('tool-details',`${durationText(buffer.duration)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
+    status('tool-details',`${durationText(buffer.duration)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
     el('tool-loaded').hidden=false;el('tool-empty').hidden=true;
     updateTrimInputs();drawToolWave();updatePlayhead(tools.playhead);resetKey();updateButtons();
   }
@@ -249,7 +249,7 @@ export function initStudioTools(getBpmTrack){
       tools.to=Math.min(buffer.duration,8);tools.playhead=0;resetWaveView(buffer.duration);updatePlayhead(0);updateBpmFromAnalyzer();
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
-      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} kan. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
+      status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
       el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();drawToolWave();
       syncOutput();el('tool-file-feedback').hidden=true;status('conv-status','Ready to export.');status('cut-status','Set a loop range or choose a number of bars.');
       updatePlayhead(0);
@@ -849,7 +849,7 @@ export function initStudioTools(getBpmTrack){
   el('wave-mark-in').onclick=()=>markLoop('in');el('wave-mark-out').onclick=()=>markLoop('out');
   el('wave-zoom-in').onclick=()=>setZoom(tools.zoom*2);el('wave-zoom-out').onclick=()=>setZoom(tools.zoom/2);
   el('wave-pan-left').onclick=()=>panWave(-1);el('wave-pan-right').onclick=()=>panWave(1);
-  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.productionWorker?.terminate();tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),2160);tools.from=0;tools.to=Math.min(8,x.buffer.duration);tools.playhead=0;resetWaveView(x.buffer.duration);updatePlayhead(0);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} kan. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Převzato from BPM Analyzer.');updateButtons();}};
+  el('tool-reuse-bpm').onclick=()=>{const x=getBpmTrack();if(x?.buffer&&x?.file){tools.productionWorker?.terminate();tools.productionCandidate=null;tools.masterCandidate=null;resetMasterUI();tools.markers=[];workspace.load(x.buffer,x.file);tools.file=x.file;tools.buffer=x.buffer;tools.peaks=getAudioPeaks(x.buffer.getChannelData(0),2160);tools.from=0;tools.to=Math.min(8,x.buffer.duration);tools.playhead=0;resetWaveView(x.buffer.duration);updatePlayhead(0);el('tool-name').textContent=x.file.name;el('tool-name').title=x.file.name;status('tool-ext',x.file.name.split('.').pop().toUpperCase());status('tool-details',`${durationText(x.buffer.duration)} · ${readableSize(x.file.size)} · ${x.buffer.numberOfChannels} ch. · ${(x.buffer.sampleRate/1000).toFixed(1)} kHz`);el('tool-loaded').hidden=false;el('tool-empty').hidden=true;updateBpmFromAnalyzer();resetKey();updateTrimInputs();drawToolWave();status('conv-status','Loaded from BPM Analyzer.');updateButtons();}};
   el('conv-format').onchange=syncOutput;el('conv-depth').onchange=syncOutput;el('conv-rate').onchange=syncOutput;
   el('conv-export').onclick=exportConvert;
   el('key-analyze').onclick=analyzeKey;

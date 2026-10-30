@@ -54,6 +54,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
               gainDb:0,pan:0,mute:false,solo:false,measurement:stemMeasurements(channels)};
           });
           mixTracks=imported;invalidateMix();renderMixRows();
+          window.dispatchEvent(new CustomEvent('pulse:demucs-stems',{detail:{stems:imported}}));
           cancelSeparation('4 Demucs stems separated locally and loaded into the multitrack mixer. Adjust levels before export.');
         }catch(error){cancelSeparation(error.message);}
       };
@@ -699,5 +700,5 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   renderMixRows();
   updateSeparationAvailability();
   return {invalidateMix,clearQuickMix,showFixAdvice,updateSeparationAvailability,eqPreviewOptions,previewEqRange,startSpectrum:beginLiveSpectrum,onWorkspaceChanged(){cancelSeparation('');clearQuickMix();el('mix-fix-advice').hidden=true;},
-    reset(){mixTracks=[];mixCandidate=null;clearQuickMix();renderMixRows();}};
+    reset(){mixTracks=[];mixCandidate=null;window.dispatchEvent(new Event('pulse:demucs-reset'));clearQuickMix();renderMixRows();}};
 }

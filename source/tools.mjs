@@ -22,6 +22,7 @@ export function initStudioTools(getBpmTrack){
   function syncEqEditor(){
     const loaded=Boolean(tools.buffer),eq=tools.tab==='equalizer';
     el('eq-wave-editor').hidden=!eq||!loaded;
+    el('pulse-eq-left').hidden=!eq||!loaded;
     el('eq-select-region').setAttribute('aria-pressed',String(tools.eqSelectMode));
     const selection=tools.eqSelection,duration=tools.buffer?.duration||0;
     el('eq-region-in').max=String(duration);el('eq-region-out').max=String(duration);
@@ -74,6 +75,7 @@ export function initStudioTools(getBpmTrack){
     status('tool-details',`${durationText(buffer.duration)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
     el('tool-loaded').hidden=false;el('tool-empty').hidden=true;
     updateTrimInputs();drawToolWave();updatePlayhead(tools.playhead);resetKey();updateButtons();syncEqEditor();
+    el('tool-insights').hidden=!['mix','master'].includes(tools.tab);
   }
   function asAudioBuffer(data,rate){
     const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -290,6 +292,7 @@ export function initStudioTools(getBpmTrack){
       status('tool-ext',file.name.split('.').pop().toUpperCase());
       status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
       el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();syncEqEditor();drawToolWave();
+      el('tool-insights').hidden=!['mix','master'].includes(tools.tab);
       syncOutput();el('tool-file-feedback').hidden=true;status('conv-status','Ready to export.');status('cut-status','Set loop length or select a number of bars.');
       updatePlayhead(0);
     }catch(e){if(token===tools.operation){error('Cannot decode audio: '+(e?.message||'unsupported codec')+'. MP4/M4A/FLAC support depends on the browser.');status('conv-status','Failed to load file.');}}
@@ -379,6 +382,9 @@ export function initStudioTools(getBpmTrack){
       const selected=which===name,tab=el('tab-'+name);
       tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
     }
+    const showingResults=which==='mix'||which==='master';
+    el('tool-insights').hidden=!showingResults||!tools.buffer;
+    for(const name of ['mix','master'])el('insights-'+name).hidden=which!==name;
     drawToolWave();updatePlayhead(tools.playhead);
   }
   function updateTrimInputs(){
@@ -1101,6 +1107,15 @@ export function initStudioTools(getBpmTrack){
   });
   const resize=new ResizeObserver(()=>{drawToolWave();updatePlayhead(tools.playhead);});resize.observe(el('tool-waveform'));
   window.addEventListener('pagehide',()=>{stopPreview();tools.bpmWorker?.terminate();tools.productionWorker?.terminate();tools.keyWorker?.terminate();tools.context?.close();});
+  // Result surfaces remain live DOM nodes: no duplicate IDs or detached listeners.
+  const leftMaster=el('insights-master'),leftMix=el('insights-mix');
+  for(const id of ['master-readouts','master-reference-details','master-mix-health',
+    'master-spectrum','master-eq-response','master-eq']){
+    const node=el(id);if(node)leftMaster.append(node);
+  }
+  for(const id of ['mix-quick-report','mix-fix-advice','mix-advice','mix-separation-status']){
+    const node=el(id);if(node)leftMix.append(node);
+  }
   extraApi=initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
     download,filename,status,decodeLocalAudio,audioFileError,encodeWav});
   selectCategory('analyze',false);syncOutput();updateCalculator();resetWaveView(0);updateButtons();

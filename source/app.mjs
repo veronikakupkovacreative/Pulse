@@ -1,3 +1,4 @@
+import {initAiAssistedDSP} from './ai-assisted-ui.mjs';
 import {encodeWav} from './studio-audio.mjs';
 import {initAdvancedFX} from './advanced-fx.mjs';
 import {initStudioTools} from './tools.mjs';
@@ -299,6 +300,7 @@ function makeDemo() {
 $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
 initAdvancedFX(pulseProject,encodeWav);
+initAiAssistedDSP(pulseProject,encodeWav);
 pulseProject.subscribe(({type,origin,state:project})=>{
   if(type==='load'&&origin==='toolkit'&&project.working&&project.file){
     // Re-use the same decoded asset. The BPM worker gets only a lightweight mono copy.

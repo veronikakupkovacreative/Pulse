@@ -1,4 +1,5 @@
 import {encodeWav,extractSegment,getAudioPeaks} from './studio-audio.mjs';
+import {encodeFlac16,encodeM4aWithMediaRecorder,isAacM4aSupported} from './dsp/audio-export.mjs';
 import {reverseAudio,bpmDurations,detectSilenceBounds,trimAudio,normalizeAudio} from './dsp/quick-tools.mjs';
 import {pulseProject} from './core/project-session.mjs';
 import {decodeLocalAudio,decodedAudioBytes} from './core/media-loader.mjs';
@@ -497,6 +498,26 @@ export function initStudioTools(getBpmTrack){
       else{status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ${bitrate} kbps · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${readableSize(blob.size)} (lossy).`);}
     }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
+  }
+  async function exportCleanAudio(buffer,format){
+    if(!buffer)throw Error('No cleaned audio available.');
+    const data=channels(buffer),rate=buffer.sampleRate;
+    if(format==='wav'){const blob=encodeWav(data,rate,16,{dither:true});download(blob,filename('clean.wav'));return 'Clean WAV 16-bit downloaded.';}
+    if(format==='flac'){const blob=encodeFlac16(data,rate);download(blob,filename('clean.flac'));return 'Clean FLAC 16-bit downloaded.';}
+    if(format==='m4a'){
+      if(!isAacM4aSupported())throw Error('AAC/M4A encoding is unavailable in this browser. Choose WAV, FLAC or MP3.');
+      const blob=await encodeM4aWithMediaRecorder(buffer,192000,pct=>status('denoise-status','Encoding AAC '+pct+'%'));
+      download(blob,filename('clean.m4a'));return 'Clean AAC/M4A 192 kbps downloaded.';
+    }
+    if(/^mp3-(64|128|192|320)$/.test(format)){
+      const bitrate=Number(format.slice(4));
+      if(![44100,48000].includes(rate))throw Error('MP3 requires 44.1 or 48 kHz. Convert sample rate first.');
+      const token=tools.operation;
+      const blob=await toMp3(data,rate,bitrate,token);
+      download(blob,filename('clean.mp3'));
+      return 'Clean MP3 '+bitrate+' kbps downloaded.';
+    }
+    throw Error('Unsupported clean export format.');
   }
   const groups={
     analyze:['key','tuner','calculator'],
@@ -1308,7 +1329,7 @@ export function initStudioTools(getBpmTrack){
   }
   extraApi=initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
     download,filename,status,decodeLocalAudio,audioFileError,encodeWav});
-  denoiseApi=initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav});
+  denoiseApi=initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav,exportCleanAudio});
   selectCategory('analyze',false);syncOutput();updateCalculator();resetWaveView(0);updateButtons();
   return {reset:remove};
 }

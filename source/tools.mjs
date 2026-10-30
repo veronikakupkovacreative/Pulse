@@ -224,6 +224,7 @@ export function initStudioTools(getBpmTrack){
     updateTrimInputs();drawToolWave();updatePlayhead(tools.playhead);resetKey();updateButtons();syncEqEditor();
     el('tool-insights').hidden=!['mix','master'].includes(tools.tab);
   }
+  window.addEventListener('pulse:advanced-applied',workingChanged);
   function asAudioBuffer(data,rate){
     const Ctx=window.AudioContext||window.webkitAudioContext;
     if(!Ctx)throw new Error('Web Audio API unavailable.');

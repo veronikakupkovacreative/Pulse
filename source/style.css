@@ -735,3 +735,20 @@
 .pulse-eq-left .eq-preset-description{color:#aaa99e}
 @media(max-width:1000px){.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:1fr}.tool-board:has(#pulse-eq-left:not([hidden])) .tool-settings{border-left:0;border-top:1px solid #44443e}}
 @media(max-width:600px){.tool-board:has(#pulse-eq-left:not([hidden])) .tool-source{padding:19px 13px}.pulse-eq-left .eq-mode-pills button,.pulse-eq-left .eq-preset-pills button{padding:9px 11px}}
+
+
+/* Spectral Denoise — producer controls, meter and A/B states */
+.denoise-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.denoise-controls label{display:grid;gap:7px;font-size:11px}
+.denoise-controls output{color:#ff2b20;font-variant-numeric:tabular-nums;font-weight:700}
+.denoise-controls input[type=range]{width:100%;accent-color:#ff2b20}
+.denoise-channel-toggle{display:flex;align-items:center;gap:9px;padding:12px 0;border-top:1px solid #4b4b45;border-bottom:1px solid #4b4b45;font-size:11px}
+.denoise-channel-toggle input{accent-color:#ff2b20}
+.denoise-meter{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin:15px 0;padding:12px;background:#1b1c1a;border:1px solid #464740}
+.denoise-meter>span{font:700 9px Arial,sans-serif;letter-spacing:.1em;color:#a5a59b}
+.denoise-meter>strong{font:700 13px ui-monospace,monospace;color:#ff2b20}
+.denoise-meter>div{grid-column:1/-1;height:6px;background:#3b3c37;overflow:hidden}
+.denoise-meter i{display:block;width:0;height:100%;background:#ff2b20;transition:width .18s ease}
+#denoise-ab[disabled]{opacity:.35}
+#denoise-ab:not(:disabled){border-color:#ff2b20;color:#ff2b20}
+@media(max-width:600px){.denoise-controls{grid-template-columns:1fr}}

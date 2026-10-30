@@ -109,12 +109,12 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const defs=node('defs',{});
     // Style only: white-to-red silk gradient, with the response values untouched.
     const gradient=node('linearGradient',{id:'pulse-eq-response-fill',x1:'0%',x2:'0%',y1:'0%',y2:'100%'},defs);
-    node('stop',{offset:'0%','stop-color':'#FF0000','stop-opacity':.15},gradient);
+    node('stop',{offset:'0%','stop-color':'#FF3333','stop-opacity':.15},gradient);
     node('stop',{offset:'100%','stop-color':'#FF0000','stop-opacity':.005},gradient);
     const ribbon=node('linearGradient',{id:'pulse-eq-response-ribbon',x1:'0%',x2:'100%',y1:'0%',y2:'0%'},defs);
-    node('stop',{offset:'0%','stop-color':'#FFFFFF'},ribbon);
+    node('stop',{offset:'0%','stop-color':'#FF3333'},ribbon);
     node('stop',{offset:'32%','stop-color':'#FFFFFF'},ribbon);
-    node('stop',{offset:'55%','stop-color':'#FF8C8C'},ribbon);
+    node('stop',{offset:'55%','stop-color':'#FF3333'},ribbon);
     node('stop',{offset:'77%','stop-color':'#FF0000'},ribbon);
     node('stop',{offset:'100%','stop-color':'#FF0000'},ribbon);
     for(const db of [-12,-6,0,6,12]){

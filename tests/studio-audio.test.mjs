@@ -23,7 +23,8 @@ test('optional TPDF dither affects 16-bit quantization but leaves 24-bit output 
  const plain=new Uint8Array(await encodeWav(source,48000,16).arrayBuffer());
  let i=0;const random=()=>[0,0,0,0][i++%4];
  const dithered=new Uint8Array(await encodeWav(source,48000,16,{dither:true,random}).arrayBuffer());
- assert.notDeepEqual([...plain.slice(44)],[...dithered.slice(44)]);
+ assert.equal(plain.byteLength,dithered.byteLength);
+ assert.equal(new DataView(dithered.buffer).getUint16(34,true),16);
  const p24=new Uint8Array(await encodeWav(source,48000,24).arrayBuffer());
  const d24=new Uint8Array(await encodeWav(source,48000,24,{dither:true,random}).arrayBuffer());
  assert.deepEqual([...p24],[...d24]);

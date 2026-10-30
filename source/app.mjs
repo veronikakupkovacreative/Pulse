@@ -319,18 +319,24 @@ $('#seek').addEventListener('pointerdown',event=>{
     const at=view.start+clamp01((event.clientX-rect.left)/rect.width)*view.length;
     bpmView.drag={start:at};bpmView.range=[at,at];
     $('#seek').setPointerCapture(event.pointerId);drawWaveform();updateBpmRangeStatus();
+  }else if(bpmView.zoom>1&&state.buffer){
+    event.preventDefault();bpmScrubbing=true;
+    const rect=$('#seek').getBoundingClientRect(),view=visibleBpmRange();
+    seekBpm(view.start+clamp01((event.clientX-rect.left)/rect.width)*view.length);
+    $('#seek').setPointerCapture(event.pointerId);
   }else bpmScrubbing=true;
 });
 $('#seek').addEventListener('pointermove',event=>{
-  if(!bpmView.drag)return;
+  if(!bpmView.drag&&!(bpmScrubbing&&bpmView.zoom>1))return;
   const rect=$('#seek').getBoundingClientRect(),view=visibleBpmRange();
+  if(!bpmView.drag){seekBpm(view.start+clamp01((event.clientX-rect.left)/rect.width)*view.length);return;}
   const at=view.start+clamp01((event.clientX-rect.left)/rect.width)*view.length;
   bpmView.range=[Math.min(at,bpmView.drag.start),Math.max(at,bpmView.drag.start)];
   updateBpmRangeStatus();drawWaveform();
 });
 $('#seek').addEventListener('input',()=>{if(!bpmView.select)seekBpm(Number($('#seek').value));});
 $('#seek').addEventListener('change',()=>{
-  if(bpmView.select)return;
+  if(bpmView.select||bpmView.zoom>1)return;
   bpmScrubbing=false;seekBpm(Number($('#seek').value),{autoplay:true});
 });
 $('#seek').addEventListener('pointerup',()=>{

@@ -69,7 +69,7 @@ class YoutubeTests(unittest.TestCase):
     @patch.object(server, 'extract_info', fixture_extract)
     def test_all_export_formats(self):
         for format, expected_ext in [('native', 'wav'), ('wav16', 'wav'),
-                                     ('wav24', 'wav'), ('mp3', 'mp3')]:
+                                     ('wav24', 'wav'), ('mp3', 'mp3'), ('m4a', 'm4a'), ('flac', 'flac')]:
             with self.subTest(format=format):
                 data = server.prepare_download(VIDEO, format)
                 job = server.JOBS[data['id']]
@@ -81,6 +81,10 @@ class YoutubeTests(unittest.TestCase):
                         self.assertEqual(w.getsampwidth(), 3 if format == 'wav24' else 2)
                 else:
                     self.assertGreater(job['path'].stat().st_size, 1000)
+                if format == 'flac':
+                    self.assertEqual(job['path'].read_bytes()[:4], b'fLaC')
+                if format == 'm4a':
+                    self.assertIn(b'ftyp', job['path'].read_bytes()[:24])
 
     @patch.object(server, 'extract_info', fixture_extract)
     @patch.object(server, 'dependencies', lambda: [])

@@ -296,6 +296,7 @@ function makeDemo() {
 }
 $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
+initYoutubeTool();
 pulseProject.subscribe(({type,origin,state:project})=>{
   if(type==='load'&&origin==='toolkit'&&project.working&&project.file){
     // Re-use the same decoded asset. The BPM worker gets only a lightweight mono copy.

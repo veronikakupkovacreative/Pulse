@@ -14,11 +14,12 @@ export const EQ_DEFAULT_BANDS=[
 export function eqCoefficients(band,rate){
   if(!Number.isFinite(rate)||rate<8000||rate>192000)throw Error('Invalid sample rate.');
   const {frequency,gain=0,q=1,type='peaking'}=band;
-  if(!Number.isFinite(frequency)||frequency<20||frequency>Math.min(20000,rate*.49)
+  if(!Number.isFinite(frequency)||frequency<20||frequency>20000
     ||!Number.isFinite(gain)||gain< -12||gain>12
     ||!Number.isFinite(q)||q<.25||q>10)throw Error('Invalid EQ filter settings.');
-  if(type==='peaking')return peakingBiquad(rate,frequency,gain,q);
-  const w=2*Math.PI*frequency/rate,cs=Math.cos(w),sn=Math.sin(w);
+  const safeFrequency=Math.min(frequency,rate*.45);
+  if(type==='peaking')return peakingBiquad(rate,safeFrequency,gain,q);
+  const w=2*Math.PI*safeFrequency/rate,cs=Math.cos(w),sn=Math.sin(w);
   const alpha=sn/(2*q),A=10**(gain/40),root=2*Math.sqrt(A)*alpha;
   let b0,b1,b2,a0,a1,a2;
   if(type==='highpass'){b0=(1+cs)/2;b1=-(1+cs);b2=b0;a0=1+alpha;a1=-2*cs;a2=1-alpha;}

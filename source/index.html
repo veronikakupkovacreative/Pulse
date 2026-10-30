@@ -164,13 +164,13 @@
             <div class="master-presets" role="group" aria-label="Master character">
               <label><input type="radio" name="master-preset" value="balanced" checked><span>BALANCED</span></label>
               <label><input type="radio" name="master-preset" value="warm"><span>WARM</span></label>
-              <label><input type="radio" name="master-preset" value="loud"><span>LOUD</span></label>
+              <label><input type="radio" name="master-preset" value="loud"><span>LOUD</span></label><label><input type="radio" name="master-preset" value="punchy"><span>PUNCHY</span></label>
             </div>
-            <div class="tool-fields master-fields"><label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label><label>Ceiling <span class="master-static">−1.2 dBFS (sample peak)</span></label></div>
+            <div class="tool-fields master-fields"><label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label><label>True-peak ceiling<select id="master-ceiling"><option value="-1" selected>−1.0 dBTP</option><option value="-2">−2.0 dBTP</option><option value="-0.3">−0.3 dBTP</option></select></label><label>Processing intensity <output id="master-intensity-label">45%</output><input id="master-intensity" type="range" min="0" max="100" step="5" value="45"></label></div>
             <div class="master-readouts" id="master-readouts" aria-label="Mastering results" aria-live="polite">
               <div><span>BEFORE</span><strong id="master-before">—</strong><small>LUFS integrated</small></div>
               <div><span>AFTER</span><strong id="master-after">—</strong><small>LUFS integrated</small></div>
-              <div><span>OUTPUT PEAK</span><strong id="master-peak">—</strong><small>dBFS (sample)</small></div>
+              <div><span>TRUE PEAK</span><strong id="master-peak">—</strong><small>dBTP (4× estimate)</small></div><div><span>CREST</span><strong id="master-crest">—</strong><small>dB</small></div><div><span>STEREO</span><strong id="master-correlation">—</strong><small>correlation</small></div><div><span>MAX GR</span><strong id="master-gr">—</strong><small>dB reduction</small></div>
             </div>
             <div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
             <button type="button" id="master-render" class="tool-action tool-action-dark" disabled>Generate Master <span>↗</span></button>
@@ -178,7 +178,7 @@
             <label class="master-match"><input type="checkbox" id="master-match" checked> Loudness-matched A/B preview</label>
             <div class="quick-actions master-finish"><button id="master-apply" disabled>Apply to Workspace</button><button id="master-export" disabled>Export WAV 24-bit ↗</button></div>
             <p class="tool-footnote" id="master-status" role="status">Load audio to generate a master.</p>
-            <p class="master-disclaimer">V1 · Local adaptive DSP, not neural AI. Sample-peak limiting only; not true-peak certified. Verify by listening.</p>
+            <p class="master-disclaimer">V2 · Local DSP with 4× true-peak estimation and stereo-linked lookahead limiting. Validate critical releases with a reference meter.</p>
           </div>
         </div>
       </div>

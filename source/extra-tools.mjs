@@ -71,10 +71,10 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-response-graph').addEventListener('pointercancel',()=>{dragBand=-1;});
   function eqNodeUpdate(){
     if(!tools.eqNodes)return;
-    const active=eqState.bands.filter(b=>b.enabled);
     for(let i=0;i<tools.eqNodes.length;i++){
-      const n=tools.eqNodes[i],b=active[i];
+      const n=tools.eqNodes[i],b=eqState.bands[i];
       if(!b)continue;const now=tools.context.currentTime;
+      n.type=b.enabled&&!el('eq-bypass').checked?b.type:'allpass';
       n.frequency.setTargetAtTime(Math.min(b.frequency,tools.context.sampleRate*.49),now,.016);
       n.Q.setTargetAtTime(b.q,now,.016);n.gain.setTargetAtTime(b.gain,now,.016);
     }

@@ -592,9 +592,9 @@ export function initStudioTools(getBpmTrack){
     tools.eqNodes=null;tools.eqOutputGain=null;
     if(eqBands&&eqBands.length){
       tools.eqNodes=[];
-      for(const band of eqBands.filter(b=>b.enabled)){
+      for(const band of eqBands){
         const filter=tools.context.createBiquadFilter();
-        filter.type=band.type;filter.frequency.value=Math.min(band.frequency,tools.context.sampleRate*.49);
+        filter.type=band.enabled?band.type:'allpass';filter.frequency.value=Math.min(band.frequency,tools.context.sampleRate*.49);
         filter.Q.value=band.q;filter.gain.value=band.gain;
         previous.connect(filter);previous=filter;tools.eqNodes.push(filter);
       }

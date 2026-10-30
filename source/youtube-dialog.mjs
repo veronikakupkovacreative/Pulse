@@ -12,7 +12,7 @@ function initYoutubeAudio(){
     }catch{return false;}
   };
   async function check(){
-    if(!api){say('YouTube converter is not connected. Configure PULSE_API_BASE_URL and a working cloud backend.');return;}
+    if(!api){available=false;say('Cloud service is not configured. Set PULSE_API_BASE_URL in Vercel and redeploy, then retry.');return;}
     if(checking)return checking;
     checking=(async()=>{
       try{
@@ -20,10 +20,11 @@ function initYoutubeAudio(){
         if(!res.ok)throw Error('Backend returned '+res.status);
         const info=await res.json();available=info.ready===true;
         say(available?'Converter online. Use only audio you have rights to download.':'Converter not ready: '+(info.missing||[]).join(', '));
-      }catch(err){available=false;say('Cloud converter unavailable: '+err.message);}
+      }catch(err){available=false;say('Cloud converter unavailable: '+err.message+'. Check API URL, Railway status and allowed origins.');}
     })();
     await checking;checking=null;
   }
+  el('youtube-recheck').onclick=()=>void check();
   btn.onclick=()=>{dialog.showModal();void check();};
   el('youtube-close').onclick=()=>dialog.close();
   form.onsubmit=async event=>{

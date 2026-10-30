@@ -15,16 +15,22 @@ test('All 14 toolkit tabs have a matching individual description and exactly thr
   }
   assert.equal([...html.matchAll(/class="pulse-feature-explainer" id="pulse-feature-/g)].length,14);
 });
-test('BPM copy and introduction include all supplied supported formats',async()=>{
+test('Hero uses one concise paragraph, keeps format tags and removes BPM how-to',async()=>{
   const html=await source('index.html');
-  assert.match(html,/WHAT IT IS/);
-  assert.match(html,/Input and output formats/);
-  assert.match(html,/audio and video formats/);
-  assert.match(html,/id="pulse-feature-bpm"/);
-  for(const format of ['MP3','WAV','M4A','FLAC'])assert.ok(html.includes('<span>'+format+'</span>'));
-  assert.doesNotMatch(html,/<span>FLA<\/span>/);
+  const about=html.split('<aside class="pulse-hero-info"')[1]?.split('</aside>')[0]||'';
+  assert.match(about,/WHAT IT IS/);
+  assert.match(about,/IN · OUT/);
+  assert.equal((about.match(/class="pulse-hero-description"/g)||[]).length,1);
+  assert.equal((about.match(/<p class="pulse-hero-description"/g)||[]).length,1);
+  assert.match(about,/make changes in browser memory/);
+  assert.match(about,/M4A\/AAC at 192 kbps where supported/);
+  assert.doesNotMatch(about,/Input and output formats/);
+  assert.doesNotMatch(html,/id="pulse-feature-bpm"/);
+  assert.doesNotMatch(html,/TEMPO ANALYSIS/);
+  for(const format of ['MP3','WAV','M4A','FLAC'])assert.ok(about.includes('<span>'+format+'</span>'));
+  assert.doesNotMatch(about,/<span>FLA<\/span>/);
 });
-test('Tab switches explanatory copy and leaves the BPM description visible',async()=>{
+test('Tab switches toolkit explanatory copy without the BPM explainer',async()=>{
   const js=await source('tools.mjs'),css=await source('style.css');
   assert.match(js,/querySelectorAll\('\.pulse-feature-explainer\[data-feature\]'\)/);
   assert.match(js,/section\.hidden=section\.dataset\.feature!==which/);

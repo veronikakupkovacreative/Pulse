@@ -983,3 +983,29 @@ button:not(.tool-play):not(.tap-pad),select,textarea,input:not([type="radio"]):n
   .pulse-feature-copy > p {font-size:14px;line-height:1.65;margin-bottom:19px}
   .pulse-feature-instructions ol {line-height:1.7}
 }
+
+
+/* PULSE / Hero single-paragraph consolidation — preserve approved grid and headline. */
+.pulse-hero-info .pulse-hero-description {
+  max-width: 390px;
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.62;
+  letter-spacing: -.01em;
+  text-wrap: pretty;
+}
+.pulse-hero-info .pulse-formats {
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: 0;
+}
+.pulse-hero-info .pulse-formats .pulse-info-eyebrow {
+  margin-bottom: 8px;
+}
+.pulse-hero-info .pulse-format-tags {
+  margin-top: 0;
+  gap: 7px;
+}
+@media (max-width: 650px) {
+  .pulse-hero-info .pulse-hero-description { max-width: 46ch; font-size: 13px; }
+  .pulse-hero-info .pulse-formats { margin-top: 16px; }
+}

@@ -113,13 +113,29 @@ export function analyzeTempo(samples, sampleRate) {
   const beatOffsetSeconds = Math.round(bestBin / bins * 60 / best.bpm * 1000) / 1000;
   const alternativeBpms = candidates.filter(c => Math.abs(Math.log2(c.bpm / best.bpm)) > .06)
     .slice(0, 3).map(c => Math.round(c.bpm * 10) / 10);
-  const waveform = Array.from({length:220}, (_,i) => {
-    const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);
-    let sum = 0, count = 0;
-    for (let j = start; j < end; j += 8) { sum += samples[j] ** 2; count++; }
-    return Math.sqrt(sum / (count || 1));
-  });
-  const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms};
+  // High-resolution, bounded overview: enough peaks for zoom without retaining PCM in the UI.
+  const peakCount = Math.min(16384, Math.max(512, Math.ceil(duration * 60)));
+  const waveform = new Float32Array(peakCount);
+  for (let i = 0; i < peakCount; i++) {
+    const start = Math.floor(i * samples.length / peakCount);
+    const end = Math.max(start + 1, Math.floor((i + 1) * samples.length / peakCount));
+    let maximum = 0;
+    for (let j = start; j < end; j += 4) maximum = Math.max(maximum, Math.abs(samples[j]));
+    waveform[i] = maximum;
+  }
+  let peak = 0;
+  for (const value of waveform) peak = Math.max(peak, value);
+  const tempoWindows = starts.map((start, index) => ({
+    startSeconds: Math.round(start / rate * 10) / 10,
+    endSeconds: Math.round(Math.min(duration, (start + windowFrames) / rate) * 10) / 10,
+    bpm: Math.round(windows[index] * 10) / 10
+  }));
+  const tempoStability = consistency >= .99 ? 'steady' : consistency >= .66 ? 'mixed' : 'variable';
+  return {
+    bpm:Math.round(best.bpm * 10) / 10, confidence, duration,
+    waveform:Array.from(waveform, x => x / (peak || 1)),
+    analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms,
+    tempoWindows, tempoStability
+  };
 }
 

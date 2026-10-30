@@ -713,13 +713,29 @@ export function initStudioTools(getBpmTrack){
     tools.masterCandidate=candidate;showMasterResult(result);
     return candidate;
   }
+  function masterMonitoringGain(result,side){
+    if(!el('master-match').checked)return 1;
+    const a=result.before,b=result.after;
+    if(!Number.isFinite(a.lufs)||!Number.isFinite(b.lufs))return 1;
+    // Bring both versions down to a common, safe monitoring reference.
+    const reference=Math.min(a.lufs,b.lufs);
+    const selected=side==='original'?a:b;
+    const loudnessGain=Math.min(0,reference-selected.lufs);
+    const safePeakGain=Math.min(0,-1-selected.peakDb);
+    return 10**(Math.min(loudnessGain,safePeakGain)/20);
+  }
   async function masterAction(action){
     if(tools.loading||!tools.buffer){error('Load audio first.');return;}
-    clearError();stopPreview();const token=++tools.operation;setBusy(true);
+    clearError();
+    if(action!=='original'&&action!=='mastered')stopPreview();
+    const position=tools.playing?positionDuringPlayback():tools.playhead;
+    const token=++tools.operation;setBusy(true);
     try{
       if(action==='original'){
-        await playBuffer(tools.buffer,tools.playhead);
-        status('master-status','A / ORIGINAL · playing original working audio.');
+        const cached=tools.masterCandidate?.input===tools.buffer?tools.masterCandidate:null;
+        const gain=cached?masterMonitoringGain(cached.analysis,'original'):1;
+        await playBuffer(tools.buffer,clampPlayhead(position,tools.buffer.duration),tools.buffer.duration,gain,{allowLoop:true});
+        status('master-status','A / ORIGINAL · '+(cached&&el('master-match').checked?'loudness-matched monitoring':'actual source level')+'.');
         return;
       }
       status('master-status','Analyzing tonal balance and dynamics; rendering master…');
@@ -732,10 +748,9 @@ export function initStudioTools(getBpmTrack){
         download(blob,filename('master.wav'));
         status('master-status',`Exported ${readableSize(blob.size)} · 24-bit WAV · ${masterMetric(candidate.analysis.after.lufs)} LUFS.`);
       }else if(action==='mastered'){
-        // Compare with level-matched playback only; never change exported samples.
-        const before=candidate.analysis.before.lufs,after=candidate.analysis.after.lufs;
-        const dbGain=el('master-match').checked&&Number.isFinite(before)&&Number.isFinite(after)?Math.min(0,before-after):0;
-        await playBuffer(candidate.buffer,clampPlayhead(tools.playhead,candidate.buffer.duration),candidate.buffer.duration,10**(dbGain/20));
+        // Monitoring gain never modifies the mastered buffer or export.
+        const gain=masterMonitoringGain(candidate.analysis,'mastered');
+        await playBuffer(candidate.buffer,clampPlayhead(position,candidate.buffer.duration),candidate.buffer.duration,gain,{allowLoop:false});
         status('master-status',`B / MASTER · ${el('master-match').checked?'loudness-matched':'actual export level'} · Preview does not change WAV export.`);
       }
     }catch(e){if(token===tools.operation){error(e.message||'Mastering failed.');status('master-status','Mastering could not be completed.');}}

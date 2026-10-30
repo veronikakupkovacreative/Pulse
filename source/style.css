@@ -816,3 +816,29 @@
 .youtube-dialog #youtube-status{min-height:30px;font-size:12px;line-height:1.5}
 .youtube-dialog #youtube-download-link{display:block;text-align:center;padding:16px;background:#191919;color:#FFFFFF}
 @media(max-width:760px){.tool-board:has(#pulse-eq-left:not([hidden])){grid-template-columns:1fr!important}}
+
+
+/* PULSE EQ · monochrome red/white ribbon treatment.
+   Scales, grid, filter handles and interaction remain untouched. */
+.pulse-eq-left .pulse-eq-stage{
+  background:radial-gradient(ellipse at 55% 38%,#051827 0%,#001321 56%,#000d18 100%)!important;
+  border:1px solid #284052!important;
+  border-radius:16px!important;
+  box-shadow:inset 0 0 36px rgba(0,0,0,.20)!important;
+}
+.pulse-eq-left .pulse-eq-live{opacity:.70!important;}
+.pulse-eq-left .pulse-eq-graph{filter:none;}
+.pulse-eq-left .eq-left-heading,
+.pulse-eq-left .eq-left-heading strong{color:#FFFFFF!important;}
+.pulse-eq-left .eq-left-heading span,
+.pulse-eq-left .pulse-eq-spectrum-toggle{color:#CDD8E1!important;}
+.pulse-eq-left .pulse-eq-graph circle{
+  transition:stroke-width 120ms ease,filter 120ms ease;
+}
+.pulse-eq-left .pulse-eq-graph circle:hover,
+.pulse-eq-left .pulse-eq-graph circle:focus-visible{
+  filter:drop-shadow(0 0 4px #FF0000);
+}
+@media(prefers-reduced-motion:reduce){
+  .pulse-eq-left .pulse-eq-graph circle{transition:none!important}
+}

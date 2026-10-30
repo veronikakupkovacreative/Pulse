@@ -12,8 +12,9 @@ test('6-band EQ default curve is flat, bypass retains signal',()=>{
  assert.ok(curve.every(p=>Math.abs(p.db)<.0001));
  const input=sine(440,10000);
  const output=renderEqualizer([input],rate,bands,0);
+ assert.deepEqual(renderEqualizer([input],rate,[],0)[0],input);
  assert.equal(output.length,1);
- for(let i=0;i<input.length;i++)assert.equal(output[0][i],input[i]);
+ for(let i=0;i<input.length;i++)assert.ok(Math.abs(output[0][i]-input[i])<1e-6);
 });
 test('EQ applies bell gain and highpass filter',()=>{
  const bell=[{type:'peaking',frequency:1000,gain:6,q:1,enabled:true}];

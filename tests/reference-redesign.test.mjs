@@ -33,3 +33,18 @@ test('Help modal contains working producer shortcuts and planned cards give stat
  assert.match(app,/\[data-feature-info\]/);
  assert.match(html,/id="pulse-feature-dialog"/);
 });
+
+test('editorial polish preserves all EQ DSP controls and screenshot preset options',()=>{
+ const all=['eq-response-graph','eq-live-spectrum','eq-spectrum','eq-split-view','eq-band-count','eq-preset','eq-output-label','eq-output-gain','eq-bands','eq-bypass','eq-reset','eq-preview','eq-apply','eq-export','eq-compare','eq-active-readout','eq-preset-description'];
+ for(const id of all)assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
+ assert.equal((html.match(/data-eq-bands=/g)||[]).length,3);
+ assert.equal((html.match(/data-eq-preset=/g)||[]).length,11);
+ assert.match(html,/pulse-eq-graph-shell/);
+ assert.match(html,/pulse-eq-matrix-card/);
+ assert.match(html,/pulse-eq-action-bar/);
+ assert.match(css,/\.pulse-eq-matrix-card \.pulse-eq-band\{background:#191919!important/);
+});
+test('navigation and How to use restore the approved Arial sizes',()=>{
+ assert.match(css,/\.header \.nav-link,\.header nav \.nav-link\{font:400 13px/);
+ assert.match(css,/\.pulse-editorial-copy strong,\.pulse-editorial-copy ol,\.pulse-editorial-copy li\{font-size:17px/);
+});

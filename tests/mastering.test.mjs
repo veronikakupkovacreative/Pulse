@@ -51,12 +51,12 @@ test('AI Studio navigation represents all active tools and marks unfinished modu
  const html=await readFile(new URL('../source/index.html',import.meta.url),'utf8');
  const js=await readFile(new URL('../source/tools.mjs',import.meta.url),'utf8');
  for(const group of ['analyze','edit','export','ai'])assert.match(html,new RegExp(`data-category="${group}"`));
- for(const tool of ['converter','key','cutter','reverse','trim','calculator','normalizer','pitch','tuner','slicer','master']){
+ for(const tool of ['converter','key','cutter','reverse','trim','beat','stems','vocals','normalizer','pitch','tuner','slicer','master']){
    assert.match(html,new RegExp(`id="tab-${tool}"`));
    assert.match(js,new RegExp(`'${tool}'`));
  }
  assert.match(html,/id="tab-mix"/);assert.match(html,/id="panel-mix"/);
- assert.match(html,/id="tab-youtube"/);
+ assert.doesNotMatch(html,/id="tab-youtube"/);
 });
 
 test('true-peak ceiling, intensity and punchy preset use measurable processing',()=>{

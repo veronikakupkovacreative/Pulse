@@ -2,6 +2,40 @@
 function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,
   workingChanged,download,filename,status,decodeLocalAudio,audioFileError,encodeWav}){
   const eqState={bands:EQ_DEFAULT_BANDS.map(b=>({...b})),gainDb:0};
+  let activeEqBand=1;
+  const makeBandMode=count=>{
+    if(count===8)return EQ_DEFAULT_BANDS.map(b=>({...b}));
+    const rate=tools.buffer?.sampleRate||48000,maxHz=Math.min(16000,rate*.44);
+    if(count===3)return [{type:'lowshelf',frequency:110,gain:0,q:.707,enabled:true},
+      {type:'peaking',frequency:1000,gain:0,q:1,enabled:true},
+      {type:'highshelf',frequency:Math.min(7500,maxHz),gain:0,q:.707,enabled:true}];
+    return Array.from({length:count},(_,i)=>({
+      type:i===0?'lowshelf':i===count-1?'highshelf':'peaking',
+      frequency:Math.round(35*(maxHz/35)**(i/(count-1))),
+      gain:0,q:i===0||i===count-1?.707:1,enabled:true
+    }));
+  };
+  const eqSelector=el('eq-band-selector');
+  function selectEqBand(index){
+    activeEqBand=Math.max(0,Math.min(eqState.bands.length-1,index));
+    for(const row of eqInputs.querySelectorAll('[data-band]'))row.hidden=Number(row.dataset.band)!==activeEqBand;
+    for(const button of eqSelector.querySelectorAll('[data-band]'))
+      button.setAttribute('aria-pressed',String(Number(button.dataset.band)===activeEqBand));
+  }
+  function renderEqBandSelector(){
+    eqSelector.replaceChildren();
+    eqState.bands.forEach((band,index)=>{
+      const button=document.createElement('button');button.type='button';button.dataset.band=String(index);
+      button.textContent=String(index+1).padStart(2,'0');
+      button.setAttribute('aria-label','Select EQ band '+(index+1));
+      button.onclick=()=>{selectEqBand(index);drawEqGraph();};
+      eqSelector.append(button);
+    });
+    selectEqBand(activeEqBand);
+    status('eq-band-count-info',eqState.bands.length+' editable bands');
+    for(const button of el('eq-band-modes').querySelectorAll('[data-eq-count]'))
+      button.setAttribute('aria-pressed',String(Number(button.dataset.eqCount)===eqState.bands.length));
+  }
   let mixTracks=[],mixCandidate=null,mixLoading=false,quickMixCandidate=null,separationWorker=null,separationRevision=0;
   const separationStatus=message=>status('mix-separation-status',message);
   function updateSeparationAvailability(){
@@ -111,13 +145,16 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     }
     const curve=eqResponse(eqState.bands,sr,190);
     const d=curve.map((p,i)=>(i?'L':'M')+xOf(p.hz).toFixed(1)+' '+yOf(p.db).toFixed(1)).join(' ');
-    node('path',{d,fill:'none',stroke:'#e8493e','stroke-width':3,'stroke-linejoin':'round'});
+    node('path',{d,fill:'none',stroke:'#ffe58f','stroke-width':3,'stroke-linejoin':'round'});
     eqState.bands.forEach((band,index)=>{
       if(!band.enabled)return;
-      const circle=node('circle',{cx:xOf(Math.min(hzMax,band.frequency)),cy:yOf(band.gain),r:7,fill:'#eee',stroke:'#e8493e','stroke-width':2,role:'button',tabindex:0,'aria-label':'Band '+(index+1)+'; drag to change frequency and gain'});
+      const circle=node('circle',{cx:xOf(Math.min(hzMax,band.frequency)),cy:yOf(band.gain),
+        r:index===activeEqBand?10:7,fill:index===activeEqBand?'#ffe58f':'#191e20',
+        stroke:index===activeEqBand?'#fff':'#ffe58f','stroke-width':2,
+        role:'button',tabindex:0,'aria-label':'Band '+(index+1)+'; drag to change frequency and gain'});
       circle.addEventListener('pointerdown',event=>{
         event.preventDefault();
-        dragBand=index;
+        dragBand=index;selectEqBand(index);
         svg.setPointerCapture(event.pointerId);
       });
     });
@@ -157,7 +194,10 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         const y=height-(Math.max(-110,Math.min(-10,db))+110)/100*height;
         if(!found){ctx.moveTo(x,y);found=true;}else ctx.lineTo(x,y);
       }
-      if(found){ctx.strokeStyle='rgba(245,244,240,.65)';ctx.lineWidth=1.3;ctx.stroke();}
+      if(found){const grad=ctx.createLinearGradient(0,0,0,height);
+        grad.addColorStop(0,'rgba(157,199,215,.55)');grad.addColorStop(1,'rgba(74,129,153,.11)');
+        ctx.lineTo(width,height);ctx.lineTo(0,height);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+        ctx.strokeStyle='rgba(176,210,222,.7)';ctx.lineWidth=1;ctx.stroke();}
     }
     spectrumRaf=requestAnimationFrame(drawLiveSpectrum);
   }
@@ -171,13 +211,14 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     for(let i=0;i<tools.eqNodes.length;i++){
       const n=tools.eqNodes[i],b=eqState.bands[i];
       if(!b)continue;const now=tools.context.currentTime;
-      n.type=b.enabled&&!el('eq-bypass').checked?b.type:'allpass';
+      n.type=b.enabled&&!el('eq-bypass').checked?b.type:'peaking';
       n.frequency.setTargetAtTime(Math.min(b.frequency,tools.context.sampleRate*.49),now,.016);
-      n.Q.setTargetAtTime(b.q,now,.016);n.gain.setTargetAtTime(b.gain,now,.016);
+      n.Q.setTargetAtTime(b.q,now,.016);n.gain.setTargetAtTime(b.enabled&&!el('eq-bypass').checked?b.gain:0,now,.016);
     }
   }
   function refreshEq(){
     drawEqGraph();
+    selectEqBand(activeEqBand);
     const rows=eqInputs.querySelectorAll('[data-band]');
     for(const [i,row] of [...rows].entries()){
       const b=eqState.bands[i];
@@ -191,7 +232,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     }
     eqNodeUpdate();
   }
-  eqState.bands.forEach((band,i)=>{
+  function renderEqControls(){eqInputs.replaceChildren();eqState.bands.forEach((band,i)=>{
     const row=document.createElement('div');row.className='pulse-eq-band';row.dataset.band=String(i);
     row.innerHTML='<label><input type="checkbox" name="enable"> BAND '+(i+1)+'</label>'+ 
     '<label>Filter <select name="type"><option value="peaking">Bell</option><option value="lowshelf">Low shelf</option><option value="highshelf">High shelf</option><option value="highpass">High pass</option><option value="lowpass">Low pass</option><option value="notch">Notch</option></select></label>'+
@@ -205,10 +246,11 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         eqNotice('EQ settings changed. Preview live or export to render.');
       });
     }
-  });
+  });renderEqBandSelector();}
+  renderEqControls();
   el('eq-preset').addEventListener('change',()=>{
     const selected=presets[el('eq-preset').value]||presets.flat;
-    selected.forEach((band,i)=>Object.assign(eqState.bands[i],band));
+    eqState.bands=selected.map(b=>({...b}));activeEqBand=0;renderEqControls();
     const mode=CLASSIC_EQ_MODES[el('eq-preset').value];
     status('eq-character-description',mode?mode.description+' · PULSE-designed filters, not hardware emulation.':'Adjust the eight bands or choose a Classic EQ character.');
     refreshEq();
@@ -220,10 +262,21 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   });
   el('eq-bypass').addEventListener('change',()=>{refreshEq();eqNotice(el('eq-bypass').checked?'Bypass enabled.':'EQ active.');});
   el('eq-reset').onclick=()=>{
-    EQ_DEFAULT_BANDS.forEach((band,i)=>Object.assign(eqState.bands[i],band));
+    eqState.bands=makeBandMode(eqState.bands.length);activeEqBand=0;renderEqControls();
     eqState.gainDb=0;el('eq-output-gain').value='0';status('eq-output-label','0.0 dB');
     el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq();
   };
+  el('eq-band-modes').addEventListener('click',event=>{
+    const button=event.target.closest('[data-eq-count]');if(!button)return;
+    const count=Number(button.dataset.eqCount);
+    if(![3,8,10,20].includes(count)||count===eqState.bands.length)return;
+    const resume=tools.playing&&tools.tab==='equalizer';
+    if(resume)stopPreview();
+    eqState.bands=makeBandMode(count);activeEqBand=0;
+    el('eq-preset').value='flat';renderEqControls();refreshEq();
+    eqNotice(count+'-band EQ ready. Previous band settings reset.');
+    if(resume)void previewEqRange();
+  });
   function eqPreviewOptions(){
     return {allowLoop:false,eqBands:el('eq-bypass').checked?[]:readEq(),eqGainDb:eqState.gainDb};
   }

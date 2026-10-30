@@ -142,15 +142,23 @@ function compress(channels,rate,settings){
   }
   return result;
 }
-export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1,stereoWidth=1,eqMode='gentle',dynamicsMode='balanced'}={}){
+export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1,stereoWidth=1,eqMode='gentle',dynamicsMode='balanced',inputGainDb=0,glueRatio=1.5,glueThresholdDb=null,bassCenterHz=120}={}){
   validate(channels,rate);
+  if(!Number.isFinite(inputGainDb)||inputGainDb< -12||inputGainDb>12||![1.5,2].includes(Number(glueRatio))||!Number.isFinite(bassCenterHz)||bassCenterHz<0||bassCenterHz>150||glueThresholdDb!==null&&(!Number.isFinite(glueThresholdDb)||glueThresholdDb< -32||glueThresholdDb> -9))throw Error('Invalid Master Bus settings.');
   const before=analyzeMaster(channels,rate),settings=designMaster(before,preset,targetLufs,{intensity,ceilingDb,eqMode,dynamicsMode});
+  const gain=10**(inputGainDb/20);
+  const fed=channels.map(ch=>Float32Array.from(ch,s=>s*gain));
   const low=biquad(rate,180,settings.lowDb,'low'),high=biquad(rate,4000,settings.highDb,'high');
   const mid=peakingBiquad(rate,320,settings.midDb,0.9);
   const eqCurve=eqResponseCurve([low,mid,high],rate);
-  const eq=channels.map(ch=>filter(filter(filter(ch,low),mid),high));
-  const compressed=settings.ratio>1.001?compress(eq,rate,settings):eq;
+  const eq=fed.map(ch=>filter(filter(filter(ch,low),mid),high));
+  const glueSettings={...settings,ratio:Math.max(1,1+(glueRatio-1)*intensity/100),thresholdDb:glueThresholdDb??settings.thresholdDb};
+  const compressed=glueSettings.ratio>1.001?compress(eq,rate,glueSettings):eq;
   const widened=applyStereoWidth(compressed,stereoWidth);
+  if(widened.length===2&&bassCenterHz>0){
+    const [l,r]=widened,alpha=1-Math.exp(-2*Math.PI*bassCenterHz/rate);let sideLow=0;
+    for(let i=0;i<l.length;i++){const midSample=(l[i]+r[i])*.5,sideSample=(l[i]-r[i])*.5;sideLow+=alpha*(sideSample-sideLow);const side=sideSample-sideLow;l[i]=midSample+side;r[i]=midSample-side;}
+  }
   const measured=integratedLoudness(widened,rate);
   const correction=masterClamp(settings.targetLufs-measured,-9,9);
   const multiplier=10**(correction/20);
@@ -159,7 +167,7 @@ export function processMaster(channels,rate,{preset='balanced',targetLufs,intens
   const output=limited.channels,after=analyzeMaster(output,rate);
   const findings=[...mixHealthFindings(before).filter(x=>x.code!=='balanced'),...spectrumFindings(before.spectrum)];
   if(!findings.length)findings.push({code:'balanced',label:'NO CRITICAL ISSUES',evidence:'No thresholds exceeded',detail:'Preserve the mix unless listening reveals a problem.'});
-  return {channels:output,findings,settings:{...settings,stereoWidth,appliedGainDb:correction,
+  return {channels:output,findings,settings:{...settings,stereoWidth,inputGainDb,glueRatio,glueThresholdDb:glueSettings.thresholdDb,bassCenterHz,appliedGainDb:correction,
       maxReductionDb:limited.maxReductionDb,safetyTrimDb:limited.safetyTrimDb},
     before,after,eqCurve,notes:[
       'Local deterministic mastering DSP; no neural mastering model.',

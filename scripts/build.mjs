@@ -89,6 +89,7 @@ const bundledScript=`(() => {
 })();`;
 new vm.Script(bundledScript);
 assert(!bundledScript.includes('import.meta'),'Standalone app cannot reference import.meta');
+assert(bundledScript.includes("void import('/modules/producer-studio.mjs').then"),'Producer studio initializer must survive bundling');
 assert(html.includes('<link rel="stylesheet" href="./style.css">'));
 assert(html.includes('<script type="module" src="./app.mjs"></script>'));
 html=html.replace('<link rel="stylesheet" href="./style.css">',()=>'<style>\n'+css.replace(/<\/style/gi,'<\\/style')+'\n</style>')

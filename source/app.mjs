@@ -1,3 +1,4 @@
+import {initStemToolkit} from './stem-workflows.mjs';
 import {initAiAssistedDSP} from './ai-assisted-ui.mjs';
 import {encodeWav} from './studio-audio.mjs';
 import {initAdvancedFX} from './advanced-fx.mjs';
@@ -301,6 +302,7 @@ $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
 initAdvancedFX(pulseProject,encodeWav);
 initAiAssistedDSP(pulseProject,encodeWav);
+initStemToolkit(pulseProject,encodeWav);
 pulseProject.subscribe(({type,origin,state:project})=>{
   if(type==='load'&&origin==='toolkit'&&project.working&&project.file){
     // Re-use the same decoded asset. The BPM worker gets only a lightweight mono copy.
@@ -318,12 +320,15 @@ pulseProject.subscribe(({type,origin,state:project})=>{
  cutter:['Loop','Cutter.','Cut a precise, tempo-aligned section of audio for loops, samples or transitions.',['Load your audio file.','Adjust the IN and OUT markers.','Preview and export your loop.']],
  pitch:['Pitch &','Time.','Apply pitch and speed adjustments to samples in a focused workspace.',['Choose a track.','Set pitch or playback speed.','Preview the result before exporting.']],
  slicer:['Sample','Slicer.','Turn longer recordings into smaller usable samples with accurate cut markers.',['Load your sample.','Adjust the slice markers.','Export the selected slices.']],
- reverse:['Reverse','Audio.','Reverse a sound or sample for transitions, risers and experimental textures.',['Import audio.','Preview the selected section.','Reverse and export the result.']],
+ reverse:['AI Audio','Reverse.','Reverse a sound or sample for transitions, risers and experimental textures.',['Import audio.','Preview the selected section.','Reverse and export the result.']],
  trim:['Silence','Trim.','Remove quiet sections at the beginning or end of a recording.',['Load a track.','Set the silence threshold.','Review and export the trimmed version.']],
  denoise:['Spectral','Denoise.','Reduce unwanted background noise using a captured noise profile and spectral processing.',['Choose an audio track.','Capture a noise-only section.','Apply denoising and check the result.']],
  equalizer:['Parametric','Equalizer.','Fine-tune frequencies with an interactive EQ response, bands and live waveform.',['Load a recording.','Move EQ nodes or adjust filter parameters.','Preview and export your settings.']],
  converter:['Audio','Converter.','Convert compatible files into producer-friendly audio formats directly in your browser.',['Choose your source file.','Select format and quality.','Convert and download the output.']],
- normalizer:['Audio','Normalizer.','Adjust overall loudness and manage peaks before sharing the finished file.',['Load a track.','Set the normalization target.','Preview and export the processed audio.']],
+ normalizer:['AI','Normalizer.','Adjust overall loudness and manage peaks before sharing the finished file.',['Load a track.','Set the normalization target.','Preview and export the processed audio.']],
+ beat:['AI Beat','Detection.','Analyze drum transients after local Demucs separation, showing onset times and estimated tempo.',['Load a clear rhythmic clip.','Separate stems in AI Studio.','Inspect detected drum onsets and verify tempo.']],
+ stems:['AI Stem','Splitter.','Separate vocals, drums, bass and other using an on-device Demucs neural model.',['Load a 0.5–45 s clip.','Run local Demucs separation.','Solo, mute, preview and export stems.']],
+ vocals:['AI Vocal','Remover.','Separate vocals and instrumental locally with Demucs.',['Load a short track.','Run local AI separation.','Preview vocals or instrumental and export WAV.']],
  mix:['AI Studio','Mix.','Shape the tonal character of a stereo mix or work with aligned stems in a multitrack workflow.',['Load a mix or stems.','Select the mix workflow.','Fine-tune and export the result.']],
  master:['AI Studio','Master.','Use adaptive audio processing for consistent loudness, tonal balance and stereo control.',['Load your finished mix.','Choose mastering character and loudness.','Inspect the result and export.']]
  };

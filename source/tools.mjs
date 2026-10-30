@@ -173,7 +173,7 @@ export function initStudioTools(getBpmTrack){
   function updateWaveControls(){
     const duration=tools.buffer?.duration||0;
     const label=el('wave-zoom-label');if(label)label.textContent=tools.zoom+'×';
-    el('wave-zoom-out').disabled=tools.zoom===1;el('wave-zoom-in').disabled=tools.zoom===8;
+    el('wave-zoom-out').disabled=tools.zoom<=1;el('wave-zoom-in').disabled=tools.zoom>=Math.min(65536,Math.max(8,Math.ceil(duration/.02)));
     const current=viewportRange(duration,tools.zoom,tools.viewStart);
     el('wave-pan-left').disabled=current.start<.001;el('wave-pan-right').disabled=current.end>=duration-.001;
     el('wave-loop').setAttribute('aria-pressed',String(tools.loopEnabled));el('wave-loop').textContent=tools.loopEnabled?'LOOP ON':'LOOP OFF';
@@ -189,7 +189,7 @@ export function initStudioTools(getBpmTrack){
     if(!tools.buffer)return;
     const old=viewportRange(tools.buffer.duration,tools.zoom,tools.viewStart);
     const focus=tools.playhead>=old.start&&tools.playhead<=old.end?tools.playhead:old.start+old.span/2;
-    tools.zoom=Math.max(1,Math.min(8,next));
+    tools.zoom=Math.max(1,Math.min(Math.min(65536,Math.max(8,Math.ceil(tools.buffer.duration/.02))),next));
     tools.viewStart=viewportRange(tools.buffer.duration,tools.zoom,focus-tools.buffer.duration/tools.zoom/2).start;
     drawToolWave();updatePlayhead(tools.playhead);updateWaveControls();
   }
@@ -434,14 +434,27 @@ export function initStudioTools(getBpmTrack){
     canvas.width=Math.max(1,Math.round(w*dpr));canvas.height=Math.max(1,Math.round(h*dpr));
     const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
     const duration=tools.buffer.duration,view=viewportRange(duration,tools.zoom,tools.viewStart),bars=Math.max(80,Math.floor(w/2.5)),bar=w/bars;
+    const fine=view.span<=15,rate=tools.buffer.sampleRate;
+    const left=tools.buffer.getChannelData(0),right=tools.peaksRight?tools.buffer.getChannelData(1):null;
+    const peakAt=(channel,precomputed,t)=>{
+      if(!fine){
+        const idx=Math.min(precomputed?.length-1||0,Math.floor(t/duration*(precomputed?.length||1)));
+        return precomputed?.[Math.max(0,idx)]||0;
+      }
+      const from=Math.max(0,Math.floor((t-view.span/(bars*2))*rate));
+      const to=Math.min(channel.length,Math.max(from+1,Math.ceil((t+view.span/(bars*2))*rate)));
+      let peak=0;
+      for(let sample=from;sample<to;sample++)peak=Math.max(peak,Math.abs(channel[sample]));
+      return peak;
+    };
     const px=time=>(time-view.start)/Math.max(view.span,.001)*w;
     const selection=tools.tab==='equalizer'&&tools.eqSelection?[tools.eqSelection.from,tools.eqSelection.to]:tools.tab==='cutter'?[tools.from,tools.to]:tools.tab==='trim'&&tools.quickBounds?[tools.quickBounds.startSeconds,tools.quickBounds.endSeconds]:null;
     ctx.fillStyle='#30302d';ctx.fillRect(0,0,w,h);
     // Time ruler remains in the same audio coordinate system as the waveform.
-    const tickStep=([.25,.5,1,2,5,10,15,30,60,120,300,600].find(v=>v>=view.span/6)||600);
+    const tickStep=([.001,.002,.005,.01,.02,.05,.1,.25,.5,1,2,5,10,15,30,60,120,300,600].find(v=>v>=view.span/6)||600);
     ctx.font='9px Arial, sans-serif';ctx.textBaseline='top';
     for(let t=Math.ceil(view.start/tickStep)*tickStep;t<=view.end+.0001;t+=tickStep){
-      const x=px(t);ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(x,0,1,h);ctx.fillStyle='#c2c2ba';ctx.fillText(precise(t),Math.max(2,Math.min(w-53,x+3)),3);
+      const x=px(t);ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(x,0,1,h);ctx.fillStyle='#c2c2ba';ctx.fillText(tickStep<.1?t.toFixed(3)+'s':precise(t),Math.max(2,Math.min(w-67,x+3)),3);
     }
     if(tools.snap&&Number.isFinite(tools.bpm)&&tools.bpm>=20&&tools.bpm<=400){
       const step=60/tools.bpm;
@@ -450,12 +463,12 @@ export function initStudioTools(getBpmTrack){
     if(selection){ctx.fillStyle='rgba(0,0,0,.27)';ctx.fillRect(0,17,Math.max(0,px(selection[0])),h-17);ctx.fillRect(Math.max(0,px(selection[1])),17,w-Math.max(0,px(selection[1])),h-17);}
     if(tools.loopEnabled){ctx.fillStyle='rgba(255,43,32,.10)';ctx.fillRect(Math.max(0,px(tools.loopFrom)),17,Math.max(0,Math.min(w,px(tools.loopTo))-Math.max(0,px(tools.loopFrom))),h-17);}
     for(let i=0;i<bars;i++){
-      const t=view.start+(i+.5)/bars*view.span,index=Math.min(tools.peaks.length-1,Math.floor(t/duration*tools.peaks.length));
-      const amp=Math.max(2,Math.pow(tools.peaks[Math.max(0,index)]||0,.55)*(h-20)*.78),x=i*bar;
+      const t=view.start+(i+.5)/bars*view.span;
+      const amp=Math.max(2,Math.pow(peakAt(left,tools.peaks,t),.55)*(h-20)*.78),x=i*bar;
       const isSelected=!selection||(t>=selection[0]&&t<=selection[1]);
       ctx.fillStyle=isSelected?'#ff2b20':'#72726c';
       if(tools.tab==='equalizer'&&tools.peaksRight){
-        const other=Math.max(2,Math.pow(tools.peaksRight[Math.max(0,index)]||0,.55)*(h-20)*.37);
+        const other=Math.max(2,Math.pow(peakAt(right,tools.peaksRight,t),.55)*(h-20)*.37);
         const half=(h-17)/2;
         ctx.fillRect(x,17+(half-amp*.48)/2,Math.max(1,bar*.68),amp*.48);
         ctx.fillRect(x,17+half+(half-other)/2,Math.max(1,bar*.68),other);

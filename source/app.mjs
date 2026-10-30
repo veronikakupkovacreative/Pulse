@@ -75,7 +75,7 @@ async function processFile(file,existingBuffer=null) {
       worker.postMessage({samples,sampleRate:analysisRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;pulseProject.setTempo(state.bpm,{beatOffset:result.beatOffsetSeconds||0,origin:'bpm'});setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;$('#bpm-grid-offset').value=String(result.beatOffsetSeconds||0);pulseProject.setTempo(state.bpm,{beatOffset:result.beatOffsetSeconds||0,origin:'bpm'});setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
   } catch(error) {
     if(generation!==state.generation)return;
     setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
@@ -122,6 +122,8 @@ function drawWaveform() {
   canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
   const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=state.result.waveform,bar=rect.width/peaks.length;
   const progress=Number($('#seek').value)/state.buffer.duration;
+  const bpm=state.bpm,origin=Number($('#bpm-grid-offset').value)||0,meter=Number($('#bpm-meter').value)||4;
+  if(bpm>=20&&bpm<=400){const beat=60/bpm,first=Math.ceil((0-origin)/beat),last=Math.floor((state.buffer.duration-origin)/beat);if(last-first<160){for(let n=first;n<=last;n++){const time=origin+n*beat,x=time/state.buffer.duration*rect.width;ctx.fillStyle=n%meter===0?'rgba(255,255,255,.48)':'rgba(255,255,255,.18)';ctx.fillRect(x,0,n%meter===0?2:1,rect.height);}}}
   for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
   $('#bpm-playhead').style.left=`${Math.max(0,Math.min(100,progress*100))}%`;
 }
@@ -209,8 +211,10 @@ $('#seek').addEventListener('keydown',event=>{
     seekBpm(event.key==='Home'?0:event.key==='End'?state.buffer?.duration:nudgePlayhead(current,state.buffer?.duration,delta),{autoplay:state.playing});
   }
 });
+$('#bpm-grid-offset').onchange=()=>{if(!state.result)return;const value=Number($('#bpm-grid-offset').value);if(!Number.isFinite(value)||value<0||value>state.buffer.duration){toast('Enter a first-beat position within the track.');return;}pulseProject.setTempo(state.bpm,{beatOffset:value,origin:'bpm'});drawWaveform();};
+$('#bpm-meter').onchange=drawWaveform;
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#bpm-override').onchange=event=>setTempo(event.target.value);
-$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;pulseProject.setTempo(state.bpm,{beatOffset:state.result?.beatOffsetSeconds||0,confirmed:true,origin:'bpm'});window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
+$('#bpm-send').onclick=()=>{if(!state.result)return;if(!setTempo($('#bpm-override').value))return;pulseProject.setTempo(state.bpm,{beatOffset:Number($('#bpm-grid-offset').value)||0,confirmed:true,origin:'bpm'});window.dispatchEvent(new CustomEvent('pulse:tempo-apply',{detail:{bpm:state.bpm,beatOffset:Number($('#bpm-grid-offset').value)||0}}));toast(`${bpmLabel(state.bpm)} BPM applied to production tools.`);};
 $('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};

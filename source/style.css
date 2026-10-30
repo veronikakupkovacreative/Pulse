@@ -407,3 +407,5 @@
   #choose-file,#tool-select-file{min-height:48px;touch-action:manipulation}
   .upload-empty .file-feedback,.tool-empty .file-feedback{font-size:12px;padding-inline:8px}
 }
+
+.bpm-grid-settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.bpm-grid-settings label{font-size:10px;display:grid;gap:5px}.bpm-grid-settings input,.bpm-grid-settings select{min-width:0;width:100%;border:1px solid #19191988;background:transparent;color:#191919;padding:8px;font:inherit;font-size:12px;min-height:39px}@media(max-width:370px){.bpm-grid-settings{grid-template-columns:1fr}}

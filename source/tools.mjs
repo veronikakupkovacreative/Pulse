@@ -141,7 +141,7 @@ export function initStudioTools(getBpmTrack){
     el('wave-loop').setAttribute('aria-pressed',String(tools.loopEnabled));el('wave-loop').textContent=tools.loopEnabled?'LOOP ON':'LOOP OFF';
     el('wave-snap').setAttribute('aria-pressed',String(tools.snap));el('wave-snap').textContent=tools.snap?'SNAP ON':'SNAP OFF';
     const out=duration?tools.loopTo:0;
-    status('wave-loop-info',`SMYČKA ${precise(tools.loopFrom)} – ${precise(out)} · ${tools.loopEnabled?'ON':'OFF'} · Grid ${Number(tools.bpm)||120} BPM (od 0:00)`);
+    status('wave-loop-info',`SMYČKA ${precise(tools.loopFrom)} – ${precise(out)} · ${tools.loopEnabled?'ON':'OFF'} · Grid ${Number(tools.bpm)||120} BPM (offset ${tools.bpmOffset.toFixed(2)}s)`);
   }
   function resetWaveView(duration){
     tools.zoom=1;tools.viewStart=0;tools.loopEnabled=false;tools.snap=false;tools.loopFrom=0;tools.loopTo=duration||0;

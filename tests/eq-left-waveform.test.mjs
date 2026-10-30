@@ -41,7 +41,7 @@ test('EQ waveform lives in black source panel, not in red settings pane',async()
   const extra=await readFile(new URL('../source/extra-tools.mjs',import.meta.url),'utf8');
   const black=html.indexOf('class="tool-source"'),wave=html.indexOf('id="tool-waveform"');
   const settings=html.indexOf('class="tool-settings"'),editor=html.indexOf('id="eq-wave-editor"');
-  assert.ok(black>=0&&black<editor&&editor<wave&&wave<settings);
+  assert.ok(black>=0&&black<wave&&wave<editor&&editor<settings);
   for(const id of ['eq-select-region','eq-play-region','eq-clear-region','eq-region-in','eq-region-out','eq-range-length'])
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(tools,/tools\.tab==='equalizer'&&\(tools\.eqSelectMode\|\|event\.shiftKey\)/);

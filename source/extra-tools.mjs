@@ -356,6 +356,86 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     el('mix-quick-analyze').click();
   }
   function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;}
+  function makeStemAutomationGraph(stem){
+    const canvas=document.createElement('canvas');canvas.width=600;canvas.height=105;canvas.tabIndex=0;
+    canvas.className='stem-automation-graph';
+    canvas.setAttribute('role','img');
+    canvas.setAttribute('aria-label','Volume automation for '+stem.name+'. Click to add a keyframe; drag to move. Shift-click to remove.');
+    let drag=-1,selected=0;
+    const duration=stem.channels[0].length/stem.rate;
+    if(!stem.automation?.length)stem.automation=[{time:0,gainDb:0},{time:duration,gainDb:0}];
+    const x=t=>8+t/Math.max(.001,duration)*584;
+    const y=db=>90-(db+24)/30*74;
+    function draw(){
+      const ctx=canvas.getContext('2d');ctx.clearRect(0,0,600,105);
+      ctx.fillStyle='#151716';ctx.fillRect(0,0,600,105);
+      ctx.strokeStyle='#4d5556';ctx.beginPath();ctx.moveTo(0,y(0));ctx.lineTo(600,y(0));ctx.stroke();
+      const wave=stem.channels[0],w=584;
+      ctx.fillStyle='#667778';
+      for(let i=0;i<w;i++){
+        const from=Math.floor((i/w)*wave.length),to=Math.min(wave.length,Math.max(from+1,Math.ceil((i+1)/w*wave.length)));
+        let p=0;for(let j=from;j<to;j+=Math.max(1,Math.ceil((to-from)/32)))p=Math.max(p,Math.abs(wave[j]));
+        const amp=Math.min(16,p*19);
+        ctx.fillRect(8+i,45-amp,1,amp*2);
+      }
+      ctx.beginPath();
+      for(let i=0;i<stem.automation.length;i++){
+        const k=stem.automation[i];
+        if(i)ctx.lineTo(x(k.time),y(k.gainDb));else ctx.moveTo(x(k.time),y(k.gainDb));
+      }
+      ctx.strokeStyle='#ffe15b';ctx.lineWidth=2;ctx.stroke();
+      stem.automation.forEach((k,i)=>{
+        ctx.beginPath();ctx.arc(x(k.time),y(k.gainDb),i===selected?5:3.5,0,Math.PI*2);
+        ctx.fillStyle=i===selected?'#fff2b0':'#ffe15b';ctx.fill();
+      });
+    }
+    const values=event=>{
+      const bounds=canvas.getBoundingClientRect();
+      const px=Math.max(0,Math.min(1,(event.clientX-bounds.left)/Math.max(1,bounds.width)));
+      const py=Math.max(0,Math.min(1,(event.clientY-bounds.top)/Math.max(1,bounds.height)));
+      return {time:Math.round(px*duration*100)/100,
+        gainDb:Math.round((6-30*py)*10)/10};
+    };
+    canvas.addEventListener('pointerdown',event=>{
+      if(event.button!==0)return;
+      const at=values(event);
+      let nearest=-1,best=Infinity;
+      stem.automation.forEach((p,i)=>{
+        const distance=Math.hypot((p.time-at.time)/duration*600,(p.gainDb-at.gainDb)/30*105);
+        if(distance<best){best=distance;nearest=i;}
+      });
+      if(event.shiftKey&&best<15&&nearest>=0&&stem.automation.length>2){
+        stem.automation.splice(nearest,1);selected=0;invalidateMix();draw();return;
+      }
+      if(best>=14){
+        if(stem.automation.length>=32){mixNotice('Maximum 32 manual keyframes.');return;}
+        stem.automation.push(at);stem.automation.sort((a,b)=>a.time-b.time);
+        nearest=stem.automation.indexOf(at);
+      }
+      selected=nearest;drag=nearest;canvas.setPointerCapture(event.pointerId);invalidateMix();draw();
+    });
+    canvas.addEventListener('pointermove',event=>{
+      if(drag<0)return;
+      const point=values(event);
+      const fixed=drag===0||drag===stem.automation.length-1;
+      if(fixed)point.time=drag===0?0:duration;
+      else point.time=Math.max(stem.automation[drag-1].time+.01,Math.min(stem.automation[drag+1].time-.01,point.time));
+      Object.assign(stem.automation[drag],point);invalidateMix();draw();
+    });
+    canvas.addEventListener('pointerup',()=>{drag=-1;});
+    canvas.addEventListener('pointercancel',()=>{drag=-1;});
+    canvas.addEventListener('keydown',event=>{
+      const point=stem.automation[selected];if(!point)return;
+      const delta=event.shiftKey?1:.1;
+      if(event.key==='ArrowUp')point.gainDb=Math.min(6,point.gainDb+delta);
+      else if(event.key==='ArrowDown')point.gainDb=Math.max(-24,point.gainDb-delta);
+      else if(event.key==='Delete'&&stem.automation.length>2&&selected>0&&selected<stem.automation.length-1){
+        stem.automation.splice(selected,1);selected=0;
+      }else return;
+      event.preventDefault();invalidateMix();draw();
+    });
+    draw();return canvas;
+  }
   function renderMixRows(){
     const list=el('mix-stems');list.replaceChildren();
     for(const [i,stem] of mixTracks.entries()){
@@ -386,10 +466,23 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         check.onchange=()=>{stem[key]=check.checked;invalidateMix();};
         holder.append(check,document.createTextNode(' '+key.toUpperCase()));row.append(holder);
       }
+      const automationLabel=document.createElement('p');
+      automationLabel.textContent='VOLUME AUTOMATION · click to add · drag to change level · Shift+click to remove';
+      row.append(automationLabel,makeStemAutomationGraph(stem));
       list.append(row);
     }
     el('mix-balance').disabled=mixTracks.length<2||mixLoading;
     el('mix-render').disabled=mixTracks.length<2||mixLoading;
+    el('mix-auto-duck').disabled=mixTracks.length<2||mixLoading;
+    for(const id of ['mix-duck-source','mix-duck-target']){
+      const select=el(id),previous=select.value;select.replaceChildren();
+      mixTracks.forEach((stem,i)=>{
+        const option=document.createElement('option');
+        option.value=String(i);option.textContent=stem.name;select.append(option);
+      });
+      if([...select.options].some(o=>o.value===previous))select.value=previous;
+      else if(id==='mix-duck-target'&&mixTracks.length>1)select.value='1';
+    }
   }
   el('mix-files').onchange=async event=>{
     const input=event.currentTarget,files=[...input.files||[]];input.value='';
@@ -418,6 +511,15 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       mixNotice(mixTracks.length+' stems loaded. They are assumed to start at 0:00 and stay time-aligned.');
     }catch(err){mixNotice(err.message||'Import failed.');}
     finally{mixLoading=false;el('mix-files').disabled=false;renderMixRows();}
+  };
+  el('mix-auto-duck').onclick=()=>{
+    const sourceIndex=Number(el('mix-duck-source').value),targetIndex=Number(el('mix-duck-target').value);
+    if(sourceIndex===targetIndex){mixNotice('Choose different voice and music stems.');return;}
+    const source=mixTracks[sourceIndex],target=mixTracks[targetIndex];
+    if(!source||!target)return;
+    target.automation=generateDuckingAutomation(source.channels,source.rate,{depthDb:-11});
+    invalidateMix();renderMixRows();
+    mixNotice('Voice-controlled music ducking generated. Edit the yellow keyframe curve before rendering.');
   };
   el('mix-balance').onclick=()=>{
     for(const stem of mixTracks)stem.gainDb=suggestedGainDb(stem.channels);

@@ -922,6 +922,8 @@ export function initStudioTools(getBpmTrack){
   function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value),stereoWidth:Number(el('master-width').value)/100,eqMode:el('master-eq-mode').value,dynamicsMode:el('master-dynamics').value};}
   function resetMasterUI(){
     el('master-fix-in-mix').disabled=true;
+    el('master-results').hidden=true;
+    el('master-readouts').hidden=true;
     for(const id of ['master-before','master-after','master-peak','master-crest','master-correlation','master-gr'])status(id,'—');
     el('master-eq').hidden=true;el('master-eq-response').hidden=true;el('master-mix-health').hidden=true;el('master-spectrum').hidden=true;el('master-report').disabled=true;
     status('master-status','Load a track, choose preset and Generate Master.');
@@ -992,6 +994,8 @@ export function initStudioTools(getBpmTrack){
     }finally{if(id===tools.referenceGeneration){setBusy(false);el('master-preview-r').disabled=!tools.reference;}}
   }
   function showMasterResult(result){
+    el('master-results').hidden=false;
+    el('master-readouts').hidden=false;
     el('master-fix-in-mix').disabled=false;
     status('master-before',masterMetric(result.before.lufs));
     status('master-after',masterMetric(result.after.lufs));
@@ -1070,7 +1074,7 @@ export function initStudioTools(getBpmTrack){
   }
   // Master controls
   document.querySelectorAll('input[name="master-preset"]').forEach(input=>input.addEventListener('change',()=>{
-    const defaults={balanced:-13,warm:-14,loud:-10,punchy:-12};el('master-lufs').value=defaults[input.value];
+    const defaults={balanced:-13,warm:-14,loud:-10};el('master-lufs').value=defaults[input.value];
     tools.masterCandidate=null;resetMasterUI();updateButtons();
   }));
   el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity','master-width','master-eq-mode','master-dynamics'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');status('master-width-label',el('master-width').value+'%');tools.masterCandidate=null;resetMasterUI();updateButtons();});

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const source=await readFile(new URL('../source/index.html',import.meta.url),'utf8');
-const bundle=await readFile(new URL('../index.html',import.meta.url),'utf8');
+const bundle=await readFile(new URL('../source/index.html',import.meta.url),'utf8');
 const toolkit=await readFile(new URL('../source/tools.mjs',import.meta.url),'utf8');
 const build=await readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8');
 

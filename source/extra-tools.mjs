@@ -2,7 +2,71 @@
 function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,
   workingChanged,download,filename,status,decodeLocalAudio,audioFileError,encodeWav}){
   const eqState={bands:EQ_DEFAULT_BANDS.map(b=>({...b})),gainDb:0};
-  let mixTracks=[],mixCandidate=null,mixLoading=false,quickMixCandidate=null;
+  let mixTracks=[],mixCandidate=null,mixLoading=false,quickMixCandidate=null,separationWorker=null,separationRevision=0;
+  const separationStatus=message=>status('mix-separation-status',message);
+  function updateSeparationAvailability(){
+    const mobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
+    el('mix-separate').disabled=mobile||!tools.buffer||!!separationWorker;
+    if(mobile)separationStatus('On-device Demucs inference needs desktop-class memory. Use the manual stem importer on this device.');
+    else if(tools.buffer&&tools.buffer.duration>45)separationStatus('Trim the working audio to 45 seconds or less with Loop Cutter before running separation.');
+  }
+  function cancelSeparation(message='Separation canceled.'){
+    separationRevision++;
+    if(separationWorker){separationWorker.terminate();separationWorker=null;}
+    el('mix-cancel-separation').disabled=true;
+    updateSeparationAvailability();
+    if(message)separationStatus(message);
+  }
+  async function startSeparation(){
+    if(!tools.buffer||separationWorker)return;
+    const original=tools.buffer,revision=++separationRevision;
+    const mobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
+    if(mobile){separationStatus('AI separation requires a desktop browser with available memory.');return;}
+    if(original.duration<.5||original.duration>45){separationStatus('Choose a working audio clip between 0.5 and 45 seconds.');return;}
+    if(!window.Worker){separationStatus('Web Workers are required for local separation.');return;}
+    el('mix-separate').disabled=true;el('mix-cancel-separation').disabled=false;
+    separationStatus('Preparing audio at 44.1 kHz; the original project remains untouched…');
+    let worker;
+    try{
+      const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+      if(!Offline)throw Error('OfflineAudioContext is required to prepare model audio.');
+      const count=Math.round(original.duration*44100);
+      const context=new Offline(2,count,44100);
+      const source=context.createBufferSource();source.buffer=original;source.connect(context.destination);source.start(0);
+      const processed=await context.startRendering();
+      if(revision!==separationRevision||tools.buffer!==original)return;
+      const left=processed.getChannelData(0).slice(),right=processed.getChannelData(1).slice();
+      worker=new Worker('/vendor/demucs-worker.js');separationWorker=worker;
+      worker.onmessage=event=>{
+        if(revision!==separationRevision||tools.buffer!==original)return;
+        const data=event.data||{};
+        if(data.type==='progress'){separationStatus(data.message);return;}
+        if(data.type==='error'){cancelSeparation(data.message);return;}
+        if(data.type!=='done'||!Array.isArray(data.tracks)||data.tracks.length!==4){cancelSeparation('Invalid model output.');return;}
+        try{
+          const names=new Set(data.tracks.map(t=>t.name));
+          if(!['drums','bass','other','vocals'].every(name=>names.has(name)))throw Error('Missing model stems.');
+          const imported=data.tracks.map(track=>{
+            const channels=track.channels;
+            if(channels?.length!==2||channels.some(c=>!(c instanceof Float32Array)||c.length!==count))
+              throw Error('Unexpected model output dimensions.');
+            return {name:track.name.toUpperCase()+' (AI)',rate:44100,channels,
+              gainDb:0,pan:0,mute:false,solo:false,measurement:stemMeasurements(channels)};
+          });
+          mixTracks=imported;invalidateMix();renderMixRows();
+          cancelSeparation('4 Demucs stems separated locally and loaded into the multitrack mixer. Adjust levels before export.');
+        }catch(error){cancelSeparation(error.message);}
+      };
+      worker.onerror=event=>{event.preventDefault();cancelSeparation('Model worker failed. Check your browser console, memory, and network.');};
+      separationStatus('Initializing local Demucs · model download is approximately 170 MB on first use…');
+      worker.postMessage({type:'separate',left,right},[left.buffer,right.buffer]);
+    }catch(error){
+      if(worker)worker.terminate();
+      if(revision===separationRevision)cancelSeparation(error.message||'Could not initialize separation.');
+    }
+  }
+  el('mix-separate').onclick=()=>void startSeparation();
+  el('mix-cancel-separation').onclick=()=>cancelSeparation();
   const eqNotice=text=>status('eq-status',text);
   const mixNotice=text=>status('mix-status',text);
   const eqInputs=el('eq-bands');
@@ -321,6 +385,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const blob=encodeWav(mixCandidate.channels,mixCandidate.rate,24);
     download(blob,'pulse-multitrack-mix.wav');mixNotice('Multitrack mix exported as stereo WAV.');};
   renderMixRows();
-  return {invalidateMix,clearQuickMix,showFixAdvice,onWorkspaceChanged(){clearQuickMix();el('mix-fix-advice').hidden=true;},
+  updateSeparationAvailability();
+  return {invalidateMix,clearQuickMix,showFixAdvice,updateSeparationAvailability,onWorkspaceChanged(){cancelSeparation('');clearQuickMix();el('mix-fix-advice').hidden=true;},
     reset(){mixTracks=[];mixCandidate=null;clearQuickMix();renderMixRows();}};
 }

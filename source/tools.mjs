@@ -22,7 +22,8 @@ export function initStudioTools(getBpmTrack){
   function workingChanged(){
     tools.masterCandidate=null;resetMasterUI();stopPreview();tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;tools.markers=[];tools.selectedSlice=0;tools.quickCandidate=null;tools.quickBounds=null;
     extraApi?.onWorkspaceChanged?.();
-    const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;tools.playhead=clampPlayhead(tools.playhead,tools.buffer?.duration);
+    const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;
+    extraApi?.updateSeparationAvailability?.();tools.playhead=clampPlayhead(tools.playhead,tools.buffer?.duration);
     el('workspace-undo').disabled=!snapshot.canUndo;el('workspace-redo').disabled=!snapshot.canRedo;el('workspace-original').disabled=!snapshot.hasChanges;
     status('workspace-state',snapshot.hasChanges?'WORKING AUDIO':'ORIGINAL');
     if(!tools.buffer){el('tool-loaded').hidden=true;el('tool-empty').hidden=false;updatePlayhead(0);return;}

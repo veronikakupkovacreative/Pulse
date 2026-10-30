@@ -38,3 +38,17 @@ test('EQ FFT analyzer, Fix in Mix and Mix-to-Master actions are wired',async()=>
  assert.match(extra,/if\(autoRender\)el\('master-render'\)\.click\(\)/);
  assert.match(src,/extraApi\?\.showFixAdvice/);
 });
+
+test('Demucs model is opt-in, bounded, and retains actual four-stem result validation',async()=>{
+  const html=await readFile(new URL('../source/index.html',import.meta.url),'utf8');
+  const source=await readFile(new URL('../source/extra-tools.mjs',import.meta.url),'utf8');
+  const worker=await readFile(new URL('../source/vendor/demucs-worker.js',import.meta.url),'utf8');
+  for(const id of ['mix-separate','mix-cancel-separation','mix-separation-status'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(source,/new Worker\('\/vendor\/demucs-worker\.js'\)/);
+  assert.match(source,/data\.tracks\.length!==4/);
+  assert.match(source,/window\.OfflineAudioContext/);
+  assert.match(worker,/loadDemucsModel\(/);
+  assert.match(worker,/separateStems\(/);
+  assert.match(worker,/44100\*45/);
+});

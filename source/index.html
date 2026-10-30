@@ -687,25 +687,6 @@
 <dialog id="pulse-feature-dialog" class="pulse-feature-dialog" aria-labelledby="pulse-feature-dialog-title"><button class="dialog-close icon-button" data-close aria-label="Close feature information"><svg><use href="#close"/></svg></button><p class="eyebrow">ADVANCED TOOL</p><h2 id="pulse-feature-dialog-title">In development.</h2><p id="pulse-feature-dialog-body" class="dialog-footnote">This processor is not available in the current version.</p><button type="button" id="pulse-feature-dialog-close" class="tool-action tool-action-dark">Close ↗</button></dialog>
 <dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">FEEL THE BEAT.</p><h2 id="tap-title">Your hands.<br>Your tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Tap the beat</span></button><p class="tap-instruction">Tap four times or press Space.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 taps</span><button id="tap-reset">Reset ↺</button><button id="tap-copy" hidden>Copy BPM ↗</button></div></dialog>
 <dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Your uploaded audio is processed locally. AI stem separation downloads a pretrained model on demand. Audio remains on your device.</p><p class="privacy-copy">Audio is released when removed or when the page closes.</p></dialog>
-<dialog id="youtube-dialog" aria-labelledby="youtube-title" class="youtube-dialog">
-  <button class="dialog-close icon-button" id="youtube-close" type="button" aria-label="Close YouTube Audio">×</button>
-  <p class="eyebrow">PULSE / CLOUD IMPORT</p><h2 id="youtube-title">YouTube<br>Audio.</h2>
-  <p class="dialog-footnote">Download audio only from videos you own or are authorized to download. Cloud conversion requires a connected backend. The source stream determines the available quality.</p>
-  <form id="youtube-form">
-    <label for="youtube-url">YouTube video URL</label>
-    <input id="youtube-url" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" required>
-    <label for="youtube-format">Output format</label>
-    <select id="youtube-format">
-      <option value="native">Original audio stream</option>
-      <option value="wav24">WAV · 24-bit</option>
-      <option value="wav16">WAV · 16-bit</option>
-      <option value="mp3">MP3 · 320 kbps</option>
-    </select>
-    <label class="youtube-consent"><input type="checkbox" id="youtube-authorized" required> I have permission to download this audio.</label>
-    <button type="submit" id="youtube-submit" class="tool-action tool-action-dark">Prepare audio <span>↗</span></button>
-  </form>
-  <p id="youtube-status" role="status">Checking cloud converter…</p><button type="button" id="youtube-recheck" class="pulse-youtube-retry">Retry cloud connection ↻</button>
-  <div id="youtube-download" hidden><p id="youtube-file-info"></p><a href="#" id="youtube-download-link" target="_blank" rel="noopener" class="tool-action tool-action-dark">Download file ↗</a></div>
-</dialog>
+
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
 </body></html>

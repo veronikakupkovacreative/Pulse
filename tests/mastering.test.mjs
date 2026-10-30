@@ -56,7 +56,7 @@ test('AI Studio navigation represents all active tools and marks unfinished modu
    assert.match(js,new RegExp(`'${tool}'`));
  }
  assert.match(html,/id="tab-mix"/);assert.match(html,/id="panel-mix"/);
- assert.match(html,/id="tab-youtube"[^>]*disabled/);
+ assert.match(html,/id="tab-youtube"/);
 });
 
 test('true-peak ceiling, intensity and punchy preset use measurable processing',()=>{

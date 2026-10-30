@@ -1,4 +1,4 @@
-function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav}){
+function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav,exportCleanAudio}){
   let profile=null,profileInput=null,result=null,worker=null,serial=0;
   const say=(message)=>status('denoise-status',message);
   function invalidate(keepProfile=false){
@@ -90,9 +90,12 @@ function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPre
     if(!result||result.input!==tools.buffer)return;
     stopPreview();workspace.apply(result.buffer);workingChanged();say('Spectral denoise applied. Undo restores the previous audio.');
   };
-  el('denoise-export').onclick=()=>{
+  el('denoise-export').onclick=async()=>{
     if(!result||result.input!==tools.buffer)return;
-    const blob=encodeWav(channels(result.buffer),result.buffer.sampleRate,24);download(blob,filename('spectral-clean.wav'));say('Clean audio exported as 24-bit WAV.');
+    const button=el('denoise-export');button.disabled=true;
+    try{say('Encoding clean audio locally…');say(await exportCleanAudio(result.buffer,el('denoise-format').value));}
+    catch(error){say('Clean export failed: '+error.message);}
+    finally{button.disabled=!result||result.input!==tools.buffer;}
   };
   invalidate();
   return {invalidate};

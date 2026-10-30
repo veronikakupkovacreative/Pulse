@@ -206,7 +206,18 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('mix-balance').onclick=()=>{
     for(const stem of mixTracks)stem.gainDb=suggestedGainDb(stem.channels);
     invalidateMix();renderMixRows();
-    mixNotice('Conservative gain suggestions applied. Listen and adjust each stem before export.');
+    const advice=inspectStemOverlap(mixTracks),container=el('mix-advice');container.replaceChildren();
+    const heading=document.createElement('strong');heading.textContent='STEM OVERLAP · HEURISTIC ANALYSIS';container.append(heading);
+    if(!advice.findings.length){
+      const note=document.createElement('p');note.textContent='No strong broad-band overlap flagged. Check the mix by ear.';container.append(note);
+    }else for(const finding of advice.findings){
+      const item=document.createElement('p');
+      item.textContent=finding.first+' / '+finding.second+' · '+finding.band+
+        ' · '+finding.strength+'% shared relative emphasis. '+finding.suggestion;
+      container.append(item);
+    }
+    container.hidden=false;
+    mixNotice('Conservative gain suggestions applied. Review possible frequency overlap before export.');
   };
   el('mix-render').onclick=async()=>{
     if(mixTracks.length<2)return;

@@ -177,7 +177,7 @@
             <h3>Build your mix.</h3>
             <p class="tool-footnote">Import 2–8 time-aligned stems, adjust gain and pan, and audition a stereo mix. Gain suggestions use measured RMS and peaks, not a neural model.</p>
             <div class="pulse-mix-import"><label for="mix-files">Add stems (WAV, MP3, M4A)</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
-            <div id="mix-stems" class="pulse-mix-tracks"></div>
+            <div id="mix-stems" class="pulse-mix-tracks"></div><div id="mix-advice" class="master-mix-health" role="status" hidden></div>
             <div class="quick-actions"><button type="button" id="mix-balance" disabled>Suggest Levels</button><button type="button" id="mix-render" disabled>Generate Mix</button><button type="button" id="mix-play" disabled>▶ Preview Mix</button><button type="button" id="mix-export" disabled>Export Stereo WAV ↗</button></div>
             <p class="tool-footnote" id="mix-status" role="status">Add at least two stems. They must start at the same timeline position.</p>
             <p class="master-disclaimer">AI MIX (assisted beta) uses transparent, deterministic DSP. No stem separation, model-based mixing or cloud processing.</p>

@@ -375,13 +375,16 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};
   el('mix-character').onchange=clearQuickMix;
+  for(const id of ['mix-drive','mix-tone','mix-blend'])el(id).oninput=()=>{status(id+'-label',id==='mix-tone'?(Number(el(id).value)===0?'Neutral':el(id).value):el(id).value+'%');clearQuickMix();};
+  document.querySelectorAll('[name="mix-vibe"]').forEach(input=>input.onchange=clearQuickMix);
   el('mix-quick-generate').onclick=()=>{
     if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
     try{
       const initial=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);
       const result=renderStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate,{
         character:el('mix-character').value,intensity:Number(el('mix-intensity').value)});
-      quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(result.channels,tools.buffer.sampleRate)};
+      const colored=processMixCharacter(result.channels,tools.buffer.sampleRate,{type:document.querySelector('[name="mix-vibe"]:checked')?.value||'tube',drive:Number(el('mix-drive').value),tone:Number(el('mix-tone').value),blend:Number(el('mix-blend').value)});
+      quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(colored,tools.buffer.sampleRate)};
       el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-stereo-results').hidden=false;
       status('mix-quick-report','Peak '+initial.signal.peakDb.toFixed(1)+' dBFS · RMS '+initial.signal.rmsDb.toFixed(1)+' dBFS · '+(initial.warnings.join(' · ')||'No critical issues')+' · Correction: '+(result.changes.length?result.changes.map(c=>
         c.frequency+' Hz '+c.gainDb.toFixed(1)+' dB').join(' · '):

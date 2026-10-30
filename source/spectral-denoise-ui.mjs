@@ -10,6 +10,7 @@ function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPre
     el('denoise-result').hidden=true;
     el('denoise-process').disabled=!profile||profileInput!==tools.buffer;
     el('denoise-learn').disabled=!tools.buffer;
+    el('denoise-live').disabled=!profile||profileInput!==tools.buffer;
   }
   const options=()=>({
     amount:Number(el('denoise-amount').value),
@@ -51,6 +52,7 @@ function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPre
       status('denoise-profile-status','Noise captured · '+(to-from).toFixed(2)+' s · '+profile.length+' frequency bands.');
       say('Profile ready. Adjust reduction and select Process Audio.');
       el('denoise-process').disabled=false;
+      el('denoise-live').disabled=false;
     }catch(error){say(error.message);}
     finally{el('denoise-learn').disabled=!tools.buffer;}
   };
@@ -69,6 +71,10 @@ function initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPre
       el('denoise-result').hidden=false;say('Cleaned audio is ready. Compare by ear before applying.');
     }catch(error){say(error.message);}
     finally{el('denoise-process').disabled=!profile||profileInput!==tools.buffer;}
+  };
+  el('denoise-live').onclick=()=>{
+    if(!profile||profileInput!==tools.buffer)return;
+    void playBuffer(tools.buffer,tools.playhead,tools.buffer.duration,1,{allowLoop:false,spectralProfile:profile.slice(),spectralOptions:options()}).then(()=>say('Live spectral processing active. Preview latency is approximately 2048 samples.')).catch(e=>say(e.message));
   };
   el('denoise-preview').onclick=()=>{if(result?.input===tools.buffer)void playBuffer(result.buffer,tools.playhead,result.buffer.duration,1,{allowLoop:false}).catch(e=>say(e.message));};
   el('denoise-apply').onclick=()=>{

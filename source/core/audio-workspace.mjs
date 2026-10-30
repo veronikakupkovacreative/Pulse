@@ -8,8 +8,8 @@ export function createAudioWorkspace({maxUndo=5}={}){
   return {
     snapshot,
     subscribe(listener){listeners.add(listener);return ()=>listeners.delete(listener);},
-    load(source,sourceFile){if(!source?.numberOfChannels||!source?.length)throw new Error('Neplatný audio buffer.');original=source;working=source;file=sourceFile;undo=[];redo=[];emit();},
-    apply(next){if(!original||!next?.length)throw new Error('Nemáš načtený žádný výsledek.');undo.push(working);if(undo.length>maxUndo)undo.shift();working=next;redo=[];emit();},
+    load(source,sourceFile){if(!source?.numberOfChannels||!source?.length)throw new Error('Invalid audio buffer.');original=source;working=source;file=sourceFile;undo=[];redo=[];emit();},
+    apply(next){if(!original||!next?.length)throw new Error('No audio loaded.');undo.push(working);if(undo.length>maxUndo)undo.shift();working=next;redo=[];emit();},
     undo(){if(!undo.length)return false;redo.push(working);working=undo.pop();emit();return true;},
     redo(){if(!redo.length)return false;undo.push(working);working=redo.pop();emit();return true;},
     reset(){if(!original)return false;working=original;undo=[];redo=[];emit();return true;},

@@ -106,36 +106,59 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       parent.append(n);return n;
     };
     const defs=node('defs',{});
+    // Style only: white-to-red silk gradient, with the response values untouched.
     const gradient=node('linearGradient',{id:'pulse-eq-response-fill',x1:'0%',x2:'0%',y1:'0%',y2:'100%'},defs);
-    node('stop',{offset:'0%','stop-color':'#DB4444','stop-opacity':.22},gradient);
-    node('stop',{offset:'100%','stop-color':'#DB4444','stop-opacity':.025},gradient);
+    node('stop',{offset:'0%','stop-color':'#FF0000','stop-opacity':.15},gradient);
+    node('stop',{offset:'100%','stop-color':'#FF0000','stop-opacity':.005},gradient);
+    const ribbon=node('linearGradient',{id:'pulse-eq-response-ribbon',x1:'0%',x2:'100%',y1:'0%',y2:'0%'},defs);
+    node('stop',{offset:'0%','stop-color':'#FFFFFF'},ribbon);
+    node('stop',{offset:'32%','stop-color':'#FFFFFF'},ribbon);
+    node('stop',{offset:'55%','stop-color':'#FF8C8C'},ribbon);
+    node('stop',{offset:'77%','stop-color':'#FF0000'},ribbon);
+    node('stop',{offset:'100%','stop-color':'#FF0000'},ribbon);
     for(const db of [-12,-6,0,6,12]){
       const y=yOf(db);
       node('line',{x1:left,y1:y,x2:right,y2:y,
-        stroke:db===0?'#D0D0D0':'#777777',opacity:db===0?.45:.13,'stroke-width':db===0?1.4:1});
-      const label=node('text',{x:5,y:y-4,fill:'#A1A1A1','font-size':9});
+        stroke:db===0?'#FFFFFF':'#8996A1',opacity:db===0?.40:.15,'stroke-width':db===0?1.4:1});
+      const label=node('text',{x:5,y:y-4,fill:'#CDD4DA','font-size':9});
       label.textContent=(db>0?'+':'')+db;
     }
     for(const hz of [20,50,100,200,500,1000,2000,5000,10000,20000]){
       if(hz>hzMax)continue;
       const x=xOf(hz);
-      node('line',{x1:x,y1:top,x2:x,y2:bottom,stroke:'#666666',opacity:.11,'stroke-width':1});
+      node('line',{x1:x,y1:top,x2:x,y2:bottom,stroke:'#81919D',opacity:.12,'stroke-width':1});
     }
     const bandGroup=node('g',{'aria-hidden':'true'});
     eqState.bands.forEach(band=>{
       if(!band.enabled)return;
       const x=xOf(band.frequency);
-      node('line',{x1:x,y1:top+4,x2:x,y2:bottom,stroke:'#666666',opacity:.32,'stroke-width':4,'stroke-linecap':'round'},bandGroup);
+      node('line',{x1:x,y1:top+4,x2:x,y2:bottom,stroke:'#D8E0E6',opacity:.20,'stroke-width':4,'stroke-linecap':'round'},bandGroup);
     });
     const curve=eqResponse(eqState.bands,rate,240);
     const d=curve.map((point,index)=>(index?'L':'M')+xOf(point.hz).toFixed(2)+' '+yOf(point.db).toFixed(2)).join(' ');
     node('path',{d:d+' L'+right+' '+zero+' L'+left+' '+zero+' Z',fill:'url(#pulse-eq-response-fill)',stroke:'none','pointer-events':'none'});
-    node('path',{d,fill:'none',stroke:'#DB4444','stroke-width':2.6,'stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'});
+    // Secondary strands follow the actual measured EQ curve; their separation
+    // vanishes at 0 dB so a flat EQ remains visually flat.
+    for(let strand=-5;strand<=5;strand++){
+      if(strand===0)continue;
+      const strandPath=curve.map((point,index)=>{
+        const t=index/Math.max(1,curve.length-1);
+        const envelope=Math.pow(Math.sin(Math.PI*t),1.4);
+        const energy=Math.min(1,Math.abs(point.db)/7);
+        const offset=strand*1.9*energy*envelope;
+        return (index?'L':'M')+xOf(point.hz).toFixed(2)+' '+(yOf(point.db)+offset).toFixed(2);
+      }).join(' ');
+      node('path',{d:strandPath,fill:'none',stroke:'url(#pulse-eq-response-ribbon)',
+        opacity:.08+(1-Math.abs(strand)/6)*.13,'stroke-width':1.25,
+        'stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'});
+    }
+    node('path',{d,fill:'none',stroke:'url(#pulse-eq-response-ribbon)','stroke-width':2.8,
+      'stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'});
     eqState.bands.forEach((band,index)=>{
       if(!band.enabled)return;
       const x=xOf(band.frequency),y=yOf(band.gain),selected=index===selectedBand;
       const circle=node('circle',{cx:x,cy:y,r:selected?8.9:7.1,
-        fill:selected?'#101010':'#0A0A0A',stroke:selected?'#DB4444':'#FFFFFF','stroke-width':selected?3:2.4,
+        fill:'#001321',stroke:selected?'#FF0000':'#FFFFFF','stroke-width':selected?3:2.4,
         role:'button',tabindex:0,'aria-label':'EQ band '+(index+1)+' · '+Math.round(band.frequency)+' Hz · '+band.gain.toFixed(1)+' dB'});
       circle.addEventListener('click',()=>{selectedBand=index;refreshEq(true);});
       circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectedBand=index;refreshEq(true);}});
@@ -146,16 +169,16 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         refreshEq(false);
       });
       const gainLabel=node('text',{x,y:21,'font-size':eqState.bands.length>=20?8.4:10.5,
-        'font-family':'ui-monospace, Menlo, monospace','font-weight':700,'text-anchor':'middle',fill:'#E7E7E7','pointer-events':'none'});
+        'font-family':'ui-monospace, Menlo, monospace','font-weight':700,'text-anchor':'middle',fill:'#FFFFFF','pointer-events':'none'});
       gainLabel.textContent=(band.gain>0?'+':'')+band.gain.toFixed(1);
       const hzLabel=node('text',{x,y:279,'font-size':eqState.bands.length>=20?8.4:10.5,
-        'font-family':'ui-monospace, Menlo, monospace','text-anchor':'middle',fill:'#999999','pointer-events':'none'});
+        'font-family':'ui-monospace, Menlo, monospace','text-anchor':'middle',fill:'#CDD4DA','pointer-events':'none'});
       hzLabel.textContent=band.frequency>=1000?(band.frequency/1000).toFixed(band.frequency%1000?1:0)+'k':Math.round(band.frequency);
     });
-    const leftLabel=node('text',{x:10,y:294,'font-size':9,fill:'#999999','pointer-events':'none'});leftLabel.textContent='20 Hz';
-    const centerLabel=node('text',{x:width/2,y:294,'font-size':9,'text-anchor':'middle',fill:'#999999','pointer-events':'none'});
+    const leftLabel=node('text',{x:10,y:294,'font-size':9,fill:'#CDD4DA','pointer-events':'none'});leftLabel.textContent='20 Hz';
+    const centerLabel=node('text',{x:width/2,y:294,'font-size':9,'text-anchor':'middle',fill:'#CDD4DA','pointer-events':'none'});
     centerLabel.textContent='SUMMED FREQUENCY RESPONSE';
-    const rightLabel=node('text',{x:710,y:294,'font-size':9,'text-anchor':'end',fill:'#999999','pointer-events':'none'});rightLabel.textContent='20 kHz';
+    const rightLabel=node('text',{x:710,y:294,'font-size':9,'text-anchor':'end',fill:'#CDD4DA','pointer-events':'none'});rightLabel.textContent='20 kHz';
   }
   el('eq-response-graph').addEventListener('pointermove',event=>{
     if(dragBand<0)return;
@@ -192,7 +215,20 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         const y=height-(Math.max(-110,Math.min(-10,db))+110)/100*height;
         if(!found){ctx.moveTo(x,y);found=true;}else ctx.lineTo(x,y);
       }
-      if(found){ctx.strokeStyle='rgba(185,185,185,.85)';ctx.lineWidth=1.4;ctx.stroke();}
+      if(found){
+        const spectralGradient=ctx.createLinearGradient(0,0,width,0);
+        spectralGradient.addColorStop(0,'#FFFFFF');
+        spectralGradient.addColorStop(.34,'#FFFFFF');
+        spectralGradient.addColorStop(.63,'#FF0000');
+        spectralGradient.addColorStop(1,'#FF0000');
+        // A restrained red-white ribbon behind the original live FFT path.
+        ctx.strokeStyle=spectralGradient;ctx.lineWidth=1.3;
+        for(let layer=5;layer>=1;layer--){
+          ctx.save();ctx.translate(0,layer*1.5);
+          ctx.globalAlpha=.035+(6-layer)*.018;ctx.stroke();ctx.restore();
+        }
+        ctx.globalAlpha=.94;ctx.stroke();
+      }
     }
     spectrumRaf=requestAnimationFrame(drawLiveSpectrum);
   }

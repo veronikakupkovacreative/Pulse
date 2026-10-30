@@ -683,8 +683,7 @@ export function initStudioTools(getBpmTrack){
     const min=.02;if(value-markers[index-1]<min||markers[index]-value<min)return true;
     markers.splice(index,0,value);tools.selectedSlice=index-1;updateSliceUI();return true;
   }
-  function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value)};};
-  }
+  function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value)};}
   function resetMasterUI(){
     for(const id of ['master-before','master-after','master-peak','master-crest','master-correlation','master-gr'])status(id,'—');
     el('master-eq').hidden=true;

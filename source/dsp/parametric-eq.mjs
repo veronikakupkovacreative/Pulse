@@ -1,6 +1,6 @@
 import {peakingBiquad,biquadMagnitudeDb} from './eq-response.mjs';
 
-const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const eqBound=(v,a,b)=>Math.min(b,Math.max(a,v));
 export const EQ_DEFAULT_BANDS=[
   {type:'highpass',frequency:30,gain:0,q:.707,enabled:false},
   {type:'lowshelf',frequency:110,gain:0,q:.707,enabled:true},
@@ -34,7 +34,7 @@ export function eqResponse(bands,rate,points=160){
   const active=bands.filter(b=>b.enabled!==false).map(b=>eqCoefficients(b,rate));
   return Array.from({length:points},(_,i)=>{
     const hz=20*(Math.min(20000,rate*.45)/20)**(i/Math.max(1,points-1));
-    const db=clamp(active.reduce((a,c)=>a+biquadMagnitudeDb(c,hz,rate),0),-48,24);
+    const db=eqBound(active.reduce((a,c)=>a+biquadMagnitudeDb(c,hz,rate),0),-48,24);
     return {hz,db};
   });
 }

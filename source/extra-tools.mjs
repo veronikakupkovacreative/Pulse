@@ -161,7 +161,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     if(dragBand<0)return;
     const svg=el('eq-response-graph'),rect=svg.getBoundingClientRect();
     const nx=Math.min(1,Math.max(0,(event.clientX-rect.left)/rect.width));
-    const ny=Math.min(1,Math.max(0,(event.clientY-rect.top)/rect.height));
+    const ny=Math.min(1,Math.max(0,((event.clientY-rect.top)/rect.height*300-50)/190));
     const band=eqState.bands[dragBand],hzMax=Math.min(20000,tools.buffer?.sampleRate*.45||21600);
     band.frequency=Math.max(20,Math.round(20*(hzMax/20)**nx));
     if(!['highpass','lowpass','notch'].includes(band.type))band.gain=Math.round((12-24*ny)*10)/10;

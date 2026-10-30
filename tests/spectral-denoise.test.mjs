@@ -33,9 +33,9 @@ test('spectral reduction lowers steady-state noise and keeps waveform finite',()
 });
 test('spectral UI and realtime worklet are bundled',async()=>{
  const html=await readFile(new URL('../source/index.html',import.meta.url),'utf8');
- const built=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
- const worklet=await readFile(new URL('../public/vendor/pulse-spectral-worklet.js',import.meta.url),'utf8');
+ const build=await readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8');
+ const worklet=await readFile(new URL('../source/spectral-worklet.js',import.meta.url),'utf8');
  for(const id of ['tab-denoise','panel-denoise','denoise-learn','denoise-process','denoise-live','denoise-export'])assert.match(html,new RegExp('id="'+id+'"'));
- assert.match(built,/createSpectralWorker/);
+ assert.match(build,/createSpectralWorker/);
  assert.match(worklet,/registerProcessor\('pulse-spectral-denoiser'/);
 });

@@ -1083,7 +1083,14 @@ export function initStudioTools(getBpmTrack){
   }
   // Master controls
   document.querySelectorAll('input[name="master-preset"]').forEach(input=>input.addEventListener('change',()=>{
-    const defaults={balanced:-13,warm:-14,loud:-10};el('master-lufs').value=defaults[input.value];
+    const config=getMasterPreset(input.value);
+    const values={'master-lufs':config.targetLufs,'master-ceiling':config.ceilingDb,
+      'master-intensity':config.intensity,'master-width':Math.round(config.stereoWidth*100),
+      'master-eq-mode':config.eqMode,'master-dynamics':config.dynamicsMode};
+    for(const [id,value] of Object.entries(values))el(id).value=String(value);
+    status('master-intensity-label',config.intensity+'%');
+    status('master-width-label',Math.round(config.stereoWidth*100)+'%');
+    status('master-preset-description',config.description);
     tools.masterCandidate=null;resetMasterUI();updateButtons();
   }));
   el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity','master-width','master-eq-mode','master-dynamics'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');status('master-width-label',el('master-width').value+'%');tools.masterCandidate=null;resetMasterUI();updateButtons();});

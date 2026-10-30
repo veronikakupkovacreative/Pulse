@@ -1055,6 +1055,11 @@ export function initStudioTools(getBpmTrack){
   el('trim-threshold').oninput=()=>{status('trim-db-label',el('trim-threshold').value+' dBFS');clearQuick();};
   el('trim-padding').oninput=clearQuick;
   el('norm-mode').onchange=()=>{el('norm-peak-field').hidden=el('norm-mode').value!=='peak';el('norm-lufs-field').hidden=el('norm-mode').value!=='lufs';clearQuick();};
+  el('norm-target-preset').onchange=()=>{
+    el('norm-lufs').value=el('norm-target-preset').value;
+    el('norm-mode').value='lufs';el('norm-mode').onchange();
+    clearQuick();
+  };
   for(const id of ['norm-peak','norm-lufs','norm-ceiling'])el(id).oninput=clearQuick;
   el('tool-select-file').onclick=el('tool-change').onclick=()=>el('tool-file-input').click();
   const selectToolkitFile=e=>{

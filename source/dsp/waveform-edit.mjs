@@ -33,6 +33,7 @@ export function deleteWaveformRange(channels,rate,from,to,fadeMs=5){
     data[start-radius+i]*=(radius-i)/radius;
     data[start+i]*=(i+1)/radius;
   }
+  if(start===0||end===n)fadeEdges(output,rate,fadeMs);
   return output;
 }
 export function splitWaveform(channels,rate,at,fadeMs=5){

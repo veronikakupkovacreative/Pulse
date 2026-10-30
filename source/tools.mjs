@@ -19,12 +19,93 @@ export function initStudioTools(getBpmTrack){
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;
   const readableSize=bytes=>`${(bytes/(1024*1024)).toLocaleString('en-US',{maximumFractionDigits:1})} MB`;
+  let overviewPaintedFor=null,overviewPaintedWidth=0;
+  function updateEqOverviewPosition(){
+    const duration=tools.buffer?.duration;
+    if(!duration||tools.tab!=='equalizer')return;
+    const view=viewportRange(duration,tools.zoom,tools.viewStart);
+    const windowEl=el('eq-overview-window');
+    windowEl.style.left=(view.start/duration*100)+'%';
+    windowEl.style.width=Math.max(.35,(view.span/duration)*100)+'%';
+    const line=el('eq-overview-playhead');
+    line.style.left=(tools.playhead/duration*100)+'%';
+    const slider=el('eq-overview-canvas');
+    slider.setAttribute('aria-valuemax',String(duration));
+    slider.setAttribute('aria-valuenow',String(Number(tools.playhead.toFixed(3))));
+    slider.setAttribute('aria-valuetext',tools.playhead.toFixed(3)+' seconds');
+    status('eq-overview-duration',duration.toFixed(3)+'s');
+    status('eq-overview-start',view.start.toFixed(3)+'s');
+  }
+  function drawEqOverview(){
+    if(!tools.buffer||tools.tab!=='equalizer')return;
+    const canvas=el('eq-overview-canvas'),rect=canvas.getBoundingClientRect();
+    const w=Math.max(240,rect.width||720),h=68,dpr=Math.min(window.devicePixelRatio||1,2);
+    const key=tools.buffer;
+    if(overviewPaintedFor!==key||overviewPaintedWidth!==Math.round(w)){
+      canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+      const ctx=canvas.getContext('2d');
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.fillStyle='#202222';ctx.fillRect(0,0,w,h);
+      const mono=tools.peaks||[],stereo=tools.peaksRight||null;
+      const bars=Math.min(900,Math.max(100,Math.round(w/2)));
+      const gap=w/bars;
+      for(let i=0;i<bars;i++){
+        const index=Math.min(mono.length-1,Math.floor((i+.5)/bars*mono.length));
+        const l=mono[Math.max(0,index)]||0,r=stereo?.[Math.max(0,index)]||l;
+        const peak=Math.min(1,Math.max(l,r));
+        const height=Math.max(1,peak*(h-10));
+        ctx.fillStyle='#92948f';
+        ctx.fillRect(i*gap,(h-height)/2,Math.max(1,gap*.72),height);
+      }
+      overviewPaintedFor=key;overviewPaintedWidth=Math.round(w);
+      let peak=0;for(const p of mono)peak=Math.max(peak,p);
+      for(const p of stereo||[])peak=Math.max(peak,p);
+      status('eq-peak-info',peak>0?'PEAK '+(20*Math.log10(peak)).toFixed(1)+' dBFS':'PEAK −∞ dBFS');
+    }
+    updateEqOverviewPosition();
+  }
+  function seekOverview(event){
+    if(!tools.buffer||tools.loading)return;
+    const rect=el('eq-overview-canvas').getBoundingClientRect();
+    const fraction=Math.max(0,Math.min(1,(event.clientX-rect.left)/Math.max(1,rect.width)));
+    const seconds=fraction*tools.buffer.duration;
+    if(tools.zoom>1){
+      const span=tools.buffer.duration/tools.zoom;
+      tools.viewStart=viewportRange(tools.buffer.duration,tools.zoom,seconds-span/2).start;
+      drawToolWave();updateWaveControls();
+    }else{
+      if(tools.playing)void seekTool(seconds,true);
+      else updatePlayhead(seconds);
+    }
+  }
+  el('eq-overview-canvas').addEventListener('pointerdown',event=>{
+    if(event.button!==0||!tools.buffer)return;
+    el('eq-overview-canvas').setPointerCapture(event.pointerId);
+    seekOverview(event);
+  });
+  el('eq-overview-canvas').addEventListener('pointermove',event=>{
+    if(el('eq-overview-canvas').hasPointerCapture(event.pointerId))seekOverview(event);
+  });
+  el('eq-overview-canvas').addEventListener('keydown',event=>{
+    if(!tools.buffer)return;
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+      event.preventDefault();
+      const delta=tools.buffer.duration*(event.shiftKey?.1:.02)*(event.key==='ArrowRight'?1:-1);
+      const next=Math.max(0,Math.min(tools.buffer.duration,tools.playhead+delta));
+      if(tools.zoom>1)tools.viewStart=viewportRange(tools.buffer.duration,tools.zoom,next-tools.buffer.duration/tools.zoom/2).start;
+      updatePlayhead(next);drawToolWave();updateWaveControls();
+    }
+  });
+  el('eq-fit-track').onclick=()=>setZoom(1);
+  el('eq-split-channels').onchange=()=>drawToolWave();
   function syncEqEditor(){
     const loaded=Boolean(tools.buffer),eq=tools.tab==='equalizer';
     el('eq-wave-editor').hidden=!eq||!loaded;
     el('pulse-eq-left').hidden=!eq||!loaded;
+    el('eq-overview').hidden=!eq||!loaded;
     el('eq-select-region').setAttribute('aria-pressed',String(tools.eqSelectMode));
     const selection=tools.eqSelection,duration=tools.buffer?.duration||0;
+    updateEqOverviewPosition();
     el('eq-region-in').max=String(duration);el('eq-region-out').max=String(duration);
     if(document.activeElement!==el('eq-region-in'))el('eq-region-in').value=(selection?.from??0).toFixed(3);
     if(document.activeElement!==el('eq-region-out'))el('eq-region-out').value=(selection?.to??duration).toFixed(3);
@@ -117,12 +198,14 @@ export function initStudioTools(getBpmTrack){
     tools.masterCandidate=null;resetMasterUI();stopPreview();tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;tools.markers=[];tools.selectedSlice=0;tools.quickCandidate=null;tools.quickBounds=null;
     extraApi?.onWorkspaceChanged?.();
     const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;
+    overviewPaintedFor=null;
     extraApi?.updateSeparationAvailability?.();tools.playhead=clampPlayhead(tools.playhead,tools.buffer?.duration);
     if(tools.eqSelection){const {from,to}=tools.eqSelection;tools.eqSelection=to<=tools.buffer?.duration?{from,to}:null;}
     el('workspace-undo').disabled=!snapshot.canUndo;el('workspace-redo').disabled=!snapshot.canRedo;el('workspace-original').disabled=!snapshot.hasChanges;
     status('workspace-state',snapshot.hasChanges?'WORKING AUDIO':'ORIGINAL');
     if(!tools.buffer){el('tool-loaded').hidden=true;el('tool-empty').hidden=false;updatePlayhead(0);return;}
     const buffer=tools.buffer;
+    overviewPaintedFor=null;
     tools.peaks=getAudioPeaks(buffer.getChannelData(0),2160);
     tools.peaksRight=buffer.numberOfChannels>1?getAudioPeaks(buffer.getChannelData(1),2160):null;
     tools.from=0;tools.to=Math.min(buffer.duration,8);
@@ -280,6 +363,7 @@ export function initStudioTools(getBpmTrack){
     const marker=el('tool-playhead');if(marker){const percent=viewportPercent(tools.playhead,duration,tools.zoom,tools.viewStart);marker.hidden=percent<0||percent>100;marker.style.left=Math.max(0,Math.min(100,percent))+'%';}
     const canvas=el('tool-waveform');if(canvas){canvas.setAttribute('aria-valuemax',String(duration));canvas.setAttribute('aria-valuenow',String(Number(tools.playhead.toFixed(2))));canvas.setAttribute('aria-valuetext',precise(tools.playhead));}
     status('tool-time',`${precise(tools.playhead)} / ${precise(duration)}`);
+    updateEqOverviewPosition();
   }
   function positionDuringPlayback(){
     const transport=tools.transport;
@@ -528,8 +612,8 @@ export function initStudioTools(getBpmTrack){
       const t=view.start+(i+.5)/bars*view.span;
       const amp=Math.max(2,Math.pow(peakAt(left,tools.peaks,t),.55)*(h-20)*.78),x=i*bar;
       const isSelected=!selection||(t>=selection[0]&&t<=selection[1]);
-      ctx.fillStyle=isSelected?'#ff2b20':'#72726c';
-      if(tools.tab==='equalizer'&&tools.peaksRight){
+      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?'#f4dd66':'#777770'):(isSelected?'#ff2b20':'#72726c');
+      if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
         const other=Math.max(2,Math.pow(peakAt(right,tools.peaksRight,t),.55)*(h-20)*.37);
         const half=(h-17)/2;
         ctx.fillRect(x,17+(half-amp*.48)/2,Math.max(1,bar*.68),amp*.48);
@@ -538,11 +622,15 @@ export function initStudioTools(getBpmTrack){
     }
     if(selection){for(const boundary of selection){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#f5f4f0';ctx.fillRect(x-1,17,2,h-17);ctx.beginPath();ctx.arc(x,(h+17)/2,5,0,Math.PI*2);ctx.fill();}}
     if(tools.loopEnabled){for(const [boundary,label] of [[tools.loopFrom,'IN'],[tools.loopTo,'OUT']]){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#ff2b20';ctx.fillRect(x-1,17,2,h-17);ctx.fillText(label,Math.max(3,Math.min(w-30,x+4)),21);}}
+    if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
+      ctx.fillStyle='#aaa9a2';ctx.fillText('L',Math.max(2,w-14),18);ctx.fillText('R',Math.max(2,w-14),(h+17)/2+3);
+    }
     if(tools.tab==='slicer'&&tools.markers.length>1){
       tools.markers.slice(1,-1).forEach((value,i)=>{const x=px(value);if(x<0||x>w)return;ctx.fillStyle=i+1===tools.selectedSlice?'#fff':'#ff2b20';ctx.fillRect(x-1,17,2,h-17);ctx.fillRect(x-5,17,10,9);});
       const a=px(tools.markers[tools.selectedSlice]),b=px(tools.markers[tools.selectedSlice+1]);
       ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(Math.max(0,a),17,Math.max(0,Math.min(w,b)-Math.max(0,a)),h-17);
     }
+    drawEqOverview();
   }
   async function preview(){
     if(!tools.buffer||tools.loading)return;

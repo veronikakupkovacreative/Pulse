@@ -1,4 +1,5 @@
 import {integratedLoudness} from './quick-tools.mjs';
+import {truePeakDb,limitTruePeak} from './true-peak.mjs';
 // Pulse Smart Master v1: adaptive, deterministic offline DSP. No neural model.
 // All operations happen on the client, and no source channel is mutated.
 const masterClamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
@@ -57,6 +58,33 @@ function energyBand(channels,rate,frequency){
   }
   return {low,high,total:middle};
 }
+function stereoCorrelation(channels){
+  if(channels.length!==2)return null;
+  const [l,r]=channels;let ll=0,rr=0,lr=0;
+  for(let i=0;i<l.length;i++){ll+=l[i]*l[i];rr+=r[i]*r[i];lr+=l[i]*r[i];}
+  return ll>0&&rr>0?masterClamp(lr/Math.sqrt(ll*rr),-1,1):null;
+}
+function shortTermAndRange(channels,rate){
+  const n=channels[0].length;
+  const slice=(from,to)=>channels.map(ch=>ch.subarray(from,to));
+  const shortLength=Math.min(n,Math.round(rate*3));
+  const shortTerm=n>=rate*.4?integratedLoudness(slice(n-shortLength,n),rate):null;
+  if(n<rate*6)return {shortTermLufs:shortTerm,lraEstimateDb:null};
+  const window=Math.round(3*rate),available=Math.max(1,n-window);
+  const count=Math.min(30,Math.floor(n/rate)-2);
+  const values=[];
+  for(let j=0;j<count;j++){
+    const from=Math.min(available,Math.round(j*available/Math.max(1,count-1)));
+    const l=integratedLoudness(slice(from,Math.min(n,from+window)),rate);
+    if(Number.isFinite(l)&&l> -70)values.push(l);
+  }
+  if(values.length<3)return {shortTermLufs:shortTerm,lraEstimateDb:null};
+  const mean=values.reduce((a,b)=>a+b,0)/values.length;
+  const gated=values.filter(v=>v>=mean-20).sort((a,b)=>a-b);
+  if(gated.length<3)return {shortTermLufs:shortTerm,lraEstimateDb:null};
+  const at=p=>{const i=p*(gated.length-1),a=Math.floor(i);return gated[a]+(gated[Math.min(gated.length-1,a+1)]-gated[a])*(i-a);};
+  return {shortTermLufs:shortTerm,lraEstimateDb:at(.95)-at(.10)};
+}
 export function analyzeMaster(channels,rate){
   validate(channels,rate);
   const peak=maxPeak(channels),r=rms(channels);
@@ -64,21 +92,26 @@ export function analyzeMaster(channels,rate){
   const low=energyBand(channels,rate,180),high=energyBand(channels,rate,4200);
   const lowShare=Math.sqrt(low.low/Math.max(1e-12,low.total));
   const highShare=Math.sqrt(high.high/Math.max(1e-12,high.total));
-  const loudness=integratedLoudness(channels,rate); // bundled from quick-tools
-  return {peakDb:db(peak),rmsDb:db(r),crestDb:db(peak/r),lufs:loudness,
+  const loudness=integratedLoudness(channels,rate);
+  const dynamics=shortTermAndRange(channels,rate);
+  return {peakDb:db(peak),truePeakDb:truePeakDb(channels),rmsDb:db(r),crestDb:db(peak/r),
+    lufs:loudness,...dynamics,correlation:stereoCorrelation(channels),
     lowShare,highShare,channels:channels.length,rate,duration:channels[0].length/rate};
 }
-export function designMaster(analysis,preset='balanced',targetLufs){
-  if(!['balanced','warm','loud'].includes(preset))throw Error('Invalid mastering preset.');
-  const presetTarget={balanced:-13,warm:-14,loud:-10}[preset];
+export function designMaster(analysis,preset='balanced',targetLufs,{intensity=45,ceilingDb=-1}={}){
+  if(!['balanced','warm','loud','punchy'].includes(preset))throw Error('Invalid mastering preset.');
+  const presetTarget={balanced:-13,warm:-14,loud:-10,punchy:-12}[preset];
   const target=targetLufs===undefined?presetTarget:Number(targetLufs);
   if(!Number.isFinite(target)||target<-22||target>-8)throw Error('Target LUFS must be between -22 and -8.');
-  // Conservative shelves: no attempt to force a universal tonal profile.
-  const lowDb=masterClamp((.49-analysis.lowShare)*4.4+(preset==='warm'?.65:preset==='loud'?.25:0),-1.5,1.5);
-  const highDb=masterClamp((.37-analysis.highShare)*4.2+(preset==='warm'?-.9:preset==='loud'?.25:0),-1.5,1.5);
-  const ratio=analysis.crestDb>15?(preset==='loud'?1.9:1.45):analysis.crestDb>9?(preset==='loud'?1.5:1.25):1.1;
-  const thresholdDb=masterClamp(analysis.rmsDb+5.5,-32,-9);
-  return {preset,targetLufs:target,lowDb,highDb,ratio,thresholdDb,ceilingDb:-1.2};
+  if(!Number.isFinite(intensity)||intensity<0||intensity>100)throw Error('Intensity must be 0–100%.');
+  if(![-1,-2,-.3].includes(Number(ceilingDb)))throw Error('Unsupported true-peak ceiling.');
+  const strength=intensity/100;
+  const lowDb=masterClamp((.49-analysis.lowShare)*4.4+(preset==='warm'?.65:preset==='loud'?.25:preset==='punchy'?-.25:0),-1.5,1.5)*strength;
+  const highDb=masterClamp((.37-analysis.highShare)*4.2+(preset==='warm'?-.9:preset==='loud'?.25:preset==='punchy'?.10:0),-1.5,1.5)*strength;
+  const targetRatio=analysis.crestDb>15?(preset==='loud'?1.9:preset==='punchy'?1.20:1.45):analysis.crestDb>9?(preset==='loud'?1.5:preset==='punchy'?1.12:1.25):1.07;
+  const ratio=1+(targetRatio-1)*strength;
+  const thresholdDb=masterClamp(analysis.rmsDb+(preset==='punchy'?7:5.5),-32,-9);
+  return {preset,targetLufs:target,lowDb,highDb,ratio,thresholdDb,ceilingDb:Number(ceilingDb),intensity};
 }
 function compress(channels,rate,settings){
   const result=channels.map(c=>new Float32Array(c.length));
@@ -100,49 +133,23 @@ function compress(channels,rate,settings){
   }
   return result;
 }
-function limit(channels,rate,ceilingDb){
-  const n=channels[0].length,look=Math.max(1,Math.round(rate*.003));
-  const limit=10**(ceilingDb/20);
-  // Sliding maximum lookahead with a monotonic deque, bounded O(n).
-  const peaks=new Float32Array(n),deque=new Int32Array(n);let head=0,tail=0;
-  for(let i=0;i<n;i++){
-    let v=0;for(let c=0;c<channels.length;c++)v=Math.max(v,Math.abs(channels[c][i]));
-    peaks[i]=v;
-  }
-  const output=channels.map(c=>new Float32Array(n));
-  const release=Math.exp(-1/(rate*.1));let gain=1;
-  for(let i=0;i<n;i++){
-    const end=Math.min(n,i+look+1);
-    // Only add new future samples to the deque.
-    const from=Math.min(n,i===0?0:i+look);
-    for(let j=from;j<end;j++){
-      while(tail>head&&peaks[deque[tail-1]]<=peaks[j])tail--;
-      deque[tail++]=j;
-    }
-    while(tail>head&&deque[head]<i)head++;
-    const future=tail>head?peaks[deque[head]]:peaks[i];
-    const desired=future>limit?limit/future:1;
-    gain=desired<gain?desired:release*gain+(1-release)*desired;
-    for(let c=0;c<channels.length;c++)output[c][i]=masterClamp(channels[c][i]*gain,-limit,limit);
-  }
-  return output;
-}
-export function processMaster(channels,rate,{preset='balanced',targetLufs}={}){
+export function processMaster(channels,rate,{preset='balanced',targetLufs,intensity=45,ceilingDb=-1}={}){
   validate(channels,rate);
-  const before=analyzeMaster(channels,rate),settings=designMaster(before,preset,targetLufs);
+  const before=analyzeMaster(channels,rate),settings=designMaster(before,preset,targetLufs,{intensity,ceilingDb});
   const low=biquad(rate,180,settings.lowDb,'low'),high=biquad(rate,4000,settings.highDb,'high');
   const eq=channels.map(ch=>filter(filter(ch,low),high));
-  const compressed=compress(eq,rate,settings);
+  const compressed=settings.ratio>1.001?compress(eq,rate,settings):eq;
   const measured=integratedLoudness(compressed,rate);
   const correction=masterClamp(settings.targetLufs-measured,-9,9);
   const multiplier=10**(correction/20);
   const gained=compressed.map(ch=>Float32Array.from(ch,s=>s*multiplier));
-  const output=limit(gained,rate,settings.ceilingDb);
-  const after=analyzeMaster(output,rate);
-  return {channels:output,settings:{...settings,appliedGainDb:correction},before,after,
-    notes:[
-      'Smart Master v1 uses local adaptive DSP, not a neural model.',
-      'The ceiling protects sample peaks, not measured inter-sample true peaks.',
-      'Target LUFS is an estimate; the limiter and source material may prevent an exact match.'
+  const limited=limitTruePeak(gained,rate,settings.ceilingDb);
+  const output=limited.channels,after=analyzeMaster(output,rate);
+  return {channels:output,settings:{...settings,appliedGainDb:correction,
+      maxReductionDb:limited.maxReductionDb,safetyTrimDb:limited.safetyTrimDb},
+    before,after,notes:[
+      'Local deterministic mastering DSP; no neural mastering model.',
+      'True peak uses 4x windowed-sinc reconstruction. Independent certification is not implied.',
+      'Loudness Range is an estimate; requested LUFS may remain unattainable without excessive limiting.'
     ]};
 }

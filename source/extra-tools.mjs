@@ -417,7 +417,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     panel.append(note);panel.hidden=false;
     if(tools.buffer){const result=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);status('mix-quick-report','Peak '+result.signal.peakDb.toFixed(1)+' dBFS · '+(result.warnings.join(' · ')||'No critical issues flagged.'));}
   }
-  function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;el('mix-send-master').disabled=true;el('mix-multitrack-results').hidden=true;}
+  function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;el('mix-export-stems').disabled=true;el('mix-send-master').disabled=true;el('mix-multitrack-results').hidden=true;}
   function makeStemAutomationGraph(stem){
     const canvas=document.createElement('canvas');canvas.width=600;canvas.height=105;canvas.tabIndex=0;
     canvas.className='stem-automation-graph';
@@ -604,7 +604,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     mixNotice('Mixing aligned stems…');
     try{
       mixCandidate=mixStems(mixTracks,{ceilingDb:-1});
-      el('mix-play').disabled=false;el('mix-export').disabled=false;el('mix-send-master').disabled=false;el('mix-multitrack-results').hidden=false;
+      el('mix-play').disabled=false;el('mix-export').disabled=false;el('mix-export-stems').disabled=false;el('mix-send-master').disabled=false;el('mix-multitrack-results').hidden=false;
       mixNotice('Mix ready · '+mixTracks.length+' stems · peak '+mixCandidate.peakDb.toFixed(1)+' dBFS · protection '+mixCandidate.attenuationDb.toFixed(1)+' dB.');
     }catch(error){invalidateMix();mixNotice(error.message||'Could not render stems.');}
   };
@@ -625,6 +625,18 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('mix-export').onclick=()=>{if(!mixCandidate)return;
     const blob=encodeWav(mixCandidate.channels,mixCandidate.rate,24);
     download(blob,'pulse-multitrack-mix.wav');mixNotice('Multitrack mix exported as stereo WAV.');};
+  el('mix-export-stems').onclick=async()=>{
+    if(!mixTracks.length)return;
+    try{
+      const entries=mixTracks.map((stem,i)=>({
+        name:String(i+1).padStart(2,'0')+'-'+stem.name.replace(/[^a-z0-9_-]+/gi,'-').slice(0,48)+'.wav',
+        data:encodeWav(stem.channels,stem.rate,24)
+      }));
+      const archive=await createStoredZip(entries);
+      download(archive,'pulse-stems.zip');
+      mixNotice('Exported '+entries.length+' independent 24-bit WAV stems.');
+    }catch(err){mixNotice(err.message||'Stem ZIP export failed.');}
+  };
   for(const mode of ['stereo','stems']){
     el('mix-mode-'+mode).onclick=()=>{
       const stems=mode==='stems';

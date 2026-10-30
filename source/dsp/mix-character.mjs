@@ -1,5 +1,5 @@
 // Local, deterministic character DSP. Never mutates source audio or uploads samples.
-const clamp=(x,lo,hi)=>Math.min(hi,Math.max(lo,x));
+const mixCharacterBound=(x,lo,hi)=>Math.min(hi,Math.max(lo,x));
 export function processMixCharacter(channels,rate,{type='tube',drive=35,tone=0,blend=40,bypass=false,tapeNoise=false}={}){
   if(!['tube','console','tape','crush'].includes(type)||
     !Number.isFinite(rate)||rate<8000||rate>192000||
@@ -10,7 +10,7 @@ export function processMixCharacter(channels,rate,{type='tube',drive=35,tone=0,b
   if(bypass||drive===0||blend===0)return channels.map(c=>c.slice());
   const strength=drive/100,wet=blend/100,tilt=tone/100;
   const driveGain=1+strength*(type==='crush'?10:type==='console'?6:4);
-  const cutoff=type==='tape'?clamp(14000-6500*strength+tilt*4000,2500,18500):clamp(1600+tilt*1200,350,4000);
+  const cutoff=type==='tape'?mixCharacterBound(14000-6500*strength+tilt*4000,2500,18500):mixCharacterBound(1600+tilt*1200,350,4000);
   const pole=1-Math.exp(-2*Math.PI*cutoff/rate);
   return channels.map((source,ch)=>{
     const result=new Float32Array(source.length);
@@ -21,7 +21,7 @@ export function processMixCharacter(channels,rate,{type='tube',drive=35,tone=0,b
       if(type==='tape'){
         // Small, correlated wow/flutter. No channel-dependent drift.
         const offset=(.65*Math.sin(2*Math.PI*i*.72/rate)+.22*Math.sin(2*Math.PI*i*6.2/rate))*strength;
-        const position=clamp(i-offset,0,source.length-1),a=Math.floor(position),fract=position-a;
+        const position=mixCharacterBound(i-offset,0,source.length-1),a=Math.floor(position),fract=position-a;
         x=(source[a]||0)*(1-fract)+(source[Math.min(a+1,source.length-1)]||0)*fract;
       }
       const v=x*driveGain;
@@ -37,7 +37,7 @@ export function processMixCharacter(channels,rate,{type='tube',drive=35,tone=0,b
       }else{
         // Diode-style asymmetric clipping followed by drive-dependent bit crush.
         const positive=.55-.14*strength,negative=.73-.2*strength;
-        const clipped=clamp(v,-negative,positive);
+        const clipped=mixCharacterBound(v,-negative,positive);
         const steps=Math.max(20,256-Math.round(220*strength));
         shaped=Math.round(clipped*steps)/steps/driveGain;
       }
@@ -53,7 +53,7 @@ export function processMixCharacter(channels,rate,{type='tube',drive=35,tone=0,b
       const filtered=colored+noise-dcPrevious+.995*dc;
       dcPrevious=colored+noise;dc=filtered;
       const mixed=dry*(1-wet)+filtered*wet;
-      result[i]=clamp(mixed,-.999,.999);
+      result[i]=mixCharacterBound(mixed,-.999,.999);
     }
     return result;
   });

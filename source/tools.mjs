@@ -303,7 +303,7 @@ export function initStudioTools(getBpmTrack){
       status('conv-status',rate===tools.buffer.sampleRate?'Preparing export…':'Resampling audio…');
       const data=await renderedChannels(rate);
       if(token!==tools.operation)return;
-      if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));const peak=Math.max(...data.map(channel=>{let m=0;for(let i=0;i<channel.length;i++)m=Math.max(m,Math.abs(channel[i]));return m;}));const peakDb=peak>0?20*Math.log10(peak):-Infinity;status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb.toFixed(1)+' dBFS':'silence'}`);}
+      if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));const peakDb=samplePeakDbfs(data);status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb.toFixed(1)+' dBFS':'silence'}`);}
       else{status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ${bitrate} kbps · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${readableSize(blob.size)} (lossy).`);}
     }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}

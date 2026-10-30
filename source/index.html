@@ -279,6 +279,20 @@
                 <label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option></select></label>
                 <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label>
               </div>
+              <details class="pulse-ai-advanced" open><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
+                <div class="mix-character-types" role="group" aria-label="Saturation character">
+                  <label><input name="mix-vibe" type="radio" value="tube" checked><span>TUBE</span></label>
+                  <label><input name="mix-vibe" type="radio" value="console"><span>CONSOLE</span></label>
+                  <label><input name="mix-vibe" type="radio" value="tape"><span>TAPE</span></label>
+                  <label><input name="mix-vibe" type="radio" value="crush"><span>CRUSH</span></label>
+                </div>
+                <div class="tool-fields">
+                  <label>Drive <output id="mix-drive-label">35%</output><input id="mix-drive" type="range" min="0" max="100" value="35"></label>
+                  <label>Tone <output id="mix-tone-label">Neutral</output><input id="mix-tone" type="range" min="-100" max="100" value="0"></label>
+                  <label>Parallel Mix <output id="mix-blend-label">40%</output><input id="mix-blend" type="range" min="0" max="100" value="40"></label>
+                </div>
+                <p class="tool-footnote">Subtle harmonic coloration before Master. Zero drive or zero blend bypasses saturation.</p>
+              </details>
               <button id="mix-quick-generate" class="tool-action tool-action-dark pulse-ai-primary" type="button">Analyze &amp; Process Mix <span>↗</span></button>
               <div class="pulse-ai-result-actions" id="mix-stereo-results" hidden>
                 <button id="mix-quick-preview" type="button" disabled>▶ Preview Mix</button>
@@ -339,6 +353,15 @@
               <label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label>
               <label>Peak ceiling <select id="master-ceiling"><option value="-1" selected>−1.0 dBTP estimate</option><option value="-2">−2.0 dBTP estimate</option><option value="-0.3">−0.3 dBTP estimate</option></select></label>
             </div>
+            <details class="pulse-ai-advanced"><summary>Master bus · input, glue and stereo</summary>
+              <div class="tool-fields master-fields">
+                <label>Input gain <output id="master-input-label">0.0 dB</output><input id="master-input" type="range" min="-12" max="12" step=".5" value="0"></label>
+                <label>Glue ratio<select id="master-glue"><option value="1.5" selected>1.5:1 · Gentle</option><option value="2">2:1 · Firm</option></select></label>
+                <label>Glue threshold <output id="master-threshold-label">Auto</output><input id="master-threshold" type="range" min="-32" max="-9" step="1" value="-18"></label>
+                <label>Bass Center <output id="master-bass-center-label">120 Hz</output><input id="master-bass-center" type="range" min="0" max="150" step="10" value="120"></label>
+              </div>
+              <p class="tool-footnote">Bass Center blends low-frequency stereo side information to mono. 0 Hz disables bass centering. Output uses true-peak protection.</p>
+            </details>
             <details class="pulse-ai-advanced"><summary>Advanced mastering controls</summary>
               <div class="tool-fields master-fields">
                 <label>Processing intensity <output id="master-intensity-label">45%</output><input id="master-intensity" type="range" min="0" max="100" step="5" value="45"></label>

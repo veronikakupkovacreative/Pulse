@@ -88,7 +88,7 @@ for(const name of await readdir(ortDir)){
 }
 const demucsLoader=await read('vendor/demucs-loader.mjs');
 const demucsWorker=await read('vendor/demucs-worker.js');
-const workerWithLoader=demucsWorker.replace('let session=null,active=false;',noExports(demucsLoader)+'\\nlet session=null,active=false;');
+const workerWithLoader=demucsWorker.replace('let session=null,active=false;',noExports(demucsLoader)+'\nlet session=null,active=false;');
 new vm.Script(workerWithLoader);
 await writeFile(path.join(vendor,'demucs-worker.js'),workerWithLoader);
 await writeFile(path.join(vendor,'demucs-NOTICE.txt'),`Demucs ONNX loader adapted from joverval/sdemux (MIT), https://github.com/joverval/sdemux

@@ -7,10 +7,10 @@ const bundle=await readFile(new URL('../index.html',import.meta.url),'utf8');
 const toolkit=await readFile(new URL('../source/tools.mjs',import.meta.url),'utf8');
 const build=await readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8');
 
-test('YouTube is a visibly disabled roadmap tab in source and deployed HTML',()=>{
+test('YouTube opens a cloud-gated conversion dialog',()=>{
   for(const html of [source,bundle]){
-    assert.match(html,/id="tab-youtube"[^>]*aria-disabled="true"[^>]*disabled/);
-    assert.match(html,/YouTube Audio <b>COMING SOON<\/b>/);
+    assert.match(html,/id="tab-youtube"/);
+    assert.match(html,/id="youtube-dialog"/);
     assert.doesNotMatch(html,/id="yt-url"|id="yt-download"|id="yt-check"|id="youtube-source"/);
   }
 });

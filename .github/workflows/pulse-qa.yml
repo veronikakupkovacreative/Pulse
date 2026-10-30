@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/pulse-editor-workspace-3
+      - feature/pulse-eq-waveform-ui-qa
   workflow_dispatch:
 
 permissions:

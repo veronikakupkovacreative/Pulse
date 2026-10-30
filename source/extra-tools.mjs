@@ -1,7 +1,7 @@
 // Additional PULSE tools. All audio remains local to this browser session.
 function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,
   workingChanged,download,filename,status,decodeLocalAudio,audioFileError,encodeWav}){
-  const eqState={bands:EQ_DEFAULT_BANDS.map(b=>({...b})),gainDb:0};
+  const eqState={bands:makeEqBands(8),gainDb:0};
   let mixTracks=[],mixCandidate=null,mixLoading=false,quickMixCandidate=null,separationWorker=null,separationRevision=0;
   const separationStatus=message=>status('mix-separation-status',message);
   function updateSeparationAvailability(){
@@ -70,7 +70,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   const eqNotice=text=>status('eq-status',text);
   const mixNotice=text=>status('mix-status',text);
   const eqInputs=el('eq-bands');
-  let dragBand=-1,spectrumRaf=0,spectrumStamp=0;
+  let dragBand=-1,spectrumRaf=0,spectrumStamp=0,selectedBand=0;
   const presets={
     flat:EQ_DEFAULT_BANDS.map(x=>({...x})),
     vocal:EQ_DEFAULT_BANDS.map((x,i)=>({...x,enabled:true,gain:[0,0,-2,0,2.5,-1,0,1][i],
@@ -111,14 +111,19 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     }
     const curve=eqResponse(eqState.bands,sr,190);
     const d=curve.map((p,i)=>(i?'L':'M')+xOf(p.hz).toFixed(1)+' '+yOf(p.db).toFixed(1)).join(' ');
-    node('path',{d,fill:'none',stroke:'#e8493e','stroke-width':3,'stroke-linejoin':'round'});
+    node('path',{d,fill:'none',stroke:'#ffe15b','stroke-width':3.2,'stroke-linejoin':'round'});
     eqState.bands.forEach((band,index)=>{
       if(!band.enabled)return;
-      const circle=node('circle',{cx:xOf(Math.min(hzMax,band.frequency)),cy:yOf(band.gain),r:7,fill:'#eee',stroke:'#e8493e','stroke-width':2,role:'button',tabindex:0,'aria-label':'Band '+(index+1)+'; drag to change frequency and gain'});
+      const selected=index===selectedBand;
+      const circle=node('circle',{cx:xOf(Math.min(hzMax,band.frequency)),cy:yOf(band.gain),r:selected?9:6.5,
+        fill:selected?'#ffec91':'#252525',stroke:'#ffe15b','stroke-width':selected?2.5:1.8,
+        role:'button',tabindex:0,'aria-label':'Select and drag EQ band '+(index+1)});
+      circle.addEventListener('click',()=>{selectedBand=index;refreshEq(true);});
+      circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectedBand=index;refreshEq(true);}});
       circle.addEventListener('pointerdown',event=>{
         event.preventDefault();
-        dragBand=index;
-        svg.setPointerCapture(event.pointerId);
+        dragBand=index;selectedBand=index;
+        svg.setPointerCapture(event.pointerId);refreshEq(false);
       });
     });
   }
@@ -130,7 +135,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const band=eqState.bands[dragBand],hzMax=Math.min(20000,tools.buffer?.sampleRate*.45||21600);
     band.frequency=Math.max(20,Math.round(20*(hzMax/20)**nx));
     if(!['highpass','lowpass','notch'].includes(band.type))band.gain=Math.round((12-24*ny)*10)/10;
-    refreshEq();
+    refreshEq(false);
   });
   el('eq-response-graph').addEventListener('pointerup',()=>{dragBand=-1;});
   el('eq-response-graph').addEventListener('pointercancel',()=>{dragBand=-1;});
@@ -157,7 +162,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         const y=height-(Math.max(-110,Math.min(-10,db))+110)/100*height;
         if(!found){ctx.moveTo(x,y);found=true;}else ctx.lineTo(x,y);
       }
-      if(found){ctx.strokeStyle='rgba(245,244,240,.65)';ctx.lineWidth=1.3;ctx.stroke();}
+      if(found){ctx.strokeStyle='rgba(157,222,251,.90)';ctx.lineWidth=1.4;ctx.stroke();}
     }
     spectrumRaf=requestAnimationFrame(drawLiveSpectrum);
   }
@@ -167,7 +172,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const canvas=el('eq-live-spectrum');canvas.getContext('2d')?.clearRect(0,0,canvas.width,canvas.height);
   }};
   function eqNodeUpdate(){
-    if(!tools.eqNodes)return;
+    if(!tools.eqNodes||tools.eqNodes.length!==eqState.bands.length)return;
     for(let i=0;i<tools.eqNodes.length;i++){
       const n=tools.eqNodes[i],b=eqState.bands[i];
       if(!b)continue;const now=tools.context.currentTime;
@@ -176,42 +181,75 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       n.Q.setTargetAtTime(b.q,now,.016);n.gain.setTargetAtTime(b.gain,now,.016);
     }
   }
-  function refreshEq(){
-    drawEqGraph();
-    const rows=eqInputs.querySelectorAll('[data-band]');
-    for(const [i,row] of [...rows].entries()){
-      const b=eqState.bands[i];
-      row.querySelector('[data-value="freq"]').textContent=Math.round(b.frequency)+' Hz';
-      row.querySelector('[data-value="gain"]').textContent=b.gain.toFixed(1)+' dB';
-      row.querySelector('[data-value="q"]').textContent=b.q.toFixed(2);
-      row.querySelector('[name="freq"]').value=String(b.frequency);
-      row.querySelector('[name="gain"]').value=String(b.gain);
-      row.querySelector('[name="q"]').value=String(b.q);
-      row.querySelector('[name="enable"]').checked=b.enabled;row.querySelector('[name="type"]').value=b.type;
-    }
-    eqNodeUpdate();
-  }
-  eqState.bands.forEach((band,i)=>{
-    const row=document.createElement('div');row.className='pulse-eq-band';row.dataset.band=String(i);
-    row.innerHTML='<label><input type="checkbox" name="enable"> BAND '+(i+1)+'</label>'+ 
-    '<label>Filter <select name="type"><option value="peaking">Bell</option><option value="lowshelf">Low shelf</option><option value="highshelf">High shelf</option><option value="highpass">High pass</option><option value="lowpass">Low pass</option><option value="notch">Notch</option></select></label>'+
-    '<label>Frequency <span data-value="freq"></span><input type="range" name="freq" min="20" max="20000" step="1"></label>'+
-    '<label>Gain <span data-value="gain"></span><input type="range" name="gain" min="-12" max="12" step=".1"></label>'+
-    '<label>Q <span data-value="q"></span><input type="range" name="q" min=".25" max="10" step=".05"></label>';
-    eqInputs.append(row);
-    for(const [name,field] of [['enable','enabled'],['type','type'],['freq','frequency'],['gain','gain'],['q','q']]){
-      row.querySelector('[name="'+name+'"]').addEventListener('input',event=>{
-        band[field]=name==='enable'?event.target.checked:name==='type'?event.target.value:Number(event.target.value);refreshEq();
-        eqNotice('EQ settings changed. Preview live or export to render.');
+  function refreshEq(rebuild=false){
+    if(rebuild||!eqInputs.querySelector('[data-active-band]')){
+      eqInputs.replaceChildren();
+      const chooser=document.createElement('div');chooser.className='eq-band-picker';chooser.setAttribute('role','group');
+      chooser.setAttribute('aria-label','Choose equalizer band');
+      eqState.bands.forEach((band,i)=>{
+        const button=document.createElement('button');button.type='button';
+        button.textContent=String(i+1);button.setAttribute('aria-label','Select EQ band '+(i+1));
+        button.setAttribute('aria-pressed',String(i===selectedBand));
+        button.onclick=()=>{selectedBand=i;refreshEq(true);};chooser.append(button);
       });
+      const heading=document.createElement('div');heading.className='eq-band-selected';
+      const selected=document.createElement('strong');selected.dataset.activeBand='';
+      heading.append(document.createTextNode('SELECTED FILTER'),selected);
+      const row=document.createElement('div');row.className='pulse-eq-band';
+      row.innerHTML='<label><input type="checkbox" name="enable"> BAND ENABLED</label>'+
+       '<label>Filter <select name="type"><option value="peaking">Bell</option><option value="lowshelf">Low shelf</option><option value="highshelf">High shelf</option><option value="highpass">High pass</option><option value="lowpass">Low pass</option><option value="notch">Notch</option></select></label>'+
+       '<label>Frequency <span data-value="freq"></span><input type="range" name="freq" min="20" max="20000" step="1"></label>'+
+       '<label>Gain <span data-value="gain"></span><input type="range" name="gain" min="-12" max="12" step=".1"></label>'+
+       '<label>Q <span data-value="q"></span><input type="range" name="q" min=".25" max="10" step=".05"></label>';
+      for(const [name,field] of [['enable','enabled'],['type','type'],['freq','frequency'],['gain','gain'],['q','q']]){
+        row.querySelector('[name="'+name+'"]').addEventListener('input',event=>{
+          const band=eqState.bands[selectedBand];
+          band[field]=name==='enable'?event.target.checked:name==='type'?event.target.value:Number(event.target.value);
+          refreshEq(false);eqNotice('Band '+(selectedBand+1)+' changed. Preview to hear the result.');
+        });
+      }
+      eqInputs.append(chooser,heading,row);
     }
-  });
+    const b=eqState.bands[selectedBand],row=eqInputs.querySelector('.pulse-eq-band');
+    eqInputs.querySelector('[data-active-band]').textContent=(selectedBand+1)+' / '+eqState.bands.length;
+    [...eqInputs.querySelectorAll('.eq-band-picker button')].forEach((button,i)=>
+      button.setAttribute('aria-pressed',String(i===selectedBand)));
+    for(const [name,value] of [['freq',b.frequency],['gain',b.gain],['q',b.q]]){
+      const input=row.querySelector('[name="'+name+'"]');
+      if(document.activeElement!==input)input.value=String(value);
+    }
+    row.querySelector('[name="enable"]').checked=b.enabled;
+    row.querySelector('[name="type"]').value=b.type;
+    row.querySelector('[data-value="freq"]').textContent=Math.round(b.frequency)+' Hz';
+    row.querySelector('[data-value="gain"]').textContent=b.gain.toFixed(1)+' dB';
+    row.querySelector('[data-value="q"]').textContent=b.q.toFixed(2);
+    status('eq-active-readout','BAND '+(selectedBand+1)+' / '+eqState.bands.length+' · '+b.type.toUpperCase()+
+      ' · '+Math.round(b.frequency)+' Hz · '+b.gain.toFixed(1)+' dB · Q '+b.q.toFixed(2));
+    drawEqGraph();eqNodeUpdate();
+  }
+  function changeBandCount(count){
+    if(tools.playing)stopPreview();
+    eqState.bands=makeEqBands(count);selectedBand=0;
+    el('eq-preset').value='flat';
+    status('eq-character-description','Select a curve preset or adjust filters individually.');
+    refreshEq(true);eqNotice(count+'-band parametric EQ ready.');
+  }
+  el('eq-band-count').addEventListener('change',e=>changeBandCount(Number(e.target.value)));
   el('eq-preset').addEventListener('change',()=>{
     const selected=presets[el('eq-preset').value]||presets.flat;
-    selected.forEach((band,i)=>Object.assign(eqState.bands[i],band));
+    if(eqState.bands.length===8){
+      selected.forEach((band,i)=>Object.assign(eqState.bands[i],band));
+    }else{
+      // Transfer the preset to whichever editable band lies nearest in log frequency.
+      for(const band of eqState.bands){band.gain=0;band.enabled=true;}
+      for(const band of selected.filter(b=>b.enabled&&Math.abs(b.gain)>.01)){
+        const index=selectClosestBand(eqState.bands,band.frequency);
+        if(index>=0){eqState.bands[index].gain=Math.max(-12,Math.min(12,eqState.bands[index].gain+band.gain));}
+      }
+    }
     const mode=CLASSIC_EQ_MODES[el('eq-preset').value];
     status('eq-character-description',mode?mode.description+' · PULSE-designed filters, not hardware emulation.':'Adjust the eight bands or choose a Classic EQ character.');
-    refreshEq();
+    refreshEq(true);
   });
   el('eq-output-gain').addEventListener('input',()=>{
     eqState.gainDb=Number(el('eq-output-gain').value);
@@ -220,9 +258,9 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   });
   el('eq-bypass').addEventListener('change',()=>{refreshEq();eqNotice(el('eq-bypass').checked?'Bypass enabled.':'EQ active.');});
   el('eq-reset').onclick=()=>{
-    EQ_DEFAULT_BANDS.forEach((band,i)=>Object.assign(eqState.bands[i],band));
+    eqState.bands=makeEqBands(Number(el('eq-band-count').value));selectedBand=0;
     eqState.gainDb=0;el('eq-output-gain').value='0';status('eq-output-label','0.0 dB');
-    el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq();
+    el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq(true);
   };
   function eqPreviewOptions(){
     return {allowLoop:false,eqBands:el('eq-bypass').checked?[]:readEq(),eqGainDb:eqState.gainDb};
@@ -266,7 +304,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-preview').onclick=()=>void eqAction('preview');
   el('eq-apply').onclick=()=>void eqAction('apply');
   el('eq-export').onclick=()=>void eqAction('export');
-  refreshEq();
+  refreshEq(true);
 
   function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-quick-auto').disabled=true;}
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};

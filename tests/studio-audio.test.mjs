@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {encodeWav,extractSegment,getAudioPeaks,detectKey} from '../source/studio-audio.mjs';
+import {encodeWav,extractSegment,getAudioPeaks,detectKey,samplePeakDbfs} from '../source/studio-audio.mjs';
 test('WAV headers and size are correct for stereo 16-bit', async()=>{
  const blob=encodeWav([new Float32Array([0,1,-1]),new Float32Array([.5,-.5,0])],44100,16);
  const v=new DataView(await blob.arrayBuffer());
@@ -58,4 +58,15 @@ test('16-bit dither yields approximately zero-mean noise with deterministic rand
   for(let i=0;i<4096;i++){const s=view.getInt16(44+2*i,true);if(s>0)positives++;if(s<0)negatives++;sum+=s;}
   assert.ok(positives>150&&negatives>150);
   assert.ok(Math.abs(sum/4096)<.07);
+});
+
+test('Converter sample peaks use full-precision dBFS and handle silence',()=>{
+  for(const db of [0,-1,-3,-6,-12]){
+    const amplitude=Math.pow(10,db/20);
+    const result=samplePeakDbfs([Float32Array.from([0,amplitude,-amplitude*.65])]);
+    assert.ok(Math.abs(result-db)<0.0001,`expected ${db} dBFS, got ${result}`);
+  }
+  assert.equal(samplePeakDbfs([new Float32Array(256)]),-Infinity);
+  assert.equal(samplePeakDbfs([Float32Array.from([NaN,Infinity,0])]),-Infinity);
+  assert.ok(Math.abs(samplePeakDbfs([Float32Array.from([.5]),Float32Array.from([1])]))<1e-10);
 });

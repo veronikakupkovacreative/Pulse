@@ -83,7 +83,7 @@ await mkdir(ortVendor,{recursive:true});
 const ortDir=path.join(root,'node_modules','onnxruntime-web','dist');
 await copyFile(path.join(ortDir,'ort.min.js'),path.join(ortVendor,'ort.min.js'));
 for(const name of await readdir(ortDir)){
-  if(/^ort-wasm.*\\.(?:wasm|mjs)$/.test(name))
+  if(/^ort-wasm.*\.(?:wasm|mjs)$/.test(name))
     await copyFile(path.join(ortDir,name),path.join(ortVendor,name));
 }
 const demucsLoader=await read('vendor/demucs-loader.mjs');

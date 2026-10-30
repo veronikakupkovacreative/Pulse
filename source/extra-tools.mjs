@@ -325,26 +325,20 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   refreshEq(true);
   syncAB();
 
-  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-quick-auto').disabled=true;}
+  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};
   el('mix-character').onchange=clearQuickMix;
-  el('mix-quick-analyze').onclick=()=>{
-    if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
-    const result=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);
-    const issues=result.warnings.join(' · ')||'No critical thresholds flagged.';
-    status('mix-quick-report','Sample peak '+result.signal.peakDb.toFixed(1)+' dBFS · RMS '+
-      result.signal.rmsDb.toFixed(1)+' dBFS · Low energy '+(result.lowShare*100).toFixed(1)+'% · '+issues);
-  };
   el('mix-quick-generate').onclick=()=>{
     if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
     try{
+      const initial=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);
       const result=renderStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate,{
         character:el('mix-character').value,intensity:Number(el('mix-intensity').value)});
       quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(result.channels,tools.buffer.sampleRate)};
-      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-quick-auto').disabled=false;
-      status('mix-quick-report',result.changes.length?result.changes.map(c=>
+      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-stereo-results').hidden=false;
+      status('mix-quick-report','Peak '+initial.signal.peakDb.toFixed(1)+' dBFS · RMS '+initial.signal.rmsDb.toFixed(1)+' dBFS · '+(initial.warnings.join(' · ')||'No critical issues')+' · Correction: '+(result.changes.length?result.changes.map(c=>
         c.frequency+' Hz '+c.gainDb.toFixed(1)+' dB').join(' · '):
-        'Original tonal balance retained. No corrective EQ was indicated.');
+        'No corrective EQ needed.'));
     }catch(error){clearQuickMix();status('mix-quick-report',error.message);}
   };
   el('mix-quick-preview').onclick=async()=>{
@@ -361,7 +355,6 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     if(autoRender)el('master-render').click();
   }
   el('mix-quick-send').onclick=()=>sendQuickMix(false);
-  el('mix-quick-auto').onclick=()=>sendQuickMix(true);
   function showFixAdvice(masterResult){
     const panel=el('mix-fix-advice');panel.replaceChildren();
     const title=document.createElement('strong');title.textContent='FIX IN MIX · MASTERING FEEDBACK';panel.append(title);
@@ -372,9 +365,9 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const note=document.createElement('p');
     note.textContent='Changes in Mix are non-destructive until Apply. Re-render Smart Master after editing.';
     panel.append(note);panel.hidden=false;
-    el('mix-quick-analyze').click();
+    if(tools.buffer){const result=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);status('mix-quick-report','Peak '+result.signal.peakDb.toFixed(1)+' dBFS · '+(result.warnings.join(' · ')||'No critical issues flagged.'));}
   }
-  function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;}
+  function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;el('mix-send-master').disabled=true;el('mix-multitrack-results').hidden=true;}
   function makeStemAutomationGraph(stem){
     const canvas=document.createElement('canvas');canvas.width=600;canvas.height=105;canvas.tabIndex=0;
     canvas.className='stem-automation-graph';
@@ -561,7 +554,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     mixNotice('Mixing aligned stems…');
     try{
       mixCandidate=mixStems(mixTracks,{ceilingDb:-1});
-      el('mix-play').disabled=false;el('mix-export').disabled=false;
+      el('mix-play').disabled=false;el('mix-export').disabled=false;el('mix-send-master').disabled=false;el('mix-multitrack-results').hidden=false;
       mixNotice('Mix ready · '+mixTracks.length+' stems · peak '+mixCandidate.peakDb.toFixed(1)+' dBFS · protection '+mixCandidate.attenuationDb.toFixed(1)+' dB.');
     }catch(error){invalidateMix();mixNotice(error.message||'Could not render stems.');}
   };
@@ -570,9 +563,27 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     await playBuffer(buffer,0,buffer.duration,1,{allowLoop:false});
     mixNotice('Playing multitrack mix.');}catch(err){mixNotice(err.message);}
   };
+  el('mix-send-master').onclick=()=>{
+    if(!mixCandidate)return;
+    try{
+      const buffer=asAudioBuffer(mixCandidate.channels,mixCandidate.rate);
+      workspace.apply(buffer);workingChanged();invalidateMix();
+      el('tab-master').click();
+      status('master-status','Multitrack mix loaded. Select your character and generate a master.');
+    }catch(err){mixNotice(err.message||'Could not transfer mix to Master.');}
+  };
   el('mix-export').onclick=()=>{if(!mixCandidate)return;
     const blob=encodeWav(mixCandidate.channels,mixCandidate.rate,24);
     download(blob,'pulse-multitrack-mix.wav');mixNotice('Multitrack mix exported as stereo WAV.');};
+  for(const mode of ['stereo','stems']){
+    el('mix-mode-'+mode).onclick=()=>{
+      const stems=mode==='stems';
+      el('mix-pane-stereo').hidden=stems;
+      el('mix-pane-stems').hidden=!stems;
+      el('mix-mode-stereo').setAttribute('aria-pressed',String(!stems));
+      el('mix-mode-stems').setAttribute('aria-pressed',String(stems));
+    };
+  }
   renderMixRows();
   updateSeparationAvailability();
   return {invalidateMix,clearQuickMix,showFixAdvice,updateSeparationAvailability,eqPreviewOptions,previewEqRange,startSpectrum:beginLiveSpectrum,onWorkspaceChanged(){cancelSeparation('');clearQuickMix();el('mix-fix-advice').hidden=true;},

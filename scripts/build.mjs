@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix,classicEq,eqRegion,eqBandModes,eqPresets,waveEdit,spectralDsp,spectralWorker,spectralUi]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,masterPresets,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix,classicEq,eqRegion,eqBandModes,eqPresets,waveEdit,spectralDsp,spectralWorker,spectralUi]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/eq-presets.mjs'),read('dsp/waveform-edit.mjs'),read('dsp/spectral-denoise.mjs'),read('spectral-worker.js'),read('spectral-denoise-ui.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/master-presets.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/eq-presets.mjs'),read('dsp/waveform-edit.mjs'),read('dsp/spectral-denoise.mjs'),read('spectral-worker.js'),read('spectral-denoise-ui.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const spectralWorkerSource=noExports(spectralDsp)+'\n'+spectralWorker;
@@ -18,7 +18,7 @@ new vm.Script(spectralWorkerSource);
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
 const workerSource=noExports(analyzer)+'\n'+noImports(worker);
 const keySource=noExports(studioAudio)+'\n'+noImports(keyWorker);
-const productionSource=noExports(productionDsp)+'\n'+noExports(analyzer)+'\n'+noExports(quickDsp)+'\n'+noExports(truePeak)+'\n'+noExports(mixHealth)+'\n'+noExports(spectralHealth)+'\n'+noExports(eqResponse)+'\n'+noImports(noExports(mastering))+'\n'+noImports(productionWorker);
+const productionSource=noExports(productionDsp)+'\n'+noExports(analyzer)+'\n'+noExports(quickDsp)+'\n'+noExports(truePeak)+'\n'+noExports(mixHealth)+'\n'+noExports(spectralHealth)+'\n'+noExports(eqResponse)+'\n'+noExports(masterPresets)+'\n'+noImports(noExports(mastering))+'\n'+noImports(productionWorker);
 new vm.Script(workerSource);new vm.Script(keySource);new vm.Script(productionSource);
 const originalWorker="new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'})";
 const originalKeyWorker="new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'})";
@@ -58,6 +58,7 @@ const bundledScript=`(() => {
   ${noImports(noExports(projectSession))}
   ${noExports(productionDsp)}
   ${noExports(referenceCompare)}
+  ${noExports(masterPresets)}
   ${noExports(eqResponse)}
   ${noExports(spectralHealth)}
   ${noImports(noExports(mixAdvisor))}

@@ -12,6 +12,8 @@ let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWork
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const spectralWorkerSource=noExports(spectralDsp)+'\n'+spectralWorker;
+const spectralWorkletSource=noExports(spectralDsp)+'\n'+await read('spectral-worklet.js');
+new vm.Script(spectralWorkletSource);
 new vm.Script(spectralWorkerSource);
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
 const workerSource=noExports(analyzer)+'\n'+noImports(worker);
@@ -87,6 +89,7 @@ await copyFile(path.join(root,'node_modules','@breezystack','lamejs','dist','lam
 await copyFile(path.join(root,'node_modules','@breezystack','lamejs','LICENSE'),path.join(root,'public','vendor','lamejs-LICENSE.txt'));
 // On-device Demucs runs only on user request. No model is downloaded on page load.
 const vendor=path.join(root,'public','vendor'),ortVendor=path.join(vendor,'onnx');
+await writeFile(path.join(vendor,'pulse-spectral-worklet.js'),spectralWorkletSource);
 await mkdir(ortVendor,{recursive:true});
 const ortDir=path.join(root,'node_modules','onnxruntime-web','dist');
 await copyFile(path.join(ortDir,'ort.min.js'),path.join(ortVendor,'ort.min.js'));

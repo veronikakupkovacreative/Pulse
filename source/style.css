@@ -649,3 +649,12 @@
  .tool-source:has(#eq-overview:not([hidden])) .eq-time-fields{grid-template-columns:1fr 1fr}
  .tool-source:has(#eq-overview:not([hidden])) .eq-time-fields output{grid-column:1/-1}
 }
+
+/* Precise EQ graph gestures and frequency entry. */
+.pulse-eq-left .pulse-eq-graph{height:clamp(195px,19vw,245px)!important;min-height:0!important;}
+#panel-equalizer .pulse-eq-band input[name="freq-number"]{
+  width:100px;max-width:100%;height:34px;border:1px solid #1919198a;
+  padding:5px 8px;background:transparent;color:#191919;
+  font:600 12px Arial,sans-serif;font-variant-numeric:tabular-nums;
+}
+#panel-equalizer .pulse-eq-band input[type="range"]{cursor:ew-resize;}

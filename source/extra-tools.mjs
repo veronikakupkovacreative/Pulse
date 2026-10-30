@@ -202,16 +202,23 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       const row=document.createElement('div');row.className='pulse-eq-band';
       row.innerHTML='<label><input type="checkbox" name="enable"> BAND ENABLED</label>'+
        '<label>Filter <select name="type"><option value="peaking">Bell</option><option value="lowshelf">Low shelf</option><option value="highshelf">High shelf</option><option value="highpass">High pass</option><option value="lowpass">Low pass</option><option value="notch">Notch</option></select></label>'+
-       '<label>Frequency <span data-value="freq"></span><input type="range" name="freq" min="20" max="20000" step="1"></label>'+
+       '<label>Frequency <span data-value="freq"></span><input type="number" name="freq-number" min="20" max="20000" step="1" aria-label="Exact frequency in hertz"><input type="range" name="freq" min="0" max="1000" step="1" aria-label="Logarithmic frequency slider"></label>'+
        '<label>Gain <span data-value="gain"></span><input type="range" name="gain" min="-12" max="12" step=".1"></label>'+
        '<label>Q <span data-value="q"></span><input type="range" name="q" min=".25" max="10" step=".05"></label>';
       for(const [name,field] of [['enable','enabled'],['type','type'],['freq','frequency'],['gain','gain'],['q','q']]){
         row.querySelector('[name="'+name+'"]').addEventListener('input',event=>{
           const band=eqState.bands[selectedBand];
-          band[field]=name==='enable'?event.target.checked:name==='type'?event.target.value:Number(event.target.value);
+          band[field]=name==='enable'?event.target.checked:name==='type'?event.target.value:
+            name==='freq'?Math.round(20*Math.pow(1000,Number(event.target.value)/1000)):Number(event.target.value);
           refreshEq(false);eqNotice('Band '+(selectedBand+1)+' changed. Preview to hear the result.');
         });
       }
+      row.querySelector('[name="freq-number"]').addEventListener('change',event=>{
+        const value=Number(event.target.value);
+        if(!Number.isFinite(value)){refreshEq(false);return;}
+        eqState.bands[selectedBand].frequency=Math.max(20,Math.min(20000,Math.round(value)));
+        refreshEq(false);
+      });
       eqInputs.append(chooser,heading,row);
     }
     const b=eqState.bands[selectedBand],row=eqInputs.querySelector('.pulse-eq-band');
@@ -220,8 +227,11 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       button.setAttribute('aria-pressed',String(i===selectedBand)));
     for(const [name,value] of [['freq',b.frequency],['gain',b.gain],['q',b.q]]){
       const input=row.querySelector('[name="'+name+'"]');
-      if(document.activeElement!==input)input.value=String(value);
+      if(document.activeElement!==input)
+        input.value=name==='freq'?String(Math.round(Math.log(value/20)/Math.log(1000)*1000)):String(value);
     }
+    const number=row.querySelector('[name="freq-number"]');
+    if(document.activeElement!==number)number.value=String(Math.round(b.frequency));
     row.querySelector('[name="enable"]').checked=b.enabled;
     row.querySelector('[name="type"]').value=b.type;
     row.querySelector('[data-value="freq"]').textContent=Math.round(b.frequency)+' Hz';

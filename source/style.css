@@ -536,3 +536,12 @@
 .wave-clean-options input[type=range]{padding:0;min-height:25px;accent-color:#ffe25b}
 .wave-edit-details p{color:#bab8b1!important;font-size:11px!important;line-height:1.5!important;margin:10px 0!important}
 @media(max-width:530px){.wave-clean-options,.wave-edit-actions{grid-template-columns:1fr}}
+
+.mix-ducking-setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:1px solid #24242466;padding:12px;margin:12px 0;}
+.mix-ducking-setup label{display:grid;gap:6px;font-size:10px;font-weight:700}
+.mix-ducking-setup select{width:100%;min-width:0;border:1px solid #24242480;background:transparent;color:#181818;min-height:42px;padding:9px;font-size:11px}
+.mix-ducking-setup button{grid-column:1/-1;background:#181818;color:#f5f4ef;min-height:43px;padding:11px;font-size:11px;}
+.mix-ducking-setup button:disabled{opacity:.4;cursor:not-allowed}
+.stem-automation-graph{display:block;width:100%;height:105px;max-width:100%;border:1px solid #333;cursor:crosshair;touch-action:none}
+.stem-automation-graph:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:520px){.mix-ducking-setup{grid-template-columns:1fr}}

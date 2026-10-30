@@ -5,8 +5,10 @@ export const EQ_DEFAULT_BANDS=[
   {type:'highpass',frequency:30,gain:0,q:.707,enabled:false},
   {type:'lowshelf',frequency:110,gain:0,q:.707,enabled:true},
   {type:'peaking',frequency:280,gain:0,q:1.1,enabled:true},
+  {type:'peaking',frequency:900,gain:0,q:1.0,enabled:true},
   {type:'peaking',frequency:1600,gain:0,q:1.0,enabled:true},
   {type:'peaking',frequency:4300,gain:0,q:1.2,enabled:true},
+  {type:'peaking',frequency:7000,gain:0,q:1.0,enabled:true},
   {type:'highshelf',frequency:10000,gain:0,q:.707,enabled:true}
 ];
 export function eqCoefficients(band,rate){
@@ -27,6 +29,8 @@ export function eqCoefficients(band,rate){
   }else if(type==='highshelf'){
     b0=A*((A+1)+(A-1)*cs+root);b1=-2*A*((A-1)+(A+1)*cs);b2=A*((A+1)+(A-1)*cs-root);
     a0=(A+1)-(A-1)*cs+root;a1=2*((A-1)-(A+1)*cs);a2=(A+1)-(A-1)*cs-root;
+  }else if(type==='notch'){
+    b0=1;b1=-2*cs;b2=1;a0=1+alpha;a1=-2*cs;a2=1-alpha;
   }else throw Error('Unknown EQ filter type.');
   return [b0/a0,b1/a0,b2/a0,a1/a0,a2/a0];
 }

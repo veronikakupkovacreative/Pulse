@@ -378,6 +378,7 @@ export function initStudioTools(getBpmTrack){
     clearInterval(tools.previewTimer);tools.previewTimer=null;
     cancelAnimationFrame(tools.raf);tools.raf=0;
     if(tools.source){tools.source.onended=null;try{tools.source.stop();}catch{}tools.source.disconnect();tools.source=null;}
+    if(tools.spectralNode){tools.spectralNode.disconnect();tools.spectralNode=null;}
     tools.playing=false;tools.transport=null;tools.eqNodes=null;tools.eqOutputGain=null;tools.eqAnalyser=null;
     el('tool-preview').textContent='▶';el('tool-preview').setAttribute('aria-label','Play audio');
   }
@@ -793,7 +794,7 @@ export function initStudioTools(getBpmTrack){
     }catch(e){if(token===tools.operation)error(e.message);}
     finally{if(token===tools.operation)setBusy(false);}
   }
-  async function playBuffer(buffer,from=tools.playhead,to=buffer.duration,volume=1,{allowLoop=true,eqBands=null,eqGainDb=0}={}){
+  async function playBuffer(buffer,from=tools.playhead,to=buffer.duration,volume=1,{allowLoop=true,eqBands=null,eqGainDb=0,spectralProfile=null,spectralOptions=null}={}){
     stopPreview();const Ctx=window.AudioContext||window.webkitAudioContext;
     tools.context||=new Ctx();if(tools.context.state==='suspended')await tools.context.resume();
     from=clampPlayhead(from,buffer.duration);to=clampPlayhead(to,buffer.duration);
@@ -821,6 +822,13 @@ export function initStudioTools(getBpmTrack){
       tools.eqAnalyser=tools.context.createAnalyser();
       tools.eqAnalyser.fftSize=4096;tools.eqAnalyser.smoothingTimeConstant=.8;
       previous.connect(tools.eqAnalyser);previous=tools.eqAnalyser;
+    }
+    if(spectralProfile){
+      if(!tools.context.audioWorklet)throw Error('AudioWorklet is unavailable in this browser. Use rendered preview.');
+      await tools.context.audioWorklet.addModule('/vendor/pulse-spectral-worklet.js');
+      const node=new AudioWorkletNode(tools.context,'pulse-spectral-denoiser',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[Math.min(2,buffer.numberOfChannels)]});
+      node.port.postMessage({type:'configure',profile:spectralProfile,options:spectralOptions});
+      previous.connect(node);previous=node;tools.spectralNode=node;
     }
     previous.connect(gain);gain.connect(tools.context.destination);
     const startedAt=tools.context.currentTime;

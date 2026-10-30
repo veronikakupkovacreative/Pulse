@@ -172,6 +172,10 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const canvas=el('eq-live-spectrum');canvas.getContext('2d')?.clearRect(0,0,canvas.width,canvas.height);
   }};
   function eqNodeUpdate(){
+    if(tools.eqOutputGain&&tools.context){
+      const bypass=el('eq-bypass').checked;
+      tools.eqOutputGain.gain.setTargetAtTime(bypass?1:10**(eqState.gainDb/20),tools.context.currentTime,.012);
+    }
     if(!tools.eqNodes||tools.eqNodes.length!==eqState.bands.length)return;
     for(let i=0;i<tools.eqNodes.length;i++){
       const n=tools.eqNodes[i],b=eqState.bands[i];
@@ -254,16 +258,30 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-output-gain').addEventListener('input',()=>{
     eqState.gainDb=Number(el('eq-output-gain').value);
     status('eq-output-label',eqState.gainDb.toFixed(1)+' dB');
-    if(tools.eqOutputGain&&tools.context)tools.eqOutputGain.gain.setTargetAtTime(10**(eqState.gainDb/20),tools.context.currentTime,.015);
+    eqNodeUpdate();
   });
-  el('eq-bypass').addEventListener('change',()=>{refreshEq();eqNotice(el('eq-bypass').checked?'Bypass enabled.':'EQ active.');});
+  function syncAB(){
+    const bypass=el('eq-bypass').checked;
+    el('eq-ab-toggle').textContent=bypass?'A · ORIGINAL':'B · EQ ON';
+    el('eq-ab-toggle').setAttribute('aria-pressed',String(!bypass));
+    eqNotice(bypass?'A / ORIGINAL · filters and output gain bypassed.':'B / EQ · processing enabled.');
+    refreshEq();
+  }
+  el('eq-ab-toggle').onclick=()=>{
+    el('eq-bypass').checked=!el('eq-bypass').checked;syncAB();
+  };
+  el('eq-bypass').addEventListener('change',syncAB);
   el('eq-reset').onclick=()=>{
     eqState.bands=makeEqBands(Number(el('eq-band-count').value));selectedBand=0;
     eqState.gainDb=0;el('eq-output-gain').value='0';status('eq-output-label','0.0 dB');
-    el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq(true);
+    el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq(true);syncAB();
   };
   function eqPreviewOptions(){
-    return {allowLoop:false,eqBands:el('eq-bypass').checked?[]:readEq(),eqGainDb:eqState.gainDb};
+    // Always create the full filter chain, even in A/original mode.
+    // Live A/B can then switch allpass <-> filter without restarting audio.
+    return {allowLoop:false,
+      eqBands:readEq().map(b=>({...b,enabled:!el('eq-bypass').checked&&b.enabled})),
+      eqGainDb:el('eq-bypass').checked?0:eqState.gainDb};
   }
   async function previewEqRange(){
     if(!tools.buffer){eqNotice('Load audio in the black waveform workspace first.');return;}
@@ -305,6 +323,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-apply').onclick=()=>void eqAction('apply');
   el('eq-export').onclick=()=>void eqAction('export');
   refreshEq(true);
+  syncAB();
 
   function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-quick-auto').disabled=true;}
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};

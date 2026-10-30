@@ -529,10 +529,10 @@ export function initStudioTools(getBpmTrack){
     throw Error('Unsupported clean export format.');
   }
   const groups={
-    analyze:['key','tuner','calculator'],
-    edit:['cutter','pitch','slicer','reverse','trim','equalizer','denoise'],
+    analyze:['key','tuner','beat'],
+    edit:['cutter','pitch','slicer','trim','equalizer'],
     export:['converter','normalizer'],
-    ai:['master','mix']
+    ai:['stems','vocals','reverse','mix','master']
   };
   function selectCategory(category,selectFirst=true){
     if(!groups[category])return;

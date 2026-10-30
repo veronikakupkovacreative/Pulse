@@ -27,15 +27,16 @@ test('Classic EQ actually changes audio, without mutating the source',()=>{
  let diff=0;for(let i=0;i<out.length;i++)diff+=Math.abs(out[i]-original[i]);
  assert.ok(diff>1);
 });
-test('EQ FFT analyzer, Fix in Mix and Mix-to-Master actions are wired',async()=>{
+test('EQ FFT analyzer and unified Mix-to-Master actions are wired',async()=>{
  const html=await readFile(new URL('../source/index.html',import.meta.url),'utf8');
  const src=await readFile(new URL('../source/tools.mjs',import.meta.url),'utf8');
  const extra=await readFile(new URL('../source/extra-tools.mjs',import.meta.url),'utf8');
- for(const id of ['eq-live-spectrum','eq-spectrum','mix-quick-auto','master-fix-in-mix','mix-fix-advice'])
+ for(const id of ['eq-live-spectrum','eq-spectrum','mix-send-master','mix-quick-send','master-fix-in-mix','mix-fix-advice'])
    assert.match(html,new RegExp('id="'+id+'"'));
  assert.match(src,/createAnalyser\(/);
  assert.match(extra,/getFloatFrequencyData\(/);
- assert.match(extra,/if\(autoRender\)el\('master-render'\)\.click\(\)/);
+ assert.match(extra,/el\('mix-send-master'\)\.onclick/);
+ assert.match(extra,/el\('mix-quick-send'\)\.onclick/);
  assert.match(src,/extraApi\?\.showFixAdvice/);
 });
 

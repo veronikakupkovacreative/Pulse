@@ -21,12 +21,13 @@ test('playhead keyboard nudge cannot pass clip edges',()=>{
 });
 
 test('compiled HTML exposes both accessible seeking surfaces and visual playheads',()=>{
-  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../source/index.html',import.meta.url),'utf8');
   assert.match(html,/id="tool-playhead"/);
   assert.match(html,/id="bpm-playhead"/);
   assert.match(html,/id="tool-waveform"[^>]*role="slider"/);
   assert.match(html,/Shift\+drag/);
-  assert.match(html,/function seekTool\(time,autoplay=true,sourceTransport/);
+  const js=readFileSync(new URL('../source/tools.mjs',import.meta.url),'utf8');
+  assert.match(js,/function seekTool\(time,autoplay=true,sourceTransport/);
 });
 
 test('phase-aware snapping respects a nonzero onset grid offset',()=>{

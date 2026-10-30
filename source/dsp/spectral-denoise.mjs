@@ -41,19 +41,20 @@ export function captureSpectralProfile(audioChannels,sampleRate,fromSeconds=0,to
   const result=new Float32Array(HALF+1);for(let k=0;k<=HALF;k++)result[k]=profile[k]/frames;
   return result;
 }
-export function spectralSettings({amount=65,smoothing=65,floor=8}={}){
+export function spectralSettings({amount=65,smoothing=65,floor=8,rumbleHz=0,hiss=0,gateDb=-72,blend=100}={}){
   const bounded=(n,low,high,def)=>Number.isFinite(Number(n))?Math.min(high,Math.max(low,Number(n))):def;
-  return {amount:bounded(amount,0,100,65),smoothing:bounded(smoothing,0,100,65),floor:bounded(floor,3,30,8)};
+  return {amount:bounded(amount,0,100,65),smoothing:bounded(smoothing,0,100,65),floor:bounded(floor,3,30,8),rumbleHz:bounded(rumbleHz,0,150,0),hiss:bounded(hiss,0,100,0),gateDb:bounded(gateDb,-90,-24,-72),blend:bounded(blend,0,100,100)};
 }
 export function spectralProcessFrame(re,im,profile,settings,memory,targetScratch=null){
-  const {amount,smoothing,floor}=spectralSettings(settings);
+  const {amount,smoothing,floor,hiss}=spectralSettings(settings);
   if(!profile||profile.length!==HALF+1)throw Error('Noise profile size does not match FFT.');
   if(amount<=0)return;
   const alpha=amount/100*2.2,minGain=floor/100,smooth=smoothing/100,freqRadius=Math.round(smooth*4);
   const target=targetScratch||new Float64Array(HALF+1);
   for(let k=0;k<=HALF;k++){
     const magnitude=Math.hypot(re[k],im[k]);
-    target[k]=Math.max(minGain,1-alpha*profile[k]/Math.max(magnitude,1e-10));
+    const hz=k*48000/FFT_SIZE,hissWeight=hiss/100*Math.max(0,Math.min(1,(hz-4800)/5200));
+    target[k]=Math.max(minGain,1-alpha*(1+hissWeight*1.8)*profile[k]/Math.max(magnitude,1e-10));
   }
   for(let k=0;k<=HALF;k++){
     let sum=0,weights=0;
@@ -70,13 +71,16 @@ export function spectralProcessFrame(re,im,profile,settings,memory,targetScratch
 export function renderSpectralDenoise(input,profile,options={},onProgress){
   if(!(input instanceof Float32Array))throw Error('Expected Float32Array audio.');
   const settings=spectralSettings(options);
-  if(settings.amount===0)return input.slice();
+  if(settings.amount===0&&settings.rumbleHz===0&&settings.gateDb<=-90)return input.slice();
   const out=new Float32Array(input.length),weights=new Float32Array(input.length);
   const re=new Float64Array(FFT_SIZE),im=new Float64Array(FFT_SIZE),memory=new Float64Array(HALF+1),scratch=new Float64Array(HALF+1);
   const frames=Math.ceil((input.length+FFT_SIZE)/HOP);
+  let previousX=0,previousY=0,gateGain=1;
+  const highpassAlpha=settings.rumbleHz>0?Math.exp(-2*Math.PI*settings.rumbleHz/48000):0;
+  const blend=settings.blend/100;
   for(let frame=0;frame<frames;frame++){
     const offset=frame*HOP-FFT_SIZE+HOP;
-    for(let i=0;i<FFT_SIZE;i++){const pos=offset+i;re[i]=(pos>=0&&pos<input.length?input[pos]:0)*WINDOW[i];im[i]=0;}
+    for(let i=0;i<FFT_SIZE;i++){const pos=offset+i;let sample=pos>=0&&pos<input.length?input[pos]:0;if(settings.rumbleHz>0){const y=highpassAlpha*(previousY+sample-previousX);previousX=sample;previousY=y;sample=y;}re[i]=sample*WINDOW[i];im[i]=0;}
     spectralFft(re,im);spectralProcessFrame(re,im,profile,settings,memory,scratch);spectralFft(re,im,true);
     for(let i=0;i<FFT_SIZE;i++){
       const pos=offset+i;if(pos<0||pos>=input.length)continue;
@@ -84,6 +88,15 @@ export function renderSpectralDenoise(input,profile,options={},onProgress){
     }
     if(onProgress&&frame%64===0)onProgress(frame/frames);
   }
-  for(let i=0;i<out.length;i++)out[i]=weights[i]>1e-7?out[i]/weights[i]:input[i];
+  const gateAmplitude=10**(settings.gateDb/20),gateAttack=.025,gateRelease=.18;
+  let inputEnergy=0,outputEnergy=0;
+  for(let i=0;i<out.length;i++){
+    const processed=weights[i]>1e-7?out[i]/weights[i]:input[i];
+    const magnitude=Math.abs(input[i]),target=magnitude<gateAmplitude?Math.max(.08,magnitude/Math.max(gateAmplitude,1e-9)):1;
+    const coefficient=target<gateGain?gateAttack:gateRelease;gateGain+= (target-gateGain)*(1-Math.exp(-1/(coefficient*48000)));
+    const mixed=input[i]*(1-blend)+processed*blend;
+    out[i]=mixed*gateGain;inputEnergy+=input[i]*input[i];outputEnergy+=out[i]*out[i];
+  }
+  out.reductionDb=10*Math.log10(Math.max(1e-12,inputEnergy)/Math.max(1e-12,outputEnergy));
   return out;
 }

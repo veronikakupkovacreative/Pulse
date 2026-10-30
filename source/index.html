@@ -254,15 +254,21 @@
             <div class="pulse-ai-kicker">01 / NOISE FINGERPRINT</div>
             <button type="button" class="tool-action tool-action-dark" id="denoise-learn" disabled>Learn Noise <span>↗</span></button>
             <p class="tool-footnote" id="denoise-profile-status" role="status">Set IN / OUT around noise without voice or music. Minimum 120 ms.</p>
-            <div class="tool-fields">
-              <label>Reduction amount <output id="denoise-amount-value">65%</output><input id="denoise-amount" type="range" min="0" max="100" value="65" step="5"></label>
+            <div class="tool-fields denoise-controls">
+              <label>Rumble · low cut <output id="denoise-rumble-value">Off</output><input id="denoise-rumble" type="range" min="0" max="150" step="5" value="0"></label>
+              <label>Hiss reduction <output id="denoise-hiss-value">0%</output><input id="denoise-hiss" type="range" min="0" max="100" step="5" value="0"></label>
+              <label>Noise reduction <output id="denoise-amount-value">65%</output><input id="denoise-amount" type="range" min="0" max="100" value="65" step="5"></label>
               <label>Artifact smoothing <output id="denoise-smoothing-value">65%</output><input id="denoise-smoothing" type="range" min="0" max="100" value="65" step="5"></label>
+              <label>Parallel blend <output id="denoise-blend-value">100%</output><input id="denoise-blend" type="range" min="0" max="100" step="5" value="100"></label>
+              <label>Gate threshold <output id="denoise-gate-value">−72 dBFS</output><input id="denoise-gate" type="range" min="-90" max="-24" step="2" value="-72"></label>
             </div>
             <details class="pulse-ai-advanced"><summary>Advanced · residual floor</summary><div class="tool-fields"><label>Minimum retained spectral energy <output id="denoise-floor-value">8%</output><input id="denoise-floor" type="range" min="3" max="30" step="1" value="8"></label></div></details>
+            <label class="denoise-channel-toggle"><input type="checkbox" id="denoise-separate-channels"> Edit channels separately · independent L/R noise profiles</label>
             <button id="denoise-process" type="button" class="tool-action tool-action-dark" disabled>Process Audio <span>↗</span></button>
             <div id="denoise-result" class="pulse-ai-result-actions" hidden>
-              <button id="denoise-preview" type="button" disabled>▶ Cleaned Preview</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><button id="denoise-export" type="button" disabled>Export WAV 24-bit ↗</button>
+              <button id="denoise-preview" type="button" disabled>▶ Cleaned Preview</button><button id="denoise-ab" type="button" disabled>A/B · ORIGINAL</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><button id="denoise-export" type="button" disabled>Export WAV 24-bit ↗</button>
             </div>
+            <div class="denoise-meter" aria-live="polite"><span>GAIN REDUCTION</span><strong id="denoise-reduction-value">— dB</strong><div><i id="denoise-reduction-bar"></i></div></div>
             <button id="denoise-live" type="button" class="pulse-ai-back" disabled>▶ Live Worklet Preview (current settings)</button>
             <p id="denoise-status" class="tool-footnote" role="status">Learn a noise profile to begin.</p>
             <p class="tool-footnote">STFT · Hann window · frequency/time smoothing · 75% overlap-add. No cloud upload. Noise selection must contain background noise only; excessive reduction can produce artifacts.</p>

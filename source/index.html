@@ -176,11 +176,16 @@
             <div class="tool-view-header"><span>02 / AI MIX</span><span>ASSISTED MULTITRACK DSP</span></div>
             <h3>Build your mix.</h3>
             <p class="tool-footnote">Import 2–8 time-aligned stems, adjust gain and pan, and audition a stereo mix. Gain suggestions use measured RMS and peaks, not a neural model.</p>
-            <div class="pulse-mix-import"><label for="mix-files">Add stems (WAV, MP3, M4A)</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
+            <div class="master-reference"><strong>QUICK FIX · ONE FINISHED TRACK</strong><p class="tool-footnote">Uses the current shared stereo track. Individual instruments are not separated.</p>
+              <div class="tool-fields"><label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option><option value="clean">Clean</option></select></label>
+              <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label></div>
+              <div class="quick-actions"><button id="mix-quick-analyze" type="button">Analyze Mix</button><button id="mix-quick-generate" type="button">Generate Quick Fix</button><button id="mix-quick-preview" type="button" disabled>▶ Preview</button><button id="mix-quick-send" type="button" disabled>Send to Smart Master ↗</button></div>
+              <p class="tool-footnote" id="mix-quick-report" role="status">Load a track in the shared workspace to begin.</p>
+            </div><details><summary>Advanced · Multitrack stem mixer (use your own stems)</summary><div class="pulse-mix-import"><label for="mix-files">Add stems (WAV, MP3, M4A)</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
             <div id="mix-stems" class="pulse-mix-tracks"></div><div id="mix-advice" class="master-mix-health" role="status" hidden></div>
             <div class="quick-actions"><button type="button" id="mix-balance" disabled>Suggest Levels</button><button type="button" id="mix-render" disabled>Generate Mix</button><button type="button" id="mix-play" disabled>▶ Preview Mix</button><button type="button" id="mix-export" disabled>Export Stereo WAV ↗</button></div>
             <p class="tool-footnote" id="mix-status" role="status">Add at least two stems. They must start at the same timeline position.</p>
-            <p class="master-disclaimer">AI MIX (assisted beta) uses transparent, deterministic DSP. No stem separation, model-based mixing or cloud processing.</p>
+            <p class="master-disclaimer">AI MIX (assisted beta) uses transparent, deterministic DSP. No stem separation, model-based mixing or cloud processing.</p></details>
           </div>
           <div id="panel-master" class="tool-view" role="tabpanel" aria-labelledby="tab-master" hidden>
             <div class="tool-view-header"><span>02 / SMART MASTER</span><span>LOCAL ADAPTIVE DSP · NO UPLOAD</span></div>

@@ -2,7 +2,7 @@
 function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,
   workingChanged,download,filename,status,decodeLocalAudio,audioFileError,encodeWav}){
   const eqState={bands:EQ_DEFAULT_BANDS.map(b=>({...b})),gainDb:0};
-  let mixTracks=[],mixCandidate=null,mixLoading=false;
+  let mixTracks=[],mixCandidate=null,mixLoading=false,quickMixCandidate=null;
   const eqNotice=text=>status('eq-status',text);
   const mixNotice=text=>status('mix-status',text);
   const eqInputs=el('eq-bands');
@@ -148,6 +148,40 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-export').onclick=()=>void eqAction('export');
   refreshEq();
 
+  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;}
+  el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};
+  el('mix-character').onchange=clearQuickMix;
+  el('mix-quick-analyze').onclick=()=>{
+    if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
+    const result=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);
+    const issues=result.warnings.join(' · ')||'No critical thresholds flagged.';
+    status('mix-quick-report','Sample peak '+result.signal.peakDb.toFixed(1)+' dBFS · RMS '+
+      result.signal.rmsDb.toFixed(1)+' dBFS · Low energy '+(result.lowShare*100).toFixed(1)+'% · '+issues);
+  };
+  el('mix-quick-generate').onclick=()=>{
+    if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
+    try{
+      const result=renderStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate,{
+        character:el('mix-character').value,intensity:Number(el('mix-intensity').value)});
+      quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(result.channels,tools.buffer.sampleRate)};
+      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;
+      status('mix-quick-report',result.changes.length?result.changes.map(c=>
+        c.frequency+' Hz '+c.gainDb.toFixed(1)+' dB').join(' · '):
+        'Original tonal balance retained. No corrective EQ was indicated.');
+    }catch(error){clearQuickMix();status('mix-quick-report',error.message);}
+  };
+  el('mix-quick-preview').onclick=async()=>{
+    if(!quickMixCandidate)return;
+    try{await playBuffer(quickMixCandidate.buffer,tools.playhead,quickMixCandidate.buffer.duration,1,{allowLoop:false});}
+    catch(error){status('mix-quick-report',error.message);}
+  };
+  el('mix-quick-send').onclick=()=>{
+    if(!quickMixCandidate||quickMixCandidate.input!==tools.buffer){status('mix-quick-report','Regenerate your mix after changing source audio.');return;}
+    workspace.apply(quickMixCandidate.buffer);
+    workingChanged();clearQuickMix();
+    document.getElementById('tab-master').click();
+    status('master-status','Quick Fix mix transferred. Generate a new master using the updated working audio.');
+  };
   function invalidateMix(){mixCandidate=null;el('mix-play').disabled=true;el('mix-export').disabled=true;}
   function renderMixRows(){
     const list=el('mix-stems');list.replaceChildren();
@@ -238,5 +272,5 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const blob=encodeWav(mixCandidate.channels,mixCandidate.rate,24);
     download(blob,'pulse-multitrack-mix.wav');mixNotice('Multitrack mix exported as stereo WAV.');};
   renderMixRows();
-  return {invalidateMix,reset(){mixTracks=[];mixCandidate=null;renderMixRows();}};
+  return {invalidateMix,clearQuickMix,reset(){mixTracks=[];mixCandidate=null;clearQuickMix();renderMixRows();}};
 }

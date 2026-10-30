@@ -6,9 +6,9 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWorkspace,productionDsp,productionWorker,zipStore,mastering,playhead,harmonicWorkflow,fileSupport,mediaLoader,projectSession,metronomeClock,truePeak,mixHealth,spectralHealth,eqResponse,referenceCompare,eqDsp,mixDsp,extraTools,mixAdvisor,quickFix]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
@@ -55,6 +55,7 @@ const bundledScript=`(() => {
   ${noExports(eqResponse)}
   ${noExports(spectralHealth)}
   ${noImports(noExports(mixAdvisor))}
+  ${noImports(noExports(quickFix))}
   ${noImports(noExports(eqDsp))}
   ${noExports(mixDsp)}
   ${noExports(extraTools)}

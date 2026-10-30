@@ -5,10 +5,10 @@ const masterClamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 function validate(channels,rate){
   if(!Array.isArray(channels)||channels.length<1||channels.length>2||
     !channels[0]?.length||channels.some(ch=>!(ch instanceof Float32Array)||ch.length!==channels[0].length))
-    throw Error('Master vyžaduje platný mono nebo stereo audio soubor.');
-  if(!Number.isFinite(rate)||rate<8000||rate>192000)throw Error('Nepodporovaná vzorkovací frekvence.');
-  if(channels[0].length*channels.length>30_000_000)throw Error('Mastering v prohlížeči podporuje maximálně 30 milionů vzorků PCM (přibližně 5 minut stereo 48 kHz).');
-  if(channels[0].length/rate<0.8)throw Error('Pro mastering potřebujeme alespoň 0,8 sekundy zvuku.');
+    throw Error('Mastering requires valid mono or stereo audio.');
+  if(!Number.isFinite(rate)||rate<8000||rate>192000)throw Error('Unsupported sample rate.');
+  if(channels[0].length*channels.length>30_000_000)throw Error('Browser mastering supports up to 30 million PCM samples (roughly 5 minutes at stereo 48 kHz).');
+  if(channels[0].length/rate<0.8)throw Error('Mastering requires at least 0.8 seconds of audio.');
 }
 function biquad(rate,frequency,gainDb,type){
   const A=10**(gainDb/40),w=2*Math.PI*masterClamp(frequency,1,rate*.45)/rate;
@@ -60,7 +60,7 @@ function energyBand(channels,rate,frequency){
 export function analyzeMaster(channels,rate){
   validate(channels,rate);
   const peak=maxPeak(channels),r=rms(channels);
-  if(peak<1e-8||r<1e-8)throw Error('Tiché audio nelze smysluplně masterovat.');
+  if(peak<1e-8||r<1e-8)throw Error('Silent audio cannot be meaningfully mastered.');
   const low=energyBand(channels,rate,180),high=energyBand(channels,rate,4200);
   const lowShare=Math.sqrt(low.low/Math.max(1e-12,low.total));
   const highShare=Math.sqrt(high.high/Math.max(1e-12,high.total));
@@ -69,10 +69,10 @@ export function analyzeMaster(channels,rate){
     lowShare,highShare,channels:channels.length,rate,duration:channels[0].length/rate};
 }
 export function designMaster(analysis,preset='balanced',targetLufs){
-  if(!['balanced','warm','loud'].includes(preset))throw Error('Neplatný mastering preset.');
+  if(!['balanced','warm','loud'].includes(preset))throw Error('Invalid mastering preset.');
   const presetTarget={balanced:-13,warm:-14,loud:-10}[preset];
   const target=targetLufs===undefined?presetTarget:Number(targetLufs);
-  if(!Number.isFinite(target)||target<-22||target>-8)throw Error('Cílové LUFS musí být -22 až -8.');
+  if(!Number.isFinite(target)||target<-22||target>-8)throw Error('Target LUFS must be between -22 and -8.');
   // Conservative shelves: no attempt to force a universal tonal profile.
   const lowDb=masterClamp((.49-analysis.lowShare)*4.4+(preset==='warm'?.65:preset==='loud'?.25:0),-1.5,1.5);
   const highDb=masterClamp((.37-analysis.highShare)*4.2+(preset==='warm'?-.9:preset==='loud'?.25:0),-1.5,1.5);
@@ -141,8 +141,8 @@ export function processMaster(channels,rate,{preset='balanced',targetLufs}={}){
   const after=analyzeMaster(output,rate);
   return {channels:output,settings:{...settings,appliedGainDb:correction},before,after,
     notes:[
-      'Smart Master v1 používá lokální adaptivní DSP, nikoliv neuronový model.',
-      'Ceiling chrání sample peaks, nikoliv měřený inter-sample true peak.',
-      'Cílová LUFS je orientační: limiter a obsah nahrávky mohou bránit přesnému dosažení.'
+      'Smart Master v1 uses local adaptive DSP, not a neural model.',
+      'The ceiling protects sample peaks, not measured inter-sample true peaks.',
+      'Target LUFS is an estimate; the limiter and source material may prevent an exact match.'
     ]};
 }

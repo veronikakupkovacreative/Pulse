@@ -2,15 +2,15 @@
 const check = (channels, sampleRate) => {
   if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length ||
      channels.some(c=>!(c instanceof Float32Array)||c.length!==channels[0].length))
-    throw new Error('Zvuk musí mít jeden nebo dva platné kanály.');
-  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Neplatná sample rate.');
+    throw new Error('Audio must contain one or two valid channels.');
+  if(!Number.isInteger(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Invalid sample rate.');
 };
 export function reverseAudio(channels,sampleRate){
   check(channels,sampleRate);
   return channels.map(ch=>Float32Array.from(ch).reverse());
 }
 export function bpmDurations(bpm){
-  if(!Number.isFinite(bpm)||bpm<20||bpm>400)throw new Error('BPM musí být mezi 20 a 400.');
+  if(!Number.isFinite(bpm)||bpm<20||bpm>400)throw new Error('BPM must be between 20 and 400.');
   const beat=60000/bpm;
   return [
     ['Whole',4],['Half',2],['Quarter',1],['Eighth',.5],['Sixteenth',.25],
@@ -18,8 +18,8 @@ export function bpmDurations(bpm){
 }
 export function detectSilenceBounds(channels,sampleRate,thresholdDb=-48,paddingMs=12){
   check(channels,sampleRate);
-  if(!Number.isFinite(thresholdDb)||thresholdDb<-100||thresholdDb>0)throw new Error('Neplatný threshold.');
-  if(!Number.isFinite(paddingMs)||paddingMs<0||paddingMs>500)throw new Error('Padding musí být 0–500 ms.');
+  if(!Number.isFinite(thresholdDb)||thresholdDb<-100||thresholdDb>0)throw new Error('Invalid threshold.');
+  if(!Number.isFinite(paddingMs)||paddingMs<0||paddingMs>500)throw new Error('Padding must be between 0 and 500 ms.');
   const length=channels[0].length,frame=Math.max(1,Math.round(sampleRate*.005));
   const threshold=10**(thresholdDb/20);
   let first=-1,last=-1;
@@ -32,14 +32,14 @@ export function detectSilenceBounds(channels,sampleRate,thresholdDb=-48,paddingM
     }
     if(Math.sqrt(power)>=threshold){if(first===-1)first=a;last=end;}
   }
-  if(first===-1)throw new Error('Vstup je pod nastaveným thresholdem. Zkus nižší hodnotu.');
+  if(first===-1)throw new Error('Audio is below the threshold. Try a lower value.');
   const pad=Math.round(sampleRate*paddingMs/1000);
   const start=Math.max(0,first-pad),end=Math.min(length,last+pad);
   return {start,end,startSeconds:start/sampleRate,endSeconds:end/sampleRate,removedSeconds:(start+length-end)/sampleRate};
 }
 export function trimAudio(channels,bounds){
   if(!Number.isInteger(bounds.start)||!Number.isInteger(bounds.end)||bounds.start<0||bounds.end>channels[0]?.length||bounds.end<=bounds.start)
-    throw new Error('Neplatné hranice střihu.');
+    throw new Error('Invalid trim boundaries.');
   return channels.map(c=>c.slice(bounds.start,bounds.end));
 }
 export function peakLevel(channels){
@@ -83,7 +83,7 @@ function filteredEnergySegments(channels,rate){
 export function integratedLoudness(channels,sampleRate){
   check(channels,sampleRate);
   const length=channels[0].length;
-  if(length<sampleRate*.4)throw new Error('Pro měření LUFS potřebujeme alespoň 400 ms audia.');
+  if(length<sampleRate*.4)throw new Error('LUFS measurement requires at least 400 ms of audio.');
   const {segments,segLen}=filteredEnergySegments(channels,sampleRate);
   const blocks=[];
   // 400 ms windows, 75% overlap, with exact sample count in the final window.
@@ -106,17 +106,17 @@ export function integratedLoudness(channels,sampleRate){
 }
 export function normalizeAudio(channels,sampleRate,{mode='peak',targetPeak=-1,targetLufs=-14,ceiling=-1}={}){
   check(channels,sampleRate);
-  if(!['peak','lufs'].includes(mode))throw new Error('Neznámý režim normalizace.');
-  if(!Number.isFinite(ceiling)||ceiling>0||ceiling<-30)throw new Error('Neplatný peak ceiling.');
+  if(!['peak','lufs'].includes(mode))throw new Error('Unknown normalization mode.');
+  if(!Number.isFinite(ceiling)||ceiling>0||ceiling<-30)throw new Error('Invalid peak ceiling.');
   const peak=peakLevel(channels);if(peak<1e-10)throw new Error('Ticho nelze normalizovat.');
   let sourceLufs=null,desiredGain=1;
   if(mode==='peak'){
-    if(!Number.isFinite(targetPeak)||targetPeak>0||targetPeak<-40)throw new Error('Cílový peak musí být -40 až 0 dBFS.');
+    if(!Number.isFinite(targetPeak)||targetPeak>0||targetPeak<-40)throw new Error('Target peak must be between -40 and 0 dBFS.');
     desiredGain=10**(targetPeak/20)/peak;
   }else{
-    if(!Number.isFinite(targetLufs)||targetLufs>0||targetLufs<-45)throw new Error('Cílové LUFS musí být -45 až 0.');
+    if(!Number.isFinite(targetLufs)||targetLufs>0||targetLufs<-45)throw new Error('Target LUFS must be between -45 and 0.');
     sourceLufs=integratedLoudness(channels,sampleRate);
-    if(!Number.isFinite(sourceLufs))throw new Error('LUFS nelze u tohoto souboru spolehlivě změřit.');
+    if(!Number.isFinite(sourceLufs))throw new Error('LUFS could not be measured reliably for this file.');
     desiredGain=10**((targetLufs-sourceLufs)/20);
   }
   const maxGain=10**(ceiling/20)/peak;

@@ -1,8 +1,8 @@
 // Pulse production DSP. Pure JS, zero runtime dependencies and no network.
 // Pitch/time use a WSOLA-like waveform-similarity overlap/add algorithm.
 const assertAudio=(channels,rate)=>{
-  if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length||channels.some(c=>!(c instanceof Float32Array)||c.length!==channels[0].length))throw Error('Neplatná mono/stereo audio data.');
-  if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Neplatná vzorkovací frekvence.');
+  if(!Array.isArray(channels)||channels.length<1||channels.length>2||!channels[0]?.length||channels.some(c=>!(c instanceof Float32Array)||c.length!==channels[0].length))throw Error('Invalid mono/stereo audio data.');
+  if(!Number.isInteger(rate)||rate<8000||rate>192000)throw Error('Invalid sample rate.');
 };
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const hzToMidi=hz=>69+12*Math.log2(hz/440);
@@ -17,10 +17,10 @@ export const frequencyNote=hz=>{
 // A kick with pitch sweep or noisy signal will produce low confidence.
 export function detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){
   assertAudio(channels,rate);
-  if(minHz<20||maxHz>450||maxHz<=minHz)throw Error('Neplatný rozsah frekvencí.');
+  if(minHz<20||maxHz>450||maxHz<=minHz)throw Error('Invalid frequency range.');
   const targetRate=2000,step=rate/targetRate,windowLen=480,minLag=Math.max(2,Math.floor(targetRate/maxHz)),maxLag=Math.min(130,Math.ceil(targetRate/minHz));
   const n=channels[0].length,duration=n/rate;
-  if(duration<.13)throw Error('Pro 808 tuner použij alespoň 130 ms audia.');
+  if(duration<.13)throw Error('808 Tuner requires at least 130 ms of audio.');
   const energy=channels.map(c=>{let e=0;for(let i=0;i<c.length;i+=32)e+=c[i]*c[i];return e;});
   const best=channels[energy.indexOf(Math.max(...energy))];
   const windows=[],positions=Math.min(34,Math.max(1,Math.floor(duration/.12)));
@@ -59,7 +59,7 @@ export function detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){
     const hz=targetRate/(lag+shift),confidence=clamp(1-bestVal,0,1);
     if(hz>=minHz&&hz<=maxHz)windows.push({hz,confidence,rms});
   }
-  if(!windows.length)return {hz:null,confidence:0,label:'Nelze určit fundamentální frekvenci',note:null,frames:0,stableFrames:0,spreadCents:null};
+  if(!windows.length)return {hz:null,confidence:0,label:'Fundamental frequency could not be determined',note:null,frames:0,stableFrames:0,spreadCents:null};
   // Weighted median is stable under sparse pitched sections.
   const sorted=windows.sort((a,b)=>a.hz-b.hz),weights=sorted.reduce((a,b)=>a+b.rms*b.confidence*b.confidence,0),half=weights/2;
   let running=0,median=sorted[Math.floor(sorted.length/2)].hz;
@@ -69,18 +69,18 @@ export function detectFundamental(channels,rate,{minHz=28,maxHz=260}={}){
   const confidence=clamp((near.reduce((a,b)=>a+b.confidence,0)/(near.length||1))*consistency,0,1);
   const hz=near.reduce((a,b)=>a+b.hz*b.confidence,0)/(near.reduce((a,b)=>a+b.confidence,0)||1);
   const spreadCents=near.length?Math.sqrt(near.reduce((acc,w)=>acc+Math.pow(1200*Math.log2(w.hz/(hz||median)),2),0)/near.length):null;
-  return {hz:hz||median,confidence,label:confidence>=.75?'Vyšší':confidence>=.52?'Střední':'Nízká',note:frequencyNote(hz||median),frames:windows.length,stableFrames:near.length,spreadCents};
+  return {hz:hz||median,confidence,label:confidence>=.75?'High':confidence>=.52?'Medium':'Low',note:frequencyNote(hz||median),frames:windows.length,stableFrames:near.length,spreadCents};
 }
 
 // Waveform Similarity Overlap Add: phase-coherent multi-channel alignment.
 export function stretchWsola(channels,targetLen,rate){
   assertAudio(channels,rate);
   const inputLen=channels[0].length;
-  if(!Number.isInteger(targetLen)||targetLen<1||targetLen>rate*1200)throw Error('Neplatná délka výstupu.');
+  if(!Number.isInteger(targetLen)||targetLen<1||targetLen>rate*1200)throw Error('Invalid output duration.');
   if(targetLen===inputLen)return channels.map(c=>c.slice());
-  if(inputLen<rate*.08)throw Error('Pro time stretching je potřeba alespoň 80 ms audia.');
+  if(inputLen<rate*.08)throw Error('Time stretching requires at least 80 ms of audio.');
   const ratio=targetLen/inputLen;
-  if(ratio<.25||ratio>4)throw Error('Tempo/pitch mimo bezpečný rozsah pro WSOLA.');
+  if(ratio<.25||ratio>4)throw Error('Tempo/pitch is outside the supported WSOLA range.');
   const size=Math.max(512,Math.round(rate*.038/64)*64),hop=Math.max(128,Math.floor(size/4)),search=Math.max(32,Math.floor(size*.22)),analysisHop=hop/ratio;
   const out=channels.map(()=>new Float32Array(targetLen)),weights=new Float32Array(targetLen);
   const win=Float32Array.from({length:size},(_,i)=>.5-.5*Math.cos(2*Math.PI*i/(size-1)));
@@ -119,13 +119,13 @@ export function stretchWsola(channels,targetLen,rate){
 }
 export function processPitchTime(channels,rate,{originalBpm=120,targetBpm=120,semitones=0,cents=0,preservePitch=true}={}){
   assertAudio(channels,rate);
-  if(!Number.isFinite(originalBpm)||originalBpm<20||originalBpm>400||!Number.isFinite(targetBpm)||targetBpm<20||targetBpm>400)throw Error('BPM musí být v rozsahu 20–400.');
-  if(!Number.isFinite(semitones)||semitones<-12||semitones>12||!Number.isFinite(cents)||cents<-100||cents>100)throw Error('Pitch musí být ±12 semitonů a ±100 centů.');
+  if(!Number.isFinite(originalBpm)||originalBpm<20||originalBpm>400||!Number.isFinite(targetBpm)||targetBpm<20||targetBpm>400)throw Error('BPM must be between 20 and 400.');
+  if(!Number.isFinite(semitones)||semitones<-12||semitones>12||!Number.isFinite(cents)||cents<-100||cents>100)throw Error('Pitch must be within ±12 semitones and ±100 cents.');
   const timeFactor=originalBpm/targetBpm;
   const desiredLen=Math.max(1,Math.round(channels[0].length*timeFactor));
   const ratio=Math.pow(2,(semitones+cents/100)/12)*(preservePitch?1:targetBpm/originalBpm);
   const tempLen=Math.max(1,Math.round(channels[0].length/ratio));
-  if(tempLen*channels.length*4>220*1024*1024||desiredLen*channels.length*4>220*1024*1024)throw Error('Výstup je příliš velký. Použij kratší audio úsek.');
+  if(tempLen*channels.length*4>220*1024*1024||desiredLen*channels.length*4>220*1024*1024)throw Error('Output is too large. Use a shorter audio region.');
   if(Math.abs(timeFactor-1)<1e-8&&Math.abs(ratio-1)<1e-8)return channels.map(c=>c.slice());
   const temp=channels.map(c=>{
     const result=new Float32Array(tempLen);
@@ -140,7 +140,7 @@ export function processPitchTime(channels,rate,{originalBpm=120,targetBpm=120,se
 // Sub-band envelope is robust for short percussion loops and cheap for browsers.
 export function detectTransients(channels,rate,{sensitivity=.55,minGapMs=85}={}){
   assertAudio(channels,rate);
-  if(!Number.isFinite(sensitivity)||sensitivity<0||sensitivity>1)throw Error('Sensitivity musí být 0–1.');
+  if(!Number.isFinite(sensitivity)||sensitivity<0||sensitivity>1)throw Error('Sensitivity must be between 0 and 1.');
   const signal=channels[0],hop=Math.max(64,Math.round(rate*.0075)),frame=hop*3;
   const count=Math.floor(signal.length/hop),energy=new Float64Array(count),flux=new Float64Array(count);
   for(let i=1;i<count;i++){
@@ -168,9 +168,9 @@ export function detectTransients(channels,rate,{sensitivity=.55,minGapMs=85}={})
 }
 export function sliceAudio(channels,rate,markers,index){
   assertAudio(channels,rate);
-  if(!Array.isArray(markers)||index<0||index>=markers.length-1)throw Error('Neplatný index slicu.');
+  if(!Array.isArray(markers)||index<0||index>=markers.length-1)throw Error('Invalid slice index.');
   const start=clamp(Math.round(markers[index]*rate),0,channels[0].length);
   const end=clamp(Math.round(markers[index+1]*rate),start+1,channels[0].length);
-  if(end<=start)throw Error('Slice je příliš krátký.');
+  if(end<=start)throw Error('Slice is too short.');
   return channels.map(c=>c.slice(start,end));
 }

@@ -12,7 +12,7 @@ self.onmessage=event=>{
     else if(kind==='transients')result=detectTransients(channels,rate,options);
     else if(kind==='tuner')result=detectFundamental(channels,rate,options);
     else if(kind==='bpm')result=analyzeTempo(channels[0],rate);
-    else throw Error('Neznámá operace.');
+    else throw Error('Unknown operation.');
     self.postMessage({id,ok:true,result});
-  }catch(e){self.postMessage({id,ok:false,error:e.message||'Chyba výpočtu.'});}
+  }catch(e){self.postMessage({id,ok:false,error:e.message||'Processing error.'});}
 };

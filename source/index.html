@@ -141,17 +141,39 @@
   <p id="eq-wave-help">Click waveform to seek · Select Range or Shift+drag · Use the overview to navigate</p>
 </div>
 <div class="pulse-eq-left" id="pulse-eq-left" hidden>
-  <div class="eq-mode-pills" role="group" aria-label="Equalizer band layout">
+  <div class="pulse-eq-section-heading">
+    <div class="eq-left-heading"><strong>PARAMETRIC EQ · LIVE RESPONSE</strong><span>20 Hz — 20 kHz</span></div>
+    <div class="eq-mode-pills" role="group" aria-label="Equalizer band layout">
   <button type="button" data-eq-bands="3" aria-pressed="false">3 BANDS</button>
   <button type="button" data-eq-bands="10" aria-pressed="false">10 BANDS</button>
   <button type="button" data-eq-bands="20" aria-pressed="true">20 BANDS</button>
   <span class="eq-mode-caption">Applies to both channels together</span>
 </div>
-<div class="eq-left-heading"><strong>PARAMETRIC EQ · LIVE RESPONSE</strong><span>20 Hz — 20 kHz</span></div>
-  <div class="pulse-eq-stage"><svg id="eq-response-graph" class="pulse-eq-graph" viewBox="0 0 720 300" aria-label="Frequency response curve with draggable band handles" role="img"></svg><canvas id="eq-live-spectrum" class="pulse-eq-live" aria-hidden="true"></canvas></div>
-
-<label class="pulse-eq-spectrum-toggle"><input type="checkbox" id="eq-spectrum" checked> Live FFT spectrum · post-EQ output</label>
-  <div class="pulse-eq-editor-note" id="eq-active-readout" role="status">Select a band on the curve or in the controls.</div>
+  </div>
+  <div class="pulse-eq-graph-shell">
+    <div class="pulse-eq-stage"><svg id="eq-response-graph" class="pulse-eq-graph" viewBox="0 0 720 300" role="img" aria-label="Interactive parametric equalizer frequency response, draggable filters"></svg><canvas id="eq-live-spectrum" class="pulse-eq-live" aria-hidden="true"></canvas></div>
+    <div class="pulse-eq-graph-axis"><span>20 Hz</span><span>100 Hz</span><span>1 kHz</span><span>10 kHz</span><span>20 kHz</span></div>
+  </div>
+  <div class="pulse-eq-preset-section"><div class="pulse-eq-minor-heading">ACOUSTIC PRESETS</div><div class="eq-preset-pills" role="group" aria-label="Equalizer sound presets">
+  <button type="button" data-eq-preset="default" aria-pressed="true">DEFAULT</button>
+  <button type="button" data-eq-preset="custom" aria-pressed="false">CUSTOM</button>
+  <button type="button" data-eq-preset="voice-clarity" aria-pressed="false">VOICE CLARITY</button>
+  <button type="button" data-eq-preset="podcast" aria-pressed="false">PODCAST</button>
+  <button type="button" data-eq-preset="bass-focus" aria-pressed="false">BASS FOCUS</button>
+  <button type="button" data-eq-preset="full-bass" aria-pressed="false">FULL BASS</button>
+  <button type="button" data-eq-preset="bright" aria-pressed="false">BRIGHT</button>
+  <button type="button" data-eq-preset="warm" aria-pressed="false">WARM</button>
+  <button type="button" data-eq-preset="soft" aria-pressed="false">SOFT</button>
+  <button type="button" data-eq-preset="club" aria-pressed="false">CLUB</button>
+  <button type="button" data-eq-preset="rock" aria-pressed="false">ROCK</button>
+</div>
+    <p class="eq-preset-description" id="eq-preset-description" role="status">Flat response. No tonal processing.</p>
+  </div>
+  <div class="pulse-eq-bottom-controls">
+    <label class="pulse-eq-lr-toggle"><input type="checkbox" id="eq-split-view"> Edit channels separately · L / R</label>
+    <label class="pulse-eq-spectrum-toggle"><input type="checkbox" id="eq-spectrum" checked> Live FFT spectrum</label>
+  </div>
+  <p class="pulse-eq-editor-note" id="eq-active-readout" role="status">Select a band on the curve or in the controls.</p>
 </div><p class="tool-seek-hint" id="tool-seek-hint">Click or drag to seek · I/O loop · L toggle · +/− zoom · Arrows ±1s, Shift ±5s.</p><p class="waveform-loop-info" id="wave-loop-info" role="status">LOOP 00:00.00 – 00:00.00 · OFF</p><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Play audio">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Replace ↗</button></div>
   <section id="tool-insights" class="tool-insights" hidden aria-label="Audio analysis results">
     <div id="insights-mix" class="insights-view" hidden><strong>MIX ANALYSIS</strong></div>
@@ -230,32 +252,30 @@
             <p id="norm-status" class="tool-footnote" role="status">Load audio and select normalization.</p><div class="quick-actions"><button data-quick-preview="normalizer">▶ Preview</button><button data-quick-apply="normalizer">Apply to Workspace</button><button data-quick-export="normalizer">Export WAV ↗</button></div>
           </div>
 
-          <div id="panel-equalizer" class="tool-view" role="tabpanel" aria-labelledby="tab-equalizer" hidden>
-            <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span id="eq-band-count-note">20 BANDS · LOCAL DSP</span></div>
-            <h3>Equalizer.</h3>
-            <p class="tool-footnote">Adjust the interactive frequency response below the waveform; presets and filter settings are on the right.</p>
-            <select id="eq-band-count" aria-label="EQ band count" hidden><option value="3">3 BANDS</option><option value="8">8 BANDS</option><option value="10">10 BANDS</option><option value="20" selected>20 BANDS</option></select>
-<div class="tool-fields"><input id="eq-preset" type="hidden" value="default" aria-hidden="true">
-            <p class="tool-footnote" id="eq-character-description" hidden>Original PULSE filter curves.</p><label>Output gain <output id="eq-output-label">0.0 dB</output><input type="range" id="eq-output-gain" min="-18" max="12" step=".5" value="0"></label>
-            <label><input id="eq-bypass" type="checkbox"> Bypass EQ</label></div><div class="pulse-eq-right-presets"><h4>ACOUSTIC PRESETS</h4><div class="eq-preset-pills" role="group" aria-label="Equalizer sound presets">
-  <button type="button" data-eq-preset="default" aria-pressed="true">DEFAULT</button>
-  <button type="button" data-eq-preset="custom" aria-pressed="false">CUSTOM</button>
-  <button type="button" data-eq-preset="voice-clarity" aria-pressed="false">VOICE CLARITY</button>
-  <button type="button" data-eq-preset="podcast" aria-pressed="false">PODCAST</button>
-  <button type="button" data-eq-preset="bass-focus" aria-pressed="false">BASS FOCUS</button>
-  <button type="button" data-eq-preset="full-bass" aria-pressed="false">FULL BASS</button>
-  <button type="button" data-eq-preset="bright" aria-pressed="false">BRIGHT</button>
-  <button type="button" data-eq-preset="warm" aria-pressed="false">WARM</button>
-  <button type="button" data-eq-preset="soft" aria-pressed="false">SOFT</button>
-  <button type="button" data-eq-preset="club" aria-pressed="false">CLUB</button>
-  <button type="button" data-eq-preset="rock" aria-pressed="false">ROCK</button>
-</div><p class="eq-preset-description" id="eq-preset-description" role="status">Flat response. No tonal processing.</p><button type="button" class="pulse-eq-compare" id="eq-compare" aria-pressed="false">COMPARE WITHOUT EQ / FILTERS ↗</button><label class="pulse-eq-lr-toggle"><input type="checkbox" id="eq-split-view"> Display L / R waveform separately</label></div>
-            
-            <div id="eq-bands" class="pulse-eq-bands" aria-label="Equalizer band selection and settings"></div>
-            <div class="quick-actions"><button id="eq-reset" type="button">RESET</button><button id="eq-preview" type="button">▶ PREVIEW</button><button id="eq-apply" type="button">Apply to Workspace</button><button id="eq-export" type="button">Export WAV ↗</button></div>
-            <p class="eq-render-scope" id="eq-scope-info" role="status">PROCESSING SCOPE · ENTIRE TRACK</p><p class="tool-footnote" id="eq-status" role="status">Load your audio in the shared workspace to start.</p>
-          </div>
-          <div id="panel-denoise" class="tool-view pulse-ai-view" role="tabpanel" aria-labelledby="tab-denoise" hidden>
+          <div id="panel-equalizer" class="tool-view pulse-eq-inspector" role="tabpanel" aria-labelledby="tab-equalizer" hidden>
+  <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span id="eq-band-count-note">20 BANDS · LOCAL DSP</span></div>
+  <div class="pulse-eq-inspector-head"><div><span class="pulse-eq-inspector-kicker">LIVE EFFECT CONTROL</span><h3>Equalizer.</h3></div><span class="pulse-eq-dsp-badge">MASTER DSP</span></div>
+  <p class="tool-footnote pulse-eq-inspector-caption">Shape the spectrum on the left. Fine-tune every filter here, compare and export.</p>
+  <select id="eq-band-count" aria-label="EQ band count" hidden><option value="3">3 BANDS</option><option value="8">8 BANDS</option><option value="10">10 BANDS</option><option value="20" selected>20 BANDS</option></select>
+  <section class="pulse-eq-control-card pulse-eq-preamp-card" aria-label="Output gain settings">
+    <div class="pulse-eq-card-heading"><strong>PRE-AMP GAIN</strong><output id="eq-output-label" for="eq-output-gain">0.0 dB</output></div>
+    <input id="eq-preset" type="hidden" value="default" aria-hidden="true">
+    <p class="tool-footnote" id="eq-character-description" hidden>Original PULSE filter curves.</p>
+    <label class="pulse-eq-gain-control" for="eq-output-gain"><span class="sr-only">Output gain</span><input type="range" id="eq-output-gain" min="-18" max="12" step=".5" value="0"></label>
+    <div class="pulse-eq-gain-ticks"><span>−18 dB</span><span>0 dB</span><span>+12 dB</span></div>
+  </section>
+  <section class="pulse-eq-matrix-card" aria-label="EQ band selection and parameters">
+    <div class="pulse-eq-card-heading"><strong>BAND SELECTION · EQ MATRIX</strong><span>3 / 10 / 20</span></div>
+    <div id="eq-bands" class="pulse-eq-bands" aria-label="Equalizer band selection and settings"></div>
+  </section>
+  <div class="pulse-eq-bypass-card">
+    <label><input id="eq-bypass" type="checkbox"> BYPASS EQ</label>
+    <button type="button" class="pulse-eq-compare" id="eq-compare" aria-pressed="false">COMPARE WITHOUT EQ ↗</button>
+  </div>
+  <div class="quick-actions pulse-eq-action-bar" role="group" aria-label="Equalizer actions"><button id="eq-reset" type="button">RESET</button><button id="eq-preview" type="button">▶ PREVIEW</button><button id="eq-apply" type="button">Apply to Workspace</button><button id="eq-export" type="button">Export WAV ↗</button></div>
+  <p class="eq-render-scope" id="eq-scope-info" role="status">PROCESSING SCOPE · ENTIRE TRACK</p><p class="tool-footnote" id="eq-status" role="status">Load your audio in the shared workspace to start.</p>
+</div>
+<div id="panel-denoise" class="tool-view pulse-ai-view" role="tabpanel" aria-labelledby="tab-denoise" hidden>
             <div class="tool-view-header"><span>02 / SPECTRAL DENOISE</span><span>2048 FFT · LOCAL DSP</span></div>
             <h3>Clean your sound.</h3>
             <p class="tool-footnote">Select an isolated noise-only region with the waveform IN / OUT markers, then learn the noise fingerprint. Process the whole stereo track without changing the source until Apply.</p>

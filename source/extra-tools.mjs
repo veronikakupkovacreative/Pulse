@@ -1,7 +1,7 @@
 // Additional PULSE tools. All audio remains local to this browser session.
 function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,
   workingChanged,download,filename,status,decodeLocalAudio,audioFileError,encodeWav}){
-  const eqState={bands:makeEqBands(8),gainDb:0};
+  const eqState={bands:makeEqBands(20),gainDb:0};
   let mixTracks=[],mixCandidate=null,mixLoading=false,quickMixCandidate=null,separationWorker=null,separationRevision=0;
   const separationStatus=message=>status('mix-separation-status',message);
   function updateSeparationAvailability(){
@@ -135,7 +135,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     const band=eqState.bands[dragBand],hzMax=Math.min(20000,tools.buffer?.sampleRate*.45||21600);
     band.frequency=Math.max(20,Math.round(20*(hzMax/20)**nx));
     if(!['highpass','lowpass','notch'].includes(band.type))band.gain=Math.round((12-24*ny)*10)/10;
-    refreshEq(false);
+    setEqCustom();refreshEq(false);
   });
   el('eq-response-graph').addEventListener('pointerup',()=>{dragBand=-1;});
   el('eq-response-graph').addEventListener('pointercancel',()=>{dragBand=-1;});
@@ -209,7 +209,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
         row.querySelector('[name="'+name+'"]').addEventListener('input',event=>{
           const band=eqState.bands[selectedBand];
           band[field]=name==='enable'?event.target.checked:name==='type'?event.target.value:Number(event.target.value);
-          refreshEq(false);eqNotice('Band '+(selectedBand+1)+' changed. Preview to hear the result.');
+          setEqCustom();refreshEq(false);eqNotice('Band '+(selectedBand+1)+' changed. Preview to hear the result.');
         });
       }
       eqInputs.append(chooser,heading,row);
@@ -231,30 +231,47 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       ' · '+Math.round(b.frequency)+' Hz · '+b.gain.toFixed(1)+' dB · Q '+b.q.toFixed(2));
     drawEqGraph();eqNodeUpdate();
   }
-  function changeBandCount(count){
+  let currentEqPreset='default';
+  const eqPresetButtons=[...document.querySelectorAll('[data-eq-preset]')];
+  const eqBandButtons=[...document.querySelectorAll('[data-eq-bands]')];
+  function syncPresetButtons(){
+    for(const button of eqPresetButtons)button.setAttribute('aria-pressed',String(button.dataset.eqPreset===currentEqPreset));
+    el('eq-preset').value=currentEqPreset;
+    for(const button of eqBandButtons)button.setAttribute('aria-pressed',String(Number(button.dataset.eqBands)===eqState.bands.length));
+    status('eq-band-count-note',eqState.bands.length+' BANDS · LOCAL DSP');
+  }
+  function applyEqPreset(name){
+    if(name==='custom'){currentEqPreset='custom';syncPresetButtons();return;}
+    const spec=PULSE_EQ_PRESETS[name];
+    if(!spec)return;
     if(tools.playing)stopPreview();
-    eqState.bands=makeEqBands(count);selectedBand=0;
-    el('eq-preset').value='flat';
-    status('eq-character-description','Select a curve preset or adjust filters individually.');
+    eqState.bands=makeNamedEqPreset(name,eqState.bands.length);
+    selectedBand=Math.min(selectedBand,eqState.bands.length-1);
+    currentEqPreset=name;
+    status('eq-preset-description',spec.description);
+    status('eq-character-description',spec.description);
+    syncPresetButtons();
+    refreshEq(true);
+    eqNotice(spec.label+' preset applied. Preview to hear the EQ response.');
+  }
+  function changeBandCount(count){
+    if(![3,10,20].includes(count))return;
+    if(tools.playing)stopPreview();
+    eqState.bands=currentEqPreset==='custom'?makeEqBands(count):makeNamedEqPreset(currentEqPreset,count);
+    selectedBand=0;
+    el('eq-band-count').value=String(count);
+    syncPresetButtons();
     refreshEq(true);eqNotice(count+'-band parametric EQ ready.');
   }
   el('eq-band-count').addEventListener('change',e=>changeBandCount(Number(e.target.value)));
-  el('eq-preset').addEventListener('change',()=>{
-    const selected=presets[el('eq-preset').value]||presets.flat;
-    if(eqState.bands.length===8){
-      selected.forEach((band,i)=>Object.assign(eqState.bands[i],band));
-    }else{
-      // Transfer the preset to whichever editable band lies nearest in log frequency.
-      for(const band of eqState.bands){band.gain=0;band.enabled=true;}
-      for(const band of selected.filter(b=>b.enabled&&Math.abs(b.gain)>.01)){
-        const index=selectClosestBand(eqState.bands,band.frequency);
-        if(index>=0){eqState.bands[index].gain=Math.max(-12,Math.min(12,eqState.bands[index].gain+band.gain));}
-      }
-    }
-    const mode=CLASSIC_EQ_MODES[el('eq-preset').value];
-    status('eq-character-description',mode?mode.description+' · PULSE-designed filters, not hardware emulation.':'Adjust the eight bands or choose a Classic EQ character.');
-    refreshEq(true);
-  });
+  for(const button of eqBandButtons)button.onclick=()=>changeBandCount(Number(button.dataset.eqBands));
+  for(const button of eqPresetButtons)button.onclick=()=>applyEqPreset(button.dataset.eqPreset);
+  // Mark hand-edited presets as custom without discarding the current filter values.
+  function setEqCustom(){
+    if(currentEqPreset==='custom')return;
+    currentEqPreset='custom';syncPresetButtons();
+    status('eq-preset-description','Custom EQ curve. Changes are preserved until a new preset is selected.');
+  }
   el('eq-output-gain').addEventListener('input',()=>{
     eqState.gainDb=Number(el('eq-output-gain').value);
     status('eq-output-label',eqState.gainDb.toFixed(1)+' dB');
@@ -272,9 +289,9 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   };
   el('eq-bypass').addEventListener('change',syncAB);
   el('eq-reset').onclick=()=>{
-    eqState.bands=makeEqBands(Number(el('eq-band-count').value));selectedBand=0;
+    eqState.bands=makeNamedEqPreset('default',Number(el('eq-band-count').value));selectedBand=0;
     eqState.gainDb=0;el('eq-output-gain').value='0';status('eq-output-label','0.0 dB');
-    el('eq-bypass').checked=false;el('eq-preset').value='flat';refreshEq(true);syncAB();
+    el('eq-bypass').checked=false;currentEqPreset='default';syncPresetButtons();status('eq-preset-description',PULSE_EQ_PRESETS.default.description);refreshEq(true);syncAB();
   };
   function eqPreviewOptions(){
     // Always create the full filter chain, even in A/original mode.
@@ -322,7 +339,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-preview').onclick=()=>void eqAction('preview');
   el('eq-apply').onclick=()=>void eqAction('apply');
   el('eq-export').onclick=()=>void eqAction('export');
-  refreshEq(true);
+  applyEqPreset('default');
   syncAB();
 
   function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}

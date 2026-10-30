@@ -197,6 +197,7 @@ export function initStudioTools(getBpmTrack){
   function workingChanged(){
     tools.masterCandidate=null;resetMasterUI();stopPreview();tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;tools.markers=[];tools.selectedSlice=0;tools.quickCandidate=null;tools.quickBounds=null;
     extraApi?.onWorkspaceChanged?.();
+    denoiseApi?.invalidate?.();
     const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;
     overviewPaintedFor=null;
     extraApi?.updateSeparationAvailability?.();tools.playhead=clampPlayhead(tools.playhead,tools.buffer?.duration);
@@ -498,7 +499,7 @@ export function initStudioTools(getBpmTrack){
   }
   const groups={
     analyze:['key','tuner','calculator'],
-    edit:['cutter','pitch','slicer','reverse','trim','equalizer'],
+    edit:['cutter','pitch','slicer','reverse','trim','equalizer','denoise'],
     export:['converter','normalizer'],
     ai:['master','mix']
   };
@@ -1290,6 +1291,7 @@ export function initStudioTools(getBpmTrack){
   }
   extraApi=initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
     download,filename,status,decodeLocalAudio,audioFileError,encodeWav});
+  denoiseApi=initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav});
   selectCategory('analyze',false);syncOutput();updateCalculator();resetWaveView(0);updateButtons();
   return {reset:remove};
 }

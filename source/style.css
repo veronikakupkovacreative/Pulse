@@ -459,12 +459,12 @@
 .eq-wave-title{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:10px;letter-spacing:.08em;}
 .eq-wave-title span{font-size:9px;color:#aaa9a4;}
 .eq-wave-actions{display:flex;flex-wrap:wrap;gap:7px;}
-.eq-wave-actions button{min-height:36px;border:1px solid #77756f;padding:7px 11px;color:#f5f4f0;font:600 10px inherit;letter-spacing:.025em;transition:background .15s;}
+.eq-wave-actions button{min-height:36px;border:1px solid #77756f;padding:7px 11px;color:#f5f4f0;font-size:10px;font-weight:600;font-family:inherit;letter-spacing:.025em;transition:background .15s;}
 .eq-wave-actions button:hover:not(:disabled),.eq-wave-actions button[aria-pressed=true]{background:#ff2b20;color:#181818;border-color:#ff2b20;}
 .eq-wave-actions button:disabled{opacity:.42;cursor:not-allowed}
 .eq-wave-actions button:focus-visible,.eq-time-fields input:focus-visible{outline:2px solid #f5f4f0;outline-offset:3px}
 .eq-time-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:10px}
-.eq-time-fields label{display:grid;gap:6px;font:600 10px inherit;color:#c6c5bf;letter-spacing:.07em}
+.eq-time-fields label{display:grid;gap:6px;font-size:10px;font-weight:600;font-family:inherit;color:#c6c5bf;letter-spacing:.07em}
 .eq-time-fields input{background:#242421;border:1px solid #6c6b65;color:#fff;font:12px/1.2 monospace;min-width:0;width:100%;min-height:36px;padding:8px;}
 .eq-time-fields output{font:600 10px monospace;color:#fff;white-space:nowrap;padding-bottom:9px;}
 .eq-wave-editor #eq-wave-help{font-size:10px!important;line-height:1.5!important;color:#b8b7b0!important;}

@@ -55,6 +55,7 @@ export function initStudioTools(getBpmTrack){
     extraApi?.onWorkspaceChanged?.();
     const snapshot=workspace.snapshot();tools.file=snapshot.file;tools.buffer=snapshot.working;
     extraApi?.updateSeparationAvailability?.();tools.playhead=clampPlayhead(tools.playhead,tools.buffer?.duration);
+    if(tools.eqSelection){const {from,to}=tools.eqSelection;tools.eqSelection=to<=tools.buffer?.duration?{from,to}:null;}
     el('workspace-undo').disabled=!snapshot.canUndo;el('workspace-redo').disabled=!snapshot.canRedo;el('workspace-original').disabled=!snapshot.hasChanges;
     status('workspace-state',snapshot.hasChanges?'WORKING AUDIO':'ORIGINAL');
     if(!tools.buffer){el('tool-loaded').hidden=true;el('tool-empty').hidden=false;updatePlayhead(0);return;}
@@ -288,7 +289,7 @@ export function initStudioTools(getBpmTrack){
       el('tool-name').textContent=file.name;el('tool-name').title=file.name;
       status('tool-ext',file.name.split('.').pop().toUpperCase());
       status('tool-details',`${durationText(buffer.duration)} · ${readableSize(file.size)} · ${buffer.numberOfChannels} ch. · ${(buffer.sampleRate/1000).toFixed(1)} kHz`);
-      el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();drawToolWave();
+      el('tool-loaded').hidden=false;el('tool-empty').hidden=true;resetKey();updateTrimInputs();syncEqEditor();drawToolWave();
       syncOutput();el('tool-file-feedback').hidden=true;status('conv-status','Ready to export.');status('cut-status','Set loop length or select a number of bars.');
       updatePlayhead(0);
     }catch(e){if(token===tools.operation){error('Cannot decode audio: '+(e?.message||'unsupported codec')+'. MP4/M4A/FLAC support depends on the browser.');status('conv-status','Failed to load file.');}}
@@ -659,6 +660,7 @@ export function initStudioTools(getBpmTrack){
     updatePlayhead(Math.min(from,tools.buffer?.duration||from));
     el('tool-preview').textContent='Ⅱ';el('tool-preview').setAttribute('aria-label','Pause audio');
     advancePlayhead();
+    if(tools.tab==='equalizer'&&eqBands)extraApi?.startSpectrum?.();
   }
   async function analyze808(){
     if(!tools.buffer||tools.loading)return;

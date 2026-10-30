@@ -17,7 +17,7 @@ test('Key Finder explanatory section displays provided copy and three steps', as
 test('Only Key Finder shows its own text and typography responds on mobile', async()=>{
   const js=await readFile(new URL('../source/tools.mjs',import.meta.url),'utf8');
   const css=await readFile(new URL('../source/style.css',import.meta.url),'utf8');
-  assert.ok(js.includes("el('pulse-feature-key').hidden=which!=='key';"));
+  assert.ok(js.includes("section.hidden=section.dataset.feature!==which;"));
   assert.match(css,/\.pulse-feature-layout\s*\{\s*display: grid/);
   assert.match(css,/@media\(max-width: 580px\)/);
 });

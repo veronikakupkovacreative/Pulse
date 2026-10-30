@@ -908,3 +908,41 @@ button:not(.tool-play):not(.tap-pad),select,textarea,input:not([type="radio"]):n
   .pulse-feature-copy > p { font-size: 14px; margin-bottom: 22px; }
   .pulse-feature-instructions ol { font-size: 13px; }
 }
+
+
+/* PULSE editorial copy: in/out formats, desktop column hierarchy and mobile stack. */
+.hero:has(.pulse-hero-info) {
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(260px,1fr) minmax(165px,.58fr);
+  gap:clamp(22px,2.8vw,46px);
+  align-items:start;
+  padding-top:65px;
+  padding-bottom:48px;
+}
+.hero:has(.pulse-hero-info) .hero-art {width:100%;max-width:245px;margin:0;align-self:start}
+.hero:has(.pulse-hero-info) .hero-copy {min-width:0;padding-top:21px}
+.pulse-hero-info {min-width:0;padding-top:10px}
+.pulse-hero-info p {font-size:clamp(12px,1vw,15px);line-height:1.63;letter-spacing:-.01em;margin:0}
+.pulse-hero-info .pulse-info-eyebrow {font:600 10px/1.4 'Courier New',monospace;letter-spacing:.12em;color:var(--muted);margin:0 0 14px}
+.pulse-info-dot {display:inline-block;background:#ff0000;width:7px;height:7px;vertical-align:middle;margin-right:8px}
+.pulse-formats {border-top:1px solid var(--line);padding-top:23px;margin-top:25px}
+.pulse-formats h2 {font-size:clamp(18px,1.6vw,25px);letter-spacing:-.045em;line-height:1.13;margin:0 0 10px;font-weight:700}
+.pulse-format-tags {display:flex;flex-wrap:wrap;gap:6px;margin-top:17px}
+.pulse-format-tags span {font:700 10px/1.25 'Courier New',monospace;letter-spacing:.07em;border:1px solid var(--ink);border-radius:0;padding:8px 12px}
+.pulse-feature-bpm {margin:30px 0 48px}
+.pulse-feature-layout h3.pulse-feature-long-title {font-size:clamp(42px,4.8vw,70px);letter-spacing:-.07em}
+@media(max-width:1050px) {
+  .hero:has(.pulse-hero-info) {grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:25px}
+  .hero:has(.pulse-hero-info) .hero-art {display:none}
+}
+@media(max-width:650px) {
+  .hero:has(.pulse-hero-info) {grid-template-columns:1fr;padding-top:32px;gap:27px}
+  .hero:has(.pulse-hero-info) .hero-copy {padding:0}
+  .hero:has(.pulse-hero-info) .hero-art {display:none}
+  .pulse-hero-info {padding:0}
+  .pulse-hero-info p {font-size:13px}
+  .pulse-formats {margin-top:20px;padding-top:20px}
+  .pulse-formats h2 {font-size:23px}
+  .pulse-feature-bpm {margin-bottom:30px}
+  .pulse-feature-layout h3.pulse-feature-long-title {font-size:clamp(42px,11vw,62px)}
+}

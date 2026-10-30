@@ -209,6 +209,8 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   el('eq-preset').addEventListener('change',()=>{
     const selected=presets[el('eq-preset').value]||presets.flat;
     selected.forEach((band,i)=>Object.assign(eqState.bands[i],band));
+    const mode=CLASSIC_EQ_MODES[el('eq-preset').value];
+    status('eq-character-description',mode?mode.description+' · PULSE-designed filters, not hardware emulation.':'Adjust the eight bands or choose a Classic EQ character.');
     refreshEq();
   });
   el('eq-output-gain').addEventListener('input',()=>{
@@ -304,7 +306,15 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       const title=document.createElement('strong');title.textContent=(i+1)+' · '+stem.name;
       const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
       remove.onclick=()=>{mixTracks.splice(i,1);invalidateMix();renderMixRows();mixNotice(mixTracks.length+' stems loaded.');};
-      head.append(title,remove);row.append(head);
+      const exportStem=document.createElement('button');exportStem.type='button';
+      exportStem.textContent='Download WAV';
+      exportStem.setAttribute('aria-label','Download '+stem.name+' as 24-bit WAV');
+      exportStem.onclick=()=>{try{
+        const blob=encodeWav(stem.channels,stem.rate,24);
+        const safeName=stem.name.replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'').toLowerCase();
+        download(blob,'pulse-stem-'+(safeName||'audio')+'.wav');
+      }catch(error){mixNotice(error.message||'Stem export failed.');}};
+      head.append(title,exportStem,remove);row.append(head);
       const meters=document.createElement('p');meters.textContent='RMS '+stem.measurement.rmsDb.toFixed(1)+' dBFS · Peak '+stem.measurement.peakDb.toFixed(1)+' dBFS';row.append(meters);
       for(const [label,key,min,max,step,unit] of [['Gain','gainDb',-24,12,.5,' dB'],['Pan','pan',-1,1,.05,'']]){
         const holder=document.createElement('label');holder.textContent=label+' ';

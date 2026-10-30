@@ -52,3 +52,10 @@ test('Demucs model is opt-in, bounded, and retains actual four-stem result valid
   assert.match(worker,/separateStems\(/);
   assert.match(worker,/44100\*45/);
 });
+
+test('AI separated stem export is accessible as individual WAV actions',async()=>{
+ const extra=await readFile(new URL('../source/extra-tools.mjs',import.meta.url),'utf8');
+ assert.match(extra,/Download WAV/);
+ assert.match(extra,/encodeWav\(stem.channels,stem.rate,24\)/);
+ assert.match(extra,/pulse-stem-/);
+});

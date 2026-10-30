@@ -4,11 +4,11 @@ import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../source/index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../source/style.css',import.meta.url),'utf8');
 const app=readFileSync(new URL('../source/app.mjs',import.meta.url),'utf8');
-test('original eight cards are arranged as 2 / 3 / 3 with the processing note',()=>{
+test('eight curated toolkit cards and processing note are retained',()=>{
  assert.equal([...html.matchAll(/<article class="pulse-directory-card/g)].length,8);
  assert.equal([...html.matchAll(/class="pulse-directory-column"/g)].length,3);
  assert.match(html,/FILE PROCESSING/);
- for(const n of ['Separate into Stems (AI)','Sidechain Compressor','Auto-Tune / Pitch Correction','Modulation Effects','Custom Plug-ins Support','Time-Stretching (Match BPM)','Clip Volume &amp; Pan','AI Mix &amp; Master']) assert.ok(html.includes(n),n);
+ for(const n of ['AI Stem Splitter','AI Vocal Remover','AI Beat Detection','Parametric Equalizer','Transient Shaper / De-Esser','AI Audio Reverse','Audio Converter','AI Normalizer']) assert.ok(html.includes(n),n);
  for(const name of ['ANALYZE','EDIT','EXPORT','AI STUDIO']) assert.match(html,new RegExp('<h2>'+name+'</h2>'));
 });
 test('Arial Regular 18px applies to tool navigation and featured-card titles',()=>{

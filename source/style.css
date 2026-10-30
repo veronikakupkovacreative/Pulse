@@ -691,3 +691,16 @@
   .pulse-ai-view .master-actions button:last-child{grid-column:span 2}
   .pulse-ai-result-actions{grid-template-columns:1fr}
 }
+
+
+/* PULSE EQ screenshot-inspired controls; preserve the existing layout and processing graph. */
+.eq-mode-pills,.eq-preset-pills{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.eq-mode-pills{margin:4px 0 14px}
+.eq-preset-pills{margin-top:12px}
+.eq-mode-pills button,.eq-preset-pills button{min-height:36px;border:1px solid #63625b;border-radius:100px;background:transparent;color:#d7d4cc;padding:8px 13px;font:700 10px/1.2 Arial,sans-serif;letter-spacing:.07em;white-space:nowrap}
+.eq-mode-pills button[aria-pressed="true"],.eq-preset-pills button[aria-pressed="true"]{background:#ffe88b;border-color:#ffe88b;color:#161616}
+.eq-mode-pills button:focus-visible,.eq-preset-pills button:focus-visible{outline:2px solid #ff2b20;outline-offset:2px}
+.eq-mode-caption{color:#a7a39c;font-size:10px;margin-left:5px}
+.eq-preset-description{font-size:10px;line-height:1.55;color:#b5b2a9;margin:8px 0 4px}
+.eq-band-picker{grid-template-columns:repeat(10,minmax(0,1fr))}
+@media(max-width:720px){.eq-band-picker{grid-template-columns:repeat(5,minmax(0,1fr))}.eq-mode-caption{flex-basis:100%;margin-left:0}}

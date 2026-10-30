@@ -842,3 +842,19 @@
 @media(prefers-reduced-motion:reduce){
   .pulse-eq-left .pulse-eq-graph circle{transition:none!important}
 }
+
+/* PULSE brand lock · corners, spectrum and clean DSP tools. */
+.pulse-eq-left .pulse-eq-stage{background:#000!important;border:1px solid #404040!important;border-radius:0!important;box-shadow:none!important}
+.pulse-eq-left .pulse-eq-graph{background:#000!important}
+.pulse-eq-left .pulse-eq-stage .pulse-eq-live{opacity:.7!important}
+.pulse-eq-left .eq-mode-pills button,.pulse-eq-left .eq-preset-pills button,.eq-mode-pills button,.eq-preset-pills button{border-radius:0!important}
+.tool-board button,.tool-board input,.tool-board select,.tool-board textarea,.tool-board .pulse-eq-band,.tool-board .eq-overview-canvas-wrap,.tool-board .tool-waveform-wrap,.tool-board .pulse-ai-advanced{border-radius:0!important}
+.tool-board input[type=range]::-webkit-slider-runnable-track,.tool-board input[type=range]::-webkit-slider-thumb,.tool-board input[type=range]::-moz-range-track,.tool-board input[type=range]::-moz-range-thumb{border-radius:0!important}
+#panel-equalizer input[type=range],.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range],#wave-noise-reduction{accent-color:#ff0000!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-thumb{background:#ff0000!important}
+#panel-equalizer .eq-band-picker button[aria-pressed=true]{background:#191919!important;color:#fff!important;border-color:#191919!important}
+.pulse-clean-format{display:grid;gap:7px;grid-column:1/-1;font-size:11px;font-weight:700}
+.pulse-clean-format select{min-height:44px;width:100%;border:1px solid #191919;background:transparent;color:#191919;padding:10px;max-width:100%}
+.pulse-youtube-retry{padding:10px 14px;border:1px solid currentColor;font:700 11px Arial,sans-serif;border-radius:0!important}
+.mix-character-types label span{border-radius:0!important}
+@media(prefers-reduced-motion:reduce){.pulse-eq-left .pulse-eq-graph circle{transition:none!important}}

@@ -25,7 +25,7 @@ test('compiled HTML exposes both accessible seeking surfaces and visual playhead
   assert.match(html,/id="tool-playhead"/);
   assert.match(html,/id="bpm-playhead"/);
   assert.match(html,/id="tool-waveform"[^>]*role="slider"/);
-  assert.match(html,/Shift\+klik/);
+  assert.match(html,/Shift\+drag/);
   assert.match(html,/function seekTool\(time,autoplay=true,sourceTransport/);
 });
 

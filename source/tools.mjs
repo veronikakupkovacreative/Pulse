@@ -26,13 +26,13 @@ export function initStudioTools(getBpmTrack){
     el('eq-select-region').setAttribute('aria-pressed',String(tools.eqSelectMode));
     const selection=tools.eqSelection,duration=tools.buffer?.duration||0;
     el('eq-region-in').max=String(duration);el('eq-region-out').max=String(duration);
-    if(document.activeElement!==el('eq-region-in'))el('eq-region-in').value=(selection?.from??0).toFixed(2);
-    if(document.activeElement!==el('eq-region-out'))el('eq-region-out').value=(selection?.to??duration).toFixed(2);
+    if(document.activeElement!==el('eq-region-in'))el('eq-region-in').value=(selection?.from??0).toFixed(3);
+    if(document.activeElement!==el('eq-region-out'))el('eq-region-out').value=(selection?.to??duration).toFixed(3);
     el('eq-play-region').disabled=!selection||!loaded;
     el('eq-clear-region').disabled=!selection;
     el('wave-trim-range').disabled=!selection;el('wave-delete-range').disabled=!selection;
     status('eq-range-length',selection?precise(selection.to-selection.from)+' SELECTED':'FULL TRACK');
-    status('eq-scope-info',selection?'PROCESSING SCOPE · '+precise(selection.from)+' – '+precise(selection.to):'PROCESSING SCOPE · ENTIRE TRACK');
+    status('eq-scope-info',selection?'PROCESSING SCOPE · '+selection.from.toFixed(3)+'s – '+selection.to.toFixed(3)+'s':'PROCESSING SCOPE · ENTIRE TRACK');
     el('tool-waveform').setAttribute('aria-label',eq?'EQ waveform: click to seek; Select Range and drag, or Shift and drag':'Waveform playback position; click or drag to seek');
   }
   function setEqSelection(from,to){

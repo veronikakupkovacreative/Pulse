@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {EQ_DEFAULT_BANDS,eqCoefficients,eqResponse,renderEqualizer} from '../source/dsp/parametric-eq.mjs';
+import {mixStems,stemMeasurements,suggestedGainDb} from '../source/dsp/multitrack-mix.mjs';
+const rate=48000;
+const sine=(hz,length=48000)=>Float32Array.from({length},(_,i)=>.24*Math.sin(2*Math.PI*hz*i/rate));
+const rms=c=>Math.sqrt(c.reduce((s,x)=>s+x*x,0)/c.length);
+test('6-band EQ default curve is flat, bypass retains signal',()=>{
+ const bands=EQ_DEFAULT_BANDS.map(x=>({...x}));
+ assert.equal(bands.length,6);
+ const curve=eqResponse(bands,rate);
+ assert.ok(curve.every(p=>Math.abs(p.db)<.0001));
+ const input=sine(440,10000);
+ const output=renderEqualizer([input],rate,bands,0);
+ assert.equal(output.length,1);
+ for(let i=0;i<input.length;i++)assert.equal(output[0][i],input[i]);
+});
+test('EQ applies bell gain and highpass filter',()=>{
+ const bell=[{type:'peaking',frequency:1000,gain:6,q:1,enabled:true}];
+ const at1000=eqResponse(bell,rate).find(p=>Math.abs(p.hz-1000)<40);
+ assert.ok(at1000.db>5.5);
+ const highpass=[{type:'highpass',frequency:400,gain:0,q:.707,enabled:true}];
+ const low=sine(60),high=sine(3000);
+ const l=renderEqualizer([low],rate,highpass)[0];
+ const h=renderEqualizer([high],rate,highpass)[0];
+ assert.ok(rms(l)<rms(low)*.08);
+ assert.ok(rms(h)>rms(high)*.95);
+ assert.throws(()=>eqCoefficients({type:'peaking',frequency:1000,gain:30,q:1},rate),/Invalid/);
+});
+test('multi-stem mixer preserves duration, mute/solo, pan and peak ceiling',()=>{
+ const a={name:'Kick',rate,channels:[sine(90,10000)],gainDb:8,pan:0,mute:false,solo:false};
+ const b={name:'Bass',rate,channels:[sine(120,8000)],gainDb:8,pan:0,mute:false,solo:false};
+ const aOriginal=a.channels[0].slice();
+ const mix=mixStems([a,b]);
+ assert.equal(mix.channels.length,2);assert.equal(mix.channels[0].length,10000);
+ assert.ok(mix.peakDb<=-0.999);
+ assert.deepEqual(a.channels[0],aOriginal);
+ assert.ok(Number.isFinite(suggestedGainDb(a.channels)));
+ const solo=mixStems([{...a,solo:true},{...b,solo:false}]);
+ const mute=mixStems([{...a,solo:true},{...b,mute:true}]);
+ assert.deepEqual(solo.channels,mute.channels);
+ const left=mixStems([{...a,pan:-1},{...b,mute:true}]);
+ assert.ok(rms(left.channels[0])>rms(left.channels[1])*10);
+ assert.ok(stemMeasurements([a.channels[0]]).rmsDb<0);
+});
+test('mixer rejects wrong stem count and differing sample rates',()=>{
+ const one={rate,channels:[sine(440,1000)],gainDb:0,pan:0};
+ assert.throws(()=>mixStems([one]),/2 and 8/);
+ assert.throws(()=>mixStems([one,{...one,rate:44100}]),/matching sample rates/);
+});

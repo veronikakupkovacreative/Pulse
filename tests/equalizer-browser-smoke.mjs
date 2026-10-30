@@ -69,7 +69,7 @@ try{
     assert(await page.locator('#eq-response-graph circle').count()===3,'3 real EQ controls '+width);
     await page.evaluate(()=>{const e=document.querySelector('#eq-band-count');e.value='8';e.dispatchEvent(new Event('change',{bubbles:true}));});
     // Change preset, check the rendered curve is non-flat.
-    await page.locator('#eq-preset').selectOption('classic-air');
+    await page.locator('[data-eq-preset="bright"]').click();
     assert((await page.locator('#eq-response-graph path').count())>0,'EQ response curve renders '+width);
     await page.locator('#wave-zoom-in').click();
     const viewBefore=await page.locator('#eq-overview-window').evaluate(e=>e.style.width);

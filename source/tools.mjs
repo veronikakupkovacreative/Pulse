@@ -125,7 +125,7 @@ export function initStudioTools(getBpmTrack){
   function resetKey(){
     tools.keyResult=null;tools.tunerResult=null;
     updatePitchKey();el('key-result').hidden=true;el('key-idle').hidden=false;el('key-alternatives').hidden=true;
-    el('tuner-target').replaceChildren(new Option('Nejprve analyzovat',''));el('tuner-target').disabled=true;
+    el('tuner-target').replaceChildren(new Option('Analyze first',''));el('tuner-target').disabled=true;
     el('tuner-semitones').value='0';el('tuner-cents-adjust').value='0';updateTunerLabels();
     for(const id of ['tuner-note','tuner-frequency','tuner-cents'])status(id,'—');
     status('tuner-confidence','AWAITING ANALYSIS');status('tuner-stability','STABILITA —');

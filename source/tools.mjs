@@ -14,7 +14,7 @@ export function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
   const workspace=pulseProject.workspace;
   const tools={eqNodes:null,eqOutputGain:null,eqAnalyser:null,eqSelection:null,eqSelectMode:false,eqDragId:null,eqDragStart:0,peaksRight:null,category:'analyze',masterCandidate:null,reference:null,referenceGeneration:0,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
-  let extraApi=null;
+  let extraApi=null,denoiseApi=null;
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
   const precise=seconds=>`${durationText(seconds)}.${String(Math.floor((seconds%1)*100)).padStart(2,'0')}`;
   const filename=ext=>(tools.file?.name||'Pulse audio').replace(/\.[^.]+$/,'')+'.'+ext;

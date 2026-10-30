@@ -30,6 +30,7 @@ export function initStudioTools(getBpmTrack){
     if(document.activeElement!==el('eq-region-out'))el('eq-region-out').value=(selection?.to??duration).toFixed(2);
     el('eq-play-region').disabled=!selection||!loaded;
     el('eq-clear-region').disabled=!selection;
+    el('wave-trim-range').disabled=!selection;el('wave-delete-range').disabled=!selection;
     status('eq-range-length',selection?precise(selection.to-selection.from)+' SELECTED':'FULL TRACK');
     status('eq-scope-info',selection?'PROCESSING SCOPE · '+precise(selection.from)+' – '+precise(selection.to):'PROCESSING SCOPE · ENTIRE TRACK');
     el('tool-waveform').setAttribute('aria-label',eq?'EQ waveform: click to seek; Select Range and drag, or Shift and drag':'Waveform playback position; click or drag to seek');
@@ -51,6 +52,66 @@ export function initStudioTools(getBpmTrack){
     if(!Number.isFinite(from)||!Number.isFinite(to)){syncEqEditor();return;}
     setEqSelection(from,to);
   };
+  el('wave-noise-reduction').oninput=()=>status('wave-noise-level',el('wave-noise-reduction').value+' dB');
+  async function waveEditAction(action){
+    if(!tools.buffer||tools.loading)return;
+    const original=tools.buffer,selected=tools.eqSelection;
+    const rate=original.sampleRate,source=channels(original);
+    const statusId='wave-edit-status',token=++tools.operation;
+    stopPreview();setBusy(true);
+    status(statusId,'Processing audio locally…');
+    try{
+      await new Promise(resolve=>setTimeout(resolve,0));
+      if(token!==tools.operation)return;
+      if(action==='split'){
+        const parts=splitWaveform(source,rate,tools.playhead,5);
+        download(encodeWav(parts.left,rate,24),filename('split-A.wav'));
+        download(encodeWav(parts.right,rate,24),filename('split-B.wav'));
+        status(statusId,'Two split WAV files downloaded; the workspace remains unchanged.');
+        return;
+      }
+      let result,report='';
+      if(action==='trim'||action==='delete'){
+        if(!selected)throw Error('Choose an IN–OUT range in the waveform first.');
+        if(action==='trim'){
+          result=trimWaveform(source,rate,selected.from,selected.to,5);
+          tools.playhead=0;report='Selection trimmed to clip with 5 ms fades.';
+        }else{
+          result=deleteWaveformRange(source,rate,selected.from,selected.to,5);
+          tools.playhead=selected.from;report='Selection deleted with micro-fades at the cut.';
+        }
+      }else if(action==='silence'){
+        const thresholdDb=Number(el('wave-quiet-db').value),minPauseMs=Number(el('wave-quiet-ms').value);
+        const removed=removeQuietPauses(source,rate,{thresholdDb,minPauseMs,keepMs:120,fadeMs:5});
+        result=removed.channels;report=removed.removed+' long pause(s) shortened. Undo is available.';
+      }else if(action==='noise'){
+        result=reduceNoiseGate(source,rate,{
+          thresholdDb:Number(el('wave-quiet-db').value),
+          maxReductionDb:Number(el('wave-noise-reduction').value)
+        });
+        report='Conservative noise gate applied; this is not neural denoising. Compare by ear.';
+      }else return;
+      if(original!==tools.buffer)throw Error('The audio changed during processing.');
+      tools.eqSelection=null;
+      workspace.apply(asAudioBuffer(result,rate));workingChanged();
+      status(statusId,report);
+    }catch(err){status(statusId,err.message||'Waveform operation failed.');}
+    finally{if(token===tools.operation)setBusy(false);}
+  }
+  el('wave-trim-range').onclick=()=>void waveEditAction('trim');
+  el('wave-delete-range').onclick=()=>void waveEditAction('delete');
+  el('wave-split').onclick=()=>void waveEditAction('split');
+  el('wave-remove-pauses').onclick=()=>void waveEditAction('silence');
+  el('wave-denoise').onclick=()=>void waveEditAction('noise');
+  document.addEventListener('keydown',event=>{
+    if(!(event.metaKey||event.ctrlKey)||event.key.toLowerCase()!=='z')return;
+    if(!document.activeElement?.closest('#toolkit'))return;
+    if(document.activeElement?.matches('input,textarea,select,[contenteditable=true]'))return;
+    if(tools.loading)return;
+    event.preventDefault();
+    if(event.shiftKey){if(workspace.redo())workingChanged();}
+    else if(workspace.undo())workingChanged();
+  });
   function workingChanged(){
     tools.masterCandidate=null;resetMasterUI();stopPreview();tools.productionWorker?.terminate();tools.productionWorker=null;tools.productionCandidate=null;tools.masterCandidate=null;tools.markers=[];tools.selectedSlice=0;tools.quickCandidate=null;tools.quickBounds=null;
     extraApi?.onWorkspaceChanged?.();
@@ -499,7 +560,7 @@ export function initStudioTools(getBpmTrack){
     const token=++tools.operation;clearError();setBusy(true);stopPreview();
     try{
       if(tools.to-tools.from<.03)throw new Error('Loop must be at least 30 ms.');
-      const data=extractSegment(channels(tools.buffer),tools.buffer.sampleRate,tools.from,tools.to,Number(el('cut-fade').value));
+      const data=extractSegment(channels(tools.buffer),tools.buffer.sampleRate,tools.from,tools.to,Math.max(5,Number(el('cut-fade').value)));
       const bitDepth=Number(el('cut-depth').value),bytes=data[0].length*data.length*(bitDepth/8);
       if(bytes>300*1024*1024)throw new Error('Loop too long. Shorten selection.');
       status('cut-status','Rendering loop…');await new Promise(r=>setTimeout(r,0));

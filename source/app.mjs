@@ -298,7 +298,7 @@ function makeDemo() {
 }
 $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
-initAdvancedFX(pulseProject,encodeWav);
+import('/modules/producer-studio.mjs').then(({initProducerStudio})=>initProducerStudio(pulseProject,encodeWav)).catch(error=>{console.error(error);toast('Clip workspace could not load. Please reload.');});
 pulseProject.subscribe(({type,origin,state:project})=>{
   if(type==='load'&&origin==='toolkit'&&project.working&&project.file){
     // Re-use the same decoded asset. The BPM worker gets only a lightweight mono copy.
@@ -367,7 +367,7 @@ pulseProject.subscribe(({type,origin,state:project})=>{
    if(event.key==='?'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!editable(event)&&!inDialog()){
      event.preventDefault();help?.showModal();return;
    }
-   if(event.ctrlKey||event.metaKey||event.altKey||event.repeat||editable(event)||inDialog())return;
+   if(event.defaultPrevented||event.target.closest?.('#producer-studio')||event.ctrlKey||event.metaKey||event.altKey||event.repeat||editable(event)||inDialog())return;
    const loaded=document.getElementById('tool-loaded');
    if(!loaded||loaded.hidden)return;
    if(event.code==='Space'){event.preventDefault();document.getElementById('tool-preview')?.click();return;}

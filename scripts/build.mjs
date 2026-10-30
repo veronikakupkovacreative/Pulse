@@ -1,4 +1,4 @@
-import {readFile,writeFile,mkdir,copyFile,readdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,copyFile,readdir,cp} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -10,6 +10,7 @@ let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,quickDsp,audioWork
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
   read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('dsp/quick-tools.mjs'),read('core/audio-workspace.mjs'),read('dsp/production-tools.mjs'),read('production-worker.mjs'),read('dsp/zip-store.mjs'),read('dsp/master-presets.mjs'),read('dsp/mastering.mjs'),read('playhead.mjs'),read('dsp/harmonic-workflow.mjs'),read('file-support.mjs'),read('core/media-loader.mjs'),read('core/project-session.mjs'),read('metronome-clock.mjs'),read('dsp/audio-export.mjs'),read('dsp/true-peak.mjs'),read('dsp/mix-health.mjs'),read('dsp/spectral-health.mjs'),read('dsp/eq-response.mjs'),read('dsp/reference-compare.mjs'),read('dsp/parametric-eq.mjs'),read('dsp/multitrack-mix.mjs'),read('extra-tools.mjs'),read('dsp/mix-advisor.mjs'),read('dsp/stereo-quick-fix.mjs'),read('dsp/mix-character.mjs'),read('dsp/classic-eq.mjs'),read('dsp/eq-region.mjs'),read('dsp/eq-band-modes.mjs'),read('dsp/eq-presets.mjs'),read('dsp/waveform-edit.mjs'),read('dsp/spectral-denoise.mjs'),read('spectral-worker.js'),read('spectral-denoise-ui.mjs'),read('youtube-dialog.mjs'),read('advanced-fx.mjs')
 ]);
+css+='\n'+await read('producer-studio.css');
 const noExports=source=>source.replace(/^export /gm,'');
 const spectralWorkerSource=noExports(spectralDsp)+'\n'+spectralWorker;
 const spectralWorkletSource=noExports(spectralDsp)+'\n'+await read('spectral-worklet.js');
@@ -97,6 +98,9 @@ assert(!/<link[^>]+rel=["']stylesheet/.test(html));
 assert(!/<script[^>]+src=/.test(html));
 await mkdir(path.join(root,'public'),{recursive:true});
 await mkdir(path.join(root,'public','vendor'),{recursive:true});
+await mkdir(path.join(root,'public','modules'),{recursive:true});
+for(const name of ['producer-studio.mjs','producer-worker.mjs','advanced-fx.mjs'])await copyFile(path.join(root,'source',name),path.join(root,'public','modules',name));
+await cp(path.join(root,'source','dsp'),path.join(root,'public','modules','dsp'),{recursive:true});
 await copyFile(path.join(root,'node_modules','@breezystack','lamejs','dist','lamejs.iife.js'),path.join(root,'public','vendor','lamejs.iife.js'));
 await copyFile(path.join(root,'node_modules','@breezystack','lamejs','LICENSE'),path.join(root,'public','vendor','lamejs-LICENSE.txt'));
 // On-device Demucs runs only on user request. No model is downloaded on page load.
@@ -111,7 +115,7 @@ for(const name of await readdir(ortDir)){
 }
 const demucsLoader=await read('vendor/demucs-loader.mjs');
 const demucsWorker=await read('vendor/demucs-worker.js');
-const workerWithLoader=demucsWorker.replace('let session=null,active=false;',noExports(demucsLoader)+'\nlet session=null,active=false;');
+const workerWithLoader=demucsWorker.replace('let session=null,active=false;','const {loadDemucsModel,separateStems}=(()=>{\n'+noExports(demucsLoader)+'\nreturn {loadDemucsModel,separateStems};})();\nlet session=null,active=false;');
 new vm.Script(workerWithLoader);
 await writeFile(path.join(vendor,'demucs-worker.js'),workerWithLoader);
 await writeFile(path.join(vendor,'demucs-NOTICE.txt'),`Demucs ONNX loader adapted from joverval/sdemux (MIT), https://github.com/joverval/sdemux
@@ -126,6 +130,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 `);
+html=html.replace(/[ \t]+$/gm,'');
 await writeFile(path.join(root,'public/index.html'),html);
 await writeFile(path.join(root,'index.html'),html);
 console.log(`Built standalone Pulse Studio index.html (${Math.round(Buffer.byteLength(html)/1024)} KiB).`);

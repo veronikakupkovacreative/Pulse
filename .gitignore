@@ -22,3 +22,7 @@ node_modules/
 *.flac
 *.aiff
 .DS_Store
+
+# Generated browser runtime assets (built on Vercel)
+public/vendor/
+public/modules/

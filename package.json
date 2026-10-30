@@ -1,6 +1,6 @@
 {
   "name": "pulse-bpm-studio",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,5 +10,8 @@
   "dependencies": {
     "@breezystack/lamejs": "1.2.7",
     "onnxruntime-web": "1.22.0"
+  },
+  "devDependencies": {
+    "web-audio-engine": "0.13.4"
   }
 }

@@ -27,9 +27,9 @@ test('EQ keeps existing interactive graph IDs and moves presets into red inspect
  assert.match(css,/\.tool-settings\{background:var\(--red\)!important/);
  assert.match(app,/bypass\.click\(\)/);
 });
-test('Help modal contains working producer shortcuts and planned cards give status',()=>{
- for(const x of ['Keyboard','Shift +','Set IN marker','Set OUT marker','Split at playhead','Mute and solo']) assert.ok(html.includes(x));
+test('Help modal documents clip shortcuts and active cards open the producer studio',()=>{
+ for(const x of ['Keyboard','Shift +','Set IN marker','Set OUT marker','Split selected timeline clip','Mute / unmute selected timeline clip']) assert.ok(html.includes(x));
  assert.match(app,/event\.key==='\?'/);
- assert.match(app,/\[data-feature-info\]/);
+ assert.match(html,/data-producer="sidechain"/);
  assert.match(html,/id="pulse-feature-dialog"/);
 });

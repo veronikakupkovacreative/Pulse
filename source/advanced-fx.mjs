@@ -9,50 +9,70 @@ export function nearestScaleNote(frequency,key=0,scale='major'){
     if(allowed.includes(((n-key)%12+12)%12)&&Math.abs(n-midi)<error){best=n;error=Math.abs(n-midi);}
   return best;
 }
-export function detectMonophonicPitch(samples,rate,start){
-  const at=Math.max(0,Math.floor(start)),length=Math.min(4096,samples.length-at);
-  if(length<1024)return null;
-  const min=Math.max(8,Math.floor(rate/950)),max=Math.min(Math.floor(rate/80),Math.floor(length/2));
-  let best=0,score=0;
-  for(let lag=min;lag<=max;lag++){
-    let dot=0,a=0,b=0;
-    for(let i=0;i<length-lag;i+=3){
-      const x=samples[at+i],y=samples[at+i+lag];dot+=x*y;a+=x*x;b+=y*y;
-    }
-    const current=dot/Math.sqrt(Math.max(1e-12,a*b));
-    if(current>score){best=lag;score=current;}
+export function detectMonophonicPitch(samples,rate,start=0){
+  const stride=Math.max(1,Math.floor(rate/12000)),sr=rate/stride,at=Math.max(0,Math.floor(start));
+  const length=Math.min(1024,Math.floor((samples.length-at)/stride));
+  const min=Math.max(2,Math.floor(sr/1000)),max=Math.min(Math.ceil(sr/65),Math.floor(length/2));
+  if(max<=min||length<256)return null;
+  const x=new Float32Array(length);let energy=0;
+  for(let i=0;i<length;i++){x[i]=samples[at+i*stride];energy+=x[i]*x[i];}
+  if(energy/length<1e-6)return null;
+  const difference=new Float64Array(max+1),norm=new Float64Array(max+1);let cumulative=0;
+  for(let tau=1;tau<=max;tau++){
+    let sum=0;for(let i=0;i<length-max;i++){const delta=x[i]-x[i+tau];sum+=delta*delta;}
+    difference[tau]=sum;cumulative+=sum;norm[tau]=sum*tau/(cumulative||1);
   }
-  return score>.82&&best?{frequency:rate/best,confidence:score}:null;
+  let lag=-1;
+  for(let tau=min;tau<max;tau++)if(norm[tau]<.15){while(tau+1<max&&norm[tau+1]<norm[tau])tau++;lag=tau;break;}
+  if(lag<0)return null;
+  const left=norm[lag-1],mid=norm[lag],right=norm[lag+1]??mid;
+  const denominator=left-2*mid+right,delta=denominator?fxLimit(.5*(left-right)/denominator,-.5,.5):0;
+  return {frequency:sr/(lag+delta),confidence:1-mid};
 }
-// Granular overlap-add correction. Experimental monophonic processor, NOT polyphonic Auto-Tune.
+// Time-domain pitch synchronous overlap/add for isolated, periodic voices.
+// Analysis marks follow source periods; synthesis marks follow the selected scale.
+// Unvoiced regions retain the dry signal. This is DSP, not trained-model inference.
 export function pitchCorrect(channels,rate,{key=0,scale='major',strength=.8,hard=false}={}){
-  if(!channels?.length||!Number.isFinite(rate))throw Error('Invalid audio.');
+  if(!channels?.length||channels.length>2||!Number.isFinite(rate)||rate<8000||rate>192000||!channels[0]?.length||channels.some(c=>c.length!==channels[0].length))throw Error('Invalid audio.');
+  if(!Number.isInteger(key)||key<0||key>11||!['major','minor'].includes(scale)||!Number.isFinite(strength)||strength<0||strength>1)throw Error('Invalid pitch correction settings.');
   const length=channels[0].length;
   if(length/rate>45)throw Error('Monophonic correction is limited to 45 seconds.');
-  const grain=Math.max(2048,Math.round(rate*.06)),hop=Math.floor(grain/4);
-  const out=channels.map(()=>new Float32Array(length)),weights=new Float32Array(length);
-  let ratio=1,notes=0;
-  for(let start=0;start<length;start+=hop){
-    const note=detectMonophonicPitch(channels[0],rate,Math.max(0,start-grain/2));
-    let targetRatio=1;
-    if(note){
-      const target=nearestScaleNote(note.frequency,key,scale),midi=69+12*Math.log2(note.frequency/440);
-      targetRatio=2**(fxLimit((target-midi)*strength,-3,3)/12);notes++;
-    }
-    ratio=hard?targetRatio:ratio*.7+targetRatio*.3;
-    for(let k=0;k<grain;k++){
-      const i=start+k-grain/2|0;if(i<0||i>=length)continue;
-      const weight=.5-.5*Math.cos(2*Math.PI*k/(grain-1));weights[i]+=weight;
-      const p=i+(k-grain/2)*(ratio-1),s=Math.floor(p),frac=p-s;
-      for(let ch=0;ch<channels.length;ch++){
-        const input=channels[ch],lo=input[Math.max(0,Math.min(length-1,s))];
-        const hi=input[Math.max(0,Math.min(length-1,s+1))];
-        out[ch][i]+=(lo+(hi-lo)*frac)*weight;
-      }
-    }
+  if(strength===0)return channels.map(c=>c.slice());
+  const reference=channels.reduce((best,ch)=>ch.reduce((e,x)=>e+x*x,0)>best.reduce((e,x)=>e+x*x,0)?ch:best,channels[0]);
+  const analysisHop=Math.round(rate*.02),frames=[];
+  for(let center=0;center<length;center+=analysisHop)frames.push(detectMonophonicPitch(reference,rate,Math.max(0,Math.min(length-4096,center-2048))));
+  if(!frames.some(Boolean))throw Error('Stable monophonic pitch not detected; use a clean solo voice or instrument.');
+  const marks=[];let previous=-1;
+  for(let pos=0;pos<length;){
+    const info=frames[Math.min(frames.length-1,Math.floor(pos/analysisHop))];
+    if(!info){pos+=analysisHop;continue;}
+    const period=rate/info.frequency,from=Math.max(previous+period*.55,Math.round(pos-period*.3),0),to=Math.min(length-1,Math.round(pos+period*.3));
+    let mark=Math.round(Math.min(length-1,Math.max(from,pos))),peak=-Infinity;
+    for(let j=Math.ceil(from);j<=to;j++)if(reference[j]>peak){peak=reference[j];mark=j;}
+    if(mark<=previous){pos+=period;continue;}
+    marks.push({at:mark,period,frequency:info.frequency});previous=mark;pos=mark+period;
   }
-  if(!notes)throw Error('Stable monophonic pitch not detected; try a clean vocal or 808.');
-  out.forEach((data,ch)=>{for(let i=0;i<length;i++)data[i]=fxLimit(weights[i]>.001?data[i]/weights[i]:channels[ch][i],-1,1);});
+  const out=channels.map(()=>new Float32Array(length)),weights=new Float32Array(length);let index=0,ratio=1;
+  for(let center=marks[0]?.at??0;center<length;){
+    while(index+1<marks.length&&Math.abs(marks[index+1].at-center)<Math.abs(marks[index].at-center))index++;
+    const mark=marks[index];if(!mark)break;
+    if(Math.abs(mark.at-center)>mark.period*2){center+=analysisHop;continue;}
+    const target=nearestScaleNote(mark.frequency,key,scale),midi=69+12*Math.log2(mark.frequency/440),desired=2**((target-midi)*strength/12);
+    // Natural mode approaches the target over roughly 40 ms; hard mode is immediate.
+    const smoothing=Math.exp(-mark.period/(rate*.04));ratio=hard?desired:ratio*smoothing+desired*(1-smoothing);
+    const radius=Math.ceil(mark.period),dest=Math.round(center);
+    for(let k=-radius;k<=radius;k++){
+      const i=dest+k,j=mark.at+k;if(i<0||i>=length||j<0||j>=length)continue;
+      const w=.5+.5*Math.cos(Math.PI*k/radius);weights[i]+=w;
+      for(let ch=0;ch<channels.length;ch++)out[ch][i]+=channels[ch][j]*w;
+    }
+    center+=mark.period/ratio;
+  }
+  for(let i=0;i<length;i++)for(let ch=0;ch<channels.length;ch++){
+    // Blend unsupported boundaries with dry audio instead of amplifying tiny weights.
+    const mix=Math.min(1,weights[i]/.5),wet=weights[i]>1e-6?out[ch][i]/weights[i]:0;
+    out[ch][i]=wet*mix+channels[ch][i]*(1-mix);
+  }
   return out;
 }
 export function transientProcess(channels,rate,{attack=0,sustain=0}={}){

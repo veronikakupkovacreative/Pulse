@@ -48,12 +48,12 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
           if(!['drums','bass','other','vocals'].every(name=>names.has(name)))throw Error('Missing model stems.');
           const imported=data.tracks.map(track=>{
             const channels=track.channels;
-            if(channels?.length!==2||channels.some(c=>!(c instanceof Float32Array)||c.length!==count))
+            if(channels?.length!==2||channels.some(c=>!(c instanceof Float32Array)||c.length!==count||c.some(v=>!Number.isFinite(v))))
               throw Error('Unexpected model output dimensions.');
             return {name:track.name.toUpperCase()+' (AI)',rate:44100,channels,
               gainDb:0,pan:0,mute:false,solo:false,measurement:stemMeasurements(channels)};
           });
-          mixTracks=imported;invalidateMix();renderMixRows();
+          mixTracks=imported;invalidateMix();renderMixRows();window.dispatchEvent(new CustomEvent('pulse:stems-ready',{detail:imported}));
           cancelSeparation('4 Demucs stems separated locally and loaded into the multitrack mixer. Adjust levels before export.');
         }catch(error){cancelSeparation(error.message);}
       };

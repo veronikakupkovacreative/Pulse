@@ -243,6 +243,7 @@ export async function loadDemucsModel(progressCallback) {
     }
 
     const total = parseInt(response.headers.get('content-length'), 10) || 0;
+    if(total>256*1024*1024)throw Error('Model download exceeds 256 MB.');
     const totalMB = (total / 1024 / 1024).toFixed(0);
 
     const reader = response.body.getReader();
@@ -259,6 +260,7 @@ export async function loadDemucsModel(progressCallback) {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      if(received+value.length>256*1024*1024||buffer&&offset+value.length>buffer.length){await reader.cancel();throw Error('Model download size mismatch.');}
 
       // Write chunk directly into pre-allocated buffer
       if (buffer && offset + value.length <= buffer.length) {
@@ -290,6 +292,7 @@ export async function loadDemucsModel(progressCallback) {
     }
 
   // Use the pre-allocated buffer (no extra copy needed!)
+  if(buffer&&received!==total)throw Error('Model download was incomplete. Please retry.');
   const buf = buffer || (()=>{const out=new Uint8Array(received);let off=0;for(const chunk of fallbackChunks){out.set(chunk,off);off+=chunk.length;}return out;})();
   if (!buffer) {
     // Fallback: if Content-Length wasn't available, we had to accumulate
@@ -346,8 +349,12 @@ async function processChunk(session, audioData, channels, offset, chunkSize) {
   feeds[session.inputNames[0]] = inputTensor;
   feeds[session.inputNames[1]] = stftTensor;
 
-  const results = await session.run(feeds);
-  return results[session.outputNames[1]]; // time-domain output
+  try{
+    const results = await session.run(feeds);
+    const output=results[session.outputNames[1]];
+    for(const tensor of Object.values(results))if(tensor!==output)tensor.dispose?.();
+    return output; // time-domain output
+  }finally{inputTensor.dispose?.();stftTensor.dispose?.();}
 }
 
 // Chunked processing with overlap-add
@@ -395,6 +402,7 @@ export async function separateStems(session, audioData, sampleRate, onProgress) 
     const out = await processChunk(session, audioData, channels, off, CHUNK);
     const d = out.data;
     const [, stems, ch, samples] = out.dims;
+    if(stems!==4||ch!==2||samples!==CHUNK){out.dispose?.();throw Error('Unexpected Demucs output dimensions.');}
 
     for (let s = 0; s < stems; s++) {
       for (let c = 0; c < ch; c++) {
@@ -410,6 +418,7 @@ export async function separateStems(session, audioData, sampleRate, onProgress) 
         }
       }
     }
+    out.dispose?.();
   }
 
   for (let s = 0; s < STEMS; s++)

@@ -188,7 +188,7 @@ export function initStudioTools(getBpmTrack){
   el('wave-denoise').onclick=()=>void waveEditAction('noise');
   document.addEventListener('keydown',event=>{
     if(!(event.metaKey||event.ctrlKey)||event.key.toLowerCase()!=='z')return;
-    if(!document.activeElement?.closest('#toolkit'))return;
+    if(!document.activeElement?.closest('#toolkit')||document.activeElement?.closest('#producer-studio')||event.defaultPrevented)return;
     if(document.activeElement?.matches('input,textarea,select,[contenteditable=true]'))return;
     if(tools.loading)return;
     event.preventDefault();
@@ -493,7 +493,14 @@ export function initStudioTools(getBpmTrack){
       const approx=tools.buffer.duration*rate*Math.min(2,tools.buffer.numberOfChannels)*(bitDepth/8);
       if(format==='wav'&&approx>300*1024*1024)throw new Error('WAV would exceed 300 MB. Reduce sample rate or duration.');
       status('conv-status',rate===tools.buffer.sampleRate?'Preparing export…':'Resampling audio…');
-      const data=await renderedChannels(rate);
+      let data=await renderedChannels(rate);
+      if(el('conv-normalize').value!=='off'){
+        status('conv-status','Measuring loudness and normalizing…');
+        const {runProducerWorker}=await import('/modules/producer-studio.mjs');
+        const normalized=await runProducerWorker('normalize',data,rate,{mode:el('conv-normalize').value,targetPeak:Number(el('conv-peak-target').value),targetLufs:Number(el('conv-lufs-target').value),ceiling:Number(el('conv-ceiling').value)});
+        data=normalized.channels;const measured=normalized.stats;
+        status('conv-normalization-result',`PCM: ${measured.peakDb.toFixed(1)} dBFS · ${measured.truePeakDb.toFixed(1)} dBTP${measured.lufs!==null?' · '+measured.lufs.toFixed(1)+' LUFS':''}${measured.constrained?' · Gain capped by ceiling.':''}`);
+      }else status('conv-normalization-result','Normalization off.');
       if(token!==tools.operation)return;
       if(format==='flac'){
         status('conv-status','Encoding local lossless FLAC…');const blob=encodeFlac16(data,rate);if(token!==tools.operation)return;

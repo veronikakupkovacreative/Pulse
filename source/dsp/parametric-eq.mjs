@@ -52,13 +52,14 @@ export function renderEqualizer(channels,rate,bands,outputGainDb=0){
   const multiplier=10**(outputGainDb/20);
   return channels.map(channel=>{
     let data=channel.slice();
+    // Reuse the output buffer per band: 20-band EQ must not allocate
+    // a new full-length Float32Array for every individual filter.
     for(const [b0,b1,b2,a1,a2] of filters){
-      let x1=0,x2=0,y1=0,y2=0;const result=new Float32Array(data.length);
+      let x1=0,x2=0,y1=0,y2=0;
       for(let i=0;i<data.length;i++){
         const x=data[i],y=b0*x+b1*x1+b2*x2-a1*y1-a2*y2;
-        result[i]=y;x2=x1;x1=x;y2=y1;y1=y;
+        data[i]=y;x2=x1;x1=x;y2=y1;y1=y;
       }
-      data=result;
     }
     if(multiplier!==1)for(let i=0;i<data.length;i++)data[i]*=multiplier;
     return data;

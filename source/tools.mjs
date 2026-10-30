@@ -45,7 +45,7 @@ export function initStudioTools(getBpmTrack){
       canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
       const ctx=canvas.getContext('2d');
       ctx.setTransform(dpr,0,0,dpr,0,0);
-      ctx.fillStyle='#202222';ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#0A0A0A';ctx.fillRect(0,0,w,h);
       const mono=tools.peaks||[],stereo=tools.peaksRight||null;
       const bars=Math.min(900,Math.max(100,Math.round(w/2)));
       const gap=w/bars;
@@ -54,7 +54,7 @@ export function initStudioTools(getBpmTrack){
         const l=mono[Math.max(0,index)]||0,r=stereo?.[Math.max(0,index)]||l;
         const peak=Math.min(1,Math.max(l,r));
         const height=Math.max(1,peak*(h-10));
-        ctx.fillStyle='#ff2b20';
+        ctx.fillStyle='#DB4444';
         ctx.fillRect(i*gap,(h-height)/2,Math.max(1,gap*.72),height);
       }
       overviewPaintedFor=key;overviewPaintedWidth=Math.round(w);
@@ -597,7 +597,7 @@ export function initStudioTools(getBpmTrack){
     };
     const px=time=>(time-view.start)/Math.max(view.span,.001)*w;
     const selection=tools.tab==='equalizer'&&tools.eqSelection?[tools.eqSelection.from,tools.eqSelection.to]:tools.tab==='cutter'?[tools.from,tools.to]:tools.tab==='trim'&&tools.quickBounds?[tools.quickBounds.startSeconds,tools.quickBounds.endSeconds]:null;
-    ctx.fillStyle=tools.tab==='equalizer'?'#171817':'#30302d';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle=tools.tab==='equalizer'?'#0A0A0A':'#30302d';ctx.fillRect(0,0,w,h);
     if(tools.tab==='equalizer'){ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(0,(h+17)/2,w,1);}
     // Time ruler remains in the same audio coordinate system as the waveform.
     const tickStep=([.001,.002,.005,.01,.02,.05,.1,.25,.5,1,2,5,10,15,30,60,120,300,600].find(v=>v>=view.span/6)||600);
@@ -616,7 +616,7 @@ export function initStudioTools(getBpmTrack){
       const amp=Math.max(2,Math.pow(peakAt(left,tools.peaks,t),.55)*(h-20)*.78),x=i*bar;
       const isSelected=!selection||(t>=selection[0]&&t<=selection[1]);
       const peakLevel=peakAt(left,tools.peaks,t);
-      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?(peakLevel>.88?'#ff5a50':'#ff2b20'):'#753d39'):(isSelected?'#ff2b20':'#72726c');
+      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?'#DB4444':'#7B2929'):(isSelected?'#ff2b20':'#72726c');
       if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
         const other=Math.max(2,Math.pow(peakAt(right,tools.peaksRight,t),.55)*(h-20)*.37);
         const half=(h-17)/2;

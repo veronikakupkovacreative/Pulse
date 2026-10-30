@@ -63,13 +63,13 @@ try{
     assert(bounds.canvas.width>200,'overview canvas is visible '+width);
     if(width>760)assert(bounds.right.left>bounds.source.left,'settings are to the right');
     else assert(bounds.right.top>bounds.source.top,'mobile settings flow below source');
-    await page.locator('#eq-band-count').selectOption('20');
+    await page.locator('[data-eq-bands="20"]').click();
     assert(await page.locator('#eq-response-graph circle').count()===20,'20 real EQ controls '+width);
-    await page.locator('#eq-band-count').selectOption('3');
+    await page.locator('[data-eq-bands="3"]').click();
     assert(await page.locator('#eq-response-graph circle').count()===3,'3 real EQ controls '+width);
-    await page.locator('#eq-band-count').selectOption('8');
+    await page.evaluate(()=>{const e=document.querySelector('#eq-band-count');e.value='8';e.dispatchEvent(new Event('change',{bubbles:true}));});
     // Change preset, check the rendered curve is non-flat.
-    await page.locator('#eq-preset').selectOption('classic-air');
+    await page.locator('[data-eq-preset="bright"]').click();
     assert((await page.locator('#eq-response-graph path').count())>0,'EQ response curve renders '+width);
     await page.locator('#wave-zoom-in').click();
     const viewBefore=await page.locator('#eq-overview-window').evaluate(e=>e.style.width);

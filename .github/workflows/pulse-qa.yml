@@ -5,6 +5,7 @@ on:
       - feature/pulse-editor-workspace-3
       - feature/pulse-eq-waveform-ui-qa
       - feature/pulse-ai-studio-4-workflow
+      - feature/pulse-character-export-brand-fix
   workflow_dispatch:
 
 permissions:
@@ -12,7 +13,7 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +23,28 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
+      - name: Package final source and built PULSE Studio
+        uses: actions/upload-artifact@v4
+        with:
+          name: PULSE_STUDIO_FINAL_2026-10-30
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            source/
+            public/
+            backend/
+            tests/
+            scripts/
+            docs/
+            index.html
+            package.json
+            package-lock.json
+            server.py
+            Dockerfile
+            railway.json
+            vercel.json
+            README.md
+            .env.example
       - name: Install Chromium test dependency
         run: npm install --no-save --no-audit --no-fund playwright@1.56.1
       - name: Install Chromium browser

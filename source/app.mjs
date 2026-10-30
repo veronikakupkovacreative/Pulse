@@ -125,7 +125,7 @@ function drawWaveform() {
   const progress=Number($('#seek').value)/state.buffer.duration;
   const bpm=state.bpm,origin=Number($('#bpm-grid-offset').value)||0,meter=Number($('#bpm-meter').value)||4;
   if(bpm>=20&&bpm<=400){const beat=60/bpm,first=Math.ceil((0-origin)/beat),last=Math.floor((state.buffer.duration-origin)/beat);if(last-first<160){for(let n=first;n<=last;n++){const time=origin+n*beat,x=time/state.buffer.duration*rect.width;ctx.fillStyle=n%meter===0?'rgba(255,255,255,.48)':'rgba(255,255,255,.18)';ctx.fillRect(x,0,n%meter===0?2:1,rect.height);}}}
-  for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
+  for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle='#FF0000';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
   $('#bpm-playhead').style.left=`${Math.max(0,Math.min(100,progress*100))}%`;
 }
 async function getAudioContext() {

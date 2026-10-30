@@ -120,7 +120,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       const y=yOf(db);
       node('line',{x1:left,y1:y,x2:right,y2:y,
         stroke:db===0?'#FFFFFF':'#8996A1',opacity:db===0?.40:.15,'stroke-width':db===0?1.4:1});
-      const label=node('text',{x:5,y:y-4,fill:'#CDD4DA','font-size':9});
+      const label=node('text',{x:5,y:y-4,fill:'#FFFFFF','font-size':9});
       label.textContent=(db>0?'+':'')+db;
     }
     for(const hz of [20,50,100,200,500,1000,2000,5000,10000,20000]){
@@ -158,7 +158,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
       if(!band.enabled)return;
       const x=xOf(band.frequency),y=yOf(band.gain),selected=index===selectedBand;
       const circle=node('circle',{cx:x,cy:y,r:selected?8.9:7.1,
-        fill:'#001321',stroke:selected?'#FF0000':'#FFFFFF','stroke-width':selected?3:2.4,
+        fill:'#000000',stroke:selected?'#FF0000':'#FFFFFF','stroke-width':selected?3:2.4,
         role:'button',tabindex:0,'aria-label':'EQ band '+(index+1)+' · '+Math.round(band.frequency)+' Hz · '+band.gain.toFixed(1)+' dB'});
       circle.addEventListener('click',()=>{selectedBand=index;refreshEq(true);});
       circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectedBand=index;refreshEq(true);}});
@@ -408,24 +408,38 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   applyEqPreset('default');
   syncAB();
 
-  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}
+  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-preview-a').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}
+  const characterOptions=()=>({type:document.querySelector('[name="mix-vibe"]:checked')?.value||'tube',drive:Number(el('mix-drive').value),tone:Number(el('mix-tone').value),blend:Number(el('mix-blend').value),bypass:el('mix-bypass').checked,tapeNoise:el('mix-tape-noise').checked});
+  function updateCharacterPreview(){
+    if(!quickMixCandidate)return;
+    if(quickMixCandidate.input!==tools.buffer){clearQuickMix();return;}
+    try{quickMixCandidate.buffer=asAudioBuffer(processMixCharacter(quickMixCandidate.clean,tools.buffer.sampleRate,characterOptions()),tools.buffer.sampleRate);
+      status('mix-quick-report',el('mix-bypass').checked?'Saturation bypassed. Preview B contains corrective EQ only.':'Character updated. Use A/B to compare at the same playhead.');
+    }catch(error){clearQuickMix();status('mix-quick-report',error.message);}
+  }
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};
   el('mix-character').onchange=clearQuickMix;
-  for(const id of ['mix-drive','mix-tone','mix-blend'])el(id).oninput=()=>{status(id+'-label',id==='mix-tone'?(Number(el(id).value)===0?'Neutral':el(id).value):el(id).value+'%');clearQuickMix();};
-  document.querySelectorAll('[name="mix-vibe"]').forEach(input=>input.onchange=clearQuickMix);
+  for(const id of ['mix-drive','mix-tone','mix-blend'])el(id).oninput=()=>{status(id+'-label',id==='mix-tone'?(Number(el(id).value)===0?'Neutral':el(id).value):el(id).value+'%');updateCharacterPreview();};
+  document.querySelectorAll('[name="mix-vibe"]').forEach(input=>input.onchange=updateCharacterPreview);
+  for(const id of ['mix-bypass','mix-tape-noise'])el(id).onchange=updateCharacterPreview;
   el('mix-quick-generate').onclick=()=>{
     if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
     try{
       const initial=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);
       const result=renderStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate,{
         character:el('mix-character').value,intensity:Number(el('mix-intensity').value)});
-      const colored=processMixCharacter(result.channels,tools.buffer.sampleRate,{type:document.querySelector('[name="mix-vibe"]:checked')?.value||'tube',drive:Number(el('mix-drive').value),tone:Number(el('mix-tone').value),blend:Number(el('mix-blend').value)});
-      quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(colored,tools.buffer.sampleRate)};
-      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-stereo-results').hidden=false;
+      const colored=processMixCharacter(result.channels,tools.buffer.sampleRate,characterOptions());
+      quickMixCandidate={input:tools.buffer,result,clean:result.channels,buffer:asAudioBuffer(colored,tools.buffer.sampleRate)};
+      el('mix-quick-preview-a').disabled=false;el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-stereo-results').hidden=false;
       status('mix-quick-report','Peak '+initial.signal.peakDb.toFixed(1)+' dBFS · RMS '+initial.signal.rmsDb.toFixed(1)+' dBFS · '+(initial.warnings.join(' · ')||'No critical issues')+' · Correction: '+(result.changes.length?result.changes.map(c=>
         c.frequency+' Hz '+c.gainDb.toFixed(1)+' dB').join(' · '):
         'No corrective EQ needed.'));
     }catch(error){clearQuickMix();status('mix-quick-report',error.message);}
+  };
+  el('mix-quick-preview-a').onclick=async()=>{
+    if(!quickMixCandidate)return;
+    try{await playBuffer(asAudioBuffer(quickMixCandidate.clean,tools.buffer.sampleRate),tools.playhead,quickMixCandidate.buffer.duration,1,{allowLoop:false});status('mix-quick-report','A / corrective mix without Character.');}
+    catch(error){status('mix-quick-report',error.message);}
   };
   el('mix-quick-preview').onclick=async()=>{
     if(!quickMixCandidate)return;

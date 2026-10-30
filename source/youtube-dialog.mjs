@@ -12,7 +12,7 @@ function initYoutubeAudio(){
     }catch{return false;}
   };
   async function check(){
-    if(!api){say('YouTube converter is not connected. Configure PULSE_API_BASE_URL and a working cloud backend.');return;}
+    if(!api){available=false;say('YouTube requires a configured HTTPS audio backend (PULSE_API_BASE_URL). Local audio import remains available.');return;}
     if(checking)return checking;
     checking=(async()=>{
       try{
@@ -20,10 +20,11 @@ function initYoutubeAudio(){
         if(!res.ok)throw Error('Backend returned '+res.status);
         const info=await res.json();available=info.ready===true;
         say(available?'Converter online. Use only audio you have rights to download.':'Converter not ready: '+(info.missing||[]).join(', '));
-      }catch(err){available=false;say('Cloud converter unavailable: '+err.message);}
+      }catch(err){available=false;say('Cloud converter unavailable: '+err.message+'. Check API URL, Railway status and allowed origins.');}
     })();
     await checking;checking=null;
   }
+  el('youtube-recheck').onclick=()=>void check();
   btn.onclick=()=>{dialog.showModal();void check();};
   el('youtube-close').onclick=()=>dialog.close();
   form.onsubmit=async event=>{
@@ -35,14 +36,14 @@ function initYoutubeAudio(){
     submit.disabled=true;el('youtube-download').hidden=true;say('Preparing audio on the cloud converter…');
     try{
       const res=await fetch(api+'/api/youtube/download',{method:'POST',headers:{'Content-Type':'application/json','X-Pulse-Request':'1'},body:JSON.stringify({url:link,format:el('youtube-format').value}),signal:AbortSignal.timeout(180000)});
-      const result=await res.json();
-      if(!res.ok)throw Error(result.error||result.detail||'Converter returned '+res.status);
+      const result=await res.json().catch(()=>{throw Error('Cloud backend returned an invalid response.');});
+      if(!res.ok){const detail=result.detail||result.error;throw Error(typeof detail==='string'?detail:'Converter returned '+res.status);}
       if(!/^[a-zA-Z0-9_-]{8,128}$/.test(result.id||''))throw Error('Invalid download token received.');
       const href=api+'/api/youtube/file/'+encodeURIComponent(result.id);
       el('youtube-download-link').href=href;
       el('youtube-file-info').textContent=(result.filename||'Audio')+' · '+(result.bytes?Math.round(result.bytes/1048576*10)/10+' MB':'Ready');
       el('youtube-download').hidden=false;say('Audio prepared. Select Download file.');
-    }catch(err){say('Conversion failed: '+err.message);}
+    }catch(err){say('Conversion failed: '+(err.name==='TimeoutError'?'Cloud processing timed out. Try a shorter source.':err.message));}
     finally{submit.disabled=false;}
   };
 }

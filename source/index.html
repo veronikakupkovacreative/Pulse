@@ -23,11 +23,19 @@
 <div class="shell">
   <header class="header">
     <a class="brand" href="./" aria-label="Pulse home"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
-    <nav aria-label="Main navigation"><a href="#analyzer" class="nav-link">BPM</a><a href="#toolkit" class="nav-link" data-group-nav="analyze">ANALYZE</a><a href="#toolkit" class="nav-link" data-group-nav="edit">EDIT</a><a href="#toolkit" class="nav-link" data-group-nav="export">EXPORT</a><a href="#toolkit" class="nav-link" data-group-nav="ai">AI STUDIO</a><button class="nav-link" id="open-help">Help ↗</button></nav>
+    <nav aria-label="Main navigation"><a href="#analyzer" class="nav-link" data-nav-bpm>BPM</a><a href="#toolkit" class="nav-link" data-group-nav="analyze">ANALYZE</a><a href="#toolkit" class="nav-link" data-group-nav="edit">EDIT</a><a href="#toolkit" class="nav-link" data-group-nav="export">EXPORT</a><a href="#toolkit" class="nav-link" data-group-nav="ai">AI STUDIO</a><button class="nav-link" id="open-help">Help ↗</button></nav>
   </header>
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy"><h1 id="hero-title">Find your<br><span>rhythm.</span></h1><p class="intro"></p></div>
+      <aside class="pulse-hero-info" aria-label="About Pulse Studio">
+        <p class="pulse-info-eyebrow"><span class="pulse-info-dot" aria-hidden="true"></span>( WHAT IT IS )</p>
+        <p class="pulse-hero-description">Edit audio without installing apps, creating accounts, or leaving the tab. Pulse Studio brings common audio edits into one focused workspace: open compatible audio formats, make changes in browser memory, then export as MP3, 16-bit PCM WAV, M4A/AAC at 192 kbps where supported, or FLAC.</p>
+        <div class="pulse-formats">
+          <p class="pulse-info-eyebrow">( IN · OUT )</p>
+          <div class="pulse-format-tags" aria-label="Export formats"><span>MP3</span><span>WAV</span><span>M4A</span><span>FLAC</span></div>
+        </div>
+      </aside>
       <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
     </section>
     <section id="analyzer" aria-label="BPM Analyzer">
@@ -63,7 +71,7 @@
       <div class="demo-line"><span></span><button id="try-demo">Try demo <span aria-hidden="true">↗</span></button></div>
     </section>
     <section id="toolkit" class="toolkit" aria-labelledby="toolkit-title">
-      <div class="section-label"><h2>02 / PRODUCER TOOLKIT</h2></div>
+      <div class="section-label"><h2>02 / PRODUCER TOOLKITS</h2></div>
       <div class="toolkit-heading"><div><h2 id="toolkit-title">Your sound.<br><span>Your rules.</span></h2></div></div>
       <div class="tool-category-nav" role="group" aria-label="Tool categories"><button type="button" data-category="analyze" class="is-active" aria-pressed="true">ANALYZE <span>01</span></button><button type="button" data-category="edit" aria-pressed="false">EDIT <span>02</span></button><button type="button" data-category="export" aria-pressed="false">EXPORT <span>03</span></button><button type="button" data-category="ai" aria-pressed="false">AI STUDIO <span>04</span></button></div>
       <div class="analyze-shortcuts" id="analyze-shortcuts"><a href="#analyzer" class="tool-shortcut">BPM Analyzer <span>↗</span></a><button type="button" id="open-tap" class="tool-shortcut">Tap Tempo <span>↗</span></button></div>
@@ -168,7 +176,7 @@
         </div>
         <div class="tool-settings">
           <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter" hidden><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Change the format.<br><span>Keep creating.</span></h3>
-            <div class="tool-fields"><label>Output format<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="original" selected>Keep source rate</option><option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-dither-box">16-bit dither<input type="checkbox" id="conv-dither" checked></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option><option value="32">32-bit float WAV</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
+            <div class="tool-fields"><label>Output format<select id="conv-format"><option value="wav">WAV · PCM</option><option value="mp3">MP3 · 64–320 kbps</option><option value="flac">FLAC · lossless 16-bit</option><option value="m4a">M4A · AAC 192 kbps (browser dependent)</option></select></label><label>Sample rate<select id="conv-rate"><option value="original" selected>Keep source rate</option><option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-dither-box">16-bit dither<input type="checkbox" id="conv-dither" checked></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option><option value="32">32-bit float WAV</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="64">64 kbps</option><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
             <button class="tool-action tool-action-dark" id="conv-export" disabled>Convert & download <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Choose export settings.</p></div>
           <div id="panel-key" class="tool-view" role="tabpanel" aria-labelledby="tab-key"><div class="tool-view-header"><span>02 / KEY FINDER</span><span>HARMONIC ANALYSIS</span></div><h3>Find the key.<br><span>Build the harmony.</span></h3>
             <div class="tool-fields harmonic-options"><label>Analyze region<select id="key-range"><option value="full">Full track</option><option value="cursor">12 s from playhead</option><option value="loop">Active loop (IN / OUT)</option></select></label><div class="harmonic-range-note" id="key-range-readout" aria-live="polite">Full track</div></div>
@@ -266,7 +274,7 @@
             <label class="denoise-channel-toggle"><input type="checkbox" id="denoise-separate-channels"> Edit channels separately · independent L/R noise profiles</label>
             <button id="denoise-process" type="button" class="tool-action tool-action-dark" disabled>Process Audio <span>↗</span></button>
             <div id="denoise-result" class="pulse-ai-result-actions" hidden>
-              <button id="denoise-preview" type="button" disabled>▶ Cleaned Preview</button><button id="denoise-ab" type="button" disabled>A/B · ORIGINAL</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><button id="denoise-export" type="button" disabled>Export WAV 24-bit ↗</button>
+              <button id="denoise-preview" type="button" disabled>▶ Cleaned Preview</button><button id="denoise-ab" type="button" disabled>A/B · ORIGINAL</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><label class="pulse-clean-format">Clean export format<select id="denoise-format"><option value="wav">WAV · 16-bit PCM</option><option value="mp3-320">MP3 · 320 kbps</option><option value="mp3-192">MP3 · 192 kbps</option><option value="mp3-128">MP3 · 128 kbps</option><option value="mp3-64">MP3 · 64 kbps</option><option value="flac">FLAC · 16-bit</option><option value="m4a">M4A · AAC 192 kbps (browser dependent)</option></select></label><button id="denoise-export" type="button" disabled>Download clean audio ↗</button>
             </div>
             <div class="denoise-meter" aria-live="polite"><span>GAIN REDUCTION</span><strong id="denoise-reduction-value">— dB</strong><div><i id="denoise-reduction-bar"></i></div></div>
             <button id="denoise-live" type="button" class="pulse-ai-back" disabled>▶ Live Worklet Preview (current settings)</button>
@@ -288,7 +296,7 @@
                 <label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option></select></label>
                 <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label>
               </div>
-              <details class="pulse-ai-advanced" id="mix-characters"><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
+              <details class="pulse-ai-advanced" id="mix-characters" open><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
                 <div class="mix-character-types" role="group" aria-label="Saturation character">
                   <label><input name="mix-vibe" type="radio" value="tube" checked><span>TUBE</span></label>
                   <label><input name="mix-vibe" type="radio" value="console"><span>CONSOLE</span></label>
@@ -300,11 +308,12 @@
                   <label>Tone <output id="mix-tone-label">Neutral</output><input id="mix-tone" type="range" min="-100" max="100" value="0"></label>
                   <label>Parallel Mix <output id="mix-blend-label">40%</output><input id="mix-blend" type="range" min="0" max="100" value="40"></label>
                 </div>
-                <p class="tool-footnote">Subtle harmonic coloration before Master. Zero drive or zero blend bypasses saturation.</p>
+                <div class="mix-character-switches"><label><input id="mix-bypass" type="checkbox"> Bypass saturation</label><label><input id="mix-tape-noise" type="checkbox"> Tape hiss (Tape only)</label></div>
+                <p class="tool-footnote">Drive, Tone and Blend update the rendered preview without changing the original audio.</p>
               </details>
               <button id="mix-quick-generate" class="tool-action tool-action-dark pulse-ai-primary" type="button">Analyze &amp; Process Mix <span>↗</span></button>
               <div class="pulse-ai-result-actions" id="mix-stereo-results" hidden>
-                <button id="mix-quick-preview" type="button" disabled>▶ Preview Mix</button>
+                <button id="mix-quick-preview-a" type="button" disabled>▶ A / Before</button><button id="mix-quick-preview" type="button" disabled>▶ B / Character</button>
                 <button id="mix-quick-send" class="pulse-ai-next" type="button" disabled>Continue to Master ↗</button>
               </div>
               <p class="tool-footnote" id="mix-quick-report" role="status">Load a track in the shared workspace to begin.</p>
@@ -418,6 +427,203 @@
         </div>
       </div>
       <p class="message" id="tool-error" role="alert" hidden></p>
+      <section class="pulse-feature-explainer" id="pulse-feature-converter" data-feature="converter" hidden aria-labelledby="pulse-feature-converter-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>FORMAT CONTROL</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-converter-title">Format<br><span>Converter.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>A practical tool for quickly changing formats and adjusting export settings for your audio files directly within the application interface.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Have your loaded and edited track ready in the workspace.</li>
+                <li>Choose your desired output format and quality settings.</li>
+                <li>Run the conversion and download the finished file to your device.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-key" data-feature="key" aria-labelledby="pulse-feature-key-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>HARMONIC ANALYSIS</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-key-title">Key<br><span>Finder.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Harmonic analysis that estimates the musical key of a track (including Camelot notation) to help you with composition, mixing, and creating harmonic transitions.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load your track into the main editor.</li>
+                <li>Start the key analysis in the Key Finder tab.</li>
+                <li>Verify the estimated key by ear based on the displayed results.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-cutter" data-feature="cutter" hidden aria-labelledby="pulse-feature-cutter-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>PRECISION EDIT</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-cutter-title">Loop<br><span>Cutter.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>A tool designed to precisely cut a musical loop based on selected rhythmic divisions (e.g., 4/4).</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Mark the desired section on the waveform using markers.</li>
+                <li>Adjust the duration according to the selected rhythmic division.</li>
+                <li>Listen to and check the created loop before exporting.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-reverse" data-feature="reverse" hidden aria-labelledby="pulse-feature-reverse-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>REVERSE AUDIO</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-reverse-title">Audio<br><span>Reverse.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Instantly reverses audio playback direction (backward) while maintaining the exact same duration and original sample rate.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load the audio track into the editor.</li>
+                <li>Activate the Audio Reverse function for the entire track or a selected section.</li>
+                <li>Listen to the result and save it.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-trim" data-feature="trim" hidden aria-labelledby="pulse-feature-trim-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>CLEAN EDITING</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-trim-title">Silence<br><span>Trimmer.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Automatically detects and trims silent areas, pauses, or noise at the very beginning or end of a recording.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load audio into the workspace.</li>
+                <li>Check the detected trim boundaries and adjust sensitivity.</li>
+                <li>Confirm silence removal for a clean start and end.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-calculator" data-feature="calculator" hidden aria-labelledby="pulse-feature-calculator-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>TIME &amp; TEMPO</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-calculator-title">BPM<br><span>Calculator.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Converts the current tempo (BPM) into precise time values in milliseconds for individual note lengths, which is useful when setting effects like delay.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Enter the BPM value or let it load from the current project.</li>
+                <li>Browse the clear table of time values.</li>
+                <li>Click any value to easily copy it to your clipboard.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-pitch" data-feature="pitch" hidden aria-labelledby="pulse-feature-pitch-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>WSOLA PROCESSING</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-pitch-title">Pitch &amp;<br><span>Time.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Allows you to change track tempo or shift pitch using WSOLA-based time processing and pitch shifting while aiming to preserve natural playback.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load audio and set the desired target BPM or pitch shift.</li>
+                <li>Monitor the changes between the original and target states.</li>
+                <li>Apply processing and check the result by playing it back.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-tuner" data-feature="tuner" hidden aria-labelledby="pulse-feature-tuner-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>BASS TUNING</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-tuner-title">808<br><span>Tuner.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>A specialized tool for detecting fundamental frequencies and precisely tuning low-frequency 808 bass samples.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Upload a clean, sustained 808 sample.</li>
+                <li>Run analysis from the playhead position (with an option to skip the sample attack).</li>
+                <li>Check the frequency in Hz and cents and perform manual fine-tuning if needed.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-slicer" data-feature="slicer" hidden aria-labelledby="pulse-feature-slicer-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>TRANSIENT EDITING</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-slicer-title">Sample<br><span>Slicer.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Analyzes transients in an audio file and automatically slices the sample into smaller, independently usable parts.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load audio into the editor.</li>
+                <li>Run transient detection.</li>
+                <li>Adjust slice points and work with individual sample sections.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-normalizer" data-feature="normalizer" hidden aria-labelledby="pulse-feature-normalizer-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>LOUDNESS CONTROL</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-normalizer-title">Audio<br><span>Normalizer.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>Provides full control over output gain and loudness normalization of recorded audio.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load the audio track into the editor.</li>
+                <li>Select the desired level or normalization type.</li>
+                <li>Apply changes for optimal signal level without clipping.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-equalizer" data-feature="equalizer" hidden aria-labelledby="pulse-feature-equalizer-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>20-BAND EQ</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-equalizer-title" class="pulse-feature-long-title">Parametric<br><span>Equalizer.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>An advanced local DSP equalizer with a selectable number of bands (3 to 20) for detailed frequency adjustments from 20 Hz to 20 kHz.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Select the desired number of bands and adjust the EQ curve directly under the waveform.</li>
+                <li>Click a specific band on the curve for fine-tuning parameters.</li>
+                <li>Use the available sound presets for a quick start.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-denoise" data-feature="denoise" hidden aria-labelledby="pulse-feature-denoise-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>NOISE REDUCTION</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-denoise-title">Spectral<br><span>Denoise.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>An advanced tool featuring a 2048-point FFT for cleaning unwanted noise from recordings by learning a noise profile.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Use IN/OUT markers on the waveform to select a short section containing only background noise (minimum 120 ms).</li>
+                <li>Save the noise fingerprint.</li>
+                <li>Apply denoising to the entire stereo track and check the result.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-mix" data-feature="mix" hidden aria-labelledby="pulse-feature-mix-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>TONAL CORRECTION &amp; COLOR</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-mix-title">AI Studio<br><span>Mix.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>A comprehensive workspace to shape your mix. It offers either measured tonal correction and harmonic coloration for a finished stereo file, or the ability to mix 2 to 8 aligned stems.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Choose your input mode (Stereo mix or Multitrack stems).</li>
+                <li>Adjust tonal character and saturation for stereo, or balance individual channel levels for multitrack.</li>
+                <li>Optionally use local Demucs ONNX stem separation to split vocals, drums, bass, and other elements.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="pulse-feature-explainer" id="pulse-feature-master" data-feature="master" hidden aria-labelledby="pulse-feature-master-title">
+        <div class="pulse-feature-eyebrow"><span>03 / DESCRIPTION</span><span>ADAPTIVE DSP MASTERING</span></div>
+        <div class="pulse-feature-layout">
+          <h3 id="pulse-feature-master-title">AI Studio<br><span>Master.</span></h3>
+          <div class="pulse-feature-copy">
+            <p>An adaptive DSP mastering tool that helps give your recording consistent loudness, balanced tonal characteristics, and clarity according to your chosen master character.</p>
+            <div class="pulse-feature-instructions"><h4>How to use:</h4>
+              <ol><li>Load your finished mix into the workspace.</li>
+                <li>Choose your preferred master character (e.g., Clean) and target loudness in LUFS.</li>
+                <li>Review the final report (before/after comparison, true peak, stereo correlation) and export your finished work.</li></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </section>
     
   </main>
@@ -443,7 +649,7 @@
     <label class="youtube-consent"><input type="checkbox" id="youtube-authorized" required> I have permission to download this audio.</label>
     <button type="submit" id="youtube-submit" class="tool-action tool-action-dark">Prepare audio <span>↗</span></button>
   </form>
-  <p id="youtube-status" role="status">Checking cloud converter…</p>
+  <p id="youtube-status" role="status">Checking cloud converter…</p><button type="button" id="youtube-recheck" class="pulse-youtube-retry">Retry cloud connection ↻</button>
   <div id="youtube-download" hidden><p id="youtube-file-info"></p><a href="#" id="youtube-download-link" target="_blank" rel="noopener" class="tool-action tool-action-dark">Download file ↗</a></div>
 </dialog>
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>

@@ -1,4 +1,5 @@
 import {encodeWav,extractSegment,getAudioPeaks} from './studio-audio.mjs';
+import {encodeFlac16,encodeM4aWithMediaRecorder,isAacM4aSupported} from './dsp/audio-export.mjs';
 import {reverseAudio,bpmDurations,detectSilenceBounds,trimAudio,normalizeAudio} from './dsp/quick-tools.mjs';
 import {pulseProject} from './core/project-session.mjs';
 import {decodeLocalAudio,decodedAudioBytes} from './core/media-loader.mjs';
@@ -45,7 +46,7 @@ export function initStudioTools(getBpmTrack){
       canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
       const ctx=canvas.getContext('2d');
       ctx.setTransform(dpr,0,0,dpr,0,0);
-      ctx.fillStyle='#0A0A0A';ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#000000';ctx.fillRect(0,0,w,h);
       const mono=tools.peaks||[],stereo=tools.peaksRight||null;
       const bars=Math.min(900,Math.max(100,Math.round(w/2)));
       const gap=w/bars;
@@ -54,7 +55,7 @@ export function initStudioTools(getBpmTrack){
         const l=mono[Math.max(0,index)]||0,r=stereo?.[Math.max(0,index)]||l;
         const peak=Math.min(1,Math.max(l,r));
         const height=Math.max(1,peak*(h-10));
-        ctx.fillStyle=i%7===0?'#FFFFFF':'#FF0000';
+        ctx.fillStyle='#FF0000';
         ctx.fillRect(i*gap,(h-height)/2,Math.max(1,gap*.72),height);
       }
       overviewPaintedFor=key;overviewPaintedWidth=Math.round(w);
@@ -300,7 +301,7 @@ export function initStudioTools(getBpmTrack){
   function clearError(){el('tool-error').hidden=true;const near=el('tool-file-feedback');if(near)near.hidden=true;}
   function setBusy(busy){tools.loading=busy;for(const id of ['master-render','master-preview-a','master-preview-b','master-apply','master-export'])el(id).disabled=busy||!tools.buffer||(id!=='master-render'&&!tools.masterCandidate&&id!=='master-preview-a');for(const id of ['pt-preview','pt-apply','pt-export','tuner-analyze','tuner-preview','tuner-apply','tuner-export','slice-auto','slice-preview','slice-export-one','slice-export-all'])el(id).disabled=busy||!tools.buffer;document.querySelectorAll('[data-quick-preview],[data-quick-apply],[data-quick-export]').forEach(button=>button.disabled=busy||!tools.buffer);el('tool-select-file').disabled=busy;el('conv-export').disabled=busy||!tools.buffer;el('cut-export').disabled=busy||!tools.buffer;el('cut-audition').disabled=busy||!tools.buffer;el('key-analyze').disabled=busy||!tools.buffer;el('tool-file-input').disabled=busy;el('master-reference-file').disabled=busy||!tools.buffer;el('master-preview-r').disabled=busy||!tools.reference;}
   function updateButtons(){setBusy(tools.loading);el('tool-reuse-bpm').hidden=!getBpmTrack()?.buffer;}
-  function syncOutput(){const mp3=el('conv-format').value==='mp3';el('conv-depth-box').hidden=mp3;el('conv-bitrate-box').hidden=!mp3;el('conv-dither-box').hidden=mp3||el('conv-depth').value!=='16';const sourceRate=tools.buffer?.sampleRate||48000;const selected=el('conv-rate').value;const rate=selected==='original'?sourceRate:Number(selected);if(mp3&&![44100,48000].includes(rate)){el('conv-rate').value='48000';}for(const rateValue of ['88200','96000'])el('conv-rate').querySelector('option[value="'+rateValue+'"]').disabled=mp3;}
+  function syncOutput(){const format=el('conv-format').value,mp3=format==='mp3',wav=format==='wav';el('conv-depth-box').hidden=!wav;el('conv-bitrate-box').hidden=!mp3;el('conv-dither-box').hidden=!wav||el('conv-depth').value!=='16';const sourceRate=tools.buffer?.sampleRate||48000;const selected=el('conv-rate').value;const rate=selected==='original'?sourceRate:Number(selected);if(mp3&&![44100,48000].includes(rate)){el('conv-rate').value='48000';}for(const rateValue of ['88200','96000'])el('conv-rate').querySelector('option[value="'+rateValue+'"]').disabled=mp3;}
   function updateBpmFromAnalyzer(){
     const project=pulseProject.snapshot(),other=getBpmTrack();
     const bpm=project.bpm||other?.bpm;
@@ -493,10 +494,38 @@ export function initStudioTools(getBpmTrack){
       status('conv-status',rate===tools.buffer.sampleRate?'Preparing export…':'Resampling audio…');
       const data=await renderedChannels(rate);
       if(token!==tools.operation)return;
-      if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));const peakDb=samplePeakDbfs(data);status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb.toFixed(1)+' dBFS':'silence'}`);}
-      else{status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ${bitrate} kbps · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${readableSize(blob.size)} (lossy).`);}
+      if(format==='flac'){
+        status('conv-status','Encoding local lossless FLAC…');const blob=encodeFlac16(data,rate);if(token!==tools.operation)return;
+        download(blob,filename('flac'));status('conv-status',`FLAC 16-bit · ${(rate/1000).toFixed(1)} kHz · ${readableSize(blob.size)}.`);
+      }else if(format==='m4a'){
+        if(!isAacM4aSupported())throw Error('Your browser does not offer an AAC/MP4 MediaRecorder encoder. Use WAV, FLAC or MP3.');
+        status('conv-status','Recording AAC locally in real time…');
+        const out=asAudioBuffer(data,rate),blob=await encodeM4aWithMediaRecorder(out,192000,pct=>status('conv-status',`Encoding AAC… ${pct}%`));
+        if(token!==tools.operation)return;download(blob,filename('m4a'));status('conv-status',`AAC/M4A ~192 kbps · ${readableSize(blob.size)}.`);
+      }else if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));const peakDb=samplePeakDbfs(data);status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb.toFixed(1)+' dBFS':'silence'}`);}
+      else if(format==='mp3'){status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ${bitrate} kbps · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${readableSize(blob.size)} (lossy).`);}else throw Error('Unknown export format.');
     }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}
+  }
+  async function exportCleanAudio(buffer,format){
+    if(!buffer)throw Error('No cleaned audio available.');
+    const data=channels(buffer),rate=buffer.sampleRate;
+    if(format==='wav'){const blob=encodeWav(data,rate,16,{dither:true});download(blob,filename('clean.wav'));return 'Clean WAV 16-bit downloaded.';}
+    if(format==='flac'){const blob=encodeFlac16(data,rate);download(blob,filename('clean.flac'));return 'Clean FLAC 16-bit downloaded.';}
+    if(format==='m4a'){
+      if(!isAacM4aSupported())throw Error('AAC/M4A encoding is unavailable in this browser. Choose WAV, FLAC or MP3.');
+      const blob=await encodeM4aWithMediaRecorder(buffer,192000,pct=>status('denoise-status','Encoding AAC '+pct+'%'));
+      download(blob,filename('clean.m4a'));return 'Clean AAC/M4A 192 kbps downloaded.';
+    }
+    if(/^mp3-(64|128|192|320)$/.test(format)){
+      const bitrate=Number(format.slice(4));
+      if(![44100,48000].includes(rate))throw Error('MP3 requires 44.1 or 48 kHz. Convert sample rate first.');
+      const token=tools.operation;
+      const blob=await toMp3(data,rate,bitrate,token);
+      download(blob,filename('clean.mp3'));
+      return 'Clean MP3 '+bitrate+' kbps downloaded.';
+    }
+    throw Error('Unsupported clean export format.');
   }
   const groups={
     analyze:['key','tuner','calculator'],
@@ -519,8 +548,14 @@ export function initStudioTools(getBpmTrack){
       link.classList.toggle('active',active);
       if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
     });
+    const bpmNav=document.querySelector('[data-nav-bpm]');if(bpmNav){bpmNav.classList.remove('active');bpmNav.removeAttribute('aria-current');}
     if(selectFirst&&!groups[category].includes(tools.tab))selectTab(groups[category][0]);
   }
+  const bpmNav=document.querySelector('[data-nav-bpm]');
+  if(bpmNav)bpmNav.addEventListener('click',()=>{
+    document.querySelectorAll('[data-group-nav]').forEach(link=>{link.classList.remove('active');link.removeAttribute('aria-current');});
+    bpmNav.classList.add('active');bpmNav.setAttribute('aria-current','location');
+  });
   function selectTab(which){
     const category=Object.keys(groups).find(group=>groups[group].includes(which));
     if(!category)return;
@@ -530,6 +565,7 @@ export function initStudioTools(getBpmTrack){
       const selected=which===name,tab=el('tab-'+name);
       tab.classList.toggle('selected',selected);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el('panel-'+name).hidden=!selected;
     }
+    document.querySelectorAll('.pulse-feature-explainer[data-feature]').forEach(section=>{section.hidden=section.dataset.feature!==which;});
     const showingResults=which==='mix'||which==='master';
     el('tool-insights').hidden=!showingResults||!tools.buffer;
     for(const name of ['mix','master'])el('insights-'+name).hidden=which!==name;
@@ -597,7 +633,7 @@ export function initStudioTools(getBpmTrack){
     };
     const px=time=>(time-view.start)/Math.max(view.span,.001)*w;
     const selection=tools.tab==='equalizer'&&tools.eqSelection?[tools.eqSelection.from,tools.eqSelection.to]:tools.tab==='cutter'?[tools.from,tools.to]:tools.tab==='trim'&&tools.quickBounds?[tools.quickBounds.startSeconds,tools.quickBounds.endSeconds]:null;
-    ctx.fillStyle=tools.tab==='equalizer'?'#0A0A0A':'#30302d';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#000000';ctx.fillRect(0,0,w,h);
     if(tools.tab==='equalizer'){ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(0,(h+17)/2,w,1);}
     // Time ruler remains in the same audio coordinate system as the waveform.
     const tickStep=([.001,.002,.005,.01,.02,.05,.1,.25,.5,1,2,5,10,15,30,60,120,300,600].find(v=>v>=view.span/6)||600);
@@ -616,7 +652,7 @@ export function initStudioTools(getBpmTrack){
       const amp=Math.max(2,Math.pow(peakAt(left,tools.peaks,t),.55)*(h-20)*.78),x=i*bar;
       const isSelected=!selection||(t>=selection[0]&&t<=selection[1]);
       const peakLevel=peakAt(left,tools.peaks,t);
-      ctx.fillStyle=tools.tab==='equalizer'?(isSelected?(i%9===0?'#FFFFFF':'#FF0000'):'rgba(255,255,255,.38)'):(isSelected?'#ff2b20':'#72726c');
+      ctx.fillStyle=isSelected?'#FF0000':'rgba(255,0,0,.28)';
       if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
         const other=Math.max(2,Math.pow(peakAt(right,tools.peaksRight,t),.55)*(h-20)*.37);
         const half=(h-17)/2;
@@ -625,7 +661,7 @@ export function initStudioTools(getBpmTrack){
       }else ctx.fillRect(x,17+(h-17-amp)/2,Math.max(1,bar*(tools.tab==='equalizer'?.82:.68)),amp);
     }
     if(selection){for(const boundary of selection){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#f5f4f0';ctx.fillRect(x-1,17,2,h-17);ctx.beginPath();ctx.arc(x,(h+17)/2,5,0,Math.PI*2);ctx.fill();}}
-    if(tools.loopEnabled){for(const [boundary,label] of [[tools.loopFrom,'IN'],[tools.loopTo,'OUT']]){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#ff2b20';ctx.fillRect(x-1,17,2,h-17);ctx.fillText(label,Math.max(3,Math.min(w-30,x+4)),21);}}
+    if(tools.loopEnabled){for(const [boundary,label] of [[tools.loopFrom,'IN'],[tools.loopTo,'OUT']]){const x=px(boundary);if(x<0||x>w)continue;ctx.fillStyle='#FF0000';ctx.fillRect(x-1,17,2,h-17);ctx.fillText(label,Math.max(3,Math.min(w-30,x+4)),21);}}
     if(tools.tab==='equalizer'&&tools.peaksRight&&el('eq-split-channels').checked){
       ctx.fillStyle='#aaa9a2';ctx.fillText('L',Math.max(2,w-14),18);ctx.fillText('R',Math.max(2,w-14),(h+17)/2+3);
     }
@@ -1308,7 +1344,7 @@ export function initStudioTools(getBpmTrack){
   }
   extraApi=initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,
     download,filename,status,decodeLocalAudio,audioFileError,encodeWav});
-  denoiseApi=initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav});
+  denoiseApi=initSpectralDenoise({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,workspace,workingChanged,download,filename,status,encodeWav,exportCleanAudio});
   selectCategory('analyze',false);syncOutput();updateCalculator();resetWaveView(0);updateButtons();
   return {reset:remove};
 }

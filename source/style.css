@@ -842,3 +842,170 @@
 @media(prefers-reduced-motion:reduce){
   .pulse-eq-left .pulse-eq-graph circle{transition:none!important}
 }
+
+/* PULSE brand lock · corners, spectrum and clean DSP tools. */
+.pulse-eq-left .pulse-eq-stage{background:#000!important;border:1px solid #404040!important;border-radius:0!important;box-shadow:none!important}
+.pulse-eq-left .pulse-eq-graph{background:#000!important}
+.pulse-eq-left .pulse-eq-stage .pulse-eq-live{opacity:.7!important}
+.pulse-eq-left .eq-mode-pills button,.pulse-eq-left .eq-preset-pills button,.eq-mode-pills button,.eq-preset-pills button{border-radius:0!important}
+.tool-board button,.tool-board input,.tool-board select,.tool-board textarea,.tool-board .pulse-eq-band,.tool-board .eq-overview-canvas-wrap,.tool-board .tool-waveform-wrap,.tool-board .pulse-ai-advanced{border-radius:0!important}
+.tool-board input[type=range]::-webkit-slider-runnable-track,.tool-board input[type=range]::-webkit-slider-thumb,.tool-board input[type=range]::-moz-range-track,.tool-board input[type=range]::-moz-range-thumb{border-radius:0!important}
+#panel-equalizer input[type=range],.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range],#wave-noise-reduction{accent-color:#ff0000!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-thumb{background:#ff0000!important}
+#panel-equalizer .eq-band-picker button[aria-pressed=true]{background:#191919!important;color:#fff!important;border-color:#191919!important}
+.pulse-clean-format{display:grid;gap:7px;grid-column:1/-1;font-size:11px;font-weight:700}
+.pulse-clean-format select{min-height:44px;width:100%;border:1px solid #191919;background:transparent;color:#191919;padding:10px;max-width:100%}
+.pulse-youtube-retry{padding:10px 14px;border:1px solid currentColor;font:700 11px Arial,sans-serif;border-radius:0!important}
+.mix-character-types label span{border-radius:0!important}
+@media(prefers-reduced-motion:reduce){.pulse-eq-left .pulse-eq-graph circle{transition:none!important}}
+
+/* Remove inherited yellow clip-editor accents on hover/focus. */
+.tool-source:has(#eq-overview:not([hidden])) .wave-edit-actions button:hover:not(:disabled),
+.tool-source:has(#eq-overview:not([hidden])) .wave-edit-actions button:focus-visible {color:#ff0000!important;border-color:#ff0000!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]{accent-color:#ff0000!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-runnable-track{border-radius:0!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-thumb{border-radius:0!important}
+.tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-moz-range-thumb{border-radius:0!important}
+
+
+/* PULSE sharp-corner interface; preserve SVG EQ handles, genuine rotary/circular controls. */
+button:not(.tool-play):not(.tap-pad),select,textarea,input:not([type="radio"]):not([type="checkbox"]):not([type="range"]),dialog,
+.card,.tool-tab,.tool-settings,.tool-source,.tool-board,.tool-view,.pulse-ai-pane,.pulse-ai-advanced,
+.eq-wave-editor,.wave-edit-details,.waveform-wrap,.tool-waveform-wrap,.eq-overview-canvas-wrap,.pulse-eq-stage,
+.pulse-eq-band,.eq-mode-pills button,.eq-preset-pills button,.mix-character-types label span {
+  border-radius:0!important;
+}
+.tool-waveform-wrap,#tool-waveform,.waveform-wrap,#waveform,
+.tool-source:has(#eq-overview:not([hidden])) .tool-waveform-wrap {
+  background:#000000!important;
+}
+.mix-character-switches{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 16px}
+.mix-character-switches label{font-size:11px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.mix-character-switches input{accent-color:#FF0000}
+#mix-stereo-results{flex-wrap:wrap}
+#mix-quick-preview-a,#mix-quick-preview{flex:1 1 120px}
+#panel-equalizer .pulse-eq-band input[type=range]{accent-color:#FF0000!important}
+
+
+/* PULSE / Feature explainer — a single, editorial Key Finder example. */
+.pulse-feature-explainer { padding: 32px 0 18px; margin: 48px 0 0; border-top: 1px solid var(--line); }
+.pulse-feature-eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 38px; font: 700 10px/1.5 Arial, sans-serif; letter-spacing: .11em; }
+.pulse-feature-eyebrow span:last-child { color: var(--muted); font-weight: 500; }
+.pulse-feature-layout { display: grid; grid-template-columns: minmax(0, .94fr) minmax(0, 1fr); gap: clamp(26px, 5.2vw, 82px); align-items: start; }
+.pulse-feature-layout h3 { font-size: clamp(60px, 6.3vw, 100px); line-height: .92; letter-spacing: -.07em; font-weight: 700; margin: 0; }
+.pulse-feature-layout h3 span { color: #FF0000; }
+.pulse-feature-copy { max-width: 550px; padding: 3px 0 0; }
+.pulse-feature-copy > p { font-size: clamp(14px, 1.2vw, 17px); line-height: 1.65; letter-spacing: -.012em; margin: 0 0 28px; }
+.pulse-feature-instructions h4 { font-size: 14px; letter-spacing: -.018em; margin: 0 0 9px; }
+.pulse-feature-instructions ol { margin: 0; padding-left: 21px; font-size: 13px; line-height: 1.85; }
+.pulse-feature-instructions li { padding-left: 3px; }
+@media(max-width: 760px) { .pulse-feature-layout { gap: 24px; } .pulse-feature-layout h3 { font-size: clamp(58px, 8vw, 78px); } }
+@media(max-width: 580px) {
+  .pulse-feature-explainer { margin-top: 34px; padding-top: 22px; }
+  .pulse-feature-eyebrow { margin-bottom: 27px; font-size: 9px; }
+  .pulse-feature-layout { grid-template-columns: 1fr; gap: 23px; }
+  .pulse-feature-layout h3 { font-size: clamp(64px, 13vw, 90px); }
+  .pulse-feature-copy > p { font-size: 14px; margin-bottom: 22px; }
+  .pulse-feature-instructions ol { font-size: 13px; }
+}
+
+
+/* PULSE editorial copy: in/out formats, desktop column hierarchy and mobile stack. */
+.hero:has(.pulse-hero-info) {
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(260px,1fr) minmax(165px,.58fr);
+  gap:clamp(22px,2.8vw,46px);
+  align-items:start;
+  padding-top:65px;
+  padding-bottom:48px;
+}
+.hero:has(.pulse-hero-info) .hero-art {width:100%;max-width:245px;margin:0;align-self:start}
+.hero:has(.pulse-hero-info) .hero-copy {min-width:0;padding-top:21px}
+.pulse-hero-info {min-width:0;padding-top:10px}
+.pulse-hero-info p {font-size:clamp(12px,1vw,15px);line-height:1.63;letter-spacing:-.01em;margin:0}
+.pulse-hero-info .pulse-info-eyebrow {font:600 10px/1.4 'Courier New',monospace;letter-spacing:.12em;color:var(--muted);margin:0 0 14px}
+.pulse-info-dot {display:inline-block;background:#ff0000;width:7px;height:7px;vertical-align:middle;margin-right:8px}
+.pulse-formats {border-top:1px solid var(--line);padding-top:23px;margin-top:25px}
+.pulse-formats h2 {font-size:clamp(18px,1.6vw,25px);letter-spacing:-.045em;line-height:1.13;margin:0 0 10px;font-weight:700}
+.pulse-format-tags {display:flex;flex-wrap:wrap;gap:6px;margin-top:17px}
+.pulse-format-tags span {font:700 10px/1.25 'Courier New',monospace;letter-spacing:.07em;border:1px solid var(--ink);border-radius:0;padding:8px 12px}
+.pulse-feature-bpm {margin:30px 0 48px}
+.pulse-feature-layout h3.pulse-feature-long-title {font-size:clamp(42px,4.8vw,70px);letter-spacing:-.07em}
+@media(max-width:1050px) {
+  .hero:has(.pulse-hero-info) {grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:25px}
+  .hero:has(.pulse-hero-info) .hero-art {display:none}
+}
+@media(max-width:650px) {
+  .hero:has(.pulse-hero-info) {grid-template-columns:1fr;padding-top:32px;gap:27px}
+  .hero:has(.pulse-hero-info) .hero-copy {padding:0}
+  .hero:has(.pulse-hero-info) .hero-art {display:none}
+  .pulse-hero-info {padding:0}
+  .pulse-hero-info p {font-size:13px}
+  .pulse-formats {margin-top:20px;padding-top:20px}
+  .pulse-formats h2 {font-size:23px}
+  .pulse-feature-bpm {margin-bottom:30px}
+  .pulse-feature-layout h3.pulse-feature-long-title {font-size:clamp(42px,11vw,62px)}
+}
+
+/* Approved editorial descriptions: polished below-tool copy only. */
+.pulse-feature-explainer {
+  margin:48px 0 12px;
+  padding:26px 0 35px;
+  border-top:1px solid var(--line);
+}
+.pulse-feature-eyebrow {margin-bottom:36px}
+.pulse-feature-layout {grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:clamp(30px,6.5vw,95px)}
+.pulse-feature-layout h3 {font-size:clamp(64px,6.8vw,102px);line-height:.91;letter-spacing:-.074em}
+.pulse-feature-layout h3.pulse-feature-long-title {font-size:clamp(48px,5.3vw,78px)}
+.pulse-feature-copy {max-width:565px;padding-top:7px}
+.pulse-feature-copy > p {font-size:clamp(15px,1.25vw,18px);line-height:1.62;margin-bottom:25px;text-wrap:pretty}
+.pulse-feature-instructions h4 {font-size:14px;font-weight:700;margin-bottom:10px}
+.pulse-feature-instructions ol {font-size:14px;line-height:1.78;padding-left:23px}
+.pulse-feature-instructions li {padding-left:5px;margin-bottom:3px}
+.header nav .nav-link[data-nav-bpm].active::before,
+.header nav .nav-link[data-group-nav].active::before {
+  content:"";display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:#FF0000;
+  margin-right:0;
+}
+@media(max-width:760px){
+  .pulse-feature-layout {grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:24px}
+  .pulse-feature-layout h3 {font-size:clamp(55px,8vw,74px)}
+  .pulse-feature-copy > p {font-size:14px}
+  .pulse-feature-instructions ol {font-size:13px}
+}
+@media(max-width:580px){
+  .pulse-feature-explainer {margin-top:36px;padding:22px 0 28px}
+  .pulse-feature-eyebrow {margin-bottom:26px}
+  .pulse-feature-layout {grid-template-columns:1fr;gap:25px}
+  .pulse-feature-layout h3 {font-size:clamp(58px,12vw,84px)}
+  .pulse-feature-layout h3.pulse-feature-long-title {font-size:clamp(44px,10.5vw,66px)}
+  .pulse-feature-copy {padding:0}
+  .pulse-feature-copy > p {font-size:14px;line-height:1.65;margin-bottom:19px}
+  .pulse-feature-instructions ol {line-height:1.7}
+}
+
+
+/* PULSE / Hero single-paragraph consolidation — preserve approved grid and headline. */
+.pulse-hero-info .pulse-hero-description {
+  max-width: 390px;
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.62;
+  letter-spacing: -.01em;
+  text-wrap: pretty;
+}
+.pulse-hero-info .pulse-formats {
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: 0;
+}
+.pulse-hero-info .pulse-formats .pulse-info-eyebrow {
+  margin-bottom: 8px;
+}
+.pulse-hero-info .pulse-format-tags {
+  margin-top: 0;
+  gap: 7px;
+}
+@media (max-width: 650px) {
+  .pulse-hero-info .pulse-hero-description { max-width: 46ch; font-size: 13px; }
+  .pulse-hero-info .pulse-formats { margin-top: 16px; }
+}

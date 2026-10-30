@@ -80,7 +80,7 @@
         <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer" data-group="export" hidden>Normalizer <b>↗</b></button>
         <button class="tool-tab" id="tab-equalizer" role="tab" aria-selected="false" aria-controls="panel-equalizer" tabindex="-1" data-tool="equalizer" data-group="edit" hidden>Equalizer <b>↗</b></button>
         <button class="tool-tab" id="tab-mix" role="tab" aria-selected="false" aria-controls="panel-mix" tabindex="-1" data-tool="mix" data-group="ai" hidden>AI Mix <b>↗</b></button>
-        <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden>Smart Master <b>↗</b></button>
+        <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden>AI Master <b>↗</b></button>
       </div>
       <div class="coming-soon-note"><button class="tool-tab tool-tab-disabled coming-soon-link" id="tab-youtube" type="button" aria-disabled="true" disabled>YouTube Audio <b>COMING SOON</b></button></div>
       <div class="tool-board">
@@ -226,64 +226,118 @@
             <div class="quick-actions"><button id="eq-reset" type="button">RESET</button><button id="eq-preview" type="button">▶ PREVIEW</button><button id="eq-apply" type="button">Apply to Workspace</button><button id="eq-export" type="button">Export WAV ↗</button></div>
             <p class="eq-render-scope" id="eq-scope-info" role="status">PROCESSING SCOPE · ENTIRE TRACK</p><p class="tool-footnote" id="eq-status" role="status">Load your audio in the shared workspace to start.</p>
           </div>
-          <div id="panel-mix" class="tool-view" role="tabpanel" aria-labelledby="tab-mix" hidden>
-            <div class="tool-view-header"><span>02 / AI MIX</span><span>ASSISTED MULTITRACK DSP</span></div>
-            <h3>Build your mix.</h3>
-            <p class="tool-footnote">Import 2–8 time-aligned stems, adjust gain and pan, and audition a stereo mix. Gain suggestions use measured RMS and peaks, not a neural model.</p>
-            
-            <div class="master-reference"><strong>QUICK FIX · ONE FINISHED TRACK</strong><p class="tool-footnote">Uses the current shared stereo track. Individual instruments are not separated.</p>
-              <div class="tool-fields"><label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option><option value="clean">Clean</option></select></label>
-              <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label></div>
-              <div class="quick-actions"><button id="mix-quick-analyze" type="button">Analyze Mix</button><button id="mix-quick-generate" type="button">Generate Quick Fix</button><button id="mix-quick-preview" type="button" disabled>▶ Preview</button><button id="mix-quick-send" type="button" disabled>Send to Smart Master ↗</button><button id="mix-quick-auto" type="button" disabled>Mix → Master · Apply &amp; Generate ↗</button></div>
-              <p class="tool-footnote" id="mix-quick-report" role="status">Load a track in the shared workspace to begin.</p><div id="mix-fix-advice" class="master-mix-health" role="status" hidden></div>
-            </div><details class="advanced-feature"><summary>Advanced · AI Stem Separation (experimental)</summary><div class="master-reference"><strong>AI STEM SEPARATION · LOCAL DEMUCS (EXPERIMENTAL)</strong>
-            <p class="tool-footnote">Separate Vocals / Drums / Bass / Other using a real ONNX model. The first run downloads ~170 MB. Desktop browsers only; use a 0.5–45 s working clip. No audio is uploaded to our servers. High memory usage; inference can take several minutes.</p>
-            <div class="quick-actions"><button type="button" id="mix-separate" disabled>Separate into 4 stems ↗</button><button type="button" id="mix-cancel-separation" disabled>Cancel separation</button></div>
-            <p class="tool-footnote" id="mix-separation-status" role="status">Load a short working audio clip to enable local AI separation.</p>
-            <p class="tool-footnote">Model attribution and licensing: <a href="/vendor/demucs-NOTICE.txt" target="_blank" rel="noopener">Demucs / ONNX notice</a>.</p></div></details>
-<details><summary>Advanced · Multitrack stem mixer (use your own stems)</summary><div class="pulse-mix-import"><label for="mix-files">Add stems (WAV, MP3, M4A)</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
-            <div class="mix-ducking-setup">
-  <label>VOICE / DIALOGUE<select id="mix-duck-source" aria-label="Voice stem for automatic ducking"></select></label>
-  <label>MUSIC / BED<select id="mix-duck-target" aria-label="Music stem to duck"></select></label>
-  <button id="mix-auto-duck" type="button" disabled>Generate Ducking Keyframes</button>
-</div>
-<div id="mix-stems" class="pulse-mix-tracks"></div><div id="mix-advice" class="master-mix-health" role="status" hidden></div>
-            <div class="quick-actions"><button type="button" id="mix-balance" disabled>Suggest Levels</button><button type="button" id="mix-render" disabled>Generate Mix</button><button type="button" id="mix-play" disabled>▶ Preview Mix</button><button type="button" id="mix-export" disabled>Export Stereo WAV ↗</button></div>
-            <p class="tool-footnote" id="mix-status" role="status">Add at least two stems. They must start at the same timeline position.</p>
-            <p class="master-disclaimer">AI MIX (assisted beta) uses transparent, deterministic DSP. No stem separation, model-based mixing or cloud processing.</p></details>
+          <div id="panel-mix" class="tool-view pulse-ai-view" role="tabpanel" aria-labelledby="tab-mix" hidden>
+            <div class="tool-view-header"><span>04 / AI STUDIO · MIX</span><span>LOCAL AUDIO PROCESSING</span></div>
+            <h3>Shape the mix.</h3>
+            <p class="tool-footnote">One workspace, two ways to mix. Work on your stereo track or build a new mix from aligned stems.</p>
+            <div class="pulse-ai-mode" role="group" aria-label="Mix input mode">
+              <button type="button" id="mix-mode-stereo" aria-pressed="true">Stereo track</button>
+              <button type="button" id="mix-mode-stems" aria-pressed="false">Multitrack stems</button>
+            </div>
+            <section id="mix-pane-stereo" class="pulse-ai-pane" aria-label="Stereo mix processing">
+              <p class="pulse-ai-kicker">01 / CURRENT WORKSPACE TRACK</p>
+              <p class="tool-footnote">Measured tonal correction for one finished stereo file. This does not isolate individual instruments.</p>
+              <div class="tool-fields">
+                <label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option></select></label>
+                <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label>
+              </div>
+              <button id="mix-quick-generate" class="tool-action tool-action-dark pulse-ai-primary" type="button">Analyze &amp; Process Mix <span>↗</span></button>
+              <div class="pulse-ai-result-actions" id="mix-stereo-results" hidden>
+                <button id="mix-quick-preview" type="button" disabled>▶ Preview Mix</button>
+                <button id="mix-quick-send" class="pulse-ai-next" type="button" disabled>Continue to Master ↗</button>
+              </div>
+              <p class="tool-footnote" id="mix-quick-report" role="status">Load a track in the shared workspace to begin.</p>
+              <div id="mix-fix-advice" class="master-mix-health" role="status" hidden></div>
+            </section>
+            <section id="mix-pane-stems" class="pulse-ai-pane" aria-label="Multitrack mixing" hidden>
+              <p class="pulse-ai-kicker">01 / IMPORT ALIGNED STEMS</p>
+              <p class="tool-footnote">Add 2–8 stems starting at the same timeline position. Balance channels individually, then render a stereo mix.</p>
+              <div class="pulse-mix-import"><label for="mix-files">Import stems · WAV / MP3 / M4A</label><input id="mix-files" type="file" multiple accept=".wav,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*"></div>
+              <div id="mix-stems" class="pulse-mix-tracks"></div>
+              <div id="mix-advice" class="master-mix-health" role="status" hidden></div>
+              <details class="pulse-ai-advanced"><summary>Advanced · vocal ducking</summary>
+                <div class="mix-ducking-setup">
+                  <label>VOICE / DIALOGUE<select id="mix-duck-source" aria-label="Voice stem for automatic ducking"></select></label>
+                  <label>MUSIC / BED<select id="mix-duck-target" aria-label="Music stem to duck"></select></label>
+                  <button id="mix-auto-duck" type="button" disabled>Generate Ducking Keyframes</button>
+                </div>
+              </details>
+              <div class="pulse-ai-mix-actions"><button id="mix-balance" type="button" disabled>Suggest Levels</button><button id="mix-render" class="pulse-ai-dark-button" type="button" disabled>Generate Mix ↗</button></div>
+              <div class="pulse-ai-result-actions" id="mix-multitrack-results" hidden>
+                <button id="mix-play" type="button" disabled>▶ Preview</button>
+                <button id="mix-send-master" class="pulse-ai-next" type="button" disabled>Continue to Master ↗</button>
+                <button id="mix-export" type="button" disabled>Export Stereo WAV ↗</button>
+              </div>
+              <p class="tool-footnote" id="mix-status" role="status">Add at least two aligned stems to begin.</p>
+            </section>
+            <details class="pulse-ai-advanced">
+              <summary>Experimental · AI stem separation</summary>
+              <p class="tool-footnote">Local Demucs ONNX separates vocals, drums, bass and other. Desktop only; first run downloads about 170 MB. Use a 0.5–45 s clip; high memory usage.</p>
+              <div class="quick-actions"><button type="button" id="mix-separate" disabled>Separate into 4 stems ↗</button><button type="button" id="mix-cancel-separation" disabled>Cancel</button></div>
+              <p class="tool-footnote" id="mix-separation-status" role="status">Load a short audio clip to enable stem separation.</p>
+              <p class="tool-footnote">Model details: <a href="/vendor/demucs-NOTICE.txt" target="_blank" rel="noopener">Demucs / ONNX notice</a>.</p>
+            </details>
+            <details class="pulse-ai-advanced pulse-ai-method"><summary>How AI Mix works</summary>
+              <p class="tool-footnote">Stereo correction and stem level suggestions use transparent, deterministic DSP and signal measurements, not a learned mixing model. The optional stem separation is a real neural ONNX model. Audio is processed locally.</p>
+            </details>
           </div>
-          <div id="panel-master" class="tool-view" role="tabpanel" aria-labelledby="tab-master" hidden>
-            <div class="tool-view-header"><span>02 / SMART MASTER</span><span>LOCAL ADAPTIVE DSP · NO UPLOAD</span></div>
-            <h3>Master your sound.</h3>
-            
+          <div id="panel-master" class="tool-view pulse-ai-view" role="tabpanel" aria-labelledby="tab-master" hidden>
+            <div class="tool-view-header"><span>04 / AI STUDIO · MASTER</span><span>LOCAL ADAPTIVE DSP</span></div>
+            <h3>Finish your sound.</h3>
+            <p class="tool-footnote">Choose a character and loudness target. PULSE measures and processes the current workspace audio.</p>
+            <p class="pulse-ai-kicker">01 / MASTER CHARACTER</p>
             <div class="master-presets" role="group" aria-label="Master character">
               <label><input type="radio" name="master-preset" value="balanced" checked><span>BALANCED</span></label>
               <label><input type="radio" name="master-preset" value="warm"><span>WARM</span></label>
-              <label><input type="radio" name="master-preset" value="loud"><span>LOUD</span></label><label><input type="radio" name="master-preset" value="punchy"><span>PUNCHY</span></label>
+              <label><input type="radio" name="master-preset" value="loud"><span>LOUD</span></label>
             </div>
-            <div class="tool-fields master-fields"><label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label><label>True-peak ceiling<select id="master-ceiling"><option value="-1" selected>−1.0 dBTP</option><option value="-2">−2.0 dBTP</option><option value="-0.3">−0.3 dBTP</option></select></label><label>Processing intensity <output id="master-intensity-label">45%</output><input id="master-intensity" type="range" min="0" max="100" step="5" value="45"></label><label>Stereo width <output id="master-width-label">100%</output><input id="master-width" type="range" min="80" max="120" step="5" value="100"></label><label>Adaptive EQ<select id="master-eq-mode"><option value="gentle" selected>Gentle · max ±1.5 dB</option><option value="off">Bypass EQ</option></select></label><label>Dynamics<select id="master-dynamics"><option value="balanced" selected>Balanced</option><option value="preserve">Preserve transients</option><option value="control">Tight control</option></select></label></div>
-            <div class="master-readouts" id="master-readouts" aria-label="Mastering results" aria-live="polite">
-              <div><span>BEFORE</span><strong id="master-before">—</strong><small>LUFS integrated</small></div>
-              <div><span>AFTER</span><strong id="master-after">—</strong><small>LUFS integrated</small></div>
-              <div><span>TRUE PEAK</span><strong id="master-peak">—</strong><small>dBTP (4× estimate)</small></div><div><span>CREST</span><strong id="master-crest">—</strong><small>dB</small></div><div><span>STEREO</span><strong id="master-correlation">—</strong><small>correlation</small></div><div><span>MAX GR</span><strong id="master-gr">—</strong><small>dB reduction</small></div>
+            <div class="tool-fields master-fields">
+              <label>Target loudness (LUFS)<input id="master-lufs" type="number" min="-22" max="-8" step="0.5" value="-13"></label>
+              <label>Peak ceiling <select id="master-ceiling"><option value="-1" selected>−1.0 dBTP estimate</option><option value="-2">−2.0 dBTP estimate</option><option value="-0.3">−0.3 dBTP estimate</option></select></label>
             </div>
-            <div class="master-reference" id="master-reference-section">
-              <strong>REFERENCE TRACK · A/B/R MONITORING</strong>
+            <details class="pulse-ai-advanced"><summary>Advanced mastering controls</summary>
+              <div class="tool-fields master-fields">
+                <label>Processing intensity <output id="master-intensity-label">45%</output><input id="master-intensity" type="range" min="0" max="100" step="5" value="45"></label>
+                <label>Stereo width <output id="master-width-label">100%</output><input id="master-width" type="range" min="80" max="120" step="5" value="100"></label>
+                <label>Adaptive EQ<select id="master-eq-mode"><option value="gentle" selected>Gentle · max ±1.5 dB</option><option value="off">Bypass EQ</option></select></label>
+                <label>Dynamics<select id="master-dynamics"><option value="balanced" selected>Balanced</option><option value="preserve">Preserve transients</option><option value="control">Tight control</option></select></label>
+              </div>
+            </details>
+            <details class="pulse-ai-advanced" id="master-reference-section"><summary>Reference track · optional</summary>
+              <p class="tool-footnote">Measure and compare loudness and tonal balance against another track. This does not automatically match its sound.</p>
               <div class="master-reference-control">
-                <label for="master-reference-file">Choose reference audio (WAV, MP3, M4A)</label>
+                <label for="master-reference-file">Choose reference (WAV / MP3 / M4A)</label>
                 <input id="master-reference-file" type="file" accept=".wav,.wave,.mp3,.m4a,.aac,.aiff,.aif,.flac,.ogg,audio/*" aria-describedby="master-reference-status">
                 <button type="button" id="master-reference-clear" disabled>Remove reference</button>
               </div>
-              <p id="master-reference-status" role="status">No reference loaded. Import a track to compare measured loudness and tonal balance.</p>
+              <p id="master-reference-status" role="status">No reference loaded.</p>
               <div id="master-reference-details" hidden></div>
+            </details>
+            <button type="button" id="master-render" class="tool-action tool-action-dark pulse-ai-primary" disabled>Generate Master <span>↗</span></button>
+            <div class="pulse-ai-master-results" id="master-results" hidden>
+              <p class="pulse-ai-kicker">02 / LISTEN &amp; COMPARE</p>
+              <div class="master-actions"><button type="button" id="master-preview-a" disabled>▶ A / ORIGINAL</button><button type="button" id="master-preview-b" disabled>▶ B / MASTER</button><button type="button" id="master-preview-r" disabled>▶ R / REFERENCE</button></div>
+              <label class="master-match"><input type="checkbox" id="master-match" checked> Loudness-matched A/B monitoring</label>
+              <div class="pulse-ai-result-actions pulse-ai-master-finish"><button id="master-apply" type="button" disabled>Apply to Workspace</button><button id="master-export" class="pulse-ai-next" type="button" disabled>Export WAV 24-bit ↗</button></div>
+              <button type="button" class="pulse-ai-back" id="master-fix-in-mix" disabled>← Fix in Mix</button>
             </div>
-            <div class="master-mix-health" id="master-mix-health" role="status" hidden></div><div class="quick-actions"><button type="button" id="master-fix-in-mix" disabled>Fix in Mix ↗</button></div><div id="master-spectrum" class="master-mix-health" hidden><strong>TONAL BALANCE · SOURCE-RELATIVE ENERGY</strong><div id="master-spectrum-bars"></div></div><div class="quick-actions"><button type="button" id="master-report" disabled>Export Analysis JSON ↗</button></div><div id="master-eq-response" class="master-eq" hidden></div><div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
-            <button type="button" id="master-render" class="tool-action tool-action-dark" disabled>Generate Master <span>↗</span></button>
-            <div class="master-actions"><button type="button" id="master-preview-a" disabled>▶ A / ORIGINAL</button><button type="button" id="master-preview-b" disabled>▶ B / MASTER</button><button type="button" id="master-preview-r" disabled>▶ R / REFERENCE</button></div>
-            <label class="master-match"><input type="checkbox" id="master-match" checked> Loudness-matched A/B preview</label>
-            <div class="quick-actions master-finish"><button id="master-apply" disabled>Apply to Workspace</button><button id="master-export" disabled>Export WAV 24-bit ↗</button></div>
-            <p class="tool-footnote" id="master-status" role="status">Load audio to generate a master.</p>
-            <p class="master-disclaimer">V2.3 · Local deterministic DSP. Reference comparisons are measurements, not automatic matching. True peak is a 4× estimate; validate critical releases with a reference meter.</p>
+            <p class="tool-footnote" id="master-status" role="status">Load a track to generate a master.</p>
+            <div class="master-readouts" id="master-readouts" aria-label="Mastering results" aria-live="polite" hidden>
+              <div><span>BEFORE</span><strong id="master-before">—</strong><small>LUFS integrated</small></div>
+              <div><span>AFTER</span><strong id="master-after">—</strong><small>LUFS integrated</small></div>
+              <div><span>TRUE PEAK</span><strong id="master-peak">—</strong><small>dBTP · 4× estimate</small></div>
+              <div><span>CREST</span><strong id="master-crest">—</strong><small>dB</small></div>
+              <div><span>STEREO</span><strong id="master-correlation">—</strong><small>correlation</small></div>
+              <div><span>MAX GR</span><strong id="master-gr">—</strong><small>dB reduction</small></div>
+            </div>
+            <div class="master-mix-health" id="master-mix-health" role="status" hidden></div>
+            <div id="master-spectrum" class="master-mix-health" hidden><strong>TONAL BALANCE · SOURCE-RELATIVE ENERGY</strong><div id="master-spectrum-bars"></div></div>
+            <div id="master-eq-response" class="master-eq" hidden></div>
+            <div class="master-eq" id="master-eq" hidden>ADAPTIVE EQ · <span id="master-low">LOW —</span> · <span id="master-high">HIGH —</span></div>
+            <details class="pulse-ai-advanced pulse-ai-method"><summary>Technical details &amp; analysis export</summary>
+              <p class="tool-footnote">Local deterministic DSP, not neural mastering. Reference comparison is measurement-only. True peak is a 4× estimate; verify release-critical masters with a dedicated meter.</p>
+              <button type="button" id="master-report" disabled>Export Analysis JSON ↗</button>
+            </details>
           </div>
         </div>
       </div>

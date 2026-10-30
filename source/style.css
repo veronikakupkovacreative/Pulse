@@ -866,3 +866,22 @@
 .tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-runnable-track{border-radius:0!important}
 .tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-webkit-slider-thumb{border-radius:0!important}
 .tool-source:has(#eq-overview:not([hidden])) .wave-clean-options input[type=range]::-moz-range-thumb{border-radius:0!important}
+
+
+/* PULSE sharp-corner interface; preserve SVG EQ handles, genuine rotary/circular controls. */
+button:not(.tool-play):not(.tap-pad),select,textarea,input:not([type="radio"]):not([type="checkbox"]):not([type="range"]),dialog,
+.card,.tool-tab,.tool-settings,.tool-source,.tool-board,.tool-view,.pulse-ai-pane,.pulse-ai-advanced,
+.eq-wave-editor,.wave-edit-details,.waveform-wrap,.tool-waveform-wrap,.eq-overview-canvas-wrap,.pulse-eq-stage,
+.pulse-eq-band,.eq-mode-pills button,.eq-preset-pills button,.mix-character-types label span {
+  border-radius:0!important;
+}
+.tool-waveform-wrap,#tool-waveform,.waveform-wrap,#waveform,
+.tool-source:has(#eq-overview:not([hidden])) .tool-waveform-wrap {
+  background:#000000!important;
+}
+.mix-character-switches{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 16px}
+.mix-character-switches label{font-size:11px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.mix-character-switches input{accent-color:#FF0000}
+#mix-stereo-results{flex-wrap:wrap}
+#mix-quick-preview-a,#mix-quick-preview{flex:1 1 120px}
+#panel-equalizer .pulse-eq-band input[type=range]{accent-color:#FF0000!important}

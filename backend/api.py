@@ -23,7 +23,7 @@ from server import (
     extract_info, normalize_youtube_url, prepare_download, public_info,
 )
 
-DEFAULT_ORIGINS = 'https://pulse-rose-theta-57.vercel.app,http://localhost:3000,http://127.0.0.1:8000'
+DEFAULT_ORIGINS = 'https://thepulsestudio.eu,https://www.thepulsestudio.eu,https://pulse-studio-2.vercel.app,https://pulse-studio-2-veronikas-projects-c6e47f86.vercel.app,http://localhost:3000,http://127.0.0.1:8000'
 ORIGINS = [item.strip().rstrip('/') for item in
            os.environ.get('PULSE_ALLOWED_ORIGINS', DEFAULT_ORIGINS).split(',') if item.strip()]
 MAX_ACTIVE_DOWNLOADS = 2

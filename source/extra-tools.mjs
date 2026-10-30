@@ -408,24 +408,38 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   applyEqPreset('default');
   syncAB();
 
-  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}
+  function clearQuickMix(){quickMixCandidate=null;el('mix-quick-preview').disabled=true;el('mix-quick-preview-a').disabled=true;el('mix-quick-send').disabled=true;el('mix-stereo-results').hidden=true;}
+  const characterOptions=()=>({type:document.querySelector('[name="mix-vibe"]:checked')?.value||'tube',drive:Number(el('mix-drive').value),tone:Number(el('mix-tone').value),blend:Number(el('mix-blend').value),bypass:el('mix-bypass').checked,tapeNoise:el('mix-tape-noise').checked});
+  function updateCharacterPreview(){
+    if(!quickMixCandidate)return;
+    if(quickMixCandidate.input!==tools.buffer){clearQuickMix();return;}
+    try{quickMixCandidate.buffer=asAudioBuffer(processMixCharacter(quickMixCandidate.clean,tools.buffer.sampleRate,characterOptions()),tools.buffer.sampleRate);
+      status('mix-quick-report',el('mix-bypass').checked?'Saturation bypassed. Preview B contains corrective EQ only.':'Character updated. Use A/B to compare at the same playhead.');
+    }catch(error){clearQuickMix();status('mix-quick-report',error.message);}
+  }
   el('mix-intensity').oninput=()=>{status('mix-intensity-label',el('mix-intensity').value+'%');clearQuickMix();};
   el('mix-character').onchange=clearQuickMix;
-  for(const id of ['mix-drive','mix-tone','mix-blend'])el(id).oninput=()=>{status(id+'-label',id==='mix-tone'?(Number(el(id).value)===0?'Neutral':el(id).value):el(id).value+'%');clearQuickMix();};
-  document.querySelectorAll('[name="mix-vibe"]').forEach(input=>input.onchange=clearQuickMix);
+  for(const id of ['mix-drive','mix-tone','mix-blend'])el(id).oninput=()=>{status(id+'-label',id==='mix-tone'?(Number(el(id).value)===0?'Neutral':el(id).value):el(id).value+'%');updateCharacterPreview();};
+  document.querySelectorAll('[name="mix-vibe"]').forEach(input=>input.onchange=updateCharacterPreview);
+  for(const id of ['mix-bypass','mix-tape-noise'])el(id).onchange=updateCharacterPreview;
   el('mix-quick-generate').onclick=()=>{
     if(!tools.buffer){status('mix-quick-report','Load an audio track in the shared workspace first.');return;}
     try{
       const initial=analyzeStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate);
       const result=renderStereoQuickFix(channels(tools.buffer),tools.buffer.sampleRate,{
         character:el('mix-character').value,intensity:Number(el('mix-intensity').value)});
-      const colored=processMixCharacter(result.channels,tools.buffer.sampleRate,{type:document.querySelector('[name="mix-vibe"]:checked')?.value||'tube',drive:Number(el('mix-drive').value),tone:Number(el('mix-tone').value),blend:Number(el('mix-blend').value)});
-      quickMixCandidate={input:tools.buffer,result,buffer:asAudioBuffer(colored,tools.buffer.sampleRate)};
-      el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-stereo-results').hidden=false;
+      const colored=processMixCharacter(result.channels,tools.buffer.sampleRate,characterOptions());
+      quickMixCandidate={input:tools.buffer,result,clean:result.channels,buffer:asAudioBuffer(colored,tools.buffer.sampleRate)};
+      el('mix-quick-preview-a').disabled=false;el('mix-quick-preview').disabled=false;el('mix-quick-send').disabled=false;el('mix-stereo-results').hidden=false;
       status('mix-quick-report','Peak '+initial.signal.peakDb.toFixed(1)+' dBFS · RMS '+initial.signal.rmsDb.toFixed(1)+' dBFS · '+(initial.warnings.join(' · ')||'No critical issues')+' · Correction: '+(result.changes.length?result.changes.map(c=>
         c.frequency+' Hz '+c.gainDb.toFixed(1)+' dB').join(' · '):
         'No corrective EQ needed.'));
     }catch(error){clearQuickMix();status('mix-quick-report',error.message);}
+  };
+  el('mix-quick-preview-a').onclick=async()=>{
+    if(!quickMixCandidate)return;
+    try{await playBuffer(asAudioBuffer(quickMixCandidate.clean,tools.buffer.sampleRate),tools.playhead,quickMixCandidate.buffer.duration,1,{allowLoop:false});status('mix-quick-report','A / corrective mix without Character.');}
+    catch(error){status('mix-quick-report',error.message);}
   };
   el('mix-quick-preview').onclick=async()=>{
     if(!quickMixCandidate)return;

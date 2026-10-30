@@ -266,7 +266,7 @@
             <label class="denoise-channel-toggle"><input type="checkbox" id="denoise-separate-channels"> Edit channels separately · independent L/R noise profiles</label>
             <button id="denoise-process" type="button" class="tool-action tool-action-dark" disabled>Process Audio <span>↗</span></button>
             <div id="denoise-result" class="pulse-ai-result-actions" hidden>
-              <button id="denoise-preview" type="button" disabled>▶ Cleaned Preview</button><button id="denoise-ab" type="button" disabled>A/B · ORIGINAL</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><button id="denoise-export" type="button" disabled>Export WAV 24-bit ↗</button>
+              <button id="denoise-preview" type="button" disabled>▶ Cleaned Preview</button><button id="denoise-ab" type="button" disabled>A/B · ORIGINAL</button><button id="denoise-apply" type="button" disabled>Apply to Workspace</button><label class="pulse-clean-format">Clean export format<select id="denoise-format"><option value="wav">WAV · 16-bit PCM</option><option value="mp3-320">MP3 · 320 kbps</option><option value="mp3-192">MP3 · 192 kbps</option><option value="mp3-128">MP3 · 128 kbps</option><option value="mp3-64">MP3 · 64 kbps</option><option value="flac">FLAC · 16-bit</option><option value="m4a">M4A · AAC 192 kbps (browser dependent)</option></select></label><button id="denoise-export" type="button" disabled>Download clean audio ↗</button>
             </div>
             <div class="denoise-meter" aria-live="polite"><span>GAIN REDUCTION</span><strong id="denoise-reduction-value">— dB</strong><div><i id="denoise-reduction-bar"></i></div></div>
             <button id="denoise-live" type="button" class="pulse-ai-back" disabled>▶ Live Worklet Preview (current settings)</button>
@@ -288,7 +288,7 @@
                 <label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option></select></label>
                 <label>Processing intensity <output id="mix-intensity-label">40%</output><input type="range" id="mix-intensity" min="0" max="100" step="5" value="40"></label>
               </div>
-              <details class="pulse-ai-advanced" id="mix-characters"><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
+              <details class="pulse-ai-advanced" id="mix-characters" open><summary>MIX CHARACTERS · HARMONIC COLOR</summary>
                 <div class="mix-character-types" role="group" aria-label="Saturation character">
                   <label><input name="mix-vibe" type="radio" value="tube" checked><span>TUBE</span></label>
                   <label><input name="mix-vibe" type="radio" value="console"><span>CONSOLE</span></label>
@@ -443,7 +443,7 @@
     <label class="youtube-consent"><input type="checkbox" id="youtube-authorized" required> I have permission to download this audio.</label>
     <button type="submit" id="youtube-submit" class="tool-action tool-action-dark">Prepare audio <span>↗</span></button>
   </form>
-  <p id="youtube-status" role="status">Checking cloud converter…</p>
+  <p id="youtube-status" role="status">Checking cloud converter…</p><button type="button" id="youtube-recheck" class="pulse-youtube-retry">Retry cloud connection ↻</button>
   <div id="youtube-download" hidden><p id="youtube-file-info"></p><a href="#" id="youtube-download-link" target="_blank" rel="noopener" class="tool-action tool-action-dark">Download file ↗</a></div>
 </dialog>
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>

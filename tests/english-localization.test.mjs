@@ -19,3 +19,13 @@ test('all shipped interface text and diagnostics are English',async()=>{
   assert.match(html,/<html lang="en">/);
   assert.match(html,/Choose file/);
 });
+
+test('localization scan catches untranslated producer-facing phrases without diacritics',async()=>{
+  const files=['source/index.html','source/app.mjs','source/tools.mjs','source/style.css','source/studio-audio.mjs'];
+  // Known Czech terms without accents would evade the diacritic-only safeguard.
+  const untranslated=/\b(?:Nejprve|Zkopirovat|Vyber|Nahrat|Nastaveni|Zpracovani|Ulozit|Stahnout|Puvodni|Vysledek|Analyzovat|Preskocit|Prehrat|Smycka|Takt|Chyba vypoctu|Nektery soubor|Soubor je)\b/i;
+  for(const name of files){
+    const source=await readFile(new URL('../'+name,import.meta.url),'utf8');
+    assert.doesNotMatch(source,untranslated,name+' contains likely untranslated copy');
+  }
+});

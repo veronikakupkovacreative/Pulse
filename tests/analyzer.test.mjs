@@ -43,3 +43,16 @@ test('returns a beat phase and alternative candidates without claiming a downbea
  assert.ok(Math.min(distance,Math.abs(distance-.5))<.075,`expected phase near ${shift}s, got ${result.beatOffsetSeconds}s`);
  assert.ok(Array.isArray(result.alternativeBpms));
 });
+
+test('returns a detailed bounded waveform for long tracks',()=>{
+  const result=analyzeTempo(beat(128,90),22050);
+  assert.ok(result.waveform.length>220);
+  assert.ok(result.waveform.length<=16384);
+  assert.ok(result.waveform.every(v=>Number.isFinite(v)&&v>=0&&v<=1));
+});
+test('returns tempo consistency metadata for independent sections',()=>{
+  const result=analyzeTempo(beat(120,35),22050);
+  assert.ok(['steady','mixed','variable'].includes(result.tempoStability));
+  assert.equal(result.tempoWindows.length,result.analyzedWindows);
+  assert.ok(result.tempoWindows.every(w=>w.endSeconds>w.startSeconds&&Number.isFinite(w.bpm)));
+});

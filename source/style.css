@@ -479,3 +479,28 @@
  .tool-source:has(#eq-wave-editor:not([hidden])) .tool-waveform-wrap{height:180px!important}
  .eq-wave-actions button{min-height:44px}
 }
+
+/* PULSE 2.4 — Analyzer Precision */
+#analyzer .workspace{grid-template-columns:minmax(0,1.6fr) minmax(330px,1fr)}
+#analyzer .track-content{padding:12px 0;min-height:360px}
+#analyzer .waveform-wrap{height:230px;margin:12px 0 9px;border:1px solid #44443f;background:#111}
+#analyzer .waveform-wrap input{z-index:5;touch-action:none}
+#analyzer .bpm-playhead{z-index:4}
+.bpm-wave-toolbar,.bpm-wave-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#b5b5ae}
+.bpm-wave-toolbar{margin-top:20px;flex-wrap:wrap;letter-spacing:.65px}
+.bpm-wave-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.bpm-wave-actions button,.bpm-wave-footer button{font-size:10px;border:1px solid #65655f;color:#f5f4f0;padding:7px 9px;min-height:31px}
+.bpm-wave-actions button:hover,.bpm-wave-footer button:hover:not(:disabled){background:#ff2b20;color:#191919;border-color:#ff2b20}
+.bpm-wave-actions button[aria-pressed=true]{background:#ff2b20;color:#191919;border-color:#ff2b20}
+#bpm-zoom-readout{min-width:28px;text-align:center;font-variant-numeric:tabular-nums}
+.bpm-wave-footer{margin-bottom:12px;flex-wrap:wrap}
+#bpm-analyze-range:disabled{opacity:.45;cursor:not-allowed}
+.bpm-candidates{width:100%;margin-top:12px;padding:12px 0;border-top:1px solid #19191940}
+.bpm-candidates-head{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:9px;letter-spacing:.55px;font-weight:700}
+.bpm-candidates-head span{font-size:9px;font-weight:400;letter-spacing:0}
+.bpm-candidate-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.bpm-candidate-buttons button{border:1px solid #1919196d;font-size:11px;padding:7px 9px;font-variant-numeric:tabular-nums}
+.bpm-candidate-buttons button:hover,.bpm-candidate-buttons .is-active{background:#191919;color:#ff2b20}
+.bpm-stability{font-size:10px;line-height:1.45;margin:9px 0 0}
+@media(max-width:850px){#analyzer .workspace{grid-template-columns:1fr}#analyzer .waveform-wrap{height:190px}#analyzer .track-content{min-height:300px}}
+@media(max-width:480px){#analyzer .waveform-wrap{height:155px}.bpm-wave-actions button{padding:6px 7px}.bpm-candidates-head{align-items:flex-start;flex-direction:column;gap:3px}}

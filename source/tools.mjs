@@ -928,7 +928,7 @@ export function initStudioTools(getBpmTrack){
     const min=.02;if(value-markers[index-1]<min||markers[index]-value<min)return true;
     markers.splice(index,0,value);tools.selectedSlice=index-1;updateSliceUI();return true;
   }
-  function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value),stereoWidth:Number(el('master-width').value)/100,eqMode:el('master-eq-mode').value,dynamicsMode:el('master-dynamics').value};}
+  function masterOptions(){return {preset:document.querySelector('input[name="master-preset"]:checked')?.value||'balanced',targetLufs:Number(el('master-lufs').value),intensity:Number(el('master-intensity').value),ceilingDb:Number(el('master-ceiling').value),stereoWidth:Number(el('master-width').value)/100,eqMode:el('master-eq-mode').value,dynamicsMode:el('master-dynamics').value,inputGainDb:Number(el('master-input').value),glueRatio:Number(el('master-glue').value),glueThresholdDb:Number(el('master-threshold').value),bassCenterHz:Number(el('master-bass-center').value)};}
   function resetMasterUI(){
     el('master-fix-in-mix').disabled=true;
     el('master-results').hidden=true;
@@ -1093,7 +1093,7 @@ export function initStudioTools(getBpmTrack){
     status('master-preset-description',config.description);
     tools.masterCandidate=null;resetMasterUI();updateButtons();
   }));
-  el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity','master-width','master-eq-mode','master-dynamics'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');status('master-width-label',el('master-width').value+'%');tools.masterCandidate=null;resetMasterUI();updateButtons();});
+  el('master-lufs').addEventListener('input',()=>{tools.masterCandidate=null;resetMasterUI();updateButtons();});for(const id of ['master-ceiling','master-intensity','master-width','master-eq-mode','master-dynamics','master-input','master-glue','master-threshold','master-bass-center'])el(id).addEventListener('input',()=>{status('master-intensity-label',el('master-intensity').value+'%');status('master-width-label',el('master-width').value+'%');status('master-input-label',Number(el('master-input').value).toFixed(1)+' dB');status('master-threshold-label',el('master-threshold').value+' dB');status('master-bass-center-label',el('master-bass-center').value+' Hz');tools.masterCandidate=null;resetMasterUI();updateButtons();});
   el('master-fix-in-mix').onclick=()=>{
     const result=tools.masterCandidate?.analysis;
     if(!result||tools.masterCandidate?.input!==tools.buffer)return;

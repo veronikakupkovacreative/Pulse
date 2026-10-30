@@ -19,11 +19,11 @@ test('category numbers denote fixed order 01-04, not tool counts',()=>{
   assert.doesNotMatch(html,/ANALYZE <span>05<\/span>/);
 });
 
-test('subtools have no numbers and retain navigation arrow; YouTube requires cloud backend',()=>{
+test('subtools have no numbers and retain navigation arrows; obsolete YouTube nav removed',()=>{
   const tabs=[...html.matchAll(/<button class="tool-tab(?: selected)?"[^>]*>([\s\S]*?)<\/button>/g)];
-  assert.equal(tabs.length,14);
+  assert.equal(tabs.length,15);
   for(const [,label] of tabs){assert.doesNotMatch(label,/<span>\d{2}<\/span>/); assert.match(label,/<b>↗<\/b>/);}
-  assert.match(html,/id="tab-youtube"[^>]*type="button"/);
+  assert.doesNotMatch(html,/id="tab-youtube"/);
   assert.match(html,/id="youtube-dialog"/);
   assert.match(html,/id="analyze-shortcuts"/);
   assert.match(build,/PULSE 3\.2\.1 \/ category hierarchy/);

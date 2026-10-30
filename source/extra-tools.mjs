@@ -94,38 +94,68 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
   function drawEqGraph(){
     const svg=el('eq-response-graph');
     svg.replaceChildren();
-    const sr=tools.buffer?.sampleRate||48000,width=720,height=232;
-    const hzMax=Math.min(20000,sr*.45);
-    const xOf=hz=>Math.log(hz/20)/Math.log(hzMax/20)*width;
-    const yOf=db=>height/2-db/18*(height/2-12);
+    const rate=tools.buffer?.sampleRate||48000,width=720,height=300;
+    const hzMax=Math.min(20000,rate*.45);
+    const left=30,right=695,top=31,bottom=264,zero=145;
+    const xOf=hz=>left+Math.log(Math.max(20,Math.min(hzMax,hz))/20)/Math.log(hzMax/20)*(right-left);
+    const yOf=db=>Math.max(top,Math.min(bottom,zero-Math.max(-12,Math.min(12,db))*7.9));
     const ns='http://www.w3.org/2000/svg';
-    const node=(name,attributes)=>{const n=document.createElementNS(ns,name);for(const [k,v] of Object.entries(attributes))n.setAttribute(k,String(v));svg.append(n);return n;};
+    const node=(name,attributes,parent=svg)=>{
+      const n=document.createElementNS(ns,name);
+      for(const [key,value] of Object.entries(attributes))n.setAttribute(key,String(value));
+      parent.append(n);return n;
+    };
+    const defs=node('defs',{});
+    const gradient=node('linearGradient',{id:'pulse-eq-response-fill',x1:'0%',x2:'0%',y1:'0%',y2:'100%'},defs);
+    node('stop',{offset:'0%','stop-color':'#ffe58e','stop-opacity':.26},gradient);
+    node('stop',{offset:'100%','stop-color':'#ffe58e','stop-opacity':.015},gradient);
     for(const db of [-12,-6,0,6,12]){
-      const y=yOf(db);node('line',{x1:0,y1:y,x2:width,y2:y,stroke:db===0?'#a2a2a2':'#777',opacity:db===0?.7:.25,'stroke-width':1});
-      const label=node('text',{x:4,y:y-4,fill:'#aaa','font-size':10});label.textContent=(db>0?'+':'')+db+'dB';
+      const y=yOf(db);
+      node('line',{x1:left,y1:y,x2:right,y2:y,
+        stroke:db===0?'#e1e0d6':'#b9baa9',opacity:db===0?.45:.13,'stroke-width':db===0?1.4:1});
+      const label=node('text',{x:5,y:y-4,fill:'#95968e','font-size':9});
+      label.textContent=(db>0?'+':'')+db;
     }
-    for(const hz of [50,100,200,500,1000,2000,5000,10000,20000]){
-      if(hz>hzMax)continue;const x=xOf(hz);
-      node('line',{x1:x,y1:0,x2:x,y2:height,stroke:'#777',opacity:.18});
-      const label=node('text',{x:x+2,y:height-4,fill:'#aaa','font-size':10});label.textContent=hz>=1000?(hz/1000)+'k':String(hz);
+    for(const hz of [20,50,100,200,500,1000,2000,5000,10000,20000]){
+      if(hz>hzMax)continue;
+      const x=xOf(hz);
+      node('line',{x1:x,y1:top,x2:x,y2:bottom,stroke:'#a3a69a',opacity:.11,'stroke-width':1});
     }
-    const curve=eqResponse(eqState.bands,sr,190);
-    const d=curve.map((p,i)=>(i?'L':'M')+xOf(p.hz).toFixed(1)+' '+yOf(p.db).toFixed(1)).join(' ');
-    node('path',{d,fill:'none',stroke:'#ffe15b','stroke-width':3.2,'stroke-linejoin':'round'});
+    const bandGroup=node('g',{'aria-hidden':'true'});
+    eqState.bands.forEach(band=>{
+      if(!band.enabled)return;
+      const x=xOf(band.frequency);
+      node('line',{x1:x,y1:top+4,x2:x,y2:bottom,stroke:'#a9aaa0',opacity:.32,'stroke-width':4,'stroke-linecap':'round'},bandGroup);
+    });
+    const curve=eqResponse(eqState.bands,rate,240);
+    const d=curve.map((point,index)=>(index?'L':'M')+xOf(point.hz).toFixed(2)+' '+yOf(point.db).toFixed(2)).join(' ');
+    node('path',{d:d+' L'+right+' '+zero+' L'+left+' '+zero+' Z',fill:'url(#pulse-eq-response-fill)',stroke:'none','pointer-events':'none'});
+    node('path',{d,fill:'none',stroke:'#ffe58e','stroke-width':2.6,'stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'});
     eqState.bands.forEach((band,index)=>{
       if(!band.enabled)return;
-      const selected=index===selectedBand;
-      const circle=node('circle',{cx:xOf(Math.min(hzMax,band.frequency)),cy:yOf(band.gain),r:selected?9:6.5,
-        fill:selected?'#ffec91':'#252525',stroke:'#ffe15b','stroke-width':selected?2.5:1.8,
-        role:'button',tabindex:0,'aria-label':'Select and drag EQ band '+(index+1)});
+      const x=xOf(band.frequency),y=yOf(band.gain),selected=index===selectedBand;
+      const circle=node('circle',{cx:x,cy:y,r:selected?8.9:7.1,
+        fill:selected?'#333128':'#1b1c1a',stroke:selected?'#ffe58e':'#f6f5ef','stroke-width':selected?3:2.4,
+        role:'button',tabindex:0,'aria-label':'EQ band '+(index+1)+' · '+Math.round(band.frequency)+' Hz · '+band.gain.toFixed(1)+' dB'});
       circle.addEventListener('click',()=>{selectedBand=index;refreshEq(true);});
       circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectedBand=index;refreshEq(true);}});
       circle.addEventListener('pointerdown',event=>{
-        event.preventDefault();
-        dragBand=index;selectedBand=index;
-        svg.setPointerCapture(event.pointerId);refreshEq(false);
+        if(event.button!==0)return;
+        event.preventDefault();dragBand=index;selectedBand=index;
+        svg.setPointerCapture(event.pointerId);
+        refreshEq(false);
       });
+      const gainLabel=node('text',{x,y:21,'font-size':eqState.bands.length>=20?8.4:10.5,
+        'font-family':'ui-monospace, Menlo, monospace','font-weight':700,'text-anchor':'middle',fill:'#ffe58e','pointer-events':'none'});
+      gainLabel.textContent=(band.gain>0?'+':'')+band.gain.toFixed(1);
+      const hzLabel=node('text',{x,y:279,'font-size':eqState.bands.length>=20?8.4:10.5,
+        'font-family':'ui-monospace, Menlo, monospace','text-anchor':'middle',fill:'#9b9c95','pointer-events':'none'});
+      hzLabel.textContent=band.frequency>=1000?(band.frequency/1000).toFixed(band.frequency%1000?1:0)+'k':Math.round(band.frequency);
     });
+    const leftLabel=node('text',{x:10,y:294,'font-size':9,fill:'#8f908a','pointer-events':'none'});leftLabel.textContent='20 Hz';
+    const centerLabel=node('text',{x:width/2,y:294,'font-size':9,'text-anchor':'middle',fill:'#999990','pointer-events':'none'});
+    centerLabel.textContent='SUMMED FREQUENCY RESPONSE';
+    const rightLabel=node('text',{x:710,y:294,'font-size':9,'text-anchor':'end',fill:'#8f908a','pointer-events':'none'});rightLabel.textContent='20 kHz';
   }
   el('eq-response-graph').addEventListener('pointermove',event=>{
     if(dragBand<0)return;

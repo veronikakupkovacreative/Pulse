@@ -120,3 +120,14 @@ export function detectKey(samples,sampleRate){
   return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};
 }
 
+
+export function samplePeakDbfs(channels){
+  let peak=0;
+  for(const channel of channels||[]){
+    for(let i=0;i<channel.length;i++){
+      const sample=channel[i];
+      if(Number.isFinite(sample))peak=Math.max(peak,Math.abs(sample));
+    }
+  }
+  return peak>0?20*Math.log10(peak):-Infinity;
+}

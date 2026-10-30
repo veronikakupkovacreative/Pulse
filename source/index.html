@@ -77,13 +77,13 @@
         <button class="tool-tab" id="tab-reverse" role="tab" aria-selected="false" aria-controls="panel-reverse" tabindex="-1" data-tool="reverse" data-group="edit" hidden>Reverse <b>↗</b></button>
         <button class="tool-tab" id="tab-trim" role="tab" aria-selected="false" aria-controls="panel-trim" tabindex="-1" data-tool="trim" data-group="edit" hidden>Silence Trim <b>↗</b></button>
         <button class="tool-tab" id="tab-converter" role="tab" aria-selected="false" aria-controls="panel-converter" tabindex="-1" data-tool="converter" data-group="export" hidden>Converter <b>↗</b></button>
+        <button class="tool-tab" id="tab-youtube" role="tab" aria-selected="false" aria-controls="panel-youtube" tabindex="-1" data-tool="youtube" data-group="export" hidden>YouTube Converter <b>↗</b></button>
         <button class="tool-tab" id="tab-normalizer" role="tab" aria-selected="false" aria-controls="panel-normalizer" tabindex="-1" data-tool="normalizer" data-group="export" hidden>Normalizer <b>↗</b></button>
         <button class="tool-tab" id="tab-denoise" role="tab" aria-selected="false" aria-controls="panel-denoise" tabindex="-1" data-tool="denoise" data-group="edit" hidden>Spectral Denoise <b>↗</b></button>
         <button class="tool-tab" id="tab-equalizer" role="tab" aria-selected="false" aria-controls="panel-equalizer" tabindex="-1" data-tool="equalizer" data-group="edit" hidden>Equalizer <b>↗</b></button>
         <button class="tool-tab" id="tab-mix" role="tab" aria-selected="false" aria-controls="panel-mix" tabindex="-1" data-tool="mix" data-group="ai" hidden>AI Mix <b>↗</b></button>
         <button class="tool-tab" id="tab-master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1" data-tool="master" data-group="ai" hidden>AI Master <b>↗</b></button>
       </div>
-      <div class="coming-soon-note"><button class="tool-tab tool-tab-disabled coming-soon-link" id="tab-youtube" type="button" aria-disabled="true" disabled>YouTube Audio <b>COMING SOON</b></button></div>
       <div class="tool-board">
         <div class="tool-source" id="tool-drop-zone">
           <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i></i> LOCAL PROCESSING</span></div>
@@ -167,6 +167,26 @@
           <p class="tool-source-foot"><svg><use href="#lock"/></svg> Audio stays in your browser.</p>
         </div>
         <div class="tool-settings">
+          <div id="panel-youtube" class="tool-view" role="tabpanel" aria-labelledby="tab-youtube" hidden>
+            <div class="tool-view-header"><span>02 / YOUTUBE CONVERTER</span><span>ONLINE SOURCE</span></div>
+            <h3>Link to file.<br><span>Ready for your DAW.</span></h3>
+            <div class="yt-convert-fields">
+              <label for="yt-url">YouTube URL</label>
+              <input type="url" id="yt-url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" spellcheck="false">
+              <button type="button" id="yt-check" class="yt-secondary">Analyze URL <span>↗</span></button>
+              <div id="yt-source-info" hidden><strong id="yt-title"></strong><p id="yt-source-details"></p></div>
+              <label for="yt-format">Download format</label>
+              <select id="yt-format"><option value="wav24">WAV · 24-bit PCM</option><option value="wav16">WAV · 16-bit PCM</option><option value="mp3">MP3 · 320 kbps</option><option value="m4a">M4A · AAC 256 kbps</option><option value="flac">FLAC · lossless container</option><option value="mp4">MP4 · video up to 720p</option><option value="native">Original audio stream</option></select>
+              <p id="yt-format-note" class="yt-format-note"></p>
+              <label class="yt-permission"><input id="yt-permission" type="checkbox"> I have permission to download this content.</label>
+            </div>
+            <button type="button" class="tool-action tool-action-dark" id="yt-download" disabled>Convert &amp; download <span>↗</span></button>
+            <p id="yt-status" class="tool-footnote" role="status">Checking cloud service…</p>
+            <p id="yt-error" class="yt-error" role="alert" hidden></p>
+            <p id="yt-result" class="yt-result" hidden></p>
+            <a id="yt-save-link" class="yt-save-link" hidden>Download prepared file ↗</a>
+            <p class="yt-disclaimer">YouTube may restrict automated retrieval. WAV and FLAC cannot improve the quality of an already compressed stream.</p>
+          </div>
           <div id="panel-converter" class="tool-view" role="tabpanel" aria-labelledby="tab-converter" hidden><div class="tool-view-header"><span>02 / CONVERTER</span><span>FORMAT CONTROL</span></div><h3>Change the format.<br><span>Keep creating.</span></h3>
             <div class="tool-fields"><label>Output format<select id="conv-format"><option value="wav">WAV · uncompressed</option><option value="mp3">MP3 · compressed</option></select></label><label>Sample rate<select id="conv-rate"><option value="original" selected>Keep source rate</option><option value="44100">44.1 kHz</option><option value="48000">48 kHz</option><option value="88200">88.2 kHz</option><option value="96000">96 kHz</option></select></label><label id="conv-dither-box">16-bit dither<input type="checkbox" id="conv-dither" checked></label><label id="conv-depth-box">Bit depth<select id="conv-depth"><option value="16">16-bit PCM</option><option value="24" selected>24-bit PCM</option><option value="32">32-bit float WAV</option></select></label><label id="conv-bitrate-box" hidden>MP3 bitrate<select id="conv-bitrate"><option value="128">128 kbps</option><option value="192" selected>192 kbps</option><option value="320">320 kbps</option></select></label></div>
             <button class="tool-action tool-action-dark" id="conv-export" disabled>Convert & download <span>↗</span></button><p class="tool-footnote" id="conv-status" role="status">Choose export settings.</p></div>
@@ -425,6 +445,6 @@
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">QUICK START.</p><h2 id="help-title">From audio<br>to tempo.</h2><ol class="help-list"><li><strong>Choose WAV, MP3, M4A or MP4.</strong><span>Up to 100 MB and 20 minutes. For a better tempo estimate, use at least 15 seconds with clear beats; minimum 6 seconds.</span></li><li><strong>Let PULSE find the beat.</strong><span>PULSE analyzes rhythmic onsets. MP4 audio support depends on browser and codec.</span></li><li><strong>Verify tempo by listening.</strong><span>Use the metronome or Tap Tempo. Test half-time and double-time with ÷2 and ×2.</span></li></ol><p class="dialog-footnote">BPM is an estimate. Variable tempo, speech and music without regular beats may not have a reliable single tempo.</p></dialog>
 <dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">FEEL THE BEAT.</p><h2 id="tap-title">Your hands.<br>Your tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Tap the beat</span></button><p class="tap-instruction">Tap four times or press Space.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 taps</span><button id="tap-reset">Reset ↺</button><button id="tap-copy" hidden>Copy BPM ↗</button></div></dialog>
-<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Your uploaded audio is processed locally. YouTube Audio is not available yet.</p><p class="privacy-copy">Audio is released when removed or when the page closes.</p></dialog>
+<dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Uploaded audio is processed locally. YouTube links are processed by a separate cloud service only when requested.</p><p class="privacy-copy">Audio is released when removed or when the page closes.</p></dialog>
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
 </body></html>

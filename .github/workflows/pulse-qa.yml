@@ -4,6 +4,7 @@ on:
     branches:
       - feature/pulse-editor-workspace-3
       - feature/pulse-eq-waveform-ui-qa
+      - feature/pulse-ai-studio-4-workflow
   workflow_dispatch:
 
 permissions:

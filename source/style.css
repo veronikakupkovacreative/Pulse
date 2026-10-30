@@ -649,3 +649,45 @@
  .tool-source:has(#eq-overview:not([hidden])) .eq-time-fields{grid-template-columns:1fr 1fr}
  .tool-source:has(#eq-overview:not([hidden])) .eq-time-fields output{grid-column:1/-1}
 }
+
+
+/* PULSE AI Studio 4.0 — restrained, progressive workspace controls */
+.pulse-ai-view .tool-view-header{margin-bottom:15px}
+.pulse-ai-view h3{margin-bottom:12px}
+.pulse-ai-kicker{font:700 10px/1.5 Arial,sans-serif;letter-spacing:.09em;margin:17px 0 9px;color:#5d5c56}
+.pulse-ai-mode{display:grid;grid-template-columns:1fr 1fr;border:1px solid #191919;margin:20px 0 18px}
+.pulse-ai-mode button{padding:14px 9px;min-height:45px;font:700 11px Arial,sans-serif;border-right:1px solid #191919;background:transparent;color:#191919}
+.pulse-ai-mode button:last-child{border-right:0}
+.pulse-ai-mode button[aria-pressed="true"]{background:#191919;color:#f5f4f0}
+.pulse-ai-mode button:focus-visible,.pulse-ai-advanced summary:focus-visible,.pulse-ai-result-actions button:focus-visible{outline:2px solid #ff2b20;outline-offset:3px}
+.pulse-ai-pane[hidden],.pulse-ai-result-actions[hidden],.pulse-ai-master-results[hidden]{display:none!important}
+.pulse-ai-pane{min-width:0}
+.pulse-ai-primary{width:100%;margin:15px 0 9px;display:flex;align-items:center;justify-content:space-between}
+.pulse-ai-result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0 16px}
+.pulse-ai-result-actions button,.pulse-ai-mix-actions button{border:1px solid #191919;background:transparent;color:#191919;padding:12px 9px;min-height:44px;font:700 11px Arial,sans-serif}
+.pulse-ai-result-actions .pulse-ai-next,.pulse-ai-mix-actions .pulse-ai-dark-button{background:#191919;color:#f5f4f0}
+.pulse-ai-result-actions button:disabled,.pulse-ai-mix-actions button:disabled{opacity:.35;cursor:not-allowed}
+.pulse-ai-mix-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0}
+.pulse-ai-advanced{border-top:1px solid #b9b7b0;margin:13px 0 0;padding:0}
+.pulse-ai-advanced:last-child{border-bottom:1px solid #b9b7b0}
+.pulse-ai-advanced>summary{display:list-item;cursor:pointer;padding:13px 0;min-height:44px;font:700 11px/1.5 Arial,sans-serif;color:#191919;list-style-position:inside}
+.pulse-ai-advanced[open]{padding-bottom:13px}
+.pulse-ai-advanced .tool-fields{margin-top:13px}
+.pulse-ai-method .tool-footnote{color:#66645c}
+.pulse-ai-view .master-presets{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:15px}
+.pulse-ai-view .master-presets span{min-height:45px;display:grid;place-items:center}
+.pulse-ai-view .master-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pulse-ai-view .master-actions button{padding:12px 4px;min-height:45px}
+.pulse-ai-master-results{padding-top:10px}
+.pulse-ai-master-finish{margin-top:15px}
+.pulse-ai-back{border:0;background:transparent;padding:10px 0;color:#4d4b46;font:700 11px Arial,sans-serif;text-align:left;cursor:pointer}
+.pulse-ai-view .master-reference-control{display:grid;gap:9px}
+.pulse-ai-view .master-disclaimer{display:none}
+.pulse-ai-view #mix-quick-report{line-height:1.55;margin-top:12px}
+.pulse-ai-view #mix-stems{min-width:0}
+.pulse-ai-view .pulse-mix-row{min-width:0}
+@media(max-width:560px){
+  .pulse-ai-view .master-actions{grid-template-columns:1fr 1fr}
+  .pulse-ai-view .master-actions button:last-child{grid-column:span 2}
+  .pulse-ai-result-actions{grid-template-columns:1fr}
+}

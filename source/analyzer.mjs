@@ -120,6 +120,21 @@ export function analyzeTempo(samples, sampleRate) {
     return Math.sqrt(sum / (count || 1));
   });
   const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms};
+  // Peak-based cross-check: diagnostic only, never overrides autocorrelation.
+  const threshold=envelope.reduce((sum,value)=>sum+value,0)/Math.max(1,envelope.length)*1.5;
+  const peaks=[];
+  for(let i=1;i<envelope.length-1;i++)
+    if(envelope[i]>threshold&&envelope[i]>envelope[i-1]&&envelope[i]>=envelope[i+1])peaks.push(i);
+  let aligned=0;
+  const expectedPeriod=rate*60/best.bpm;
+  for(let i=1;i<peaks.length;i++){
+    const beats=(peaks[i]-peaks[i-1])/expectedPeriod;
+    if(Math.abs(beats-Math.round(beats))<0.13)aligned++;
+  }
+  const peakConsistency=peaks.length>1?Math.round(aligned/(peaks.length-1)*100):0;
+  const genreHint=best.bpm<90?'Ambient / Chillout / Hip-Hop':
+    best.bpm<115?'Pop / R&B':best.bpm<130?'House / Techno / Dance':
+    best.bpm<155?'Trance / Drum & Bass (Half-time)':'Drum & Bass / Hardcore';
+  return {peakConsistency,genreHint,bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms};
 }
 

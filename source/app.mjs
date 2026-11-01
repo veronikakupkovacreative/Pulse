@@ -100,6 +100,8 @@ function renderResult(file) {
     const alternatives = (state.result.alternativeBpms||[]).slice(0,2);
     ui['result-note'].textContent += ` · Beat grid offset: ${offset}s${alternatives.length ? ' · Other tempo candidates: '+alternatives.join(' / ')+' BPM' : ''}`;
   }
+  if(Number.isFinite(state.result.peakConsistency))ui['result-note'].textContent+=` · Rhythmic peak alignment: ${state.result.peakConsistency}%`;
+  if(state.result.genreHint)ui['result-note'].textContent+=` · Tempo context: ${state.result.genreHint} (not a genre prediction)`;
   updateTempo();drawWaveform();
 }
 function updateTempo() {

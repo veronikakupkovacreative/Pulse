@@ -1,8 +1,9 @@
-import {EQ_DEFAULT_BANDS} from './parametric-eq.mjs';
-const SIZES=new Set([3,8,10,20]);
+import {EQ_DEFAULT_BANDS,PULSE_FIVE_BAND_EQ} from './parametric-eq.mjs';
+const SIZES=new Set([3,5,8,10,20]);
 export function makeEqBands(size=8){
-  if(!SIZES.has(size))throw Error('EQ supports 3, 8, 10, or 20 bands.');
+  if(!SIZES.has(size))throw Error('EQ supports 3, 5, 8, 10, or 20 bands.');
   if(size===8)return EQ_DEFAULT_BANDS.map(b=>({...b}));
+  if(size===5)return PULSE_FIVE_BAND_EQ.map(b=>({...b}));
   if(size===3)return [
     {type:'lowshelf',frequency:115,gain:0,q:.707,enabled:true},
     {type:'peaking',frequency:1100,gain:0,q:1,enabled:true},

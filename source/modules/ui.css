@@ -92,3 +92,10 @@
 .pulse-eq-editor-note{color:#aaa;font-size:10px;line-height:1.5}
 @media(max-width:700px){.module-work .tool-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.module-work .pulse-harmonic-display{flex-wrap:wrap}.module-work .pulse-metric-orbit{width:150px;height:150px}.module-work .pulse-metric-orbit strong{font-size:58px}}
 @media(max-width:390px){.module-work .tool-fields{grid-template-columns:1fr}}
+
+/* Seven-format audio converter — reference inspector controls */
+.module-work .converter-options>div[hidden]{display:none!important}
+.module-work .converter-options>div{min-width:0}
+.module-work .converter-codec-note{font-size:10px;line-height:1.6;margin:0 0 13px;color:#432820}
+.module-work .converter-progress{height:5px;background:#1919193a;margin:0 0 22px;overflow:hidden}
+.module-work .converter-progress i{display:block;width:0;height:100%;background:#191919;transition:width .15s}

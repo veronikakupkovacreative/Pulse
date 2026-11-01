@@ -1,14 +1,10 @@
 {
-  "name": "pulse-bpm-studio",
-  "version": "3.1.0",
+  "name": "pulse-studio-shell",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "test": "node --test tests/*.test.mjs"
-  },
-  "dependencies": {
-    "@breezystack/lamejs": "1.2.7",
-    "onnxruntime-web": "1.22.0"
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs"
   }
 }

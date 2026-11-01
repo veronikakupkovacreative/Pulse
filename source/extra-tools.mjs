@@ -322,7 +322,7 @@ function initExtraTools({el,tools,channels,asAudioBuffer,playBuffer,stopPreview,
     eqNotice(spec.label+' preset applied. Preview to hear the EQ response.');
   }
   function changeBandCount(count){
-    if(![3,10,20].includes(count))return;
+    if(![3,5,8,10,20].includes(count))return;
     if(tools.playing)stopPreview();
     eqState.bands=currentEqPreset==='custom'?makeEqBands(count):makeNamedEqPreset(currentEqPreset,count);
     selectedBand=0;

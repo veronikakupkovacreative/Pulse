@@ -1,3 +1,9 @@
+import {AudioConverterTool} from './studio-audio.mjs';
+import {normalizeAudio,detectSilenceBounds,trimAudio,reverseAudio} from './dsp/quick-tools.mjs';
+import {makeEqBands} from './dsp/eq-band-modes.mjs';
+import {analysisMono} from './core/media-loader.mjs';
+import {analyzeTempo} from './analyzer.mjs';
+
 // The Pulse Studio unified API. Browser-only adapters over verified local DSP.
 // This class is a service layer, not a replacement for the editor's workspace.
 export class ThePulseStudioEngine {

@@ -317,7 +317,37 @@
               <button type="button" id="mix-mode-stems" aria-pressed="false">Multitrack stems</button>
             </div>
             <section id="mix-pane-stereo" class="pulse-ai-pane" aria-label="Stereo mix processing">
-              <p class="pulse-ai-kicker">01 / CURRENT WORKSPACE TRACK</p>
+              <details id="pulse-engine-panel" class="pulse-engine-panel" open>
+              <summary>UNIFIED AUDIO ENGINE · LIVE CONTROLS <span>NEW</span></summary>
+              <p class="tool-footnote">Real audio processing using the shared track. Preview, apply with Undo, or export as 24-bit WAV.</p>
+              <div class="tool-fields">
+                <label>Processor<select id="engine-effect">
+                  <option value="bass">Bass Booster</option>
+                  <option value="rumble">Rumble Filter</option>
+                  <option value="voice">Voice Focus</option>
+                  <option value="mix">Mix Compressor</option>
+                  <option value="master">Master Tone</option>
+                  <option value="fade-in">Fade In</option>
+                  <option value="fade-out">Fade Out</option>
+                  <option value="volume">Output Volume</option>
+                  <option value="speed">Playback Speed</option>
+                  <option value="vocals">Center Vocals</option>
+                  <option value="instrumental">Center Instrumental</option>
+                  <option value="reverse">Reverse Audio</option>
+                  <option value="trim">Trim Silence</option>
+                  <option value="normalize">Peak Normalize</option>
+                </select></label>
+                <label id="engine-strength-row"><span id="engine-strength-label">Amount</span> <output id="engine-strength-value">8 dB</output><input type="range" id="engine-strength" min="0" max="12" value="8" step="1"></label>
+                <label id="engine-profile-row" hidden>Processing profile<select id="engine-profile"></select></label>
+                <label id="engine-seconds-row" hidden>Fade length <output id="engine-seconds-value">2.0 s</output><input type="range" id="engine-seconds" min=".1" max="15" value="2" step=".1"></label>
+              </div>
+              <p class="tool-footnote" id="engine-description">Bass Booster · 150 Hz low shelf</p>
+              <p class="tool-footnote" id="engine-warning" hidden></p>
+              <canvas id="engine-viz" class="pulse-engine-viz" width="600" height="76" aria-label="Live processed audio frequency display" role="img"></canvas>
+              <div class="quick-actions pulse-engine-actions"><button type="button" id="engine-preview">▶ Preview</button><button type="button" id="engine-stop">Stop</button><button type="button" id="engine-apply">Apply to Workspace</button><button type="button" id="engine-export">Export WAV ↗</button></div>
+              <p class="tool-footnote" id="engine-status" role="status">Load audio to use the engine.</p>
+            </details>
+            <p class="pulse-ai-kicker">01 / CURRENT WORKSPACE TRACK</p>
               <p class="tool-footnote">Measured tonal correction for one finished stereo file. This does not isolate individual instruments.</p>
               <div class="tool-fields">
                 <label>Mix character<select id="mix-character"><option value="balanced">Balanced</option><option value="punchy">Punchy</option><option value="warm">Warm</option></select></label>

@@ -2,6 +2,7 @@ import {initStemToolkit} from './stem-workflows.mjs';
 import {initAiAssistedDSP} from './ai-assisted-ui.mjs';
 import {encodeWav} from './studio-audio.mjs';
 import {initAdvancedFX} from './advanced-fx.mjs';
+import {initPulseEngineUI} from './pulse-engine-ui.mjs';
 import {initStudioTools} from './tools.mjs';
 import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
 import {audioFileError} from './file-support.mjs';
@@ -303,6 +304,7 @@ function makeDemo() {
 $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
 initAdvancedFX(pulseProject,encodeWav);
+initPulseEngineUI(pulseProject,encodeWav);
 initAiAssistedDSP(pulseProject,encodeWav);
 initStemToolkit(pulseProject,encodeWav);
 pulseProject.subscribe(({type,origin,state:project})=>{

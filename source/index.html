@@ -146,6 +146,7 @@
 <div class="pulse-eq-left" id="pulse-eq-left" hidden>
   <div class="eq-mode-pills" role="group" aria-label="Equalizer band layout">
   <button type="button" data-eq-bands="3" aria-pressed="false">3 BANDS</button>
+  <button type="button" data-eq-bands="5" aria-pressed="false">5 BANDS</button>
   <button type="button" data-eq-bands="10" aria-pressed="false">10 BANDS</button>
   <button type="button" data-eq-bands="20" aria-pressed="true">20 BANDS</button>
   <span class="eq-mode-caption">Applies to both channels together</span>
@@ -237,7 +238,7 @@
             <div class="tool-view-header"><span>02 / PARAMETRIC EQUALIZER</span><span id="eq-band-count-note">20 BANDS · LOCAL DSP</span></div>
             <h3>Equalizer.</h3>
             <p class="tool-footnote">Adjust the interactive frequency response below the waveform; presets and filter settings are on the right.</p>
-            <select id="eq-band-count" aria-label="EQ band count" hidden><option value="3">3 BANDS</option><option value="8">8 BANDS</option><option value="10">10 BANDS</option><option value="20" selected>20 BANDS</option></select>
+            <select id="eq-band-count" aria-label="EQ band count" hidden><option value="3">3 BANDS</option><option value="5">5 BANDS</option><option value="8">8 BANDS</option><option value="10">10 BANDS</option><option value="20" selected>20 BANDS</option></select>
 <div class="tool-fields"><input id="eq-preset" type="hidden" value="default" aria-hidden="true">
             <p class="tool-footnote" id="eq-character-description" hidden>Original PULSE filter curves.</p><label>Output gain <output id="eq-output-label">0.0 dB</output><input type="range" id="eq-output-gain" min="-18" max="12" step=".5" value="0"></label>
             <label><input id="eq-bypass" type="checkbox"> Bypass EQ</label></div><div class="pulse-eq-right-presets"><h4>ACOUSTIC PRESETS</h4><div class="eq-preset-pills" role="group" aria-label="Equalizer sound presets">
@@ -252,6 +253,10 @@
   <button type="button" data-eq-preset="soft" aria-pressed="false">SOFT</button>
   <button type="button" data-eq-preset="club" aria-pressed="false">CLUB</button>
   <button type="button" data-eq-preset="rock" aria-pressed="false">ROCK</button>
+  <button type="button" data-eq-preset="warm_vocals" aria-pressed="false">WARM VOCALS</button>
+  <button type="button" data-eq-preset="punchy_drums" aria-pressed="false">PUNCHY DRUMS</button>
+  <button type="button" data-eq-preset="electronic_master" aria-pressed="false">ELECTRONIC MASTER</button>
+  <button type="button" data-eq-preset="podcast_voice" aria-pressed="false">PODCAST VOICE</button>
 </div><p class="eq-preset-description" id="eq-preset-description" role="status">Flat response. No tonal processing.</p><button type="button" class="pulse-eq-compare" id="eq-compare" aria-pressed="false">COMPARE WITHOUT EQ / FILTERS ↗</button><label class="pulse-eq-lr-toggle"><input type="checkbox" id="eq-split-view"> Display L / R waveform separately</label></div>
             
             <div id="eq-bands" class="pulse-eq-bands" aria-label="Equalizer band selection and settings"></div>

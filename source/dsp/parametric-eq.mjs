@@ -65,3 +65,75 @@ export function renderEqualizer(channels,rate,bands,outputGainDb=0){
     return data;
   });
 }
+
+
+/** Five-band mastering layout from the new Pulse Studio EQ specification. */
+export const PULSE_FIVE_BAND_EQ=Object.freeze([
+  Object.freeze({id:'sub',type:'lowshelf',frequency:60,gain:0,q:1,enabled:true}),
+  Object.freeze({id:'bass',type:'peaking',frequency:230,gain:0,q:1.2,enabled:true}),
+  Object.freeze({id:'mid',type:'peaking',frequency:1000,gain:0,q:1.5,enabled:true}),
+  Object.freeze({id:'highMid',type:'peaking',frequency:4000,gain:0,q:1.2,enabled:true}),
+  Object.freeze({id:'brilliance',type:'highshelf',frequency:12000,gain:0,q:1,enabled:true})
+]);
+export const PULSE_FIVE_BAND_MASTERING_PRESETS=Object.freeze({
+  warm_vocals:Object.freeze({sub:-3,bass:1,mid:3,highMid:4,brilliance:2}),
+  punchy_drums:Object.freeze({sub:5,bass:3,mid:-2,highMid:2,brilliance:4}),
+  electronic_master:Object.freeze({sub:4,bass:2,mid:-1,highMid:3,brilliance:5}),
+  podcast_voice:Object.freeze({sub:-6,bass:2,mid:2,highMid:3,brilliance:1}),
+  flat:Object.freeze({sub:0,bass:0,mid:0,highMid:0,brilliance:0})
+});
+
+/** Optional Web Audio live chain; exported for consumers outside the main editor. */
+export class AdvancedAudioEqualizer {
+  constructor(audioContext=null){
+    const Context=globalThis.AudioContext||globalThis.webkitAudioContext;
+    this.audioContext=audioContext||(Context?new Context():null);
+    if(!this.audioContext)throw new Error('Web Audio API is unavailable.');
+    this.inputNode=this.audioContext.createGain();
+    this.outputNode=this.audioContext.createGain();
+    this.bands={};
+    let previous=this.inputNode;
+    for(const config of PULSE_FIVE_BAND_EQ){
+      const filter=this.audioContext.createBiquadFilter();
+      filter.type=config.type;
+      filter.frequency.setValueAtTime(
+        Math.min(config.frequency,this.audioContext.sampleRate*.45),this.audioContext.currentTime);
+      filter.gain.setValueAtTime(config.gain,this.audioContext.currentTime);
+      filter.Q.setValueAtTime(config.q,this.audioContext.currentTime);
+      previous.connect(filter);previous=filter;this.bands[config.id]=filter;
+    }
+    previous.connect(this.outputNode);
+  }
+  connectSource(source){
+    if(!source?.connect)throw new Error('Invalid source node.');
+    source.connect(this.inputNode);
+  }
+  connectDestination(destination){
+    if(!destination)throw new Error('Invalid destination node.');
+    this.outputNode.connect(destination);
+  }
+  setBandGain(bandId,gainValue){
+    const node=this.bands[bandId];
+    if(!node)throw new Error('Unknown EQ band: '+bandId);
+    if(!Number.isFinite(gainValue)||gainValue< -12||gainValue>12)
+      throw new Error('EQ gain must be between -12 and +12 dB.');
+    node.gain.setValueAtTime(gainValue,this.audioContext.currentTime);
+  }
+  setOutputVolume(volume){
+    if(!Number.isFinite(volume)||volume<0||volume>2)
+      throw new Error('Output volume must be between 0 and 2.');
+    this.outputNode.gain.setValueAtTime(volume,this.audioContext.currentTime);
+  }
+  applyMasteringPreset(presetName){
+    const key=String(presetName).toLowerCase();
+    const preset=PULSE_FIVE_BAND_MASTERING_PRESETS[key];
+    if(!preset)throw new Error('Unknown mastering preset: '+presetName);
+    for(const [band,gain] of Object.entries(preset))this.setBandGain(band,gain);
+    return {...preset};
+  }
+  disconnect(){
+    this.inputNode.disconnect();
+    for(const filter of Object.values(this.bands))filter.disconnect();
+    this.outputNode.disconnect();
+  }
+}

@@ -1,4 +1,5 @@
 import {makeEqBands} from './eq-band-modes.mjs';
+import {PULSE_FIVE_BAND_MASTERING_PRESETS} from './parametric-eq.mjs';
 
 // Gentle musical EQ curves, not measured responses or copies of another editor.
 // Control points are [frequency Hz, target dB] on a logarithmic frequency axis.
@@ -12,9 +13,13 @@ export const PULSE_EQ_PRESETS=Object.freeze({
   warm:{label:'Warm',description:'Gentle low-mid lift with smooth upper frequencies.',points:[[20,.4],[110,2.5],[320,1.5],[950,.3],[2800,-.6],[6500,-1.1],[14000,-.8],[20000,-.5]]},
   soft:{label:'Soft',description:'Reduces hard presence and brittle treble.',points:[[20,0],[150,.4],[750,0],[1800,-.4],[3600,-1.6],[7000,-2.5],[12000,-2],[20000,-1.4]]},
   club:{label:'Club',description:'Dance-oriented low and high energy, restrained mids.',points:[[20,1],[65,3.5],[145,1.5],[550,-1.7],[1500,-1],[3800,.4],[8500,2.9],[14000,2.1],[20000,1]]},
+  warm_vocals:{label:'Warm Vocals',description:'Warm five-band vocal presence.',points:[[20,-3],[60,-3],[230,1],[1000,3],[4000,4],[12000,2],[20000,2]]},
+  punchy_drums:{label:'Punchy Drums',description:'Punch and snap for drums.',points:[[20,5],[60,5],[230,3],[1000,-2],[4000,2],[12000,4],[20000,4]]},
+  electronic_master:{label:'Electronic Master',description:'Club-weight lows and bright air.',points:[[20,4],[60,4],[230,2],[1000,-1],[4000,3],[12000,5],[20000,5]]},
+  podcast_voice:{label:'Podcast Voice',description:'Reduced subs and spoken-word presence.',points:[[20,-6],[60,-6],[230,2],[1000,2],[4000,3],[12000,1],[20000,1]]},
   rock:{label:'Rock',description:'Defined bass, scooped low mids and guitar presence.',points:[[20,.4],[95,2.5],[240,.6],[490,-1.7],[1100,.4],[3200,2.5],[5800,1.3],[10000,.8],[20000,.2]]}
 });
-export const PULSE_EQ_PRESET_KEYS=Object.freeze(['default','custom','voice-clarity','podcast','bass-focus','full-bass','bright','warm','soft','club','rock']);
+export const PULSE_EQ_PRESET_KEYS=Object.freeze(['default','custom','voice-clarity','podcast','bass-focus','full-bass','bright','warm','soft','club','rock','warm_vocals','punchy_drums','electronic_master','podcast_voice']);
 function samplePreset(points,frequency){
   const hz=Math.max(20,Math.min(20000,frequency));
   for(let i=1;i<points.length;i++){
@@ -31,6 +36,7 @@ export function makeNamedEqPreset(key,size=20){
   const spec=PULSE_EQ_PRESETS[key];
   if(!spec)throw Error('Unknown EQ preset: '+key);
   const bands=makeEqBands(size);
+  if(size===5&&PULSE_FIVE_BAND_MASTERING_PRESETS[key])return bands.map(b=>({...b,gain:PULSE_FIVE_BAND_MASTERING_PRESETS[key][b.id],enabled:true}));
   // Neighboring bell filters overlap. Scale each band for safe summed gain.
   const factor=size===20?.39:size===10?.68:size===8?.76:1;
   return bands.map((b,i)=>{

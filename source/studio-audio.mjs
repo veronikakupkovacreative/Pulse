@@ -131,3 +131,81 @@ export function samplePeakDbfs(channels){
   }
   return peak>0?20*Math.log10(peak):-Infinity;
 }
+
+
+/**
+ * Browser-only audio converter. Reuses the project's WAV encoder to support
+ * 16/24-bit PCM and 32-bit float without allocating an interleaved float copy.
+ * Codec decoding still depends on the browser's AudioContext implementation.
+ */
+export class AudioConverterTool {
+  constructor(audioContext=null,{OfflineContext=null}={}){
+    this.audioContext=audioContext;
+    this.OfflineContext=OfflineContext;
+  }
+
+  async loadAudioFile(file){
+    if(!file||typeof file.arrayBuffer!=='function')throw new Error('Select a readable audio file.');
+    if(!this.audioContext){
+      const Context=globalThis.AudioContext||globalThis.webkitAudioContext;
+      if(!Context)throw new Error('Audio decoding is unavailable in this browser.');
+      this.audioContext=new Context();
+    }
+    const bytes=await file.arrayBuffer();
+    return this.audioContext.decodeAudioData(bytes);
+  }
+
+  async resampleBuffer(audioBuffer,targetSampleRate){
+    if(!audioBuffer||!Number.isFinite(audioBuffer.sampleRate)||!Number.isFinite(audioBuffer.length)||
+      !Number.isInteger(audioBuffer.numberOfChannels)||audioBuffer.numberOfChannels<1)
+      throw new Error('Invalid audio buffer.');
+    if(!Number.isInteger(targetSampleRate)||targetSampleRate<8000||targetSampleRate>192000)
+      throw new Error('Sample rate must be between 8 and 192 kHz.');
+    if(audioBuffer.sampleRate===targetSampleRate)return audioBuffer;
+
+    const Offline=this.OfflineContext||globalThis.OfflineAudioContext||globalThis.webkitOfflineAudioContext;
+    if(!Offline)throw new Error('Offline resampling is not supported in this browser.');
+    // The toolkit exports mono or stereo, not multichannel/surround.
+    const channelCount=Math.min(audioBuffer.numberOfChannels,2);
+    const frameCount=Math.max(1,Math.round(audioBuffer.length*targetSampleRate/audioBuffer.sampleRate));
+    const context=new Offline(channelCount,frameCount,targetSampleRate);
+    const source=context.createBufferSource();
+    source.buffer=audioBuffer;
+    source.connect(context.destination);
+    source.start(0);
+    return context.startRendering();
+  }
+
+  async convertToWavBlob(audioBuffer,targetSampleRate=null,{bitDepth=16,dither=false}={}){
+    if(!audioBuffer||!Number.isFinite(audioBuffer.sampleRate)||!Number.isFinite(audioBuffer.length)||
+      !Number.isInteger(audioBuffer.numberOfChannels)||audioBuffer.numberOfChannels<1)
+      throw new Error('Invalid audio buffer.');
+    if(audioBuffer.numberOfChannels>2)throw new Error('WAV export currently supports mono and stereo files only.');
+    if(![16,24,32].includes(bitDepth))throw new Error('Choose 16, 24 or 32-bit WAV.');
+    const rate=targetSampleRate??audioBuffer.sampleRate;
+    if(!Number.isInteger(rate)||rate<8000||rate>192000)throw new Error('Invalid target sample rate.');
+    const frames=Math.max(1,Math.round(audioBuffer.length*rate/audioBuffer.sampleRate));
+    const headerBytes=bitDepth===32?56:44;
+    if(headerBytes+frames*audioBuffer.numberOfChannels*(bitDepth/8)>300*1024*1024)
+      throw new Error('WAV would exceed 300 MB. Reduce sample rate or duration.');
+    const result=await this.resampleBuffer(audioBuffer,rate);
+    const channels=Array.from({length:result.numberOfChannels},(_,channel)=>result.getChannelData(channel));
+    return encodeWav(channels,result.sampleRate,bitDepth,{dither});
+  }
+
+  // Kept as a compatible helper for consumers that need interleaved PCM samples.
+  interleaveChannels(audioBuffer){
+    if(!audioBuffer||!audioBuffer.getChannelData||!Number.isInteger(audioBuffer.numberOfChannels)||
+      audioBuffer.numberOfChannels<1||!Number.isInteger(audioBuffer.length)||audioBuffer.length<0)
+      throw new Error('Invalid audio buffer.');
+    const samples=new Float32Array(audioBuffer.length*audioBuffer.numberOfChannels);
+    const channels=Array.from({length:audioBuffer.numberOfChannels},(_,c)=>audioBuffer.getChannelData(c));
+    for(let i=0;i<audioBuffer.length;i++)
+      for(let c=0;c<channels.length;c++)samples[i*channels.length+c]=channels[c][i];
+    return samples;
+  }
+
+  writeString(view,offset,value){
+    for(let i=0;i<value.length;i++)view.setUint8(offset+i,value.charCodeAt(i));
+  }
+}

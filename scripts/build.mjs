@@ -76,7 +76,7 @@ const bundledScript=`(() => {
   ${noExports(aiUi)}
   ${noExports(stemWorkflow)}
   ${noExports(advancedFx)}
-  ${noExports(pulseEngine)}
+  ${noImports(noExports(pulseEngine))}
   ${noExports(extraTools)}
   ${noExports(spectralUi)}
   ${noExports(zipStore)}

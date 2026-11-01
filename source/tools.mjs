@@ -1,4 +1,4 @@
-import {encodeWav,extractSegment,getAudioPeaks} from './studio-audio.mjs';
+import {encodeWav,extractSegment,getAudioPeaks,AudioConverterTool} from './studio-audio.mjs';
 import {encodeFlac16,encodeM4aWithMediaRecorder,isAacM4aSupported} from './dsp/audio-export.mjs';
 import {reverseAudio,bpmDurations,detectSilenceBounds,trimAudio,normalizeAudio} from './dsp/quick-tools.mjs';
 import {pulseProject} from './core/project-session.mjs';
@@ -14,6 +14,7 @@ function createKeyWorker(){return new Worker(new URL('./key-worker.mjs',import.m
 export function initStudioTools(getBpmTrack){
   const el=id=>document.getElementById(id);
   const workspace=pulseProject.workspace;
+  const converter=new AudioConverterTool();
   const tools={eqNodes:null,eqOutputGain:null,eqAnalyser:null,eqSelection:null,eqSelectMode:false,eqDragId:null,eqDragStart:0,peaksRight:null,category:'analyze',masterCandidate:null,reference:null,referenceGeneration:0,bpmEdited:false,productionCandidate:null,productionWorker:null,bpmWorker:null,markers:[],selectedSlice:0,dragMarker:-1,dragSeekId:null,scrubTransport:null,playhead:0,zoom:1,viewStart:0,snap:false,loopEnabled:false,loopFrom:0,loopTo:0,transport:null,raf:0,quickCandidate:null,quickBounds:null,file:null,buffer:null,loading:false,operation:0,tab:'key',context:null,source:null,playing:false,previewTimer:null,keyWorker:null,keyResult:null,tunerResult:null,from:0,to:8,peaks:[],bpm:120,bpmOffset:0};
   let extraApi=null,denoiseApi=null;
   const durationText=seconds=>{const s=Math.max(0,Number(seconds)||0),m=Math.floor(s/60);return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;};
@@ -429,6 +430,7 @@ export function initStudioTools(getBpmTrack){
       const Ctx=window.AudioContext||window.webkitAudioContext;
       if(!Ctx)throw new Error('Audio decoding is not supported in this browser.');
       tools.context||=new Ctx();
+      converter.audioContext=tools.context;
       const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
       const {buffer}=await decodeLocalAudio(file,{context:tools.context,OfflineContext});
       const mobile=typeof navigator!=='undefined'&&/iPhone|iPad|Android/i.test(navigator.userAgent);
@@ -456,8 +458,7 @@ export function initStudioTools(getBpmTrack){
     const count=Math.ceil(original.duration*targetSampleRate),ch=Math.min(2,original.numberOfChannels);
     const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     if(!Offline)throw new Error('Resampling is not supported in this browser.');
-    const ctx=new Offline(ch,count,targetSampleRate),source=ctx.createBufferSource();source.buffer=original;source.connect(ctx.destination);source.start(0);
-    const out=await ctx.startRendering();return channels(out);
+    const out=await converter.resampleBuffer(original,targetSampleRate);return channels(out);
   }
   let lamePromise;
   function loadLame(){
@@ -503,7 +504,7 @@ export function initStudioTools(getBpmTrack){
         status('conv-status','Recording AAC locally in real time…');
         const out=asAudioBuffer(data,rate),blob=await encodeM4aWithMediaRecorder(out,192000,pct=>status('conv-status',`Encoding AAC… ${pct}%`));
         if(token!==tools.operation)return;download(blob,filename('m4a'));status('conv-status',`AAC/M4A ~192 kbps · ${readableSize(blob.size)}.`);
-      }else if(format==='wav'){status('conv-status','Encoding WAV…');const blob=encodeWav(data,rate,bitDepth,{dither});download(blob,filename('wav'));const peakDb=samplePeakDbfs(data);status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb.toFixed(1)+' dBFS':'silence'}`);}
+      }else if(format==='wav'){status('conv-status','Encoding WAV…');const blob=await converter.convertToWavBlob(tools.buffer,rate,{bitDepth,dither});if(token!==tools.operation)return;download(blob,filename('wav'));const peakDb=samplePeakDbfs(data);status('conv-status',`WAV ${bitDepth===32?'32-bit float':bitDepth+'-bit PCM'} · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${durationText(tools.buffer.duration)} · ${readableSize(blob.size)} · Peak ${Number.isFinite(peakDb)?peakDb.toFixed(1)+' dBFS':'silence'}`);}
       else if(format==='mp3'){status('conv-status','Loading MP3 encoder…');const blob=await toMp3(data,rate,bitrate,token);download(blob,filename('mp3'));status('conv-status',`MP3 ${bitrate} kbps · ${(rate/1000).toFixed(1)} kHz · ${data.length} ch · ${readableSize(blob.size)} (lossy).`);}else throw Error('Unknown export format.');
     }catch(e){if(token===tools.operation){error(e.message);status('conv-status','Export failed.');}}
     finally{if(token===tools.operation)setBusy(false);}

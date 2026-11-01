@@ -1,7 +1,7 @@
 import {AudioConverterTool} from './studio-audio.mjs';
 import {normalizeAudio,detectSilenceBounds,trimAudio,reverseAudio} from './dsp/quick-tools.mjs';
 import {makeEqBands} from './dsp/eq-band-modes.mjs';
-import {analysisMono} from './core/media-loader.mjs';
+import {analysisMono,decodeLocalAudio} from './core/media-loader.mjs';
 import {analyzeTempo} from './analyzer.mjs';
 
 // The Pulse Studio unified API. Browser-only adapters over verified local DSP.
@@ -31,7 +31,14 @@ export class ThePulseStudioEngine {
   getConverter(){
     return this.converter||=new AudioConverterTool(this.context());
   }
-  async loadAudioFile(file){return this.getConverter().loadAudioFile(file);}
+  async loadAudioFile(file){
+    // Preserve native WAV sample rate and the existing browser codec fallbacks.
+    const Audio=globalThis.AudioContext||globalThis.webkitAudioContext;
+    const context=this.audioContext||(Audio?this.context():null);
+    const OfflineContext=globalThis.OfflineAudioContext||globalThis.webkitOfflineAudioContext;
+    const {buffer}=await decodeLocalAudio(file,{context,OfflineContext});
+    return buffer;
+  }
   async extractAudioFromVideo(file){
     // Browser decodeAudioData support for MP4 depends on container and codecs.
     try{return await this.loadAudioFile(file);}
@@ -147,8 +154,46 @@ export class ThePulseStudioEngine {
     return {input,output,highpass,presence,compressor,
       note:'Speech EQ and compression only; this is not neural noise removal.'};
   }
-  async analyzeBPM(buffer){
-    const mono=analysisMono(buffer);return analyzeTempo(mono.samples,mono.sampleRate);
+  async analyzeBPM(buffer,{workerFactory=null,signal=null,timeoutMs=60000}={}){
+    // Web Worker can be injected by the host app to keep long analysis off the UI thread.
+    // A standalone caller can omit workerFactory; the same DSP runs locally.
+    const {samples,sampleRate}=analysisMono(buffer);
+    if(signal?.aborted)throw Error('CANCELLED');
+    let result;
+    if(workerFactory){
+      if(typeof workerFactory!=='function')throw Error('Invalid analysis worker factory.');
+      if(!Number.isFinite(timeoutMs)||timeoutMs<=0)throw Error('Invalid BPM timeout.');
+      result=await new Promise((resolve,reject)=>{
+        let worker=null,timer=null,finished=false;
+        const cleanup=()=>{
+          if(timer!==null)clearTimeout(timer);
+          signal?.removeEventListener('abort',onAbort);
+          try{worker?.terminate();}catch{}
+        };
+        const complete=(value,error)=>{
+          if(finished)return;
+          finished=true;cleanup();error?reject(error):resolve(value);
+        };
+        const onAbort=()=>complete(null,Error('CANCELLED'));
+        signal?.addEventListener('abort',onAbort,{once:true});
+        if(signal?.aborted){onAbort();return;}
+        try{
+          worker=workerFactory();
+          if(!worker||typeof worker.postMessage!=='function')throw Error('Invalid BPM worker.');
+          worker.onmessage=({data})=>data?.error?complete(null,Error(data.error)):complete(data?.result);
+          worker.onerror=()=>complete(null,Error('Analysis worker failed.'));
+          timer=setTimeout(()=>complete(null,Error('TIMEOUT')),timeoutMs);
+          worker.postMessage({samples,sampleRate},[samples.buffer]);
+        }catch(error){complete(null,error);}
+      });
+    }else{
+      result=analyzeTempo(samples,sampleRate);
+    }
+    if(signal?.aborted)throw Error('CANCELLED');
+    if(!result||!Number.isFinite(result.bpm)||!Number.isFinite(result.confidencePercent))
+      throw Error('Invalid BPM analysis result.');
+    // Percentage is a relative rhythmic-strength score, not calibrated accuracy.
+    return {...result,confidence:result.confidencePercent,confidenceLevel:result.confidence};
   }
   separateVocalStems(buffer){
     const src=this.channels(buffer);if(src.length!==2)throw Error('Center-channel extraction requires stereo audio.');

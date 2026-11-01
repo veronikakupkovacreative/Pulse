@@ -92,6 +92,9 @@ export function analyzeTempo(samples, sampleRate) {
   });
   const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;
   const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';
+  // Relative rhythmic-strength score, NOT a statistically calibrated probability.
+  const scaledProminence=Math.max(0,Math.min(1,prominence/.55));
+  const confidencePercent=Math.round(100*(.65*scaledProminence+.35*consistency));
   // Fold onset peaks into the detected beat period to locate the beat grid.
   // This is an onset phase, NOT a guaranteed musical downbeat.
   const periodFrames = rate * 60 / best.bpm;
@@ -135,6 +138,6 @@ export function analyzeTempo(samples, sampleRate) {
   const genreHint=best.bpm<90?'Ambient / Chillout / Hip-Hop':
     best.bpm<115?'Pop / R&B':best.bpm<130?'House / Techno / Dance':
     best.bpm<155?'Trance / Drum & Bass (Half-time)':'Drum & Bass / Hardcore';
-  return {peakConsistency,genreHint,bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms};
+  return {peakConsistency,genreHint,bpm:Math.round(best.bpm * 10) / 10, confidence, confidencePercent, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatOffsetSeconds, alternativeBpms};
 }
 

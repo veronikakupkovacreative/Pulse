@@ -8,8 +8,10 @@ import {clampPlayhead,pointerToTime,nudgePlayhead} from './playhead.mjs';
 import {audioFileError} from './file-support.mjs';
 import {pulseProject} from './core/project-session.mjs';
 import {beatAtOrAfter} from './metronome-clock.mjs';
-import {decodeLocalAudio,decodedAudioBytes,analysisMono} from './core/media-loader.mjs';
+import {decodedAudioBytes} from './core/media-loader.mjs';
+import {ThePulseStudioEngine} from './pulse-engine.mjs';
 const $ = selector => document.querySelector(selector);
+const studio = new ThePulseStudioEngine();
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
 const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set(),metroGeneration:0};
 const messages = {
@@ -56,11 +58,8 @@ async function processFile(file,existingBuffer=null) {
     if(!Context&&!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
     let buffer=existingBuffer;
     if(!buffer){
-      // Decode at source sample rate for WAV; never use the 22.05 kHz analytical copy for editing.
-      const decoded=await decodeLocalAudio(file,{
-        context:Context?(state.context||=new Context()):null,OfflineContext
-      });
-      buffer=decoded.buffer;
+      studio.audioContext=Context?(state.context||=new Context()):null;
+      buffer=await studio.loadAudioFile(file);
     }
     const mobile=typeof navigator!=='undefined'&&/iPhone|iPad|Android/i.test(navigator.userAgent);
     const pcmBytes=decodedAudioBytes(buffer);
@@ -70,16 +69,23 @@ async function processFile(file,existingBuffer=null) {
     if(buffer.duration<6)throw new Error('TOO_SHORT');
     $('#progress-detail').textContent='Finding the beat…';
     if(!existingBuffer)pulseProject.load(buffer,file,'bpm');
-    // Compact analysis-only copy; the source/working buffers keep all channels and native rate.
-    const {samples,sampleRate:analysisRate}=analysisMono(buffer);
-    const result=await new Promise((resolve,reject)=>{
-      const worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});state.worker=worker;
-      const timeout=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
-      state.cancelWorker=()=>{clearTimeout(timeout);worker.terminate();reject(new Error('CANCELLED'));};
-      worker.onmessage=({data})=>{clearTimeout(timeout);worker.terminate();if(state.worker===worker){state.worker=null;state.cancelWorker=null;}data.error?reject(new Error(data.error)):resolve(data.result);};
-      worker.onerror=()=>{clearTimeout(timeout);worker.terminate();state.cancelWorker=null;reject(new Error('Analysis failed to start. Refresh and retry.'));};
-      worker.postMessage({samples,sampleRate:analysisRate},[samples.buffer]);
-    });
+    // Keep the existing Web Worker and precision DSP behind the public engine API.
+    const abort=new AbortController();
+    state.cancelWorker=()=>abort.abort();
+    let result;
+    try{
+      result=await studio.analyzeBPM(buffer,{
+        signal:abort.signal,timeoutMs:60000,
+        workerFactory:()=>{
+          const worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});
+          state.worker=worker;
+          return worker;
+        }
+      });
+    }finally{
+      if(generation===state.generation){state.worker=null;state.cancelWorker=null;}
+    }
+    console.info('[Pulse BPM] Tempo:',result.bpm,'BPM · rhythmic strength:',result.confidence+'%');
     if(generation!==state.generation)return;
     state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;$('#bpm-grid-offset').value=String(result.beatOffsetSeconds||0);pulseProject.setTempo(state.bpm,{beatOffset:result.beatOffsetSeconds||0,origin:'bpm'});setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
   } catch(error) {
@@ -93,9 +99,12 @@ function renderResult(file) {
   $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'} · ${(state.buffer.sampleRate/1000).toFixed(1)} kHz`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
-  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
-  ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
-  ui['result-note'].textContent=state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Tempo is an estimate. Verify by ear or use half/double tempo.';
+  const level=state.result.confidenceLevel;
+  const confidenceLabel={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[level]||'ESTIMATED BPM';
+  ui['result-status'].replaceChildren(document.createTextNode(confidenceLabel),document.createElement('i'));
+  ui['result-note'].textContent=level==='low'?'Low confidence. Verify with Tap Tempo.':'Tempo is an estimate. Verify by ear or use half/double tempo.';
+  if(Number.isFinite(state.result.confidence))
+    ui['result-note'].textContent+=' · Rhythmic strength: '+state.result.confidence+'% (heuristic, not accuracy)';
   if (Number.isFinite(state.result.beatOffsetSeconds)) {
     const offset = state.result.beatOffsetSeconds.toFixed(2);
     const alternatives = (state.result.alternativeBpms||[]).slice(0,2);

@@ -304,6 +304,7 @@ function makeDemo() {
 $('#try-demo').onclick=()=>processFile(makeDemo());
 initStudioTools(()=>({file:state.file,buffer:state.buffer,bpm:state.bpm,beatOffset:state.result?.beatOffsetSeconds||0}));
 initAdvancedFX(pulseProject,encodeWav);
+initPulseEngineUI(pulseProject,encodeWav);
 initAiAssistedDSP(pulseProject,encodeWav);
 initStemToolkit(pulseProject,encodeWav);
 pulseProject.subscribe(({type,origin,state:project})=>{

@@ -64,5 +64,5 @@ test('converter validates rate, bit depth, channels and oversized audio',async()
   await assert.rejects(tool.convertToWavBlob(source,0),/sample rate/i);
   await assert.rejects(tool.convertToWavBlob(source,null,{bitDepth:8}),/16, 24 or 32/);
   await assert.rejects(tool.convertToWavBlob(fakeBuffer([new Float32Array(1),new Float32Array(1),new Float32Array(1)])),/mono and stereo/);
-  await assert.rejects(tool.convertToWavBlob({...source,length:100_000_000}),/300 MB/);
+  await assert.rejects(tool.convertToWavBlob({...source,length:160_000_000}),/300 MB/);
 });

@@ -205,3 +205,23 @@
 .creative-preview-tag{position:absolute;left:12px;top:10px;color:#eee;font:700 9px Arial,sans-serif;letter-spacing:.13em;pointer-events:none}
 .pulse-creative button:focus-visible{outline:3px solid #191919;outline-offset:3px}
 @media(max-width:420px){.creative-presets{grid-template-columns:1fr}.creative-modes button{font-size:8px}}
+
+
+/* SOURCE AUDIO: preserve original empty upload, show legacy editor only with track */
+.audio-source-area.pulse-source-original:not(.has-audio){display:flex;min-height:430px;padding:18px;border:1px solid #494946;background:#191919;gap:14px}
+.pulse-source-original:not(.has-audio) .audio-upload{order:0;max-width:none;min-height:52px;background:#ff2b20;color:#191919;border:0;justify-content:space-between;font-size:12px}
+.pulse-source-original:not(.has-audio) #audio-meta{font:400 11px/1.5 Arial,sans-serif;color:#d4d4d4;margin:2px 0}
+.pulse-source-original:not(.has-audio) #audio-wave{height:155px;min-height:155px;margin:0}
+.pulse-source-original:not(.has-audio) .audio-controls{border:0;padding:0}
+.pulse-source-original:not(.has-audio) .audio-controls button{background:#f5f4f0;color:#191919;border:0;min-height:36px}
+.pulse-source-original:not(.has-audio) :is(.pulse-source-file-top,.pulse-source-details,.pulse-wave-toolbar,.pulse-source-ruler,.pulse-source-help,.pulse-source-loopline,.pulse-source-reuse,.pulse-source-reset,.pulse-source-replace){display:none!important}
+.pulse-source-original.has-audio{padding:24px 26px;min-height:590px}
+.pulse-source-original.has-audio .audio-upload{display:none}
+.pulse-source-original.has-audio #audio-meta{font:400 clamp(24px,3vw,39px)/1.15 Arial,sans-serif;margin:0 0 6px;overflow-wrap:anywhere}
+.pulse-source-original.has-audio .pulse-source-file-top{margin:14px 0 20px}
+.pulse-source-original.has-audio .pulse-source-details{font:400 12px Arial,sans-serif;color:#aaa;margin:0 0 25px}
+.pulse-source-original.has-audio .pulse-source-replace{margin-left:auto;color:#eee;background:transparent;border:0;text-decoration:underline;text-underline-offset:4px;white-space:nowrap}
+.pulse-source-original.has-audio .audio-controls{display:flex;align-items:center}
+.pulse-source-original.has-audio #audio-time{margin-left:4px;margin-right:auto}
+.pulse-source-original.has-audio .pulse-source-reuse{margin-top:26px}
+@media(max-width:600px){.pulse-source-original.has-audio{padding:16px}.pulse-source-original.has-audio #audio-meta{font-size:25px}}

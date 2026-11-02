@@ -17,14 +17,19 @@ const frequencyX=hz=>X0 + Math.log(clamp(hz,20,20000)/20)/Math.log(1000)*(X1-X0)
  * The curve uses BiquadFilterNode.getFrequencyResponse, matching the actual
  * filters used by both EQ processing paths. The host owns user inputs.
  */
-export function mountEqResponse({host, count = () => 3, gains, changeGain, changeCount = null}) {
+export function mountEqResponse({host, count = () => 3, gains, changeGain, changeCount = null, bandOptions = [3,10,20]}) {
   const player=document.querySelector('.audio-source-area');
   if(!player) return () => {};
   const stage=document.createElement('section');
   stage.className='pulse-eq-left pulse-eq-live';
   stage.setAttribute('aria-label','Interactive parametric equalizer frequency response');
+  const bandSwitch=changeCount
+    ? '<div class="eq-band-switch" role="group" aria-label="Equalizer number of bands">' + bandOptions.map(n =>
+        '<button type="button" data-eq-bands="'+n+'" aria-pressed="'+String(n===count())+'">'+n+' BANDS</button>'
+      ).join('') + '</div>'
+    : '';
   stage.innerHTML=`<div class="eq-left-heading"><strong>PARAMETRIC EQ &middot; LIVE RESPONSE</strong><span>20 Hz - 20 kHz</span></div>
-    ${changeCount ? '<div class="eq-band-switch" role="group" aria-label="Equalizer number of bands"><button type="button" data-eq-bands="3" aria-pressed="false">3 BANDS</button><button type="button" data-eq-bands="5" aria-pressed="true">5 BANDS</button><button type="button" data-eq-bands="10" aria-pressed="false">10 BANDS</button><button type="button" data-eq-bands="20" aria-pressed="false">20 BANDS</button></div>' : ''}
+    ${bandSwitch}
     <div class="pulse-eq-stage"><svg class="pulse-eq-graph" viewBox="0 0 640 232" role="group" aria-label="Live equalizer response; drag handles or use arrow keys to set gain.">
     <g class="eq-graph-grid"></g><path class="eq-zero-axis"></path><path class="eq-graph-curve"></path><g class="eq-graph-handles"></g></svg></div>
     <div class="pulse-eq-feedback"><span data-eq-readout>FLAT RESPONSE</span><span data-eq-count>${count()} ACTIVE BANDS</span></div>

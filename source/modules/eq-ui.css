@@ -9,17 +9,17 @@
 .pulse-eq-live .eq-graph-grid line{stroke:#454545;stroke-width:.65;opacity:.8}
 .pulse-eq-live .eq-graph-grid text{fill:#a3a3a3;font:400 10px Arial,sans-serif;letter-spacing:0;pointer-events:none}
 .pulse-eq-live .eq-zero-axis{stroke:#aaa;stroke-width:1.15;stroke-dasharray:5 4;fill:none;opacity:.8}
-.pulse-eq-live .eq-graph-curve{fill:none;stroke:#f1da55;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.pulse-eq-live .eq-graph-curve{fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .pulse-eq-live .eq-graph-handles circle{fill:#ff2b20;stroke:#fff;stroke-width:2.6;cursor:ns-resize;transition:stroke-width .12s ease}
-.pulse-eq-live .eq-graph-handles circle:hover,.pulse-eq-live .eq-graph-handles circle.is-current{stroke:#f1da55;stroke-width:3.2}
-.pulse-eq-live .eq-graph-handles circle:focus-visible{outline:none;stroke:#f1da55;stroke-width:5}
+.pulse-eq-live .eq-graph-handles circle:hover,.pulse-eq-live .eq-graph-handles circle.is-current{stroke:#ffffff;stroke-width:3.2}
+.pulse-eq-live .eq-graph-handles circle:focus-visible{outline:none;stroke:#ffffff;stroke-width:4}
 .pulse-eq-live .pulse-eq-feedback{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:12px 0 7px;color:#bbb;font:400 9px/1.4 Arial,sans-serif;letter-spacing:.06em;min-height:16px}
-.pulse-eq-live .pulse-eq-feedback span:last-child{color:#f1da55;text-align:right}
+.pulse-eq-live .pulse-eq-feedback span:last-child{color:#ffffff;text-align:right}
 .pulse-eq-live .pulse-eq-editor-note{margin:0;color:#aaa;font:400 10px/1.55 Arial,sans-serif}
-.pulse-eq-live .eq-band-switch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 15px}
-.pulse-eq-live .eq-band-switch button{min-width:0;min-height:42px;padding:8px 6px;border:1px solid #686868;border-radius:30px;background:transparent;color:#cecece;font:400 clamp(9px,1.2vw,12px)/1.3 Arial,sans-serif;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.pulse-eq-live .eq-band-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 15px}
+.pulse-eq-live .eq-band-switch button{min-width:0;min-height:42px;padding:8px 6px;border:1px solid #686868;border-radius:0;background:transparent;color:#cecece;font:400 clamp(9px,1.2vw,12px)/1.3 Arial,sans-serif;letter-spacing:.06em;white-space:nowrap;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
 .pulse-eq-live .eq-band-switch button:hover:not([aria-pressed="true"]){border-color:#dedede;color:#fff}
-.pulse-eq-live .eq-band-switch button[aria-pressed="true"]{background:#f7e592;border-color:#f7e592;color:#191919}
+.pulse-eq-live .eq-band-switch button[aria-pressed="true"]{background:#f5f4f0;border-color:#f5f4f0;color:#191919}
 .pulse-eq-live .eq-band-switch button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .pulse-eq-advanced .eq-genre-presets{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:23px}
 .pulse-eq-advanced .eq-genre-presets button{font:400 10px/1.3 Arial,sans-serif;padding:9px 6px;min-height:37px;overflow-wrap:anywhere}

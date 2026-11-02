@@ -4,7 +4,8 @@ import {creativeModules} from './creative-tools.mjs';
 import {advancedModules} from './advanced-features.mjs';
 import {legacyModules} from './legacy-tools.mjs';
 import {advancedEqualizerModule} from './eq-advanced.mjs';
-import {EQ3_PRESETS,EQ_GENRE_PRESETS} from './eq-engine.mjs';
+import {EQ3_PRESETS,EQ_GENRE_PRESETS,bandLayout,eqPresetGains,eqFilters,interpolateEqGains,formatEqFrequency} from './eq-engine.mjs';
+import {renderWithNodes} from './legacy-dsp.mjs';
 import {mountEqResponse} from './eq-response.mjs';
 import {webModules} from './web-tools.mjs';
 import {aiNormalizerModule} from './normalizer-tool.mjs';
@@ -23,7 +24,7 @@ const describe={
  editor:{top:'02 / AUDIO EDITOR',meta:'PRECISION EDIT',title:'Cut the sound.<br><span>Keep the groove.</span>',description:'Shift + drag across the waveform to choose an area. Trim keeps the selection; Cut removes it. Short fades reduce clicks.',result:'SELECTED RANGE',actions:[['Trim to selection','trim'],['Cut selection','cut']]},
  reverse:{top:'02 / AUDIO REVERSE',meta:'TIME DIRECTION',title:'Reverse<br><span>the sound.</span>',description:'Flip the track in time while retaining original duration and sample rate.',result:'PLAYBACK DIRECTION',actions:[['Reverse audio','reverse']]},
  normalize:{top:'02 / NORMALIZER',meta:'LEVEL CONTROL',title:'Control<br><span>the level.</span>',description:'Apply peak normalization to a chosen dBFS ceiling. This is not integrated LUFS normalization.',result:'PEAK TARGET',actions:[['Normalize audio','normalize']]},
- equalizer:{top:'02 / AI EQUALIZER',meta:'3 BANDS · LOCAL DSP',title:'AI Equalizer.<br><span>Shape your sound.</span>',description:'Genre-inspired 3-band parametric EQ for EDM, vocals, hip-hop and acoustic music. The response curve is interactive, and processing runs locally.',result:'FREQUENCY RESPONSE',actions:[['Apply to workspace','equalizer']]},
+ equalizer:{top:'02 / AI EQUALIZER',meta:'3 / 10 / 20 BANDS · LOCAL DSP',title:'AI Equalizer.<br><span>Shape your sound.</span>',description:'Genre-inspired 3, 10 or 20-band parametric EQ for EDM, vocals, hip-hop and acoustic music. The interactive response curve is rendered with real local filters.',result:'FREQUENCY RESPONSE',actions:[['Apply to workspace','equalizer']]},
  volume:{top:'02 / GAIN',meta:'AMPLITUDE',title:'Shape<br><span>the volume.</span>',description:'Adjust global track gain in decibels. The processed audio replaces the current workspace buffer.',result:'AMPLIFICATION',actions:[['Apply gain','volume']]},
  wav:{top:'03 / AUDIO CONVERTER',meta:'FORMAT CONTROL',title:'Change the format.<br><span>Keep creating.</span>',description:'Convert audio locally to MP3, WAV, FLAC, AAC, M4A, OGG or WMA. Choose compression quality and output sample rate.',result:'EXPORT FORMAT',actions:[['Convert & download','export']]},
  loop:{top:'03 / LOOP CUTTER',meta:'PRECISION EXPORT',title:'Cut the loop.<br><span>Keep the groove.</span>',description:'Choose a selection in the waveform and download only the selected range.',result:'LOOP RANGE',actions:[['Export selection','export']]},
@@ -37,7 +38,7 @@ const settings=id=>{
  if(id==='equalizer'){
   const order=['flat','edm','vocals','hiphop','acoustic','bass','warm','bright','voice','punch','rock','jazz','podcast','air','deep'];
   const options=order.map(key=>'<button type="button" data-preset="'+key+'" aria-pressed="'+String(key==='flat')+'">'+EQ_GENRE_PRESETS[key].name+'</button>').join('');
-  return '<div class="pulse-preset-section"><div class="pulse-detail-label">GENRE & SOUND PRESETS</div><div class="eq-preset-pills" role="group" aria-label="AI Equalizer genre presets">'+options+'</div></div><div class="tool-fields eq-fields">'+field('low','LOW · 120 Hz',-18,18,0,.5,'dB')+field('mid','MID · 1.2 kHz',-18,18,0,.5,'dB')+field('high','HIGH · 8.5 kHz',-18,18,0,.5,'dB')+'</div>';
+  return '<div class="pulse-preset-section"><div class="pulse-detail-label">GENRE & SOUND PRESETS</div><div class="eq-preset-pills" role="group" aria-label="AI Equalizer genre presets">'+options+'</div></div><div class="tool-fields eq-fields">'+'</div>';
  }
  if(id==='master')return '<div class="pulse-preset-section"><div class="pulse-detail-label">MASTER CHARACTER</div><div class="eq-preset-pills" role="group" aria-label="Mastering presets"><button type="button" data-master="balanced" aria-pressed="true">BALANCED</button><button type="button" data-master="warm" aria-pressed="false">WARM</button><button type="button" data-master="loud" aria-pressed="false">LOUD</button><button type="button" data-master="glue" aria-pressed="false">GENTLE GLUE</button><button type="button" data-master="punch" aria-pressed="false">PUNCH</button></div></div><div class="tool-fields">'+field('threshold','Threshold',-30,-6,-15,1,'dBFS')+field('ratio','Compression ratio',1,8,3,.5,':1')+field('ceiling','Soft ceiling',-6,-.1,-1,.1,'dBFS')+'</div>';
  if(id==='wav')return '<div class="tool-fields">'+dropdown('format','Output format',AUDIO_FORMATS.map(f=>[f.id,f.name+' · '+f.description]))+dropdown('sampleRate','Sample rate',[['auto','AUTO · 44.1 kHz (music)'],['original','Original'],['22050','22.05 kHz'],['32000','32 kHz'],['44100','44.1 kHz'],['48000','48 kHz'],['88200','88.2 kHz'],['96000','96 kHz']])+'</div><div class="tool-fields converter-options"><div data-converter="bitrate">'+dropdown('bitrate','Bitrate',[['auto','AUTO · recommended'],...[64,96,128,160,192,256,320].map(v=>[String(v),v+' kbps'])])+'</div><div data-converter="depth">'+dropdown('bitDepth','WAV bit depth',[['auto','AUTO · 24-bit PCM'],['16','16-bit PCM'],['24','24-bit PCM']])+'</div><div data-converter="ogg">'+dropdown('oggQuality','OGG Vorbis quality',[['auto','AUTO · Q6'],...Array.from({length:11},(_,i)=>[String(i),'Q'+i])])+'</div><div data-converter="flac">'+dropdown('flacLevel','FLAC compression',[['auto','AUTO · Level 5'],...Array.from({length:9},(_,i)=>[String(i),'Level '+i])])+'</div></div><p class="converter-codec-note" id="converter-codec-note">Your files stay in your browser. The encoder loads on first conversion.</p><div class="converter-progress" role="progressbar" aria-label="Encoding progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>';
@@ -63,45 +64,64 @@ const run=async(id,mode,host)=>{
  if(id==='reverse'){w.commit(reverseBuffer(b));setMetric(host,'primary','REVERSED');return 'Audio reversed. Use Undo to compare.'}
  if(id==='normalize'){const v=numeric(host,'value',-18,0);w.commit(normalizeBuffer(b,v));setMetric(host,'primary',v.toFixed(1)+' dBFS');return 'Peak normalized.'}
  if(id==='volume'){const v=numeric(host,'value',-24,24);w.commit(gainBuffer(b,v));setMetric(host,'primary',(v>0?'+':'')+v.toFixed(1)+' dB');return 'Gain applied.'}
- if(id==='equalizer'){const settings={low:numeric(host,'low',-18,18),mid:numeric(host,'mid',-18,18),high:numeric(host,'high',-18,18)};w.commit(await equalize(b,settings));setMetric(host,'primary','APPLIED');return 'Equalizer applied. Use Undo to compare.'}
+ if(id==='equalizer'){const controller=host.__pulseEqController;if(!controller)throw Error('Equalizer is not initialized.');const {count,values}=controller.read();const filters=eqFilters(count,values);w.commit(await renderWithNodes(b,filters),count+'-band Parametric EQ applied.');setMetric(host,'primary',count+' BANDS');return count+'-band Parametric EQ applied. Use Undo to compare.'}
  if(id==='wav'){const options=conversionOptions({format:host.querySelector('#format').value,sampleRate:host.querySelector('#sampleRate').value,bitrate:host.querySelector('#bitrate').value,bitDepth:host.querySelector('#bitDepth').value,oggQuality:host.querySelector('#oggQuality').value,flacLevel:host.querySelector('#flacLevel').value});const bar=host.querySelector('.converter-progress');const blob=await convertBuffer(b,options,msg=>{host.querySelector('.module-result').textContent=msg;},percent=>{bar.setAttribute('aria-valuenow',String(percent));bar.querySelector('i').style.width=percent+'%';});downloadConversion(blob,w.name,options.format);setMetric(host,'primary',options.format.toUpperCase());return 'Converted and downloaded '+options.format.toUpperCase()+' · '+(blob.size/1024/1024).toFixed(2)+' MB.';}
  if(id==='loop'){const choice=host.querySelector('#bits').value,bits=choice==='auto'?16:Number(choice);w.save(bits,true);return 'Selected loop exported.'}
  if(id==='health'){const r=audioMetrics(b);setMetric(host,'peak',r.peakDb.toFixed(1));setMetric(host,'rms',r.rmsDb.toFixed(1));setMetric(host,'crest',r.crestDb.toFixed(1));setMetric(host,'clipped',r.clipped);return 'Analysis complete · measurements are sample based.'}
  if(id==='master'||id==='quickfix'){const before=audioMetrics(b).peakDb;const result=id==='master'?applySmartMaster(b,{threshold:numeric(host,'threshold',-30,-6),ratio:numeric(host,'ratio',1,8),ceiling:numeric(host,'ceiling',-6,-.1)}):applySmartMaster(normalizeBuffer(b,-3),{threshold:-16,ratio:1.8,ceiling:-1});const after=audioMetrics(result).peakDb;w.commit(result);setMetric(host,'before',before.toFixed(1));setMetric(host,'after',after.toFixed(1));return 'Processed using local DSP. Compare with Undo.'}
 };
 function installEqGraph(host){
- const graph=mountEqResponse({
-  host,
-  count:()=>3,
-  gains:()=>['low','mid','high'].map(id=>Number(host.querySelector('#'+id)?.value)||0),
-  changeGain:(index,gain)=>{
-   const key=['low','mid','high'][index],input=host.querySelector('#'+key);
-   if(!input)return;
-   input.value=String(gain);
-   input.dispatchEvent(new Event('input',{bubbles:true}));
-  }
+ const fields=host.querySelector('.eq-fields');
+ if(!fields)throw Error('EQ controls are missing.');
+ const presetButtons=[...host.querySelectorAll('[data-preset]')];
+ let count=3,preset='flat',values=eqPresetGains(3,'flat'),graph=null;
+ const allowed=new Set([3,10,20]);
+ const markPreset=()=>presetButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.preset===preset)));
+ function paintFields(){
+  const bands=bandLayout(count);
+  fields.innerHTML=bands.map((band,index)=>{
+   const label=(count===3?['LOW','MID','HIGH'][index]:band.label)+' · '+formatEqFrequency(band.frequency);
+   return '<label class="pulse-field" for="eq-gain-'+index+'"><span>'+label+'</span><div class="pulse-number-field"><input id="eq-gain-'+index+'" data-eq-gain="'+index+'" type="number" min="-18" max="18" step="0.5" value="'+values[index]+'" aria-label="'+label+', gain in dB"><small>dB</small></div></label>';
+  }).join('');
+  host.querySelector('.tool-view-header span:last-child').textContent=count+' BANDS · LOCAL DSP';
+  graph?.refresh();
+ }
+ function updateGain(index,gain){
+  if(index<0||index>=values.length)return;
+  const rounded=Math.max(-18,Math.min(18,Math.round(gain*2)/2));
+  values[index]=rounded;preset='custom';markPreset();
+  const input=fields.querySelector('[data-eq-gain="'+index+'"]');
+  if(input){input.value=String(rounded);input.dispatchEvent(new Event('input',{bubbles:true}));}
+  graph?.refresh();
+ }
+ function changeCount(next){
+  if(!allowed.has(next))return;
+  if(next===count)return;
+  values=preset==='custom'?interpolateEqGains(count,values,next):eqPresetGains(next,preset);
+  count=next;paintFields();
+ }
+ fields.addEventListener('input',event=>{
+  const input=event.target.closest('[data-eq-gain]');if(!input)return;
+  const index=Number(input.dataset.eqGain),gain=Number(input.value);
+  if(!Number.isInteger(index)||index<0||index>=values.length||!Number.isFinite(gain)||gain < -18||gain>18)return;
+  values[index]=gain;preset='custom';markPreset();graph?.refresh();
  });
- return graph.cleanup;
+ for(const button of presetButtons)button.onclick=()=>{
+  const selected=button.dataset.preset;
+  if(!Object.hasOwn(EQ_GENRE_PRESETS,selected))return;
+  const next=count===3?EQ3_PRESETS[button.dataset.preset]:eqPresetGains(count,selected);
+  if(!next)return;
+  values=[...next];preset=selected;paintFields();markPreset();
+ };
+ paintFields();
+ graph=mountEqResponse({
+  host,count:()=>count,gains:()=>values,changeGain:updateGain,
+  changeCount,bandOptions:[3,10,20]
+ });
+ host.__pulseEqController={read:()=>({count,values:[...values]})};
+ return()=>{graph?.cleanup();delete host.__pulseEqController;};
 }
 function initPresets(host,id){
- if(id==='equalizer'){
-   const buttons=[...host.querySelectorAll('[data-preset]')];
-   const ids=['low','mid','high'];
-   const inputList=ids.map(id=>host.querySelector('#'+id));
-   for(const input of inputList)input?.addEventListener('input',()=>{
-    buttons.forEach(b=>b.setAttribute('aria-pressed','false'));
-   });
-   for(const button of buttons)button.onclick=()=>{
-    const values=EQ3_PRESETS[button.dataset.preset];
-    if(!values)return;
-    ids.forEach((id,i)=>{
-      const input=host.querySelector('#'+id);
-      input.value=String(values[i]);
-      input.dispatchEvent(new Event('input',{bubbles:true}));
-    });
-    buttons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-   };
- }
  if(id==='master'){const presets={balanced:[-15,3,-1],warm:[-17,2,-1.2],loud:[-19,5,-.8],glue:[-12,1.8,-1],punch:[-18,3.6,-.9]};for(const button of host.querySelectorAll('[data-master]'))button.onclick=()=>{const v=presets[button.dataset.master];['threshold','ratio','ceiling'].forEach((name,i)=>{const input=host.querySelector('#'+name);input.value=String(v[i]);input.dispatchEvent(new Event('input',{bubbles:true}));});for(const b of host.querySelectorAll('[data-master]'))b.setAttribute('aria-pressed',String(b===button))};}
 }
 export const toolModules=Object.freeze([...Object.entries(describe).filter(([id])=>id!=='normalize').map(([id,d])=>({id,category:({bpm:'analyze',key:'analyze',beats:'analyze',editor:'edit',reverse:'edit',normalize:'edit',equalizer:'edit',volume:'edit',wav:'export',loop:'export',health:'ai',master:'ai',quickfix:'ai'})[id],label:({bpm:'BPM Analyzer',key:'Key Finder',beats:'Beat Detection',editor:'Audio Editor',reverse:'Reverse Audio',normalize:'Normalizer',equalizer:'AI Equalizer',volume:'Gain',wav:'Converter',loop:'Loop Cutter',health:'Mix Health',master:'Smart Master',quickfix:'Mix Quick Fix'})[id],mount({host}){

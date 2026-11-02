@@ -94,15 +94,15 @@ test('voice deletion uses only restricted identifier path',async()=>{
   assert.equal(url,'https://api.elevenlabs.io/v1/voices/CLONEabcdef123456');
 });
 
-test('module defines exactly four independent registered tools and renders every visual mode',async()=>{
+test('module registers three AI tools, preserving renderer code for future release',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'pulse-ai-test-'));
   try{
     await writeFile(join(dir,'package.json'),JSON.stringify({type:'module'}));
     await writeFile(join(dir,'workspace.mjs'),'export const workspace={source:null,buffer:null};\n');
     await copyFile(join(root,'source/modules/pulse-ai-master.mjs'),join(dir,'pulse-ai-master.mjs'));
     const mod=await import(pathToFileURL(join(dir,'pulse-ai-master.mjs')).href);
-    assert.deepEqual(mod.pulseAiModules.map(m=>m.id),['ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','visualizer-advanced']);
-    assert.deepEqual(mod.pulseAiModules.map(m=>m.category),['ai','ai','ai','visuals']);
+    assert.deepEqual(mod.pulseAiModules.map(m=>m.id),['ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning']);
+    assert.deepEqual(mod.pulseAiModules.map(m=>m.category),['ai','ai','ai']);
     const ops=[];
     const g={fillRect:(...a)=>ops.push(['fillRect',a]),beginPath(){},moveTo(){},lineTo(){},stroke(){},arc(){},fill(){},fillText(){},save(){},restore(){}};
     const canvas={width:640,height:360,getContext:()=>g};

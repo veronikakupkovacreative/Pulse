@@ -7,15 +7,15 @@ const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({'&'
 export const advancedEqualizerModule=Object.freeze({
   id:'eq5',category:'edit',label:'Advanced Audio Equalizer',
   mount({host}){
-    let count=5,preset='flat',values=eqPresetGains(5,'flat'),busy=false;
+    let count=3,preset='flat',values=eqPresetGains(3,'flat'),busy=false;
     const names=Object.entries(EQ_GENRE_PRESETS);
     host.innerHTML=`<div class="tool-view module-work pulse-legacy pulse-eq-advanced">
-      <div class="tool-view-header"><span>02 / ADVANCED AUDIO EQUALIZER</span><span>3 / 5 / 10 / 20 BAND DSP</span></div>
+      <div class="tool-view-header"><span>02 / ADVANCED AUDIO EQUALIZER</span><span>3 / 10 / 20 BAND DSP</span></div>
       <h3>Fine-tune.<br><span>Every frequency.</span></h3>
       <p class="tool-description">A professional multi-band EQ for sub-bass, bass, mids, high-mids and brilliance. Choose a sound profile, switch the band count below the waveform, then refine each frequency.</p>
       <p class="pulse-detail-label">GENRE &amp; MASTERING PRESETS</p>
       <div class="pulse-legacy-presets eq-genre-presets" role="group" aria-label="Advanced Equalizer presets">${names.map(([id,item])=>`<button type="button" data-eq-preset="${id}" aria-pressed="${id==='flat'}">${escapeHtml(item.name)}</button>`).join('')}</div>
-      <div class="eq-fields-heading"><span>FREQUENCY CONTROL</span><span data-eq-mode>5 BANDS</span></div>
+      <div class="eq-fields-heading"><span>FREQUENCY CONTROL</span><span data-eq-mode>3 BANDS</span></div>
       <div class="pulse-legacy-fields eq-advanced-fields"></div>
       <p class="eq-advanced-note">Gain -18 to +18 dB per band. A/B compare using SOURCE AUDIO Undo. Presets are deterministic EQ curves, not neural AI.</p>
       <button class="tool-action tool-action-dark pulse-legacy-run eq-advanced-apply" type="button"><span>APPLY EQ TO WORKSPACE</span><span aria-hidden="true">&#8599;</span></button>
@@ -59,7 +59,7 @@ export const advancedEqualizerModule=Object.freeze({
       setStatus(`Custom EQ curve updated. ${count} bands active.`);
     });
     paintFields();
-    graph=mountEqResponse({host,count:()=>count,gains:()=>values,changeGain:updateGain,changeCount:selectBandCount});
+    graph=mountEqResponse({host,count:()=>count,gains:()=>values,changeGain:updateGain,changeCount:selectBandCount,bandOptions:[3,10,20]});
     apply.addEventListener('click',async()=>{
       if(busy)return;
       busy=true;apply.disabled=true;setStatus('Rendering all EQ bands locally...');

@@ -380,3 +380,9 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset
 /* Long editorial names stay within the approved two-column heading grid. */
 #toolkit-title.is-long{font-size:clamp(43px,5.1vw,78px)!important;line-height:.98;overflow-wrap:anywhere}
 @media(max-width:650px){#toolkit-title.is-long{font-size:clamp(42px,10vw,69px)!important}}
+
+/* Function headlines in the toolkit editorial use Arial Bold. */
+.toolkit-heading #toolkit-title,
+.toolkit-heading #toolkit-title span,
+.toolkit-heading #toolkit-title.is-long{font-weight:700}
+input[type="range"]{accent-color:#191919}

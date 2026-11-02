@@ -5,9 +5,10 @@ import {toolModules} from '../source/modules/features.mjs';
 import {TOOL_EDITORIAL} from '../source/modules/tool-editorial.mjs';
 import {conversionOptions,recommendedAudioSettings} from '../source/modules/converter.mjs';
 const read=p=>readFileSync(new URL('../source/'+p,import.meta.url),'utf8');
-test('all four uploaded AI tools keep their exact names and IDs',()=>{
-  const expected=[['ai-voice-cleaner','AI Voice Cleaner','ai'],['ai-speech-enhancer','Speech Enhancer','ai'],['ai-voice-cloning','Voice Cloning','ai'],['visualizer-advanced','Advanced Music Visualizer','visuals']];
+test('three active AI tools remain registered, advanced visuals paused',()=>{
+  const expected=[['ai-voice-cleaner','AI Voice Cleaner','ai'],['ai-speech-enhancer','Speech Enhancer','ai'],['ai-voice-cloning','Voice Cloning','ai']];
   for(const [id,label,category] of expected){const m=toolModules.find(x=>x.id===id);assert.ok(m,id);assert.equal(m.label,label);assert.equal(m.category,category);}
+ assert.ok(!toolModules.some(m=>m.id==='visualizer-advanced'));
 });
 test('every mounted tool has its own editorial copy',()=>{
   for(const tool of toolModules){const copy=TOOL_EDITORIAL[tool.id];assert.ok(copy,tool.id);assert.equal(copy.steps.length,3);}

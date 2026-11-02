@@ -3,7 +3,7 @@
  * 1. AI Voice Cleaner: ElevenLabs neural voice isolation + explicitly labelled local DSP fallback.
  * 2. Speech Enhancer: transparent offline DSP chain, optionally preceded by neural isolation.
  * 7. Voice Cloning: ElevenLabs IVC + text-to-speech through a protected same-origin API.
- * 13. Advanced Music Visualizer: WebAudio FFT, realtime canvas and audio/video export.
+ * Advanced visualizer implementation retained for a future release; not registered.
  *
  * Copy to source/modules/pulse-ai-master.mjs and register pulseAiModules in features.mjs.
  * Cloud actions REQUIRE a server-side ElevenLabs key AND a separate PULSE_AI_GATE_TOKEN.
@@ -637,6 +637,5 @@ function mountAdvancedVisualizer({host}) {
 export const pulseAiModules = Object.freeze([
   {id:'ai-voice-cleaner',category:'ai',label:'AI Voice Cleaner',mount:mountVoiceCleaner},
   {id:'ai-speech-enhancer',category:'ai',label:'Speech Enhancer',mount:mountSpeechEnhancer},
-  {id:'ai-voice-cloning',category:'ai',label:'Voice Cloning',mount:mountVoiceClone},
-  {id:'visualizer-advanced',category:'visuals',label:'Advanced Music Visualizer',mount:mountAdvancedVisualizer}
+  {id:'ai-voice-cloning',category:'ai',label:'Voice Cloning',mount:mountVoiceClone}
 ]);

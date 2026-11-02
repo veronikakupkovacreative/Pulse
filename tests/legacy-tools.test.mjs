@@ -2,6 +2,6 @@ import test from 'node:test';import assert from 'node:assert/strict';import {too
 test('visualizer and missing audio tools registered',()=>{for(const id of ['visualizer','enhancer','voice-cleaner','eq5','silence-trim','fade','tone','dynamics','resample','center-separate','sidechain','modulation'])assert.ok(toolModules.some(m=>m.id===id),id)});
 test('silence detection trims ends',()=>{let samples=new Float32Array(2000);samples.fill(.4,200,1800);const b=fromChannels([samples],1000),out=stripSilence(b,-40);assert.ok(out.length<2000&&out.length>1500)});
 test('fade keeps duration and stereo center is explicit',()=>{const b=fromChannels([Float32Array.from([1,1,1,1]),Float32Array.from([.8,.8,.8,.8])],1000);assert.equal(fadeBuffer(b,.002,'in').length,b.length);assert.equal(separateCenter(b).vocals.length,b.length);assert.equal(Object.keys(EQ5_PRESETS).length,4)});
-test('seven visible cards use real visualizer shortcuts',()=>{const {readFileSync}=requireX();const s=readFileSync(new URL('../source/index.html',import.meta.url),'utf8');assert.equal((s.match(/data-open-visual=/g)||[]).length,7)});
+test('seven visible cards use real visualizer shortcuts',()=>{const {readFileSync}=requireX();const s=readFileSync(new URL('../source/index.html',import.meta.url),'utf8');assert.equal((s.match(/data-open-visual=/g)||[]).length,11)});
 function requireX(){return {readFileSync:(...args)=>read(...args)}};
 import {readFileSync as read} from 'node:fs';

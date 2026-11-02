@@ -14,3 +14,5 @@ if(typeof document!=='undefined'){
   const status=document.querySelector('.tiny-status');if(status)status.textContent='READY FOR AUDIO';
   const source=document.querySelector('.tool-source');if(source)source.setAttribute('aria-label','Audio upload, waveform and transport');
 }
+
+if(typeof document!=='undefined')import('./source-ui.mjs').catch(error=>console.error('Source UI:',error));

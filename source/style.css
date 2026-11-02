@@ -327,17 +327,3 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset
 .bpm-demo-line button{font-size:11px;text-decoration:underline;text-underline-offset:4px}
 @media(max-width:860px){.bpm-workspace{grid-template-columns:1fr 1fr}.bpm-upload-panel,.bpm-result-panel{padding:20px}.bpm-tempo-circle{width:180px}.bpm-tempo-circle strong{font-size:59px}}
 @media(max-width:640px){.bpm-workspace{grid-template-columns:1fr}.bpm-result-panel,.bpm-upload-panel{min-height:430px}.bpm-tempo-circle{width:180px}.bpm-expanded{margin-top:10px}.bpm-grid-row{gap:7px}}
-
-/* Seven original visualizer modes as discoverable cards, above the Toolkit. */
-.pulse-visual-shortcuts{margin:54px 0 44px;padding:26px;background:#191919;color:#f5f4f0}
-.pulse-visual-shortcuts-head{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:20px}
-.pulse-visual-shortcuts-head>div>p{font:700 10px Arial,sans-serif;letter-spacing:.11em;margin:0 0 12px;color:#ff2b20}
-.pulse-visual-shortcuts-head h2{font:400 clamp(30px,3vw,44px)/1 Arial,sans-serif;letter-spacing:-.04em;margin:0}
-.pulse-visual-shortcuts-head>p{font:400 12px/1.6 Arial,sans-serif;color:#bfbeba;max-width:360px}
-.pulse-visual-shortcut-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.pulse-visual-shortcut-grid button{min-height:86px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:15px;border:1px solid #6d6c67;background:#222;color:#f5f4f0;text-align:left;font:400 13px/1.25 Arial,sans-serif}
-.pulse-visual-shortcut-grid button:first-child{background:#ff2b20;color:#191919;border-color:#ff2b20}
-.pulse-visual-shortcut-grid button:hover{border-color:#ff2b20}
-.pulse-visual-shortcut-grid button span{font-size:20px}
-@media(max-width:850px){.pulse-visual-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:500px){.pulse-visual-shortcuts{padding:17px}.pulse-visual-shortcuts-head{display:block}.pulse-visual-shortcut-grid button{min-height:75px;font-size:11px}}

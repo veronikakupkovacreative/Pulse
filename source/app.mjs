@@ -99,3 +99,13 @@ document.querySelectorAll('[data-category-link]').forEach((link)=>{
   link.addEventListener('click',()=>activateCategory(link.dataset.categoryLink));
 });
 activateCategory('analyze');
+// Directory and footer links open their registered tool in the existing toolkit.
+document.addEventListener('click',event=>{
+ const trigger=event.target.closest('[data-open-tool]');if(!trigger)return;
+ const selected=toolModules.find(tool=>tool.id===trigger.dataset.openTool);if(!selected)return;
+ event.preventDefault();if(activeCategory!==selected.category)activateCategory(selected.category);
+ const tab=[...tabs.querySelectorAll('[data-tool]')].find(button=>button.dataset.tool===selected.id);
+ if(tab)tab.click();
+ query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+});
+

@@ -6,7 +6,8 @@ const categories=Object.freeze({
   analyze:{name:'ANALYZE',title:'Analyze.',description:'This category is ready for new analysis modules.',number:'01'},
   edit:{name:'EDIT',title:'Edit.',description:'This category is ready for new audio editing modules.',number:'02'},
   export:{name:'EXPORT',title:'Export.',description:'This category is ready for new audio export modules.',number:'03'},
-  ai:{name:'AI STUDIO',title:'AI Studio.',description:'This category is ready for new AI audio modules.',number:'04'}
+  ai:{name:'AI STUDIO',title:'AI Studio.',description:'This category is ready for new AI audio modules.',number:'04'},
+  visuals:{name:'VISUALS',title:'Visuals.',description:'Audio visualizations are ready.',number:'05'}
 });
 const query=(selector)=>document.querySelector(selector);
 const blank=query('#blank-panel');
@@ -113,7 +114,7 @@ document.addEventListener('click',event=>{
 // The visualizer shortcuts open the selected real module and switch to its mode.
 document.addEventListener('click',event=>{
  const shortcut=event.target.closest('[data-open-visual]');if(!shortcut)return;
- event.preventDefault();activateCategory('analyze');
+ event.preventDefault();activateCategory('visuals');
  const target=[...tabs.querySelectorAll('[data-tool]')].find(b=>b.dataset.tool==='visualizer');
  if(target)target.click();
  const mode=shortcut.dataset.openVisual;

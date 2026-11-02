@@ -31,36 +31,42 @@
 </section>
 
 <section id="analyzer" class="pulse-bpm-section" aria-label="BPM Analyzer">
-  <div class="section-label"><h2>01 / BPM ANALYZER</h2><span>LOCAL AUDIO ANALYSIS</span></div>
+  <div class="section-label"><h2>01 / BPM ANALYZER</h2><span>ORIGINAL RHYTHM ENGINE / LOCAL</span></div>
   <div class="bpm-workspace">
     <div class="bpm-upload-panel" id="bpm-drop-zone">
-      <input type="file" id="bpm-file" accept="audio/*,video/mp4,.wav,.mp3,.m4a,.aac,.mp4" hidden aria-label="Choose audio for BPM analysis">
+      <input type="file" id="bpm-file" accept="audio/*,video/mp4,.wav,.mp3,.m4a,.aac,.mp4" hidden aria-label="Choose audio for tempo analysis">
       <div class="bpm-upload-empty" id="bpm-empty">
         <div class="bpm-upload-icon" aria-hidden="true">↑</div>
-        <h3>Drop your track.</h3><p>Upload an audio file to discover its tempo.</p>
+        <h3>Drop your track.</h3><p>Estimate your track's tempo with the original PULSE analyzer.</p>
         <button type="button" id="bpm-choose" class="bpm-button-light">Choose file <span>↗</span></button>
         <span class="bpm-file-limit">WAV · MP3 · M4A · AAC · MP4 · max. 100 MB / 20 min</span>
       </div>
       <div class="bpm-loaded" id="bpm-loaded" hidden>
-        <div class="bpm-file-top"><span class="bpm-format" id="bpm-format">AUDIO</span><button type="button" id="bpm-clear" aria-label="Remove audio">×</button></div>
-        <h3 id="bpm-track-name">Your audio.</h3><p id="bpm-track-details">Ready to analyze.</p>
-        <div class="bpm-wave-wrap"><canvas id="bpm-canvas" height="110" aria-label="Waveform preview; click to seek" tabindex="0"></canvas><div class="bpm-playhead" id="bpm-playhead" aria-hidden="true"></div></div>
+        <div class="bpm-file-top"><span class="bpm-file-type" id="bpm-file-type">MP3</span><button type="button" id="bpm-remove" aria-label="Remove track">×</button></div>
+        <h3 id="bpm-track-name">Track name.mp3</h3>
+        <p id="bpm-track-details">0:00 · 2 ch · 44.1 kHz</p>
+        <div class="bpm-wave-wrap"><canvas id="bpm-canvas" height="108" aria-label="Loaded track waveform"></canvas><div class="bpm-wave-playhead" aria-hidden="true"></div></div>
         <div class="bpm-player"><button id="bpm-play" type="button" aria-label="Play or pause audio">▶</button><span id="bpm-time">0:00 / 0:00</span><button type="button" id="bpm-replace">Replace file ↗</button></div>
       </div>
-      <div class="bpm-privacy"><icon aria-hidden="true">♧</icon> Processed locally in your browser.</div>
+      <div class="bpm-privacy"><span aria-hidden="true">♙</span> Processed locally in your browser.</div>
       <p class="bpm-error" id="bpm-error" role="status" aria-live="polite"></p>
     </div>
     <div class="bpm-result-panel" id="bpm-result-panel">
-      <div class="bpm-result-head"><h3>YOUR TEMPO</h3><span id="bpm-status">ESTIMATED BPM <i></i></span></div>
+      <div class="bpm-result-head"><h3>YOUR TEMPO</h3><span id="bpm-status">AWAITING TRACK <i></i></span></div>
       <div class="bpm-tempo-circle"><strong id="bpm-number">—</strong><span>BEATS PER MINUTE</span><i class="bpm-orbit-dot"></i></div>
-      <div class="bpm-tempo-actions"><div class="bpm-tempo-steps"><button type="button" id="bpm-half" disabled aria-label="Halve BPM">÷ 2</button><button type="button" id="bpm-double" disabled aria-label="Double BPM">× 2</button></div><button type="button" id="bpm-copy" disabled>▢ &nbsp; Copy</button></div>
-      <div class="bpm-edit-row"><label for="bpm-override">EDIT BPM<input id="bpm-override" type="number" min="20" max="400" step=".1" inputmode="decimal" disabled placeholder="—"></label><button type="button" id="bpm-apply" disabled>Apply to Toolkit ↗</button></div>
-      <div class="bpm-grid-row"><label for="bpm-offset">First beat (s)<input id="bpm-offset" type="number" min="0" step=".001" value="0"></label><label for="bpm-meter">Beats per bar<select id="bpm-meter"><option value="4">4/4</option><option value="3">3/4</option><option value="2">2/4</option><option value="6">6/8</option></select></label></div>
-      <div class="bpm-preview-row"><label class="bpm-toggle"><input type="checkbox" id="bpm-preview"><span class="bpm-switch" aria-hidden="true"></span>Preview tempo</label><label class="bpm-volume">Volume <input id="bpm-volume" type="range" min="0" max="100" value="45" aria-label="Metronome volume"></label><div class="bpm-beat-dots" id="bpm-beat-dots" aria-label="Beat indicator"><i></i><i></i><i></i><i></i></div></div>
+      <div id="bpm-empty-result" class="bpm-result-footer"><span>Start with a beat.</span><button id="bpm-reanalyze" type="button" disabled aria-label="Re-analyze tempo">↗</button></div>
+      <div class="bpm-expanded" id="bpm-expanded" hidden>
+        <div class="bpm-actions"><div class="bpm-tempo-buttons"><button type="button" id="bpm-half" aria-label="Half tempo">÷ 2</button><button type="button" id="bpm-double" aria-label="Double tempo">× 2</button></div><button type="button" id="bpm-copy">▣ &nbsp; Copy</button></div>
+        <div class="bpm-edit-row"><label for="bpm-edit">EDIT BPM <input type="number" min="20" max="400" step="0.1" id="bpm-edit" value="120"></label><button type="button" id="bpm-apply">Apply to Toolkit ↗</button></div>
+        <div class="bpm-grid-row"><label for="bpm-offset">First beat (s)<input type="number" min="0" step="0.001" id="bpm-offset" value="0"></label><label for="bpm-meter">Beats per bar<select id="bpm-meter"><option value="3">3/4</option><option value="4" selected>4/4</option><option value="5">5/4</option><option value="6">6/4</option></select></label></div>
+        <div class="bpm-metronome-row"><button type="button" id="bpm-metronome" aria-pressed="false"><span class="bpm-switch"><i></i></span> Preview tempo</button><label for="bpm-volume">Volume<input type="range" id="bpm-volume" min="0" max="100" value="60" step="5"></label><div id="bpm-beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+      </div>
     </div>
   </div>
-  <p class="bpm-demo-line" id="bpm-result-caption">Tempo is an estimate. Verify by ear or use half/double tempo.</p>
+  <p id="bpm-note" class="bpm-note" role="status" aria-live="polite">Tempo is an estimate. Verify by ear or use Tap Tempo.</p>
+  <div class="bpm-demo-line"><button type="button" id="bpm-open-tap">Open Tap Tempo ↗</button><a href="#toolkit">Explore the toolkit ↗</a></div>
 </section>
+
 <section class="toolkit" id="toolkit" aria-labelledby="toolkit-title">
     <div class="section-label"><h2>02 / PRODUCER TOOLKITS</h2><span>LOCAL PRODUCER WORKSPACE</span></div>
     <div class="toolkit-heading pulse-editorial-intro">

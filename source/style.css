@@ -277,3 +277,53 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset
 @media(max-width:1050px){.pulse-footer-top{grid-template-columns:1fr;gap:35px}.pulse-bpm-section .bpm-workspace{grid-template-columns:1fr 1fr}.bpm-upload-panel,.bpm-result-panel{padding:22px;min-height:500px}.bpm-tempo-circle{width:min(205px,75%)}.pulse-directory-cards{gap:10px}}
 @media(max-width:760px){.pulse-bpm-section .bpm-workspace{grid-template-columns:1fr}.bpm-upload-panel,.bpm-result-panel{min-height:420px}.pulse-directory-cards{grid-template-columns:1fr}.pulse-directory-column{gap:10px}.pulse-directory{margin:55px 0}.pulse-footer-links{grid-template-columns:repeat(2,minmax(0,1fr))}.pulse-footer{min-height:0}.pulse-footer-bottom{margin-top:60px}}
 @media(max-width:460px){.bpm-preview-row{flex-wrap:wrap}.bpm-tempo-circle{width:200px}.pulse-footer-links{grid-template-columns:1fr 1fr;gap:25px 12px}.pulse-footer-bottom{flex-wrap:wrap}}
+
+
+/* Original BPM Analyzer 2026-10-28, editorial red/black edition */
+.bpm-workspace{grid-template-columns:1.45fr 1fr;align-items:stretch;min-height:550px}
+.bpm-upload-panel{background:#171717;min-height:550px;padding:25px 32px}
+.bpm-result-panel{background:#ff2b20;padding:27px 30px;min-height:550px}
+.bpm-loaded{min-height:435px}
+.bpm-file-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.bpm-file-type{border:1px solid #777;padding:8px 12px;font:400 11px Arial,sans-serif;letter-spacing:.12em}
+#bpm-remove{background:none;border:0;color:white;font:400 32px Arial,sans-serif;line-height:1}
+.bpm-loaded h3{font:400 clamp(24px,3vw,37px)/1.1 Arial,sans-serif;margin:0 0 11px;letter-spacing:-.045em}
+.bpm-loaded>p{font:400 11px Arial,sans-serif;color:#aaa;margin:0 0 24px}
+.bpm-wave-wrap{position:relative;height:108px;background:#070707}
+.bpm-wave-wrap canvas{height:108px;width:100%;display:block;background:#070707}
+.bpm-wave-playhead{position:absolute;top:0;bottom:0;left:0;width:2px;background:white;pointer-events:none}
+.bpm-player{margin-top:20px;gap:14px}
+.bpm-player #bpm-play{border-radius:0;width:46px;height:46px;font-size:15px;background:#f5f4f0;color:#191919}
+#bpm-time{font:400 11px Arial,sans-serif}
+.bpm-privacy{margin-top:auto;padding-top:32px}
+.bpm-result-head>span{letter-spacing:.07em;font-size:9px}
+.bpm-tempo-circle{width:220px;max-width:80%;margin:18px auto 22px;flex-shrink:0}
+.bpm-tempo-circle strong{font-size:clamp(53px,5vw,85px);letter-spacing:-.07em}
+.bpm-expanded{width:100%;margin-top:auto}
+.bpm-actions,.bpm-edit-row,.bpm-metronome-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bpm-actions{border-bottom:1px solid #19191955;padding-bottom:12px}
+.bpm-tempo-buttons{display:flex;gap:7px}
+.bpm-tempo-buttons button,.bpm-edit-row button{border:1px solid #19191999;background:transparent;min-height:37px;padding:8px 13px;font-size:11px}
+#bpm-copy{border:0;background:transparent;font-size:11px}
+.bpm-edit-row{border-bottom:1px solid #19191955;padding:12px 0}
+.bpm-edit-row label{font:700 9px Arial,sans-serif;letter-spacing:.06em}
+.bpm-edit-row input{display:block;max-width:115px;margin-top:8px;min-height:39px;padding:8px;border:1px solid #191919a0;background:transparent;font:600 15px Arial,sans-serif}
+.bpm-grid-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 0}
+.bpm-grid-row label{font-size:11px;display:grid;gap:7px}
+.bpm-grid-row input,.bpm-grid-row select{min-width:0;width:100%;background:transparent;border:1px solid #19191999;height:41px;padding:8px 10px;font:400 12px Arial,sans-serif}
+.bpm-metronome-row{padding-top:4px;flex-wrap:wrap}
+.bpm-metronome-row button{display:flex;align-items:center;gap:8px;font-size:11px}
+.bpm-switch{width:28px;height:15px;border:1px solid #191919a0;border-radius:30px;padding:2px}
+.bpm-switch i{display:block;width:9px;height:9px;border-radius:50%;background:#191919}
+.bpm-metronome-row button[aria-pressed=true] .bpm-switch{background:#191919}
+.bpm-metronome-row button[aria-pressed=true] .bpm-switch i{background:#ff2b20;transform:translateX(12px)}
+.bpm-metronome-row label{display:flex;align-items:center;gap:8px;font-size:11px}
+.bpm-metronome-row input[type=range]{width:90px;accent-color:#191919}
+#bpm-beat-dots{display:flex;gap:7px}
+#bpm-beat-dots i{width:6px;height:6px;border-radius:50%;border:1px solid #191919}
+#bpm-beat-dots i.active{background:#191919}
+.bpm-note{color:#77756f;font-size:11px;line-height:1.5;margin-top:12px}
+.bpm-demo-line{display:flex;align-items:center;justify-content:center;gap:22px}
+.bpm-demo-line button{font-size:11px;text-decoration:underline;text-underline-offset:4px}
+@media(max-width:860px){.bpm-workspace{grid-template-columns:1fr 1fr}.bpm-upload-panel,.bpm-result-panel{padding:20px}.bpm-tempo-circle{width:180px}.bpm-tempo-circle strong{font-size:59px}}
+@media(max-width:640px){.bpm-workspace{grid-template-columns:1fr}.bpm-result-panel,.bpm-upload-panel{min-height:430px}.bpm-tempo-circle{width:180px}.bpm-expanded{margin-top:10px}.bpm-grid-row{gap:7px}}

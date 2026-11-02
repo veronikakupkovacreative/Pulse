@@ -225,3 +225,5 @@
 .pulse-source-original.has-audio #audio-time{margin-left:4px;margin-right:auto}
 .pulse-source-original.has-audio .pulse-source-reuse{margin-top:26px}
 @media(max-width:600px){.pulse-source-original.has-audio{padding:16px}.pulse-source-original.has-audio #audio-meta{font-size:25px}}
+
+.creative-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.creative-modes button{min-height:39px;font-size:9px}.creative-advanced{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}.creative-advanced label{display:grid;grid-template-columns:1fr auto;gap:6px;font:700 9px Arial,sans-serif}.creative-advanced input{grid-column:1/-1;width:100%;accent-color:#191919}@media(max-width:460px){.creative-modes{grid-template-columns:repeat(2,minmax(0,1fr))}.creative-advanced{grid-template-columns:1fr}}

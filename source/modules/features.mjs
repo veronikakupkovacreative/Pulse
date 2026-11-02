@@ -1,5 +1,6 @@
 import {workspace as w} from './workspace.mjs';
 import {tapTempoModule} from './tap-tempo.mjs';
+import {tuner808Module} from './808-tuner.mjs';
 import {creativeModules} from './creative-tools.mjs';
 import {advancedModules} from './advanced-features.mjs';
 import {legacyModules} from './legacy-tools.mjs';
@@ -133,4 +134,4 @@ export const toolModules=Object.freeze([...Object.entries(describe).filter(([id]
  for(const button of buttons)button.onclick=async()=>{const out=host.querySelector('.module-result');buttons.forEach(b=>b.disabled=true);out.textContent='Processing audio…';out.removeAttribute('data-kind');try{const answer=await run(id,button.dataset.action,host);out.textContent=answer||'Complete.';out.dataset.kind='success'}catch(e){out.textContent=e.message||'Processing failed.';out.dataset.kind='error'}finally{buttons.forEach(b=>b.disabled=false)}};
  if(id==='editor'||id==='loop'){const interval=()=>{const el=host.querySelector('[data-metric="range"]');if(el)el.textContent=w.selection?w.selection.start.toFixed(2)+' – '+w.selection.end.toFixed(2)+' s':'Shift + drag on the waveform to select.'};interval();const timer=setInterval(interval,350);return()=>{clearInterval(timer);cleanup()}}
  return cleanup;
-}})),tapTempoModule,...creativeModules,...advancedModules,...legacyModules.filter(module=>module.id!=='eq5'),advancedEqualizerModule,...webModules,aiNormalizerModule,...pulseAiModules]);
+}})),tuner808Module,tapTempoModule,...creativeModules,...advancedModules,...legacyModules.filter(module=>module.id!=='eq5'),advancedEqualizerModule,...webModules,aiNormalizerModule,...pulseAiModules]);

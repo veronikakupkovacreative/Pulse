@@ -1,0 +1,34 @@
+/* 808 Tuner · recovered 2026-10-31 DSP, 2026-11-02 PULSE visual system */
+.tool-settings .pulse-808-tuner{display:flex;flex-direction:column;gap:0;min-width:0;color:#191919;font-family:Arial,Helvetica,sans-serif}
+.pulse-808-tuner .pulse-tuner-source{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 20px}
+.pulse-808-tuner .pulse-tuner-source label,.pulse-808-tuner .pulse-tuner-note-select{display:flex;flex-direction:column;gap:9px;min-width:0;font:600 10px/1.45 Arial,sans-serif;letter-spacing:.03em}
+.pulse-808-tuner :is(.pulse-tuner-source select,.pulse-tuner-note-select select){width:100%;min-width:0;min-height:43px;padding:10px 12px;border:1px solid #19191988;border-radius:0;background:transparent;color:#191919;font:400 12px Arial,Helvetica,sans-serif}
+.pulse-808-tuner .pulse-tuner-source select:focus-visible,.pulse-808-tuner .pulse-tuner-note-select select:focus-visible{outline:2px solid #191919;outline-offset:3px}
+.pulse-808-tuner .pulse-tuner-note-select select:disabled{opacity:.55;cursor:not-allowed}
+.pulse-808-tuner .pulse-tuner-meter{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1fr);align-items:end;gap:14px;background:#191919;color:#f5f4f0;padding:20px 18px 19px;margin:0 0 11px;min-height:134px}
+.pulse-808-tuner .pulse-tuner-meter div:first-child{display:flex;flex-direction:column;justify-content:space-between;min-height:91px}
+.pulse-808-tuner .pulse-tuner-meter small{color:#bdbbb4;font:600 9px/1.4 Arial,sans-serif;letter-spacing:.085em}
+.pulse-808-tuner .pulse-tuner-meter strong{display:block;color:#ff2b20;font:400 clamp(47px,5vw,67px)/.98 Arial,sans-serif;letter-spacing:-.08em}
+.pulse-808-tuner .pulse-tuner-readings{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.pulse-808-tuner .pulse-tuner-readings span{color:#f5f4f0;font:400 15px/1.25 Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pulse-808-tuner .pulse-tuner-readings small{line-height:1.5}
+.pulse-808-tuner .pulse-tuner-stability{font:700 10px/1.45 Arial,sans-serif;letter-spacing:.045em;margin:0 0 6px}
+.pulse-808-tuner .pulse-tuner-range,.pulse-808-tuner .pulse-tuner-shift{font:400 11px/1.55 Arial,sans-serif;margin:0 0 17px}
+.pulse-808-tuner .pulse-tuner-primary,.pulse-808-tuner .pulse-tuner-actions button{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;width:100%;min-height:48px;padding:13px 15px;border:1px solid #191919;border-radius:0;background:#191919;color:#f5f4f0;font:700 11px Arial,sans-serif;letter-spacing:.045em;cursor:pointer}
+.pulse-808-tuner .pulse-tuner-primary{margin:0 0 23px}
+.pulse-808-tuner .pulse-tuner-actions{display:grid;grid-template-columns:1fr;gap:7px;margin-top:auto}
+.pulse-808-tuner .pulse-tuner-actions button:nth-child(1),.pulse-808-tuner .pulse-tuner-actions button:nth-child(3){background:transparent;color:#191919}
+.pulse-808-tuner :is(.pulse-tuner-primary,.pulse-tuner-actions button):hover:not(:disabled){background:#303030;color:#fff}
+.pulse-808-tuner :is(.pulse-tuner-primary,.pulse-tuner-actions button):disabled{opacity:.45;cursor:not-allowed}
+.pulse-808-tuner :is(.pulse-tuner-primary,.pulse-tuner-actions button):focus-visible{outline:2px solid #191919;outline-offset:3px}
+.pulse-808-tuner .pulse-tuner-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.pulse-808-tuner .pulse-tuner-controls>.pulse-tuner-note-select{grid-column:1/-1}
+.pulse-808-tuner .pulse-tuner-controls>label:not(.pulse-tuner-note-select){min-width:0;font:600 10px Arial,sans-serif}
+.pulse-808-tuner .pulse-tuner-controls>label input[type=range]{width:100%;min-width:0;accent-color:#191919}
+.pulse-808-tuner .pulse-tuner-controls .pulse-slider-card{min-height:99px;padding:13px 14px}
+.pulse-808-tuner .pulse-tuner-shift{margin-bottom:17px}
+.pulse-808-tuner .pulse-tuner-status{margin:13px 0 5px;min-height:32px;font:400 11px/1.55 Arial,sans-serif}
+.pulse-808-tuner .pulse-tuner-status[data-kind=error]{font-weight:700}
+.pulse-808-tuner .pulse-tuner-note{font:400 10px/1.5 Arial,sans-serif;color:#40211e;margin:5px 0 0}
+@media(max-width:620px){.pulse-808-tuner .pulse-tuner-source,.pulse-808-tuner .pulse-tuner-controls{grid-template-columns:1fr}.pulse-808-tuner .pulse-tuner-controls>.pulse-tuner-note-select{grid-column:auto}}
+@media(max-width:360px){.pulse-808-tuner .pulse-tuner-meter{grid-template-columns:1fr}.pulse-808-tuner .pulse-tuner-readings{gap:5px}}

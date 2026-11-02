@@ -341,3 +341,38 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset
 .pulse-visual-shortcut-grid button span{font-size:20px}
 @media(max-width:850px){.pulse-visual-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.pulse-visual-shortcuts{padding:17px}.pulse-visual-shortcuts-head{display:block}.pulse-visual-shortcut-grid button{min-height:75px;font-size:11px}}
+
+
+/* Exact source: 10997574ca69082c15aa3f87fbe41009634bf09b — Hero + BPM visual restoration only */
+.hero:has(.pulse-hero-info){display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.96fr) minmax(165px,.56fr);gap:clamp(22px,3.5vw,52px);padding:66px 0 64px;align-items:center}
+.hero:has(.pulse-hero-info) .hero-copy{min-width:0;padding:0}
+.hero:has(.pulse-hero-info) .intro:empty{display:none}
+.hero:has(.pulse-hero-info) h1{font-size:clamp(69px,7.6vw,108px);font-weight:600;letter-spacing:-.075em;line-height:.91}
+.hero:has(.pulse-hero-info) .pulse-hero-info{min-width:0;max-width:none;padding:0;align-self:center}
+.hero:has(.pulse-hero-info) .pulse-hero-description{max-width:430px;margin:0;letter-spacing:-.01em;font:400 clamp(12px,1.08vw,15px)/1.6 Arial,Helvetica,sans-serif;text-wrap:pretty}
+.hero:has(.pulse-hero-info) .pulse-info-eyebrow{display:block;margin:0 0 14px;color:var(--muted);font:600 9px/1.4 "Courier New",monospace;letter-spacing:.12em}
+.hero:has(.pulse-hero-info) .pulse-info-dot{display:inline-block;vertical-align:middle;width:7px;height:7px;margin-right:8px;border-radius:0;background:#ff0000}
+.hero:has(.pulse-hero-info) .pulse-formats{padding:0;margin:20px 0 0;border:0}
+.hero:has(.pulse-hero-info) .pulse-formats .pulse-info-eyebrow{margin-bottom:8px}
+.hero:has(.pulse-hero-info) .pulse-format-tags{display:flex;flex-wrap:wrap;gap:7px;margin:0}
+.hero:has(.pulse-hero-info) .pulse-format-tags span{padding:8px 12px;border:1px solid #191919;border-radius:0;color:#191919;font:700 10px/1.25 "Courier New",monospace;letter-spacing:.07em}
+.hero:has(.pulse-hero-info) .hero-art{display:block;width:100%;max-width:250px;margin:0;align-self:center;justify-self:end}
+.hero:has(.pulse-hero-info) .circle-grid{gap:9px}
+#analyzer.pulse-bpm-section{scroll-margin-top:25px}
+#analyzer.pulse-bpm-section .section-label{padding:0 0 12px;margin:0}
+#analyzer.pulse-bpm-section .section-label h2{font-size:10px;letter-spacing:.075em}
+#analyzer.pulse-bpm-section .bpm-workspace{grid-template-columns:minmax(0,1.2fr) minmax(0,.82fr);gap:10px;align-items:stretch;min-height:410px}
+#analyzer.pulse-bpm-section .bpm-upload-panel{min-height:410px;background:#171717;color:#f5f4f0;padding:24px}
+#analyzer.pulse-bpm-section .bpm-result-panel{min-height:410px;background:#ff2b20;color:#161616;display:flex;flex-direction:column;align-items:center;padding:23px 25px 21px;position:relative;overflow:hidden}
+#analyzer.pulse-bpm-section .bpm-result-head{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:10px}
+#analyzer.pulse-bpm-section .bpm-result-head h3{margin:0;font:700 10px/1.4 Arial,sans-serif;letter-spacing:1.4px}
+#analyzer.pulse-bpm-section .bpm-result-head>span{display:flex;align-items:center;gap:6px;font:400 8px/1.4 Arial,sans-serif;letter-spacing:.6px}
+#analyzer.pulse-bpm-section .bpm-tempo-circle{width:min(238px,85%);height:auto;aspect-ratio:1;margin:26px 0 24px;border:1px solid #d51e17;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;flex-shrink:0}
+#analyzer.pulse-bpm-section .bpm-tempo-circle strong{font:500 clamp(65px,7.1vw,100px)/1 Arial,sans-serif;letter-spacing:-.08em;font-variant-numeric:tabular-nums;padding-right:6px}
+#analyzer.pulse-bpm-section .bpm-tempo-circle>span{font:400 9px/1.4 Arial,sans-serif;letter-spacing:1.6px;margin-top:10px}
+#analyzer.pulse-bpm-section .bpm-orbit-dot{width:14px;height:14px;top:11%;right:10%;background:#191919;outline:6px solid #ff2b20}
+#analyzer.pulse-bpm-section .bpm-result-footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;width:100%;font:400 11px Arial,sans-serif}
+#analyzer.pulse-bpm-section .bpm-expanded:not([hidden]){width:100%;margin-top:auto}
+@media(max-width:1050px){.hero:has(.pulse-hero-info){grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:25px;align-items:start}.hero:has(.pulse-hero-info) .hero-art{display:none}}
+@media(max-width:780px){#analyzer.pulse-bpm-section .bpm-workspace{grid-template-columns:1fr 1fr}#analyzer.pulse-bpm-section .bpm-upload-panel,#analyzer.pulse-bpm-section .bpm-result-panel{min-height:440px;padding:20px}}
+@media(max-width:650px){.hero:has(.pulse-hero-info){grid-template-columns:1fr;gap:27px;padding:32px 0 35px}.hero:has(.pulse-hero-info) .hero-copy{padding:0}.hero:has(.pulse-hero-info) h1{font-size:clamp(62px,15vw,91px)}.hero:has(.pulse-hero-info) .hero-art{display:none}.hero:has(.pulse-hero-info) .pulse-hero-description{font-size:13px;max-width:46ch}#analyzer.pulse-bpm-section .bpm-workspace{grid-template-columns:1fr;gap:10px}#analyzer.pulse-bpm-section .bpm-upload-panel,#analyzer.pulse-bpm-section .bpm-result-panel{min-height:330px;padding:21px 23px}#analyzer.pulse-bpm-section .bpm-tempo-circle{width:206px;margin:17px 0}}

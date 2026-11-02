@@ -29,7 +29,7 @@ function matchChannels(buffer,target){
 }
 export const webModules=Object.freeze([
  {id:'merge-files',category:'edit',label:'Merge Audio Files',mount({host}){
-  host.innerHTML='<div class="tool-view pulse-web-tool">'+header('02','EDIT','Merge<br><span>audio files.</span>','Append selected audio files to the track already loaded in SOURCE AUDIO. Sample rates and mono/stereo layouts are matched automatically. A short transition fade prevents clicks.')+
+  host.innerHTML='<div class="tool-view module-work pulse-web-tool">'+header('02','EDIT','Merge<br><span>audio files.</span>','Append selected audio files to the track already loaded in SOURCE AUDIO. Sample rates and mono/stereo layouts are matched automatically. A short transition fade prevents clicks.')+
    '<div class="pulse-fx-controls"><label class="pulse-fx-file-label">AUDIO FILES TO APPEND<input class="pulse-web-files" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg" multiple></label></div>'+
    action('Merge into SOURCE AUDIO')+status('Load your original track, then select one or more files to append.')+'</div>';
   const input=host.querySelector('.pulse-web-files');
@@ -51,7 +51,7 @@ export const webModules=Object.freeze([
   });
  }},
  {id:'speed-change',category:'edit',label:'Audio Speed',mount({host}){
-  host.innerHTML='<div class="tool-view pulse-web-tool">'+header('02','EDIT','Change<br><span>audio speed.</span>','Change playback speed and pitch together. This is a varispeed process, not independent time-stretch or Auto-Tune.')+
+  host.innerHTML='<div class="tool-view module-work pulse-web-tool">'+header('02','EDIT','Change<br><span>audio speed.</span>','Change playback speed and pitch together. This is a varispeed process, not independent time-stretch or Auto-Tune.')+
   '<div class="pulse-fx-controls"><label class="pulse-fx-field">SPEED MULTIPLIER<select class="pulse-web-speed"><option value=".5">0.5× / half speed</option><option value=".75">0.75×</option><option value="1" selected>1.0× / original</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2.0× / double speed</option></select></label></div>'+
   action('Apply speed change')+status('Load audio in SOURCE AUDIO first.')+'</div>';
   runAsync(host,async()=>{
@@ -63,7 +63,7 @@ export const webModules=Object.freeze([
   });
  }},
  {id:'file-size',category:'export',label:'File Size Calculator',mount({host}){
-  host.innerHTML='<div class="tool-view pulse-web-tool">'+header('03','EXPORT','Estimate<br><span>file size.</span>','Estimate a constant-bitrate compressed file and compare it with 16-bit PCM WAV. Actual codec size varies with encoder and container overhead.')+
+  host.innerHTML='<div class="tool-view module-work pulse-web-tool">'+header('03','EXPORT','Estimate<br><span>file size.</span>','Estimate a constant-bitrate compressed file and compare it with 16-bit PCM WAV. Actual codec size varies with encoder and container overhead.')+
    '<div class="pulse-fx-controls"><label class="pulse-fx-field">TARGET BITRATE<select class="pulse-web-bitrate"><option value="64">64 kbps</option><option value="96">96 kbps</option><option value="128">128 kbps</option><option value="160">160 kbps</option><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></label></div>'+
    action('Calculate file size')+status('Load audio to estimate output size.')+'</div>';
   runAsync(host,async()=>{
@@ -73,7 +73,7 @@ export const webModules=Object.freeze([
   });
  }},
  {id:'video-audio',category:'export',label:'Extract Audio from Video',mount({host}){
-  host.innerHTML='<div class="tool-view pulse-web-tool">'+header('03','EXPORT','Video in.<br><span>Audio out.</span>','Extract the first audio track from an MP4 or MOV video and download it as 16-bit PCM WAV. Processing happens locally; unsupported codecs may not decode.')+
+  host.innerHTML='<div class="tool-view module-work pulse-web-tool">'+header('03','EXPORT','Video in.<br><span>Audio out.</span>','Extract the first audio track from an MP4 or MOV video and download it as 16-bit PCM WAV. Processing happens locally; unsupported codecs may not decode.')+
    '<div class="pulse-fx-controls"><label class="pulse-fx-file-label">CHOOSE MP4 OR MOV VIDEO<input type="file" class="pulse-web-video" accept="video/mp4,video/quicktime,.mp4,.mov"></label></div>'+
    action('Extract WAV audio')+status('Choose a video with a compatible audio track (max. 100 MB / 20 minutes).')+'</div>';
   runAsync(host,async()=>{

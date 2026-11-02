@@ -227,3 +227,33 @@
 @media(max-width:600px){.pulse-source-original.has-audio{padding:16px}.pulse-source-original.has-audio #audio-meta{font-size:25px}}
 
 .creative-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.creative-modes button{min-height:39px;font-size:9px}.creative-advanced{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}.creative-advanced label{display:grid;grid-template-columns:1fr auto;gap:6px;font:700 9px Arial,sans-serif}.creative-advanced input{grid-column:1/-1;width:100%;accent-color:#191919}@media(max-width:460px){.creative-modes{grid-template-columns:repeat(2,minmax(0,1fr))}.creative-advanced{grid-template-columns:1fr}}
+
+
+/* Branded PULSE inspector system for legacy and Web modules — Loop Cutter visual language */
+.tool-settings :is(.pulse-legacy,.pulse-web-tool){display:flex;flex-direction:column;min-width:0;width:100%;min-height:510px;background:transparent;color:#191919;font:400 12px/1.6 Arial,Helvetica,sans-serif}
+.tool-settings :is(.pulse-legacy,.pulse-web-tool) .tool-view-header{margin:0 0 29px;font:700 9px/1.4 Arial,sans-serif;letter-spacing:.11em}
+.tool-settings :is(.pulse-legacy,.pulse-web-tool) h3{margin:0 0 17px;font:400 clamp(33px,3.3vw,46px)/1.04 Arial,sans-serif;letter-spacing:-.047em;overflow-wrap:anywhere}
+.tool-settings :is(.pulse-legacy,.pulse-web-tool) h3 span{opacity:.55}
+.tool-settings :is(.pulse-legacy,.pulse-web-tool) .tool-description{margin:0 0 26px;max-width:395px;font:400 12px/1.64 Arial,sans-serif}
+.pulse-legacy .pulse-detail-label{display:block;margin:0 0 12px;color:#191919;font:700 10px/1.4 Arial,sans-serif;letter-spacing:.10em}
+.pulse-legacy-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));gap:7px;margin:0 0 26px}
+.pulse-legacy-presets button{min-height:44px;min-width:0;padding:11px 10px;border:1px solid #19191999;border-radius:0;background:transparent;color:#191919;text-align:center;font:400 11px/1.35 Arial,sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.pulse-legacy-presets button:hover:not([aria-pressed="true"]){background:#19191914}
+.pulse-legacy-presets button[aria-pressed="true"]{background:#191919;border-color:#191919;color:#fff}
+.pulse-legacy-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 15px;margin:0 0 27px}
+.pulse-legacy-fields:empty{display:none}
+.pulse-legacy-fields label{min-width:0;display:flex;flex-direction:column;gap:9px;font:600 11px/1.4 Arial,sans-serif;color:#191919}
+.pulse-legacy-fields input{width:100%;min-width:0;min-height:43px;padding:10px 12px;border:1px solid #19191988;border-radius:0;background:transparent;color:#191919;font:400 13px Arial,sans-serif}
+.pulse-legacy .pulse-legacy-run,.pulse-web-tool .pulse-web-run{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;width:100%;min-height:52px;padding:14px 19px;border:0;border-radius:0;background:#191919;color:#fff;text-align:left;font:600 13px Arial,sans-serif;cursor:pointer}
+.pulse-legacy .pulse-legacy-run:hover:not(:disabled),.pulse-web-tool .pulse-web-run:hover:not(:disabled){background:#303030}
+.pulse-legacy .pulse-legacy-run:disabled,.pulse-web-tool .pulse-web-run:disabled{opacity:.48;cursor:wait}
+.pulse-legacy .pulse-legacy-status,.pulse-web-tool .pulse-web-status{min-height:20px;margin:13px 0 0;padding:0;border:0;color:#30201e;font:400 11px/1.6 Arial,sans-serif;white-space:normal;overflow-wrap:anywhere}
+.pulse-web-tool .pulse-fx-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:0 0 27px}
+.pulse-web-tool .pulse-fx-field,.pulse-web-tool .pulse-fx-file-label{display:flex;flex-direction:column;gap:9px;min-width:0;margin:0;font:600 11px/1.45 Arial,sans-serif;color:#191919}
+.pulse-web-tool .pulse-fx-file-label{padding:15px 14px;border:1px dashed #19191999}
+.pulse-web-tool .pulse-fx-field select{width:100%;max-width:100%;min-width:0;min-height:44px;padding:10px 13px;border:1px solid #19191988;border-radius:0;background:transparent;color:#191919;font:400 13px/1.35 Arial,sans-serif;cursor:pointer}
+.pulse-web-tool .pulse-fx-file-label input[type="file"]{display:block;width:100%;min-width:0;padding:7px 0;border:0;background:transparent;color:#191919;font:400 11px/1.4 Arial,sans-serif}
+.pulse-web-tool .pulse-fx-file-label input[type="file"]::file-selector-button{padding:10px 12px;margin:0 11px 0 0;border:1px solid #191919;background:transparent;color:#191919;font:400 11px Arial,sans-serif;cursor:pointer}
+.tool-settings :is(.pulse-legacy,.pulse-web-tool) :is(button,input,select):focus-visible{outline:2px solid #191919;outline-offset:3px}
+@media(max-width:500px){.pulse-legacy-fields{gap:12px}.pulse-legacy-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.tool-settings :is(.pulse-legacy,.pulse-web-tool) h3{font-size:clamp(31px,9vw,44px)}}
+@media(max-width:350px){.pulse-legacy-fields{grid-template-columns:1fr}}

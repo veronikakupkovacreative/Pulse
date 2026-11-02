@@ -99,3 +99,29 @@
 .module-work .converter-codec-note{font-size:10px;line-height:1.6;margin:0 0 13px;color:#432820}
 .module-work .converter-progress{height:5px;background:#1919193a;margin:0 0 22px;overflow:hidden}
 .module-work .converter-progress i{display:block;width:0;height:100%;background:#191919;transition:width .15s}
+
+
+/* Tap Tempo modal — reference screenshot */
+.tap-tempo-dialog{position:fixed;inset:0;max-width:min(475px,calc(100vw - 32px));width:475px;max-height:calc(100dvh - 32px);padding:0;margin:auto;border:0;border-radius:0;background:#f5f4f0;color:#191919;box-shadow:0 20px 80px #0005;overflow:auto}
+.tap-tempo-dialog::backdrop{background:rgba(12,12,12,.67);backdrop-filter:blur(4px)}
+.tap-dialog-layout{position:relative;padding:37px 36px 34px;text-align:left;min-height:475px}
+.tap-dialog-close{position:absolute;top:7px;right:7px;width:42px;height:42px;border:1px solid #ff2b20;background:transparent;color:#191919;font:400 23px Arial,sans-serif;display:grid;place-items:center;cursor:pointer}
+.tap-dialog-close:hover{background:#ff2b201a}
+.tap-dialog-eyebrow{font:700 9px Arial,sans-serif;letter-spacing:.15em;margin:0 0 22px}
+.tap-dialog-layout h2{font:400 40px/.99 Arial,sans-serif;letter-spacing:-.06em;margin:0 0 26px}
+.tap-dialog-pad{display:flex;flex-direction:column;align-items:center;justify-content:center;width:200px;height:200px;background:#ff2b20;border:0;border-radius:50%;color:#191919;margin:0 auto 27px;cursor:pointer;touch-action:manipulation;transition:transform .12s}
+.tap-dialog-pad span{font:400 57px/.96 Arial,sans-serif;letter-spacing:-.07em;font-variant-numeric:tabular-nums}
+.tap-dialog-pad small{font:400 12px Arial,sans-serif;margin-top:9px}
+.tap-dialog-pad.tap-pressed{animation:tap-pulse .18s ease-out}
+.tap-dialog-pad:focus-visible,.tap-dialog-layout button:focus-visible{outline:2px solid #191919;outline-offset:4px}
+.tap-dialog-instruction{text-align:center;font:400 11px Arial,sans-serif;color:#77756f;margin:0 0 20px}
+.tap-dialog-actions{display:flex;align-items:center;justify-content:center;gap:18px;font:400 10px Arial,sans-serif;margin-bottom:0}
+.tap-dialog-actions button{border:0;padding:2px 0;border-bottom:1px solid #191919;background:transparent;color:#191919;font:inherit;cursor:pointer}
+.tap-dialog-result{margin:22px auto 0;text-align:center;border-top:1px solid #dad9d3;padding-top:15px;max-width:250px}
+.tap-dialog-result span{display:block;font:700 9px Arial,sans-serif;letter-spacing:.12em}
+.tap-dialog-result strong{display:block;font:400 26px Arial,sans-serif;margin:7px 0}
+.tap-dialog-result button{font:400 10px Arial,sans-serif;text-decoration:underline;border:0;background:transparent;cursor:pointer}
+.tap-tool-view .tap-launch{margin-top:auto}
+@keyframes tap-pulse{0%{transform:scale(.95)}100%{transform:scale(1)}}
+@media(max-width:480px){.tap-dialog-layout{padding:38px 26px 26px;min-height:0}.tap-dialog-layout h2{font-size:37px}.tap-dialog-pad{width:185px;height:185px}.tap-dialog-pad span{font-size:53px}}
+@media(prefers-reduced-motion:reduce){.tap-dialog-pad{transition:none}.tap-dialog-pad.tap-pressed{animation:none}}

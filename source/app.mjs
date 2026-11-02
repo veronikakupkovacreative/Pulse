@@ -1,4 +1,5 @@
 import {toolModules} from './modules/index.mjs';
+import {renderToolEditorial} from './modules/tool-editorial.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -32,6 +33,7 @@ function showEmpty(){
 function mountTool(definition){
   clearMountedTool();
   blank.hidden=true;
+  renderToolEditorial(definition);
   tabs.querySelectorAll('button').forEach((button)=>{
     const selected=button.dataset.tool===definition.id;
     button.classList.toggle('selected',selected);

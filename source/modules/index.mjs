@@ -8,8 +8,8 @@ if(typeof document!=='undefined'){
   set('.hero-description','Analyze, edit, enhance and export audio directly in your browser. Upload a track, work with its waveform and choose a tool from the four categories.');
   set('.state-line','LOCAL AUDIO PROCESSING / MODULES ACTIVE');
   set('.toolkit-intro p','Explore local audio tools for analysis, editing, export and DSP-assisted mastering. All uploaded files remain in browser memory.');
-  set('.toolkit-intro .intro-accent','No account required. Audio is processed locally.');
-  set('.toolkit-note','+ Audio processing runs locally in your browser. AI STUDIO currently contains DSP tools, not neural models.');
+  set('.toolkit-intro .intro-accent','Local tools require no account. Cloud AI needs protected access.');
+  set('.toolkit-note','+ Local DSP stays in your browser. Neural voice operations use an explicitly authorized cloud service and require separate access.');
   set('.footer-brand p','A focused audio workspace for producers. Analyze, edit, process and export without installing software.');
   const status=document.querySelector('.tiny-status');if(status)status.textContent='READY FOR AUDIO';
   const source=document.querySelector('.tool-source');if(source)source.setAttribute('aria-label','Audio upload, waveform and transport');

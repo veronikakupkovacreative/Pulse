@@ -19,11 +19,20 @@ export function inferFormat(filename=''){
   const ext=String(filename).toLowerCase().split('.').pop();
   return ({wave:'wav',oga:'ogg',asf:'wma'}[ext]??(KNOWN_FORMATS.has(ext)?ext:'unknown'));
 }
-export function conversionOptions({format,bitrate=192,bitDepth=16,oggQuality=5,flacLevel=5,sampleRate='original'}={}){
-  if(!KNOWN_FORMATS.has(format))throw Error('Unsupported audio format.');
-  const rate=sampleRate==='original'?null:Number(sampleRate);
-  if(rate!==null&&![22050,32000,44100,48000,88200,96000].includes(rate))throw Error('Unsupported sample rate.');
-  const n=Number(bitrate),depth=Number(bitDepth),quality=Number(oggQuality),flac=Number(flacLevel);
+/** Common music-export defaults; transparent, deterministic AUTO rather than model inference. */
+export function recommendedAudioSettings(format) {
+  if (!KNOWN_FORMATS.has(format)) throw Error('Unsupported audio format.');
+  const bitrate = format==='mp3'?320:format==='aac'||format==='m4a'?256:format==='wma'?192:192;
+  return {sampleRate:44100,bitrate,bitDepth:24,oggQuality:6,flacLevel:5};
+}
+export function conversionOptions({format,bitrate='auto',bitDepth='auto',oggQuality='auto',flacLevel='auto',sampleRate='auto'}={}) {
+  const auto=recommendedAudioSettings(format);
+  const rate=sampleRate==='auto'?auto.sampleRate:sampleRate==='original'?null:Number(sampleRate);
+  if (rate!==null&&![22050,32000,44100,48000,88200,96000].includes(rate))throw Error('Unsupported sample rate.');
+  const n=bitrate==='auto'?auto.bitrate:Number(bitrate);
+  const depth=bitDepth==='auto'?auto.bitDepth:Number(bitDepth);
+  const quality=oggQuality==='auto'?auto.oggQuality:Number(oggQuality);
+  const flac=flacLevel==='auto'?auto.flacLevel:Number(flacLevel);
   if(!BITRATES.includes(n))throw Error('Invalid bitrate.');
   if(![16,24].includes(depth))throw Error('Only 16-bit and 24-bit WAV are supported.');
   if(!Number.isInteger(quality)||quality<0||quality>10)throw Error('OGG quality must be between 0 and 10.');
@@ -106,7 +115,7 @@ export async function convertBuffer(audioBuffer,settings={},onState=()=>{},onPro
   const opts=conversionOptions(settings);
   if(!audioBuffer||!audioBuffer.length)throw Error('Upload audio first.');
   // A WAV export needs no WASM or external download unless resampling was requested.
-  if(opts.format==='wav'&&!opts.sampleRate){
+  if(opts.format==='wav'&&(!opts.sampleRate||opts.sampleRate===audioBuffer.sampleRate)){
     onState('Rendering local PCM WAV…');
     const blob=encodeWav(audioBuffer,opts.bitDepth);
     onProgress(100);

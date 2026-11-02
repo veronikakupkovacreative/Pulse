@@ -64,10 +64,10 @@ export const webModules=Object.freeze([
  }},
  {id:'file-size',category:'export',label:'File Size Calculator',mount({host}){
   host.innerHTML='<div class="tool-view module-work pulse-web-tool">'+header('03','EXPORT','Estimate<br><span>file size.</span>','Estimate a constant-bitrate compressed file and compare it with 16-bit PCM WAV. Actual codec size varies with encoder and container overhead.')+
-   '<div class="pulse-fx-controls"><label class="pulse-fx-field">TARGET BITRATE<select class="pulse-web-bitrate"><option value="64">64 kbps</option><option value="96">96 kbps</option><option value="128">128 kbps</option><option value="160">160 kbps</option><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></label></div>'+
+   '<div class="pulse-fx-controls"><label class="pulse-fx-field">TARGET BITRATE<select class="pulse-web-bitrate"><option value="auto" selected>AUTO · 320 kbps (music)</option><option value="64">64 kbps</option><option value="96">96 kbps</option><option value="128">128 kbps</option><option value="160">160 kbps</option><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></label></div>'+
    action('Calculate file size')+status('Load audio to estimate output size.')+'</div>';
   runAsync(host,async()=>{
-   const b=w.ensureAudio(),engine=new Web(w.context),kbps=Number(host.querySelector('.pulse-web-bitrate').value),size=engine.fileSizeCalculator(b,kbps);
+   const b=w.ensureAudio(),engine=new Web(w.context),kbps=host.querySelector('.pulse-web-bitrate').value==='auto'?320:Number(host.querySelector('.pulse-web-bitrate').value),size=engine.fileSizeCalculator(b,kbps);
    const wavBytes=44+b.length*b.numberOfChannels*2;
    output(host,b.duration.toFixed(1)+' s · '+kbps+' kbps ≈ '+size.megabytes+' compressed (estimated); 16-bit WAV ≈ '+(wavBytes/1048576).toFixed(2)+' MB.');
   });

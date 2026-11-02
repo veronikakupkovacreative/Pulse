@@ -15,13 +15,13 @@ export const aiNormalizerModule = Object.freeze({
       <h3>AI<br><span>Normalizer.</span></h3>
       <p class="tool-description">Normalize the sample peak of your entire track while preserving dynamics and stereo balance. All processing stays in your browser.</p>
       <div class="pn-presets" role="group" aria-label="Target peak presets">
-        <button type="button" data-preset="-1" aria-pressed="true">−1 dBFS</button>
+        <button type="button" data-preset="-1" aria-pressed="true">AUTO · −1 dBFS</button>
         <button type="button" data-preset="-3" aria-pressed="false">−3 dBFS</button>
-        <button type="button" data-preset="-6" aria-pressed="false">−6 dBFS</button>
+        <button type="button" data-preset="-6" aria-pressed="false" >−6 dBFS</button><button type="button" data-preset="-0.5" aria-pressed="false">−0.5 dBFS</button><button type="button" data-preset="-2" aria-pressed="false">−2 dBFS</button>
       </div>
       <div class="pn-fields">
         <label for="pn-target">TARGET PEAK <input id="pn-target" type="number" min="-12" max="-0.1" step="0.1" value="-1"></label>
-        <label for="pn-bits">WAV EXPORT <select id="pn-bits"><option value="24">24-bit PCM</option><option value="16">16-bit PCM</option></select></label>
+        <label for="pn-bits">WAV EXPORT <select id="pn-bits"><option value="auto" selected>AUTO · 24-bit PCM</option><option value="24">24-bit PCM</option><option value="16">16-bit PCM</option></select></label>
       </div>
       <div class="pn-meters" aria-label="Audio peak measurements">
         <div><span>INPUT PEAK</span><strong data-pn="before">—</strong></div>
@@ -108,7 +108,7 @@ export const aiNormalizerModule = Object.freeze({
           measure();report('Normalized audio applied to SOURCE AUDIO. Use Undo to compare.','success');
         } else {
           report('Encoding WAV locally…');
-          const depth=Number($('#pn-bits').value),blob=await exportNormalizedWav(trackedBuffer,plan.gain,depth);
+          const depth=$('#pn-bits').value==='auto'?24:Number($('#pn-bits').value),blob=await exportNormalizedWav(trackedBuffer,plan.gain,depth);
           const url=URL.createObjectURL(blob),a=document.createElement('a');
           a.href=url;a.download=(w.name||'pulse-audio')+'-normalized-'+depth+'bit.wav';a.click();
           setTimeout(()=>URL.revokeObjectURL(url),60000);

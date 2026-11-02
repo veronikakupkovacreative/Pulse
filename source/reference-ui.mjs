@@ -58,6 +58,4 @@ function watch(){if(w.buffer!==prior){prior=w.buffer;if(w.buffer){syncTrack();if
  if(w.buffer){$('bpm-time').textContent=duration(w.position)+' / '+duration(w.buffer.duration);$('bpm-play').textContent=w.playing?'Ⅱ':'▶';const line=$('bpm-loaded').querySelector('.bpm-wave-playhead');if(line)line.style.left=(w.position/w.buffer.duration*100)+'%';}
  requestAnimationFrame(watch)}
 watch();
-const descriptions={bpm:['BPM','Analyzer','Analyze rhythmic onsets using the original PULSE tempo detector.','Load audio.','Analyze the tempo.','Verify your estimated BPM.'],tap:['Tap','Tempo','Estimate BPM by tapping a pulse without loading audio.','Open Tap Tempo.','Tap four or more times.','Review or copy BPM.']};
-const tabs=$('tool-tabs');function editorial(id){const d=descriptions[id];if(!d)return;const heading=$('toolkit-title');heading.replaceChildren(document.createTextNode(d[0]),document.createElement('br'));const span=document.createElement('span');span.textContent=d[1]+'.';heading.append(span);$('pulse-tool-summary').textContent=d[2];$('pulse-tool-steps').replaceChildren(...d.slice(3).map(x=>{const li=document.createElement('li');li.textContent=x;return li}))}
-tabs?.addEventListener('click',e=>{const btn=e.target.closest('[data-tool]');if(btn)editorial(btn.dataset.tool)});
+// Tool-specific editorial copy is now maintained centrally in app.mjs / tool-editorial.mjs.

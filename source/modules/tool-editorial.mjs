@@ -1,0 +1,66 @@
+/** Per-tool editorial copy. The heading, description and HOW TO USE update on every tool mount. */
+const describe = (title, summary, ...steps) => Object.freeze({title, summary, steps});
+export const TOOL_EDITORIAL = Object.freeze({
+  bpm: describe(['BPM','Analyzer'], 'Find the estimated tempo and rhythmic pulse of your audio using transient analysis. Half-time and double-time interpretations can differ.', 'Upload an audio track into SOURCE AUDIO.', 'Run BPM Analyzer to estimate the tempo.', 'Review the result and verify the beat by ear.'),
+  key: describe(['Key','Finder'], 'Estimate the musical key of your track and view compatible Camelot wheel notation for harmonic mixing.', 'Upload a musical track.', 'Choose Analyze key to scan harmonic content.', 'Review the key, Camelot code and confidence.'),
+  beats: describe(['Beat','Detection'], 'Find rhythmic attacks and mark their positions directly on the audio waveform.', 'Upload a track with clear rhythmic events.', 'Run Detect onsets.', 'Inspect markers in the SOURCE AUDIO waveform.'),
+  tap: describe(['Tap','Tempo'], 'Estimate tempo by tapping along to a beat, without uploading any file.', 'Open Tap Tempo.', 'Tap steadily at least four times.', 'Read or copy the estimated BPM.'),
+  editor: describe(['Audio','Editor'], 'Precisely select, trim or cut part of your track using the waveform timeline and Undo/Redo history.', 'Upload audio and Shift + drag to select a range.', 'Choose Trim or Cut selection.', 'Play the result and use Undo if necessary.'),
+  reverse: describe(['Reverse','Audio'], 'Reverse the sample playback order while keeping its original duration and sample rate.', 'Upload an audio file.', 'Select Reverse audio.', 'Listen to the result and export or undo.'),
+  equalizer: describe(['Parametric','Equalizer'], 'Shape the lows, mids and highs with the interactive EQ response graph and tonal presets.', 'Upload a track.', 'Choose a preset or adjust the frequency handles.', 'Apply the equalizer and compare the output.'),
+  volume: describe(['Volume','Gain'], 'Adjust track gain directly in dB while keeping the edit reversible through the workspace history.', 'Load a track.', 'Enter the desired gain in dB.', 'Apply gain, audition and undo if needed.'),
+  eq5: describe(['5-Band','Equalizer'], 'Balance sub, bass, mid, high-mid and brilliance with five independent bands and music-oriented presets.', 'Load your audio.', 'Select a preset or fine-tune the five bands.', 'Process and compare with Undo.'),
+  'silence-trim': describe(['Silence','Trim'], 'Detect quiet leading and trailing sections of a recording and remove them with a short safety margin.', 'Load a recording.', 'Choose a threshold preset or set your own dBFS level.', 'Process and inspect the new beginning and end.'),
+  fade: describe(['Fade','In / Out'], 'Smooth an audio clip’s beginning or ending without changing its total duration.', 'Load audio into SOURCE AUDIO.', 'Choose the Fade In or Fade Out preset and duration.', 'Apply and listen for a smooth transition.'),
+  tone: describe(['Bass & Noise','Filters'], 'Reduce low-frequency rumble or add bass weight with a high-pass filter and adjustable bass shelf.', 'Load your track.', 'Select Bass Boost or Remove Rumble and adjust the controls.', 'Apply the filter and compare with Undo.'),
+  'center-separate': describe(['Center','Extractor'], 'Extract the center of a stereo mix using channel relationships. This is not trained AI stem separation.', 'Upload stereo audio.', 'Choose Extract Center.', 'Process and audition the extracted center signal.'),
+  'merge-files': describe(['Merge','Audio Files'], 'Append several recordings into one timeline, automatically matching sample rate and channel layout.', 'Load the first audio track.', 'Select up to eight additional files.', 'Merge them into SOURCE AUDIO and export.'),
+  'speed-change': describe(['Audio','Speed'], 'Change audio playback speed and pitch together using varispeed processing, not independent time stretching.', 'Upload a track.', 'Select the speed multiplier.', 'Apply and audition the changed duration and pitch.'),
+  sidechain: describe(['Sidechain','Compressor'], 'Create rhythmic pumping or compress audio from an external kick trigger with adjustable attack, release and mix.', 'Load the source track and optionally a kick sample.', 'Select a pumping preset or adjust the sidechain settings.', 'Apply to Workspace and compare using Undo.'),
+  modulation: describe(['Modulation','Effects'], 'Add movement and stereo character with chorus, flanger or phaser effects.', 'Upload audio.', 'Choose a modulation effect preset.', 'Adjust LFO, depth and mix, then apply.'),
+  'clip-pan': describe(['Clip Volume','& Pan'], 'Change gain and stereo placement on the full track or a selected region.', 'Load a mono or stereo track.', 'Select a region or keep the full track.', 'Adjust gain and pan, then apply.'),
+  'pitch-correction': describe(['Pitch','Correction'], 'A dedicated pitch tracking and resynthesis engine is required for Auto-Tune. This tool is not available in the current build.', 'Review the planned correction profiles.', 'Pitch correction cannot be processed yet.', 'Use another available editing tool in the meantime.'),
+  'time-stretch': describe(['Time-Stretch','/ Match BPM'], 'Independent time stretching without pitch changes requires a resynthesis engine. This module is not available yet.', 'Review the planned BPM matching options.', 'This build does not include the time-stretch engine.', 'Use Audio Speed for varispeed changes if suitable.'),
+  wav: describe(['Audio','Converter'], 'Convert to MP3, WAV, FLAC, AAC, M4A, OGG or WMA using local FFmpeg encoding. AUTO selects practical music-oriented quality defaults.', 'Upload an audio file.', 'Choose an output format, or leave quality settings on AUTO.', 'Convert and download the processed audio.'),
+  loop: describe(['Loop','Cutter'], 'Export precisely the part of the audio that you select on the timeline.', 'Upload audio and Shift + drag across the waveform.', 'Choose WAV export bit depth.', 'Export the selected loop.'),
+  resample: describe(['Resample','& WAV'], 'Export PCM WAV at a chosen sample rate. AUTO uses 44.1 kHz, a common music-production rate.', 'Load an audio file.', 'Choose AUTO, 44.1, 48 or 96 kHz.', 'Export the resampled WAV file.'),
+  'file-size': describe(['File Size','Calculator'], 'Estimate compressed audio size for a chosen bitrate and compare it with uncompressed WAV.', 'Upload audio to measure its duration.', 'Leave bitrate on AUTO or choose a specific quality.', 'Calculate the estimated output size.'),
+  'video-audio': describe(['Extract Audio','from Video'], 'Extract a compatible audio track from an MP4 or MOV video and save it as WAV.', 'Choose an MP4 or MOV file with audio.', 'Select Extract WAV audio.', 'Download the extracted audio track.'),
+  health: describe(['Mix','Health'], 'Check sample peak, RMS level, crest factor and clipped samples in your mix. This is not a LUFS or true-peak reading.', 'Upload a mix or master.', 'Choose Analyze mix.', 'Review dynamics and clipping indicators.'),
+  master: describe(['Smart','Master'], 'Apply compression and a soft ceiling to a mix using local DSP, with customizable mastering presets.', 'Upload the mix.', 'Choose a master character and refine dynamics controls.', 'Generate master and compare with Undo.'),
+  quickfix: describe(['Mix','Quick Fix'], 'Apply a restrained one-click level and dynamics correction to your audio.', 'Upload a mixed track.', 'Run Apply quick fix.', 'Audition the corrected result and export or undo.'),
+  'voice-cleaner': describe(['Voice','Cleaner'], 'Make speech clearer with high-pass filtering, presence EQ and compression performed locally in your browser.', 'Upload a spoken voice recording.', 'Select Podcast, Warm or Crisp and adjust the controls.', 'Process the recording and compare the result.'),
+  dynamics: describe(['Audio','Compressor'], 'Control dynamics with threshold, ratio, attack and release, using music and vocal compression presets.', 'Upload a track.', 'Choose a Vocal, Bus or Punch preset.', 'Adjust dynamics and run Process audio.'),
+  enhancer: describe(['Audio','Enhancer'], 'Improve the character of a recording with a local EQ and dynamics chain designed for different sources.', 'Load audio.', 'Choose a sound enhancement preset and processing amount.', 'Apply and audition the enhanced sound.'),
+  rack: describe(['Custom FX','Rack'], 'Build or import a chain of the supported local DSP effects and export your preset configuration.', 'Load audio.', 'Choose a rack preset or import a valid JSON chain.', 'Apply to Workspace and save your preset if needed.'),
+  'mix-master': describe(['AI Mix','& Master'], 'Combine built-in bus-character processing with dynamics and a limiter. This mode uses local DSP rather than a neural model.', 'Upload a mix.', 'Choose a bus or mastering preset.', 'Adjust settings and apply to Workspace.'),
+  stems: describe(['Separate','into Stems'], 'A trained source-separation model is needed for separate vocals, drums, bass and other stems. This module is not active.', 'Review planned stem options.', 'Stem separation is currently unavailable.', 'Use an existing audio edit instead.'),
+  normalize: describe(['AI','Normalizer'], 'Adjust the sample peak to a selected dBFS target while keeping stereo relationships intact, using deterministic local DSP.', 'Upload your track.', 'Choose a target peak or preset and compare A/B.', 'Apply to Workspace or export normalized WAV.'),
+  'ai-voice-cleaner': describe(['AI Voice','Cleaner'], 'Remove competing sounds from spoken voice using cloud neural isolation, or choose private local noise-gate and EQ cleanup.', 'Upload a voice recording.', 'Choose LOCAL DSP or configured NEURAL ISOLATION.', 'Process the voice and compare it with Undo.'),
+  'ai-speech-enhancer': describe(['Speech','Enhancer'], 'Shape speech with EQ, compression, presence and sibilance control. Optional cloud isolation can pre-clean the signal.', 'Upload spoken audio.', 'Choose Podcast, Warm, Vocal, Bright, Broadcast or Intimate.', 'Adjust the mix and enhance the speech.'),
+  'ai-voice-cloning': describe(['Voice','Cloning'], 'Create a permitted voice clone and generate speech through a protected cloud API. Requires your own authorized voice and configured credentials.', 'Select an authorized voice recording and confirm permission.', 'Create the clone using the protected ElevenLabs service.', 'Enter text, generate speech and download or import it.'),
+  visualizer: describe(['Audiogram','Visualizer'], 'Visualize audio playback as a live waveform, spectrum or producer-friendly audiogram, entirely in your browser.', 'Upload a track and press Play in SOURCE AUDIO.', 'Choose a visual character and display mode.', 'Adjust bars and sensitivity for your signal.'),
+  'visualizer-advanced': describe(['Advanced Music','Visualizer'], 'Create responsive visuals with radial FFT, spectrum, mirrored bars, oscilloscope, stereo scope and particles; export images or video with audio.', 'Upload and play a track.', 'Select a mode, preset, format and visual controls.', 'Export PNG or record a short WebM/MP4 video.'),
+});
+
+/** Keep text and HTML elements separate; every registered tool gets correct editorial copy. */
+export function renderToolEditorial(tool, root = document) {
+  const data = TOOL_EDITORIAL[tool?.id];
+  if (!tool || !data) throw Error('Missing editorial copy for '+String(tool?.id ?? 'unknown'));
+  const heading = root.querySelector('#toolkit-title');
+  const summary = root.querySelector('#pulse-tool-summary');
+  const steps = root.querySelector('#pulse-tool-steps');
+  if (!heading || !summary || !steps) return;
+  const [first, second] = data.title;
+  const span = root.createElement ? root.createElement('span') : document.createElement('span');
+  span.textContent = second.endsWith('.') ? second : second + '.';
+  const br = root.createElement ? root.createElement('br') : document.createElement('br');
+  heading.replaceChildren(first, br, span);
+  heading.classList.toggle('is-long', first.length > 12 || second.length > 13);
+  summary.textContent = data.summary;
+  steps.replaceChildren(...data.steps.map(item => {
+    const li = root.createElement ? root.createElement('li') : document.createElement('li');
+    li.textContent = item;
+    return li;
+  }));
+}

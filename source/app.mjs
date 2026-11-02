@@ -16,24 +16,6 @@ const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');
 let activeCategory='analyze';
 let currentCleanup=null;
-const visualShortcuts=query('.pulse-visual-shortcuts');
-
-/** Keep the live mode cards in sync with the selected VISUALS tool and its mode. */
-function markVisualShortcut(mode='audiogram',toolId='visualizer'){
-  if(!visualShortcuts)return;
-  visualShortcuts.querySelectorAll('[data-open-visual]').forEach(button=>{
-    const selected=toolId==='visualizer'&&button.dataset.openVisual===mode;
-    button.classList.toggle('is-active',selected);
-    button.setAttribute('aria-pressed',String(selected));
-  });
-  const advanced=visualShortcuts.querySelector('[data-open-tool="visualizer-advanced"]');
-  if(advanced){
-    const selected=toolId==='visualizer-advanced';
-    advanced.classList.toggle('is-active',selected);
-    advanced.setAttribute('aria-pressed',String(selected));
-  }
-}
-
 function clearMountedTool(){
   if(typeof currentCleanup==='function'){
     try{currentCleanup();}catch(error){console.warn('Tool cleanup failed:',error);}
@@ -51,7 +33,6 @@ function mountTool(definition){
   clearMountedTool();
   blank.hidden=true;
   renderToolEditorial(definition);
-  if(activeCategory==='visuals')markVisualShortcut('audiogram',definition.id);
   tabs.querySelectorAll('button').forEach((button)=>{
     const selected=button.dataset.tool===definition.id;
     button.classList.toggle('selected',selected);
@@ -82,7 +63,6 @@ function validModules(category){
 function activateCategory(category){
   if(!Object.hasOwn(categories,category))return;
   activeCategory=category;
-  if(visualShortcuts)visualShortcuts.hidden=category!=='visuals';
   const info=categories[category];
   query('#category-number').textContent=info.number+' / '+info.name;
   document.querySelectorAll('[data-category]').forEach((button)=>{
@@ -132,7 +112,7 @@ document.addEventListener('click',event=>{
 });
 
 
-// Seven discoverable visualizer shortcuts select an actual mode, not a static mockup.
+// Footer visualizer links select actual modes inside the existing Audiogram Visualizer.
 document.addEventListener('click',event=>{
  const shortcut=event.target.closest('[data-open-visual]');if(!shortcut)return;
  event.preventDefault();
@@ -141,11 +121,6 @@ document.addEventListener('click',event=>{
  if(tab&&!tab.classList.contains('selected'))tab.click();
  const mode=shortcut.dataset.openVisual;
  const control=[...document.querySelectorAll('#module-visualizer [data-mode]')].find(button=>button.dataset.mode===mode);
- if(control){control.click();markVisualShortcut(mode,'visualizer');}
+ if(control)control.click();
  query('#module-visualizer')?.scrollIntoView({behavior:'smooth',block:'nearest'});
-});
-// Changing modes inside Audiogram Visualizer also updates the shortcut selection.
-document.addEventListener('click',event=>{
- const control=event.target.closest('#module-visualizer [data-mode]');
- if(control&&activeCategory==='visuals')markVisualShortcut(control.dataset.mode,'visualizer');
 });

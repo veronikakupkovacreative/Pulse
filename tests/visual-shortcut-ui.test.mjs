@@ -7,33 +7,31 @@ import {toolModules} from '../source/modules/features.mjs';
 const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8');
 const modes=['audiogram','podcast','bars','sound_wave_maker','waveform','audio_waveform_generator','spectrum'];
 
-test('VISUALS is registered with both actual visualizer tools',()=>{
+test('both existing VISUALS modules and all seven audio modes remain registered',()=>{
   for(const id of ['visualizer','visualizer-advanced']){
     const module=toolModules.find(x=>x.id===id);
     assert.ok(module,id);assert.equal(module.category,'visuals');
   }
   for(const mode of modes)assert.ok(VISUAL_MODES[mode],mode);
 });
-test('every real-time mode has one explicit accessible shortcut',()=>{
+test('the black See your sound panel is removed, retaining normal tool tabs and footer links',()=>{
   const html=read('index.html');
-  const cards=html.split('<section class="pulse-visual-shortcuts"')[1].split('</section>')[0];
-  for(const mode of modes){
-    const token='data-open-visual="'+mode+'"';
-    assert.equal(cards.split(token).length-1,1,token);
-    assert.match(html,new RegExp('data-open-visual="'+mode+'" aria-pressed="(?:true|false)"'));
-  }
-  assert.match(html,/data-open-tool="visualizer-advanced" aria-pressed="false"/);
+  assert.doesNotMatch(html,/pulse-visual-shortcuts|pulse-visual-shortcut-grid|pulse-visual-summary/);
+  assert.doesNotMatch(html,/Seven live visualizations and an advanced studio/);
+  assert.match(html,/id="tool-tabs"/);
+  const links=[...html.matchAll(/data-open-visual="([^"]+)"/g)].map(m=>m[1]);
+  assert.deepEqual(links,['bars','waveform','podcast','spectrum']);
+  assert.match(html,/data-open-tool="visualizer"/);
 });
-test('visual shortcuts are shown for VISUALS and hidden for other categories',()=>{
+test('deleted panel controls do not leave unused event handlers or CSS',()=>{
   const js=read('app.mjs'),css=read('style.css');
-  assert.match(js,/visualShortcuts\.hidden=category!=='visuals'/);
-  assert.match(js,/markVisualShortcut\(mode,'visualizer'\)/);
-  assert.match(js,/control\.dataset\.mode,'visualizer'/);
-  assert.match(css,/\.pulse-visual-shortcuts\[hidden\]\{display:none!important\}/);
-  assert.match(css,/\.pulse-visual-shortcut-grid button\.is-active/);
-  assert.doesNotMatch(css,/\.pulse-visual-shortcut-grid button:first-child\{background:#ff2b20/);
+  assert.doesNotMatch(js,/visualShortcuts|markVisualShortcut|pulse-visual-shortcuts/);
+  assert.doesNotMatch(css,/pulse-visual-shortcuts|pulse-visual-shortcut-grid/);
+  assert.match(js,/closest\('\[data-open-visual\]'\)/);
+  assert.match(js,/tab\.click\(\)/);
+  assert.match(js,/if\(control\)control\.click\(\)/);
 });
-test('user-provided Web createVisualizer style API remains callable',()=>{
+test('original Web createVisualizer style API still supports all seven modes',()=>{
   const canvas={width:320,height:180,getContext:()=>({})};
   const web=new Web();
   const v=web.createVisualizer(null,canvas,'bars');
@@ -41,12 +39,11 @@ test('user-provided Web createVisualizer style API remains callable',()=>{
   for(const mode of modes){v.setStyle(mode);assert.equal(v.mode,mode);}
   v.dispose();
 });
-test('audio-source node connects and disconnects from analyser with source events',()=>{
+test('audio sources still connect and disconnect correctly',()=>{
   let connected=0,disconnected=0,analyserDisconnected=0;
   const analyser={fftSize:0,smoothingTimeConstant:0,disconnect(){analyserDisconnected++}};
   const source={context:{createAnalyser(){return analyser}},connect(x){assert.equal(x,analyser);connected++},disconnect(x){assert.equal(x,analyser);disconnected++}};
-  const canvas={width:320,height:180,getContext:()=>({})};
-  const v=new ThePulseStudioEngine().createVisualizer(null,canvas,'podcast');
+  const v=new ThePulseStudioEngine().createVisualizer(null,{width:320,height:180,getContext:()=>({})},'podcast');
   v.attachSource(source);assert.equal(connected,1);
   v.attachSource(null);assert.equal(disconnected,1);assert.equal(analyserDisconnected,1);
   v.dispose();

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {Web} from '../source/modules/web-engine.mjs';
 import {fromChannels} from '../source/modules/dsp.mjs';
 import {toolModules} from '../source/modules/features.mjs';
-const mono=(values,rate=1000)=>fromChannels([Float32Array.from(values)],rate);
-const stereo=(left,right,rate=1000)=>fromChannels([Float32Array.from(left),Float32Array.from(right)],rate);
+const mono=(values,rate=8000)=>fromChannels([Float32Array.from(values)],rate);
+const stereo=(left,right,rate=8000)=>fromChannels([Float32Array.from(left),Float32Array.from(right)],rate);
 test('Web API is exported and all new UI tools are registered',()=>{
  const api=new Web();
  for(const name of ['importAudio','extractAudioFromVideo','cutAudio','normalizeAudio','removeSilence','reverseAudio','mergeAudioFiles','bitrateConverter','fileSizeCalculator','exportWavBlob','adjustVolume','changeAudioSpeed','bassBooster','reduceBackgroundNoise','audioCompressor','audioFadeInOut','audioEqualizer','aiMixer','aiMaster','voiceCleaner','audioEnhancer','detectBPM','separateStems','createVisualizer'])
@@ -20,8 +20,8 @@ test('normalization preserves original and targets safe ceiling',()=>{
 });
 test('cut validates bounds and keeps selected audio',()=>{
  const api=new Web(),b=mono([1,2,3,4,5,6]);
- assert.deepEqual([...api.cutAudio(b,.002,.005).getChannelData(0)],[3,4,5]);
- assert.throws(()=>api.cutAudio(b,.005,.001),/non-empty/);
+ assert.deepEqual([...api.cutAudio(b,2/8000,5/8000).getChannelData(0)],[3,4,5]);
+ assert.throws(()=>api.cutAudio(b,5/8000,1/8000),/non-empty/);
 });
 test('merge preserves channels and joins with protective fade',()=>{
  const api=new Web(),a=stereo(Array(100).fill(.6),Array(100).fill(-.6)),b=stereo(Array(100).fill(.2),Array(100).fill(-.2));
@@ -31,7 +31,7 @@ test('merge preserves channels and joins with protective fade',()=>{
  assert.throws(()=>api.mergeAudioFiles([a,mono([.2])]),/matching/);
 });
 test('size estimate uses decimal kilobits and reverse is non-mutating',()=>{
- const api=new Web(),b=mono(Array(1000).fill(.25));
+ const api=new Web(),b=mono(Array(8000).fill(.25));
  assert.equal(api.fileSizeCalculator(b,128).bytes,16000);
  const reversed=api.reverseAudio(mono([.1,.2,.3]));
  assert.equal(reversed.getChannelData(0)[0],Math.fround(.3));

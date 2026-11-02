@@ -23,10 +23,10 @@ test('3-band genre presets are wired to gain inputs',()=>{
 test('advanced EQ switches real 3, 5, 10, 20-band DSP and interactive graph',()=>{
  const source=read('modules/eq-advanced.mjs'),graph=read('modules/eq-response.mjs');
  assert.match(source,/count===5\?await equalize5\(audio,typed\):await renderWithNodes\(audio,specs\)/);
- assert.match(graph,/data-eq-bands=\\"3\\"/);
- assert.match(graph,/data-eq-bands=\\"5\\"/);
- assert.match(graph,/data-eq-bands=\\"10\\"/);
- assert.match(graph,/data-eq-bands=\\"20\\"/);
+ assert.match(graph,/data-eq-bands="3"/);
+ assert.match(graph,/data-eq-bands="5"/);
+ assert.match(graph,/data-eq-bands="10"/);
+ assert.match(graph,/data-eq-bands="20"/);
  assert.match(graph,/getFrequencyResponse/);
  assert.match(graph,/key==='ArrowUp'/);
 });

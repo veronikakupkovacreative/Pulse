@@ -36,7 +36,7 @@ export const advancedEqualizerModule=Object.freeze({
       const rounded=Math.max(-18,Math.min(18,Math.round(gain*2)/2));
       values[index]=rounded;preset='custom';updatePresetButtons();
       const input=fields.querySelector(`[data-eq-gain="${index}"]`);
-      if(input)input.value=String(rounded);
+      if(input){input.value=String(rounded);input.dispatchEvent(new Event('input',{bubbles:true}));}
       setStatus(`${formatEqFrequency(bandLayout(count)[index].frequency)} adjusted to ${rounded>0?'+':''}${rounded.toFixed(1)} dB.`);
     }
     function selectBandCount(next){

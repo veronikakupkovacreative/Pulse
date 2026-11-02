@@ -73,7 +73,7 @@ export const aiNormalizerModule = Object.freeze({
       if (gainNode && plan && w.context) gainNode.gain.setTargetAtTime(mode==='b'?plan.gain:1,w.context.currentTime,.005);
     };
     host.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{
-      target.value=button.dataset.preset;host.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+      target.value=button.dataset.preset;target.dispatchEvent(new Event('input',{bubbles:true}));host.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
       stop();try{measure();}catch(error){report(error.message,'error');}
     }));
     target.addEventListener('input',()=>{

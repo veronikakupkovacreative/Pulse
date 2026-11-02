@@ -52,19 +52,43 @@ export class AIAudioEnhancer{
  }
  process(buffer){return this.processBuffer(buffer);}
 }
+// Accepted original 2026-11-02 style names; keep spectrum and circular audiogram from current PULSE.
+export const VISUAL_MODES=Object.freeze({
+ bars:'BARS',sound_wave_maker:'SOUND WAVE MAKER',
+ waveform:'WAVEFORM',audio_waveform_generator:'AUDIO WAVEFORM GENERATOR',
+ audiogram:'CIRCULAR AUDIOGRAM',podcast:'PODCAST AUDIOGRAM',spectrum:'SPECTRUM'
+});
 export class VisualizerEngine{
  constructor(sourceNode,canvas,mode='audiogram'){
   if(!canvas||typeof canvas.getContext!=='function')throw Error('Canvas element required.');
   this.canvas=canvas;this.ctx=canvas.getContext('2d');if(!this.ctx)throw Error('Canvas 2D unavailable.');
-  this.presetName='pulse';this.running=false;this.frame=0;this.source=null;this.analyser=null;this.setMode(mode);this.attachSource(sourceNode||null);
+  this.presetName='pulse';this.running=false;this.frame=0;this.source=null;this.analyser=null;
+  this.barCount=48;this.fftSize=2048;this.smoothing=.78;this.sensitivity=1;this.lineWidth=2.5;
+  this.setMode(mode);this.attachSource(sourceNode||null);
  }
- setMode(mode){if(!['audiogram','waveform','spectrum'].includes(mode))throw Error('Unsupported visualizer mode.');this.mode=mode;return this;}
+ setMode(mode){if(!Object.hasOwn(VISUAL_MODES,mode))throw Error('Unsupported visualizer mode: '+mode);this.mode=mode;return this;}
+ setStyle(style){return this.setMode(style);}
  setPreset(name){if(!Object.hasOwn(VISUAL_PRESETS,name))throw Error('Unknown visual preset.');this.presetName=name;return this;}
  applyPreset(name){return this.setPreset(name);}
+ setOptions(options={}){
+  if(!options||typeof options!=='object'||Array.isArray(options))throw Error('Invalid visualizer options.');
+  const limits={barCount:[8,128],fftSize:[256,8192],smoothing:[0,.99],sensitivity:[.25,3],lineWidth:[1,6]};
+  for(const [key,value] of Object.entries(options)){
+   if(!Object.hasOwn(limits,key))throw Error('Unknown visualizer option: '+key);
+   const number=Number(value),[min,max]=limits[key];
+   if(!Number.isFinite(number)||number<min||number>max)throw Error('Invalid '+key);
+   if(key==='fftSize'&&(!Number.isInteger(number)|| (number&(number-1))!==0))throw Error('FFT size must be a power of two.');
+   if(key==='barCount'&&!Number.isInteger(number))throw Error('Bar count must be an integer.');
+   this[key]=number;
+  }
+  if(this.analyser){this.analyser.fftSize=this.fftSize;this.analyser.smoothingTimeConstant=this.smoothing;}
+  return this;
+ }
  attachSource(node){
   if(this.source&&this.analyser){try{this.source.disconnect(this.analyser)}catch{}}
+  if(this.analyser){try{this.analyser.disconnect()}catch{}}
   this.source=null;this.analyser=null;
-  if(node){if(!node.context||typeof node.connect!=='function')throw Error('AudioNode required.');this.source=node;this.analyser=node.context.createAnalyser();this.analyser.fftSize=2048;this.analyser.smoothingTimeConstant=.78;node.connect(this.analyser);}
+  if(node){if(!node.context||typeof node.connect!=='function')throw Error('AudioNode required.');this.source=node;this.analyser=node.context.createAnalyser();this.analyser.fftSize=this.fftSize;this.analyser.smoothingTimeConstant=this.smoothing;node.connect(this.analyser);}
   return this;
  }
  draw(){
@@ -75,19 +99,41 @@ export class VisualizerEngine{
   ctx.fillStyle=p.background;ctx.fillRect(0,0,w,h);
   ctx.strokeStyle='#ffffff18';ctx.lineWidth=scale;
   for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(0,h*i/5);ctx.lineTo(w,h*i/5);ctx.stroke();}
-  const samples=new Uint8Array(this.analyser?.frequencyBinCount||1024);
-  if(this.analyser){if(this.mode==='waveform')this.analyser.getByteTimeDomainData(samples);else this.analyser.getByteFrequencyData(samples);}
-  else if(this.mode==='waveform')samples.fill(128);
-  ctx.strokeStyle=p.accent;ctx.fillStyle=p.accent;ctx.lineWidth=p.weight*scale;ctx.lineCap='round';
-  if(this.mode==='audiogram'){
-   const cx=w/2,cy=h/2,r=Math.min(w,h)*.26,outer=Math.min(w,h)*.43;
+  const mode=this.mode,isWave=mode==='waveform'||mode==='audio_waveform_generator';
+  const samples=new Uint8Array(this.analyser?.frequencyBinCount||this.fftSize/2);
+  if(this.analyser){
+   if(isWave){const times=new Uint8Array(this.analyser.fftSize);this.analyser.getByteTimeDomainData(times);this.samples=times;}
+   else{this.analyser.getByteFrequencyData(samples);this.samples=samples;}
+  }else{this.samples=isWave?new Uint8Array(this.fftSize).fill(128):samples;}
+  const values=this.samples;
+  ctx.strokeStyle=p.accent;ctx.fillStyle=p.accent;ctx.lineWidth=this.lineWidth*scale;ctx.lineCap='round';
+  const level=index=>Math.min(1,(values[Math.max(0,Math.min(values.length-1,index))]||0)/255*this.sensitivity);
+  if(mode==='audiogram'){
+   const cx=w/2,cy=h/2,r=Math.min(w,h)*.26,outer=Math.min(w,h)*.44;
    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
-   for(let i=0;i<96;i++){const a=i/96*Math.PI*2-Math.PI/2,amp=samples[Math.floor(i/96*samples.length)]/255,delta=amp*(outer-r);ctx.beginPath();ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a));ctx.lineTo(cx+(r+delta)*Math.cos(a),cy+(r+delta)*Math.sin(a));ctx.stroke();}
+   const n=Math.max(48,this.barCount*2);
+   for(let i=0;i<n;i++){const angle=i/n*Math.PI*2-Math.PI/2,length=level(Math.floor(i/n*values.length))*(outer-r);ctx.beginPath();ctx.moveTo(cx+r*Math.cos(angle),cy+r*Math.sin(angle));ctx.lineTo(cx+(r+length)*Math.cos(angle),cy+(r+length)*Math.sin(angle));ctx.stroke();}
    ctx.fillStyle=p.secondary;ctx.font=String(12*scale)+'px Arial, sans-serif';ctx.textAlign='center';ctx.fillText('PULSE / LIVE',cx,cy+4*scale);
-  }else if(this.mode==='waveform'){
-   ctx.beginPath();for(let i=0;i<samples.length;i++){const x=i/(samples.length-1)*w,y=samples[i]/255*h;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.stroke();
+  }else if(isWave){
+   ctx.beginPath();ctx.lineWidth=(mode==='audio_waveform_generator'?this.lineWidth*1.25:this.lineWidth)*scale;
+   for(let i=0;i<values.length;i++){const x=i/(values.length-1)*w,y=h*.5+(values[i]-128)/128*this.sensitivity*h*.42;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+   ctx.stroke();
+  }else if(mode==='podcast'){
+   const count=this.barCount,span=w/count;
+   ctx.fillStyle=p.accent;
+   for(let i=0;i<count;i++){const index=Math.floor(i/count*values.length),len=Math.max(3*scale,level(index)*h*.76);ctx.fillRect(i*span+span*.2,(h-len)/2,span*.58,len);}
+  }else if(mode==='spectrum'){
+   const count=this.barCount,span=w/count;
+   for(let i=0;i<count;i++){const index=Math.floor((i/count)**1.6*(values.length-1)),len=Math.max(2*scale,level(index)*h*.8);ctx.fillRect(i*span,h-len,span*.74,len);}
   }else{
-   for(let i=0;i<72;i++){const index=Math.floor((i/72)**1.6*(samples.length-1)),bar=Math.max(2*scale,samples[index]/255*h*.8);ctx.fillRect(i*w/72,h-bar,w/72*.76,bar);}
+   // bars & sound_wave_maker: frequency bands with distinct geometry.
+   const count=this.barCount,span=w/count;
+   for(let i=0;i<count;i++){
+    const index=Math.floor(i/count*(values.length-1)),len=Math.max(2*scale,level(index)*h*.86),padding=mode==='sound_wave_maker'?.27:.13;
+    const x=i*span+span*padding,width=span*(1-padding*2);
+    if(mode==='sound_wave_maker'){ctx.fillStyle=p.accent;ctx.fillRect(x,(h-len)/2,width,len);}
+    else {ctx.fillStyle=p.accent;ctx.fillRect(x,h-len,width,len);}
+   }
   }
   this.frame=globalThis.requestAnimationFrame(()=>this.draw());
  }
@@ -98,4 +144,5 @@ export class VisualizerEngine{
 export class ThePulseStudioEngine{
  createAIAudioEnhancer(preset='studio_sound'){return new AIAudioEnhancer(preset);}
  createVisualizerEngine(sourceNode,canvas,mode='audiogram'){return new VisualizerEngine(sourceNode,canvas,mode);}
+ createVisualizer(sourceNode,canvas,style='bars'){return this.createVisualizerEngine(sourceNode,canvas,style);}
 }

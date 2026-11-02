@@ -1,0 +1,23 @@
+.pulse-normalizer{min-height:530px;font-family:Arial,Helvetica,sans-serif}
+.pulse-normalizer .pn-presets,.pulse-normalizer .pn-ab{display:flex;gap:6px;margin:2px 0 18px;flex-wrap:wrap}
+.pulse-normalizer .pn-presets button,.pulse-normalizer .pn-ab button{border:1px solid #777;background:transparent;color:#191919;padding:10px 11px;font:400 11px Arial,sans-serif;cursor:pointer}
+.pulse-normalizer .pn-presets button[aria-pressed=true],.pulse-normalizer .pn-ab button[aria-pressed=true]{background:#191919;color:#fff;border-color:#191919}
+.pulse-normalizer .pn-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 20px}
+.pulse-normalizer .pn-fields label{font:400 10px/1.3 Arial,sans-serif;letter-spacing:.04em}
+.pulse-normalizer .pn-fields input,.pulse-normalizer .pn-fields select{width:100%;margin-top:7px;min-height:40px;border:1px solid #888;color:#191919;background:transparent;padding:8px;font:400 13px Arial,sans-serif}
+.pulse-normalizer .pn-meters{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#aaa;margin-bottom:17px;border:1px solid #aaa}
+.pulse-normalizer .pn-meters>div{background:#f5f4f0;padding:13px 10px;min-width:0}
+.pulse-normalizer .pn-meters span{display:block;font:400 9px Arial,sans-serif;letter-spacing:.05em;margin-bottom:7px}
+.pulse-normalizer .pn-meters strong{display:block;font:400 clamp(14px,1.5vw,18px) Arial,sans-serif;letter-spacing:-.025em}
+.pulse-normalizer .pn-preview{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.pulse-normalizer .pn-preview .pn-ab{margin:0}
+.pulse-normalizer [data-pn-play]{background:none;color:#191919;border:0;border-bottom:1px solid #191919;padding:8px 0;font:400 11px Arial,sans-serif;cursor:pointer}
+.pulse-normalizer .pn-actions{display:flex;flex-direction:column;gap:7px;margin-top:auto}
+.pulse-normalizer .pn-actions button{display:flex;align-items:center;justify-content:space-between;text-align:left;min-height:49px;border:1px solid #191919;background:#191919;color:#fff;padding:12px 15px;font:400 12px Arial,sans-serif;cursor:pointer}
+.pulse-normalizer .pn-actions button:last-child{background:transparent;color:#191919}
+.pulse-normalizer button:disabled,.pulse-normalizer select:disabled{opacity:.48;cursor:wait}
+.pulse-normalizer :is(button,input,select):focus-visible{outline:2px solid #ff0000;outline-offset:3px}
+.pulse-normalizer .pn-status{margin:14px 0 5px;font:400 11px/1.6 Arial,sans-serif}
+.pulse-normalizer .pn-status[data-kind=error]{color:#b50000}
+.pulse-normalizer .pn-disclaimer{margin:6px 0 0;font:400 10px/1.5 Arial,sans-serif;color:#666}
+@media(max-width:430px){.pulse-normalizer .pn-fields{grid-template-columns:1fr}.pulse-normalizer .pn-preview{align-items:flex-start}}

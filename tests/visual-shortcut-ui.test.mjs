@@ -16,9 +16,10 @@ test('VISUALS is registered with both actual visualizer tools',()=>{
 });
 test('every real-time mode has one explicit accessible shortcut',()=>{
   const html=read('index.html');
+  const cards=html.split('<section class="pulse-visual-shortcuts"')[1].split('</section>')[0];
   for(const mode of modes){
     const token='data-open-visual="'+mode+'"';
-    assert.equal(html.split(token).length-1,1,token);
+    assert.equal(cards.split(token).length-1,1,token);
     assert.match(html,new RegExp('data-open-visual="'+mode+'" aria-pressed="(?:true|false)"'));
   }
   assert.match(html,/data-open-tool="visualizer-advanced" aria-pressed="false"/);

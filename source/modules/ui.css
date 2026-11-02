@@ -125,3 +125,31 @@
 @keyframes tap-pulse{0%{transform:scale(.95)}100%{transform:scale(1)}}
 @media(max-width:480px){.tap-dialog-layout{padding:38px 26px 26px;min-height:0}.tap-dialog-layout h2{font-size:37px}.tap-dialog-pad{width:185px;height:185px}.tap-dialog-pad span{font-size:53px}}
 @media(prefers-reduced-motion:reduce){.tap-dialog-pad{transition:none}.tap-dialog-pad.tap-pressed{animation:none}}
+
+
+/* PULSE advanced FX language: regular Arial, black-red spectrum, precise controls */
+.pulse-fx-panel{display:flex;flex-direction:column;min-height:530px;gap:0}
+.pulse-fx-panel .tool-view-header{display:flex;align-items:center;justify-content:space-between;font:700 10px Arial,sans-serif;letter-spacing:.08em;margin-bottom:28px}
+.pulse-fx-panel h3{font:400 clamp(32px,3.4vw,47px)/1.02 Arial,sans-serif;letter-spacing:-.055em;margin:0 0 16px}
+.pulse-fx-panel h3 span{opacity:.56}
+.pulse-fx-panel .tool-description{font:400 12px/1.65 Arial,sans-serif;margin:0 0 26px;max-width:380px}
+.pulse-fx-panel .pulse-detail-label{font:700 10px/1.5 Arial,sans-serif;letter-spacing:.09em;margin:0 0 10px}
+.pulse-fx-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:7px;margin-bottom:24px}
+.pulse-fx-preset{padding:13px 8px;min-height:45px;border:1px solid #1919198c;background:transparent;font:700 10px Arial,sans-serif;letter-spacing:.02em;text-align:center;color:#191919;cursor:pointer}
+.pulse-fx-preset[aria-pressed=true]{color:#f5f4f0;background:#191919;border-color:#191919}
+.pulse-fx-preset:hover:not([aria-pressed=true]){background:#19191918}
+.pulse-fx-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:21px}
+.pulse-fx-field,.pulse-fx-file-label{display:flex;flex-direction:column;gap:8px;min-width:0;font:600 11px/1.4 Arial,sans-serif}
+.pulse-fx-field input{min-width:0;width:100%;border:1px solid #19191988;background:transparent;color:#191919;padding:12px;font:400 13px Arial,sans-serif;border-radius:0}
+.pulse-fx-file-label{border:1px dashed #19191988;padding:15px 12px;margin-bottom:20px}
+.pulse-fx-file-label input{width:100%;font:400 10px Arial,sans-serif}
+.pulse-fx-rack{display:flex;flex-direction:column;gap:12px}
+.pulse-fx-secondary{border:1px solid #191919;padding:13px;background:transparent;text-align:left;font-size:11px;font-weight:600}
+.pulse-fx-result{margin:auto 0 17px;border-top:1px solid #19191970;padding-top:16px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.pulse-fx-result span{font:700 9px Arial,sans-serif;letter-spacing:.07em}
+.pulse-fx-result strong{font:500 20px Arial,sans-serif;letter-spacing:-.035em}
+.pulse-fx-apply{min-height:55px;width:100%;border:0;background:#191919;color:#f5f4f0;padding:17px 19px;display:flex;align-items:center;justify-content:space-between;gap:12px;font:600 12px Arial,sans-serif}
+.pulse-fx-apply:disabled{opacity:.45;cursor:not-allowed}
+.pulse-fx-panel .tool-footnote{margin:11px 0 0;font:400 11px/1.5 Arial,sans-serif}
+.pulse-fx-panel button:focus-visible,.pulse-fx-panel input:focus-visible{outline:3px solid #191919;outline-offset:3px}
+@media(max-width:420px){.pulse-fx-controls{grid-template-columns:1fr}.pulse-fx-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}

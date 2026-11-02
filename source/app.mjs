@@ -108,16 +108,3 @@ document.addEventListener('click',event=>{
  if(tab)tab.click();
  query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
 });
-
-
-// The visualizer shortcuts open the selected real module and switch to its mode.
-document.addEventListener('click',event=>{
- const shortcut=event.target.closest('[data-open-visual]');if(!shortcut)return;
- event.preventDefault();activateCategory('analyze');
- const target=[...tabs.querySelectorAll('[data-tool]')].find(b=>b.dataset.tool==='visualizer');
- if(target)target.click();
- const mode=shortcut.dataset.openVisual;
- const control=[...document.querySelectorAll('#module-visualizer [data-mode]')].find(b=>b.dataset.mode===mode);
- if(control)control.click();
- query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
-});

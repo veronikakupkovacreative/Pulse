@@ -29,7 +29,7 @@ async function analyze(){
  // Original algorithm is unchanged; downsample a mono copy for predictable memory and worker time.
  const rate=Math.min(22050,b.sampleRate),factor=b.sampleRate/rate,n=Math.floor(b.duration*rate),samples=new Float32Array(n);
  for(let i=0;i<n;i++)samples[i]=signal[Math.min(signal.length-1,Math.floor(i*factor))];
- const timeout=setTimeout(()=>worker.terminate(),65000);
+ const timeout=setTimeout(()=>{worker.terminate();if(id===runId){$('bpm-status').textContent='TIMEOUT';status('BPM analysis timed out. Try a shorter audio file.')}},65000);
  worker.onmessage=({data})=>{
   clearTimeout(timeout);worker.terminate();if(id!==runId)return;
   if(data.error){result=null;$('bpm-status').textContent='NO TEMPO FOUND';$('bpm-number').textContent='—';$('bpm-expanded').hidden=true;$('bpm-empty-result').hidden=false;status(data.error==='NO_RHYTHM'?'No reliable beat found. Try Tap Tempo.':data.error);return}
@@ -54,7 +54,7 @@ $('bpm-play').onclick=()=>w.togglePlay().catch(e=>status(e.message));
 $('bpm-canvas').onclick=e=>{if(!w.buffer)return;w.seek((e.clientX-e.currentTarget.getBoundingClientRect().left)/e.currentTarget.clientWidth*w.buffer.duration)};
 $('bpm-open-tap').onclick=()=>{document.querySelector('[data-category="analyze"]').click();document.querySelector('[data-tool="tap"]')?.click();$('toolkit').scrollIntoView({behavior:'smooth'})};
 let prior=null;
-function watch(){if(w.buffer!==prior){prior=w.buffer;if(w.buffer){syncTrack();if(!result||result.duration!==w.buffer.duration)void analyze()}else syncTrack();}
+function watch(){if(w.buffer!==prior){prior=w.buffer;if(w.buffer){syncTrack();if(!track&&(!result||result.duration!==w.buffer.duration))void analyze()}else {track=null;result=null;syncTrack();}}
  if(w.buffer){$('bpm-time').textContent=duration(w.position)+' / '+duration(w.buffer.duration);$('bpm-play').textContent=w.playing?'Ⅱ':'▶';const line=$('bpm-loaded').querySelector('.bpm-wave-playhead');if(line)line.style.left=(w.position/w.buffer.duration*100)+'%';}
  requestAnimationFrame(watch)}
 watch();

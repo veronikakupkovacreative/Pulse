@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {advancedModules} from '../source/modules/advanced-features.mjs';
+import {fromChannels} from '../source/modules/dsp.mjs';
+import {clipBalance,sidechainCompress,modulationEffect,runRack,validateRack,RACK_PRESETS} from '../source/modules/advanced-dsp.mjs';
+const input=fromChannels([Float32Array.from({length:2048},(_,i)=>Math.sin(i/8)*.3)],44100);
+test('eight new modules distributed across existing categories',()=>{assert.equal(advancedModules.length,8);assert.ok(advancedModules.some(x=>x.category==='edit'));assert.ok(advancedModules.some(x=>x.category==='ai'));assert.equal(new Set(advancedModules.map(x=>x.id)).size,8)});
+test('clip balance creates stereo with same duration',()=>{const r=clipBalance(input,{gainDb:-3,pan:.5});assert.equal(r.numberOfChannels,2);assert.equal(r.length,input.length)});
+test('sidechain internal pump processes input',()=>{const r=sidechainCompress(input,null,{mode:'internal',bpm:120});assert.equal(r.length,input.length)});
+test('chorus flanger and phaser process audio',()=>{for(const type of ['chorus','flanger','phaser'])assert.equal(modulationEffect(input,{type}).length,input.length)});
+test('rack accepts safe presets and rejects arbitrary modules',()=>{for(const preset of Object.values(RACK_PRESETS))assert.equal(runRack(input,preset.plugins).length,input.length);assert.throws(()=>validateRack([{type:'javascript',amount:10}]));});

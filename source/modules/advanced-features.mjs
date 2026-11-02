@@ -1,0 +1,47 @@
+import {workspace as w} from './workspace.mjs';
+import {clipBalance,sidechainCompress,modulationEffect,runRack,RACK_PRESETS} from './advanced-dsp.mjs';
+import {applySmartMaster,audioMetrics} from './dsp.mjs';
+const catalogs=[
+ {id:'sidechain',category:'edit',label:'Sidechain Compressor',title:'Make it<br><span>pump.</span>',desc:'External kick-triggered compression or synchronized rhythmic pumping.',presets:{'4/4 Pump':{mode:'internal',threshold:-28,ratio:7,attack:3,release:160,amount:82,bpm:120},'Soft Duck':{mode:'internal',threshold:-21,ratio:3,attack:15,release:270,amount:48,bpm:120},'Kick Trigger':{mode:'external',threshold:-27,ratio:5,attack:5,release:180,amount:85,bpm:120}},fields:[['threshold','Threshold (dB)',-60,-3,-24],['ratio','Ratio',1,20,5],['attack','Attack (ms)',1,100,5],['release','Release (ms)',20,1000,180],['amount','Mix (%)',0,100,85],['bpm','Tempo (BPM)',60,200,120]]},
+ {id:'modulation',category:'edit',label:'Modulation Effects',title:'Move the<br><span>sound.</span>',desc:'Chorus, flanger and four-stage allpass phaser processing.',presets:{'Wide Chorus':{type:'chorus',rate:.35,depth:70,mix:45,feedback:16},'Jet Flanger':{type:'flanger',rate:.65,depth:82,mix:60,feedback:55},'Slow Phaser':{type:'phaser',rate:.23,depth:75,mix:55,feedback:0}},fields:[['rate','LFO (Hz)',.05,8,.7],['depth','Depth (%)',0,100,50],['mix','Wet (%)',0,100,35],['feedback','Feedback (%)',0,80,20]]},
+ {id:'clip-pan',category:'edit',label:'Clip Volume & Pan',title:'Balance your<br><span>clips.</span>',desc:'Set gain and stereo position on the selected clip or full track.',presets:{Center:{gainDb:0,pan:0},'Left Focus':{gainDb:-2,pan:-.7},'Right Focus':{gainDb:-2,pan:.7},'Soft Background':{gainDb:-9,pan:0}},fields:[['gainDb','Gain (dB)',-36,18,0],['pan','Stereo pan (-1 / +1)',-1,1,0]]},
+ {id:'rack',category:'ai',label:'Custom FX Rack',title:'Build your<br><span>character.</span>',desc:'Create and import preset chains from supported built-in DSP modules. Third-party binary plug-ins are not supported.',presets:Object.fromEntries(Object.entries(RACK_PRESETS).map(([id,v])=>[v.label,{rack:id}])),fields:[]},
+ {id:'mix-master',category:'ai',label:'AI Mix & Master',title:'Mix.<br><span>Then master.</span>',desc:'DSP bus character and limiting presets. This mode does not use a trained neural model.',presets:{Balanced:{threshold:-15,ratio:2.5,ceiling:-1,rack:'warm'},'Punchy Club':{threshold:-19,ratio:4,ceiling:-.8,rack:'punch'},'Wide Atmosphere':{threshold:-13,ratio:2,ceiling:-1.2,rack:'air'}},fields:[['threshold','Threshold (dBFS)',-30,-6,-15],['ratio','Ratio',1,8,3],['ceiling','Ceiling (dBFS)',-6,-.1,-1]]},
+ {id:'pitch-correction',category:'edit',label:'Auto-Tune / Pitch Correction',title:'Tune the<br><span>performance.</span>',desc:'Pitch correction requires a dedicated pitch tracking and resynthesis engine. Natural and Hard Tune presets are planned, not available in this build.',presets:{'Natural Tune':{speed:50},'Hard Tune':{speed:100}},fields:[],unavailable:true},
+ {id:'time-stretch',category:'edit',label:'Time-Stretch / Match BPM',title:'Stretch time.<br><span>Keep pitch.</span>',desc:'High-quality independent time stretching requires a phase vocoder or time-domain resynthesis engine. The controls are planned; no rate-only fake is applied.',presets:{'Match BPM':{bpm:120},'Half Speed':{bpm:60}},fields:[],unavailable:true},
+ {id:'stems',category:'ai',label:'Separate into Stems',title:'Split the<br><span>mix.</span>',desc:'A trained source separation model and inference runtime are required for actual vocals, drums, bass and other separation. Not enabled in this build.',presets:{'Four Stems':{count:4}},fields:[],unavailable:true}
+];
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const setText=(host,message)=>{const e=host.querySelector('[role=status]');if(e)e.textContent=message};
+function mount(model,{host}){
+ const presetEntries=Object.entries(model.presets);
+ const radios=presetEntries.map(([name],i)=>'<button type="button" class="pulse-fx-preset" data-preset="'+i+'" aria-pressed="'+String(i===0)+'">'+esc(name)+'</button>').join('');
+ const inputs=model.fields.map(([id,label,min,max,def])=>'<label class="pulse-fx-field"><span>'+esc(label)+'</span><input data-param="'+id+'" type="number" min="'+min+'" max="'+max+'" step="any" value="'+def+'"></label>').join('');
+ host.innerHTML='<div class="tool-view pulse-fx-panel"><div class="tool-view-header"><span>'+(model.category==='edit'?'02 / EDIT':'04 / AI STUDIO')+'</span><span>'+ (model.unavailable?'ENGINE REQUIRED':'LOCAL DSP ENGINE')+'</span></div><h3>'+model.title+'</h3><p class="tool-description">'+esc(model.desc)+'</p><p class="pulse-detail-label">CHARACTER PRESETS</p><div class="pulse-fx-presets" role="group" aria-label="Presets">'+radios+'</div><div class="pulse-fx-controls">'+inputs+'</div>'+ (model.id==='sidechain'?'<label class="pulse-fx-file-label">EXTERNAL KICK INPUT<input type="file" id="sidechain-file" accept="audio/*,.wav,.mp3"></label>':'')+(model.id==='rack'?'<div class="pulse-fx-rack"><label class="pulse-fx-file-label">IMPORT PRESET JSON<input type="file" accept=".json,application/json" id="rack-import"></label><button class="pulse-fx-secondary" type="button" id="rack-export">Export preset JSON ↗</button></div>':'')+'<div class="pulse-fx-result"><span>PROCESSING STATUS</span><strong>'+ (model.unavailable?'NOT AVAILABLE':'READY')+'</strong></div><button type="button" class="tool-action tool-action-dark pulse-fx-apply" '+(model.unavailable?'disabled':'')+'>'+(model.unavailable?'ENGINE NOT AVAILABLE':'Apply to Workspace')+' <span>↗</span></button><p class="tool-footnote" role="status">'+(model.unavailable?'The feature is visible for planning, but processing is disabled.':'Choose a preset, refine controls and apply. Undo restores your previous audio.')+'</p></div>';
+ let choice=presetEntries[0][1],sideBuffer=null,customRack=null;
+ const paint=()=>{const preset=choice;model.fields.forEach(([id])=>{const e=host.querySelector('[data-param="'+id+'"]');if(e&&preset[id]!==undefined)e.value=preset[id]})};
+ const value=(name,def)=>{const e=host.querySelector('[data-param="'+name+'"]');return e?Number(e.value):choice[name]??def};
+ for(const b of host.querySelectorAll('[data-preset]'))b.onclick=()=>{choice=presetEntries[Number(b.dataset.preset)][1];host.querySelectorAll('[data-preset]').forEach(el=>el.setAttribute('aria-pressed',String(el===b)));paint();setText(host,'Selected '+presetEntries[Number(b.dataset.preset)][0]+'.');};
+ if(model.id==='sidechain')host.querySelector('#sidechain-file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const ctx=await w.ensureContext();sideBuffer=await ctx.decodeAudioData(await file.arrayBuffer());setText(host,'Kick track loaded: '+file.name)}catch(err){setText(host,err.message)}};
+ if(model.id==='rack'){
+   host.querySelector('#rack-import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;const parsed=JSON.parse(await file.text());const {validateRack}=await import('./advanced-dsp.mjs');customRack=validateRack(parsed.effects);setText(host,'Imported '+customRack.length+' effects.')}catch(err){setText(host,err.message)}};
+   host.querySelector('#rack-export').onclick=()=>{const effects=customRack??RACK_PRESETS[choice.rack].plugins;const blob=new Blob([JSON.stringify({version:1,effects},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pulse-fx-rack.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};
+ }
+ paint();
+ if(!model.unavailable)host.querySelector('.pulse-fx-apply').onclick=async()=>{
+   const btn=host.querySelector('.pulse-fx-apply');btn.disabled=true;setText(host,'Processing audio…');
+   try{
+     let buffer=w.ensureAudio(),next;
+     if(model.id==='sidechain')next=sidechainCompress(buffer,sideBuffer,{mode:choice.mode,threshold:value('threshold',-24),ratio:value('ratio',5),attack:value('attack',5),release:value('release',180),amount:value('amount',85),bpm:value('bpm',120)});
+     if(model.id==='modulation')next=modulationEffect(buffer,{type:choice.type,rate:value('rate',.7),depth:value('depth',50),mix:value('mix',35),feedback:value('feedback',20)});
+     if(model.id==='clip-pan')next=clipBalance(buffer,{gainDb:value('gainDb',0),pan:value('pan',0),start:w.selection?.start??0,end:w.selection?.end??buffer.duration});
+     if(model.id==='rack')next=runRack(buffer,customRack??RACK_PRESETS[choice.rack].plugins);
+     if(model.id==='mix-master'){const pre=runRack(buffer,RACK_PRESETS[choice.rack].plugins);next=applySmartMaster(pre,{threshold:value('threshold',-15),ratio:value('ratio',3),ceiling:value('ceiling',-1)})}
+     if(!next)throw Error('No processing output');
+     w.commit(next,model.label+' rendered.');
+     host.querySelector('.pulse-fx-result strong').textContent=audioMetrics(next).peakDb.toFixed(1)+' dBFS PEAK';setText(host,'Processed locally. Undo is available.');
+   }catch(err){setText(host,err.message||'Processing failed.')}
+   finally{btn.disabled=false}
+ };
+}
+export const advancedModules=Object.freeze(catalogs.map(model=>({id:model.id,category:model.category,label:model.label,mount:args=>mount(model,args)})));

@@ -1,24 +1,6 @@
-# Python / caches
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.venv/
-venv/
-
-# Node / built artifacts
 node_modules/
-.next/
-.vercel/
-
-# Secrets
+public/
+.DS_Store
 .env
 .env.*
 !.env.example
-
-# Local output / temporary files
-*.wav
-*.mp3
-*.mp4
-*.flac
-*.aiff
-.DS_Store

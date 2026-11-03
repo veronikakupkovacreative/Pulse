@@ -23,7 +23,8 @@ test('benefits appear between producer toolkit and directory, linked to active t
  assert.ok(html.indexOf('id="pulse-benefits-grid"')>html.indexOf('class="tool-board"'));
  assert.ok(html.indexOf('id="pulse-benefits-grid"')<html.indexOf('class="pulse-directory"'));
  assert.match(app,/renderToolBenefits\(definition\)/);
- assert.match(read('style.css'),/\.pulse-benefits\{background:#191919;color:#f5f4f0/);
+ assert.match(read('style.css'),/\.pulse-benefits\{background:transparent;color:#191919;[^}]*border:1px solid #b9b7b0/);
+ assert.match(read('style.css'),/\.pulse-benefit-card\{[^}]*min-height:116px;[^}]*border:1px solid #b9b7b0;background:transparent/);
 });
 test('existing AI mix and smart master tools use one local engine UI',()=>{
  assert.ok(toolModules.some(t=>t.id==='mix-master'));

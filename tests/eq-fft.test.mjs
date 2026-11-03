@@ -70,8 +70,8 @@ test('the FFT graph is layered between red source waveform and white EQ handles 
   assert.match(graph,/LIVE FFT SPECTRUM/);
   assert.match(graph,/createEqFftMonitor/);
   assert.match(graph,/pulse:audio-source/);
-  assert.match(graph,/spectrum\\.cleanup\\(\\)/);
-  assert.match(css,/\\.pulse-eq-live \\.pulse-eq-fft\\{position:absolute/);
-  assert.match(css,/\\.pulse-eq-live \\.pulse-eq-underlay\\{position:absolute/);
-  assert.match(css,/\\.pulse-eq-live \\.pulse-eq-graph\\{position:relative;z-index:2/);
+  assert.match(graph,/spectrum\.cleanup\(\)/);
+  assert.match(css,/\.pulse-eq-live \.pulse-eq-fft\{position:absolute/);
+  assert.match(css,/\.pulse-eq-live \.pulse-eq-underlay\{position:absolute/);
+  assert.match(css,/\.pulse-eq-live \.pulse-eq-graph\{position:relative;z-index:2/);
 });

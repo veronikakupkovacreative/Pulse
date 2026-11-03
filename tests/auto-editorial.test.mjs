@@ -17,7 +17,7 @@ test('tool description changes when mounting another module',()=>{
  renderToolEditorial({id:'bpm',label:'BPM Analyzer'},doc);
  assert.match(elements.get('#pulse-tool-summary').textContent,/tempo/);
  renderToolEditorial({id:'ai-voice-cloning',label:'Voice Cloning'},doc);
- assert.match(elements.get('#pulse-tool-summary').textContent,/voice clone/);
+ assert.match(elements.get('#pulse-tool-summary').textContent,/Voice Clone/);
  assert.deepEqual(elements.get('#pulse-tool-steps').children.map(li=>li.textContent),TOOL_EDITORIAL['ai-voice-cloning'].steps);
 });
 test('cloud feature copy is upfront about authorization and provider',()=>{

@@ -39,7 +39,7 @@ test('missing analyser data leaves the original waveform drawing untouched',()=>
 test('playback connects through an analyser and stop disconnects the visualizer cleanly',async()=>{
  const previousDocument=globalThis.document,previousRAF=globalThis.requestAnimationFrame,previousCancel=globalThis.cancelAnimationFrame,previousEvent=globalThis.CustomEvent;
  const events=[],connections=[],disconnections=[];
- globalThis.document={getElementById:()=>null,dispatchEvent:event=>events.push(event)};
+ globalThis.document={getElementById:()=>null,querySelector:()=>null,dispatchEvent:event=>events.push(event)};
  globalThis.CustomEvent=class{constructor(type,init){this.type=type;this.detail=init?.detail}};
  globalThis.requestAnimationFrame=()=>1;globalThis.cancelAnimationFrame=()=>{};
  const destination={kind:'destination'};

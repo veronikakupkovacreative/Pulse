@@ -2,6 +2,7 @@ import {toolModules} from './modules/index.mjs';
 import {enhanceParameterControls} from './modules/slider-ui.mjs';
 import {renderToolEditorial} from './modules/tool-editorial.mjs';
 import {renderToolBenefits} from './modules/tool-benefits.mjs';
+import {getCategoryMenuItems} from './modules/category-menu.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -17,6 +18,7 @@ const blank=query('#blank-panel');
 const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');
 let activeCategory='analyze';
+let activeToolId=null;
 let currentCleanup=null;
 
 function clearMountedTool(){
@@ -28,12 +30,16 @@ function clearMountedTool(){
 }
 function showEmpty(){
   clearMountedTool();
+  activeToolId=null;
+  updateDropdownSelection();
   blank.hidden=false;
   query('#empty-title').textContent=categories[activeCategory].title;
   query('#empty-description').textContent=categories[activeCategory].description;
 }
 function mountTool(definition){
   clearMountedTool();
+  activeToolId=definition.id;
+  updateDropdownSelection();
   blank.hidden=true;
   renderToolEditorial(definition);
   renderToolBenefits(definition);
@@ -61,9 +67,7 @@ function mountTool(definition){
   }
 }
 function validModules(category){
-  return toolModules.filter((module)=>module &&
-    module.category===category && typeof module.id==='string' &&
-    typeof module.label==='string' && typeof module.mount==='function');
+  return getCategoryMenuItems(toolModules,category);
 }
 function activateCategory(category){
   if(!Object.hasOwn(categories,category))return;
@@ -78,6 +82,7 @@ function activateCategory(category){
   document.querySelectorAll('[data-category-link]').forEach((link)=>{
     const selected=link.dataset.categoryLink===category;
     link.classList.toggle('is-active',selected);
+    link.setAttribute('aria-pressed',String(selected));
     if(selected)link.setAttribute('aria-current','true');
     else link.removeAttribute('aria-current');
   });
@@ -102,8 +107,83 @@ function activateCategory(category){
 document.querySelectorAll('[data-category]').forEach((button)=>{
   button.addEventListener('click',()=>activateCategory(button.dataset.category));
 });
-document.querySelectorAll('[data-category-link]').forEach((link)=>{
-  link.addEventListener('click',()=>activateCategory(link.dataset.categoryLink));
+function updateDropdownSelection(){
+  document.querySelectorAll('[data-nav-menu-tool]').forEach((button)=>{
+    const selected=button.dataset.navMenuTool===activeToolId;
+    button.classList.toggle('is-selected',selected);
+    if(selected)button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  });
+}
+function closeDropdownMenus(restoreFocus=false){
+  document.querySelectorAll('[data-nav-dropdown-trigger]').forEach((trigger)=>{
+    const wasOpen=trigger.getAttribute('aria-expanded')==='true';
+    trigger.setAttribute('aria-expanded','false');
+    const menu=document.getElementById(trigger.getAttribute('aria-controls'));
+    if(menu)menu.hidden=true;
+    if(restoreFocus&&wasOpen)trigger.focus();
+  });
+}
+function openToolFromDropdown(tool){
+  closeDropdownMenus();
+  if(activeCategory!==tool.category)activateCategory(tool.category);
+  const tab=[...tabs.querySelectorAll('[data-tool]')].find((button)=>button.dataset.tool===tool.id);
+  if(tab)tab.click();
+  query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderDropdownMenus(){
+  document.querySelectorAll('[data-nav-dropdown-menu]').forEach((menu)=>{
+    const category=menu.dataset.navDropdownMenu;
+    const available=validModules(category);
+    menu.replaceChildren();
+    available.forEach((tool,index)=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='nav-dropdown-item';
+      button.dataset.navMenuTool=tool.id;
+      button.setAttribute('role','menuitem');
+      const number=document.createElement('span');
+      number.className='nav-dropdown-index';
+      number.textContent=String(index+1).padStart(2,'0');
+      const label=document.createElement('span');
+      label.className='nav-dropdown-label';
+      label.textContent=tool.label;
+      const arrow=document.createElement('span');
+      arrow.className='nav-dropdown-arrow';
+      arrow.setAttribute('aria-hidden','true');
+      arrow.textContent='↗';
+      button.append(number,label,arrow);
+      button.addEventListener('click',()=>openToolFromDropdown(tool));
+      menu.append(button);
+    });
+    if(!available.length){
+      const empty=document.createElement('p');
+      empty.className='nav-dropdown-empty';
+      empty.textContent='No tools available yet.';
+      menu.append(empty);
+    }
+  });
+  updateDropdownSelection();
+}
+renderDropdownMenus();
+document.querySelectorAll('[data-nav-dropdown-trigger]').forEach((trigger)=>{
+  trigger.addEventListener('click',()=>{
+    const category=trigger.dataset.navDropdownTrigger;
+    const shouldOpen=trigger.getAttribute('aria-expanded')!=='true';
+    closeDropdownMenus();
+    if(shouldOpen){
+      const menu=document.getElementById(trigger.getAttribute('aria-controls'));
+      if(menu)menu.hidden=false;
+      trigger.setAttribute('aria-expanded','true');
+    }
+    if(activeCategory!==category)activateCategory(category);
+  });
+});
+document.addEventListener('click',(event)=>{
+  if(!event.target.closest('.header-nav'))closeDropdownMenus();
+});
+document.addEventListener('keydown',(event)=>{
+  if(event.key==='Escape')closeDropdownMenus(true);
 });
 activateCategory('analyze');
 // Directory and footer links open their registered tool in the existing toolkit.

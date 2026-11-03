@@ -8,7 +8,7 @@ const read=p=>readFileSync(new URL('../source/'+p,import.meta.url),'utf8');
 test('legacy AI voice cleaner and speech enhancer remain registered, advanced visuals paused',()=>{
   const expected=[['ai-voice-cleaner','AI Voice Cleaner','ai'],['ai-speech-enhancer','Speech Enhancer','ai']];
   for(const [id,label,category] of expected){const m=toolModules.find(x=>x.id===id);assert.ok(m,id);assert.equal(m.label,label);assert.equal(m.category,category);}
- assert.ok(toolModules.some(m=>m.id==='ai-voice-cloning'));
+ assert.ok(!toolModules.some(m=>m.id==='ai-voice-cloning'));
  assert.ok(!toolModules.some(m=>m.id==='visualizer-advanced'));
 });
 test('every mounted tool has its own editorial copy',()=>{

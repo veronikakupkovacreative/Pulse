@@ -15,8 +15,9 @@ class MockResponse {
   send(body){this.body=body;return this}
 }
 const token='strong-private-test-token';
-const MP3='a'.repeat(1024); // uploaded test bytes, provider mocked before decoding
+const MP3='a'.repeat(2048); // uploaded test bytes, provider mocked before decoding
 const audioBase64=Buffer.from(MP3).toString('base64');
+const largeAudioBase64=Buffer.from('b'.repeat(2048)).toString('base64');
 const req=(body,access=token)=>({method:'POST',headers:{'x-pulse-access':access,host:'pulse.example',origin:'https://pulse.example'},body});
 const withServer=async (mockFetch,fn)=>{
   const previousKey=process.env.ELEVENLABS_API_KEY,previousGate=process.env.PULSE_AI_GATE_TOKEN;
@@ -65,14 +66,14 @@ test('clone proxies only to fixed ElevenLabs endpoint with key and multipart voi
   assert.equal(captured.url,'https://api.elevenlabs.io/v1/voices/add');
   assert.equal(captured.opts.headers['xi-api-key'],'fake-elevenlabs-key');
   assert.equal(captured.opts.body.get('name'),'My Voice');
-  assert.equal(captured.opts.body.get('files').size,1024);
+  assert.equal(captured.opts.body.get('files').size,2048);
 });
 
 
 test('new voice changer and SFX actions proxy to documented ElevenLabs endpoints',async()=>{
  const calls=[];
  await withServer(async(url,opts)=>{calls.push({url,opts});return new Response(new Uint8Array([1,2,3]),{status:200,headers:{'content-type':'audio/mpeg'}})},async()=>{
-  const changed=new MockResponse();await handler(req({action:'change',voiceId:'JBFqnCBsd6RMkjVDRZzb',profile:'natural',filename:'source.mp3',mime:'audio/mpeg',audioBase64}),changed);
+  const changed=new MockResponse();await handler(req({action:'change',voiceId:'JBFqnCBsd6RMkjVDRZzb',profile:'natural',filename:'source.mp3',mime:'audio/mpeg',audioBase64:largeAudioBase64}),changed);
   assert.equal(changed.statusCode,200);assert.deepEqual([...changed.body],[1,2,3]);
   const effect=new MockResponse();await handler(req({action:'effects',text:'A metallic cinematic impact with a long tail',duration:5,influence:.7,loop:true}),effect);
   assert.equal(effect.statusCode,200);

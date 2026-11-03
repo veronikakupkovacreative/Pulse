@@ -1,5 +1,10 @@
 /** Three truthful, tool-specific reasons, updated from the active PULSE module. */
 export const TOOL_BENEFITS=Object.freeze({
+  'ai-voice-changer':[['Voice transformation','Convert your performance into another selected voice.'],['Performance retention','Preserve emotion, timing and delivery from the source.'],['Voice library','Choose from voices in your authorized ElevenLabs account.']],
+  'ai-text-to-sound-effects':[['Prompt to sound','Generate original effects from written descriptions.'],['Flexible duration','Choose automatic length or a duration from 3 to 30 seconds.'],['Loop-ready output','Generate effects designed to loop seamlessly.']],
+  'ai-voice-cloning':[['Authorized cloning','Create a clone only from your voice or with explicit speaker permission.'],['Text-to-speech','Generate new speech from text using the created Voice ID.'],['Preview and export','Listen to and download generated MP3 speech.']],
+  'ai-voice-isolator':[['Background removal','Reduce competing sounds around spoken voice.'],['Audio preview','Listen to the isolated recording before applying it.'],['Workspace integration','Apply the isolated audio to SOURCE AUDIO with Undo support.']],
+
   bpm:[['TEMPO ESTIMATE','Find a practical BPM starting point from rhythmic transients.'],['ONSET CONTEXT','Check detected beats on the waveform before committing to a tempo.'],['LOCAL ANALYSIS','Your audio stays in browser memory while BPM is estimated.']],
   key:[['HARMONIC START','Estimate the track key without exporting it to another application.'],['CAMELOT REFERENCE','Use the wheel notation to plan a harmonically compatible transition.'],['QUICK CROSS-CHECK','See a confidence indicator and verify complex chords by ear.']],
   beats:[['TRANSIENT MAP','Identify percussive attacks throughout the uploaded track.'],['VISIBLE MARKERS','Inspect detected onset positions directly on the source waveform.'],['EDITOR HANDOFF','Use the marker positions as a timing reference for edits.']],

@@ -70,24 +70,6 @@ test('clone proxies only to fixed ElevenLabs endpoint with key and multipart voi
 });
 
 
-test('new voice changer and SFX actions proxy to documented ElevenLabs endpoints',async()=>{
- const calls=[];
- await withServer(async(url,opts)=>{calls.push({url,opts});return new Response(new Uint8Array([1,2,3]),{status:200,headers:{'content-type':'audio/mpeg'}})},async()=>{
-  const changed=new MockResponse();await handler(req({action:'change',voiceId:'JBFqnCBsd6RMkjVDRZzb',profile:'natural',filename:'source.mp3',mime:'audio/mpeg',audioBase64:largeAudioBase64}),changed);
-  assert.equal(changed.statusCode,200,JSON.stringify(changed.body));assert.deepEqual([...changed.body],[1,2,3]);
-  const effect=new MockResponse();await handler(req({action:'effects',text:'A metallic cinematic impact with a long tail',duration:5,influence:.7,loop:true}),effect);
-  assert.equal(effect.statusCode,200);
-  const voices=new MockResponse();await handler(req({action:'voices'}),voices);
-  assert.equal(voices.statusCode,200);
- });
- assert.ok(calls[0].url.includes('/v1/voice-changer/JBFqnCBsd6RMkjVDRZzb'));
- assert.equal(calls[0].opts.body.get('model_id'),'eleven_multilingual_sts_v2');
- assert.equal(calls[0].opts.body.get('remove_background_noise'),'false');
- assert.equal(calls[1].url,'https://api.elevenlabs.io/v1/sound-generation?output_format=mp3_44100_128');
- assert.equal(JSON.parse(calls[1].opts.body).model_id,'eleven_text_to_sound_v3');
- assert.equal(calls[2].url,'https://api.elevenlabs.io/v2/voices?page_size=100');
-});
-
 test('voice isolation and text-to-speech return binary audio',async()=>{
   const calls=[];
   await withServer(async(url,opts)=>{

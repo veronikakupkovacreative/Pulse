@@ -16,7 +16,7 @@ test('all registered tools have three individual and truthful benefits',()=>{
    descriptions.add(copy);
   }
  }
- assert.equal(Object.keys(TOOL_BENEFITS).length,toolModules.length);
+ assert.ok(toolModules.every(tool=>Object.hasOwn(TOOL_BENEFITS,tool.id)));
 });
 test('benefits appear between producer toolkit and directory, linked to active tab',()=>{
  const html=read('index.html'),app=read('app.mjs');

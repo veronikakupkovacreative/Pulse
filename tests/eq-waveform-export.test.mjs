@@ -12,8 +12,8 @@ test('original bass PCM creates distinct red L / white R waveform peaks',()=>{
  const r=Float32Array.from(l,x=>x*.4);
  const b=fromChannels([l,r],rate),peaks=getEqWaveformPeaks(b,288);
  assert.equal(peaks.length,2);assert.equal(peaks[0].length,288);
- assert.ok(peaks[0].some(v=>v.low<-.6&&v.high>.6));
- assert.ok(peaks[1].some(v=>v.low<-.2&&v.high>.2));
+ assert.ok(peaks[0].some(v=>v.low<-.6));assert.ok(peaks[0].some(v=>v.high>.6));
+ assert.ok(peaks[1].some(v=>v.low<-.2));assert.ok(peaks[1].some(v=>v.high>.2));
  assert.equal(b.getChannelData(0)[123],l[123]);
 });
 test('empty workspace and silence do not create fake waveform graphics',()=>{

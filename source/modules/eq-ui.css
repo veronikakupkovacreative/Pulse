@@ -54,3 +54,14 @@
 .module-work .pulse-module-actions:has([data-action="export-eq"]) .module-action:last-child{background:transparent;color:#191919;border:1px solid #191919}
 .module-work .pulse-module-actions:has([data-action="export-eq"]) .module-action:last-child:hover:not(:disabled){background:#191919;color:#fff}
 @media(max-width:650px){.pulse-eq-live .eq-band-switch{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* PULSE FFT / SPECTRAL OVERLAY. Same 20 Hz–20 kHz axis as the response curve. */
+.pulse-eq-live .pulse-eq-fft{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none}
+.pulse-eq-live .pulse-eq-graph{position:relative;z-index:2}
+.pulse-eq-live .pulse-eq-fft-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:13px 0 8px;color:#e3e3e3}
+.pulse-eq-live .pulse-eq-fft-toggle{display:inline-flex;gap:9px;align-items:center;cursor:pointer;font:400 10px/1.5 Arial,Helvetica,sans-serif;letter-spacing:.055em}
+.pulse-eq-live .pulse-eq-fft-toggle input{width:16px;height:16px;margin:0;accent-color:#ff0000;cursor:pointer}
+.pulse-eq-live .pulse-eq-fft-toggle input:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.pulse-eq-live .pulse-eq-fft-mark{display:inline-block;width:13px;height:2px;background:#ff0000}
+.pulse-eq-live .pulse-eq-fft-state{font:400 9px/1.5 Arial,Helvetica,sans-serif;color:#a4a4a4;letter-spacing:.045em}
+@media(max-width:430px){.pulse-eq-live .pulse-eq-fft-controls{align-items:flex-start;flex-direction:column;gap:7px}}

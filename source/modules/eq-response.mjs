@@ -1,6 +1,7 @@
 import {bandLayout, eqFilters, formatEqFrequency} from './eq-engine.mjs';
 import {workspace as w} from './workspace.mjs';
 import {paintEqWaveform} from './eq-waveform.mjs';
+import {createEqFftMonitor} from './eq-fft.mjs';
 
 const NS = 'http://www.w3.org/2000/svg';
 const create = (name, properties = {}, parent) => {
@@ -32,8 +33,9 @@ export function mountEqResponse({host, count = () => 3, gains, changeGain, chang
     : '';
   stage.innerHTML=`<div class="eq-left-heading"><strong>PARAMETRIC EQ &middot; LIVE RESPONSE</strong><span>20 Hz - 20 kHz</span></div>
     ${bandSwitch}
-    <div class="pulse-eq-stage"><div class="pulse-eq-graph-layers"><canvas class="pulse-eq-underlay" width="640" height="232" aria-hidden="true"></canvas><svg class="pulse-eq-graph" viewBox="0 0 640 232" role="group" aria-label="Live equalizer response; drag handles or use arrow keys to set gain.">
+    <div class="pulse-eq-stage"><div class="pulse-eq-graph-layers"><canvas class="pulse-eq-underlay" width="640" height="232" aria-hidden="true"></canvas><canvas class="pulse-eq-fft" width="640" height="232" aria-hidden="true"></canvas><svg class="pulse-eq-graph" viewBox="0 0 640 232" role="group" aria-label="Live equalizer response; drag handles or use arrow keys to set gain.">
     <g class="eq-graph-grid"></g><path class="eq-zero-axis"></path><path class="eq-graph-curve"></path><g class="eq-graph-handles"></g></svg></div></div>
+    <div class="pulse-eq-fft-controls"><label class="pulse-eq-fft-toggle"><input type="checkbox" data-eq-fft-enabled checked><span class="pulse-eq-fft-mark" aria-hidden="true"></span><span>LIVE FFT SPECTRUM · POST-EQ OUTPUT</span></label><span class="pulse-eq-fft-state" data-eq-fft-state aria-live="polite">AWAITING PLAYBACK</span></div>
     <div class="pulse-eq-feedback"><span data-eq-readout>FLAT RESPONSE</span><span data-eq-count>${count()} ACTIVE BANDS</span></div>
     <p class="pulse-eq-editor-note">Drag a point or use arrow keys. The curve updates immediately; Apply renders the change to audio.</p>`;
   player.append(stage);
@@ -48,6 +50,19 @@ export function mountEqResponse({host, count = () => 3, gains, changeGain, chang
   };
   updateWaveform();
   const waveformWatch=setInterval(updateWaveform,400);
+  const spectrumCanvas=stage.querySelector('.pulse-eq-fft');
+  const spectrumToggle=stage.querySelector('[data-eq-fft-enabled]');
+  const spectrumReadout=stage.querySelector('[data-eq-fft-state]');
+  const statusText={off:'FFT OFF',waiting:'AWAITING PLAYBACK',live:'LIVE · POST-EQ',unavailable:'FFT NOT AVAILABLE'};
+  const spectrum=createEqFftMonitor({
+    canvas:spectrumCanvas,getCount:count,getGains:gains,
+    onState:state=>{spectrumReadout.textContent=statusText[state]||'FFT STATUS UNKNOWN';}
+  });
+  const sourceChange=event=>spectrum.attach(event.detail?.source||null);
+  document.addEventListener('pulse:audio-source',sourceChange);
+  const toggleSpectrum=()=>spectrum.setEnabled(spectrumToggle.checked,w.source||null);
+  spectrumToggle.addEventListener('change',toggleSpectrum);
+  toggleSpectrum();
   const svg=stage.querySelector('svg'),grid=stage.querySelector('.eq-graph-grid');
   const curve=stage.querySelector('.eq-graph-curve'),zero=stage.querySelector('.eq-zero-axis'),handles=stage.querySelector('.eq-graph-handles');
   for(let i=0;i<=6;i++) {
@@ -134,7 +149,7 @@ export function mountEqResponse({host, count = () => 3, gains, changeGain, chang
     stage.querySelector('[data-eq-readout]').textContent=active?`${formatEqFrequency(active.frequency)}  /  ${values[selectedIndex]>0?'+':''}${values[selectedIndex].toFixed(1)} dB`:'LIVE FILTER RESPONSE';
     for(const b of bandButtons)b.setAttribute('aria-pressed',String(Number(b.dataset.eqBands)===bands.length));
   }
-  function refresh(){if(frame||closed)return;frame=requestAnimationFrame(()=>{frame=0;draw();});}
+  function refresh(){if(closed)return;spectrum.sync();if(frame)return;frame=requestAnimationFrame(()=>{frame=0;draw();});}
   function update(index,number){const value=clamp(Math.round(number*2)/2,-18,18);selectedIndex=index;changeGain(index,value);refresh();}
   function drag(e){if(pointerIndex<0)return;const rect=svg.getBoundingClientRect(),y=(e.clientY-rect.top)*232/rect.height;update(pointerIndex,(YMID-y)/5);}
   function down(e){const dot=e.target.closest('[data-eq-index]');if(!dot)return;pointerIndex=Number(dot.dataset.eqIndex);selectedIndex=pointerIndex;try{svg.setPointerCapture(e.pointerId);}catch{}drag(e);e.preventDefault();}
@@ -160,7 +175,7 @@ export function mountEqResponse({host, count = () => 3, gains, changeGain, chang
   });
   graphFilters();draw();
   const cleanup=()=>{
-    closed=true;clearInterval(waveformWatch);host.removeEventListener('input',onInput);if(frame)cancelAnimationFrame(frame);
+    closed=true;clearInterval(waveformWatch);spectrumToggle.removeEventListener('change',toggleSpectrum);document.removeEventListener('pulse:audio-source',sourceChange);spectrum.cleanup();host.removeEventListener('input',onInput);if(frame)cancelAnimationFrame(frame);
     svg.removeEventListener('pointerdown',down);svg.removeEventListener('pointermove',drag);
     svg.removeEventListener('pointerup',end);svg.removeEventListener('pointercancel',end);
     svg.removeEventListener('lostpointercapture',end);svg.removeEventListener('keydown',keydown);

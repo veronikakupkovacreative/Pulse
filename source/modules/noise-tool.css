@@ -1,0 +1,44 @@
+/* PULSE Noise Remover: flat, editorial black and white, matching existing audio tools. */
+.pulse-noise-module .pulse-noise-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 22px}
+.pulse-noise-module .pulse-noise-presets button{border:1px solid #191919;background:transparent;color:#191919;padding:11px 5px;font:400 10px Arial,sans-serif;min-height:40px;border-radius:0}
+.pulse-noise-module .pulse-noise-presets button[aria-pressed=true]{background:#191919;color:#fff}
+.pulse-noise-module .pulse-noise-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 17px}
+.pulse-noise-module .pulse-noise-field{min-width:0;display:flex;flex-direction:column;gap:10px;border:1px solid #191919;padding:14px;font:400 11px Arial,sans-serif}
+.pulse-noise-module .pulse-noise-field:last-child{grid-column:span 2}
+.pulse-noise-module .pulse-noise-field input[type=number]{min-width:0;width:100%;background:transparent;border:0;border-bottom:1px solid #191919;padding:8px 0;border-radius:0;color:#191919}
+.pulse-noise-module .pulse-noise-field small{font:400 10px Arial,sans-serif;color:#5d5b57}
+.pulse-noise-module .pulse-noise-fields .pulse-slider-card{min-height:104px;padding:14px 15px 16px}
+.pulse-noise-module .pulse-noise-fields .pulse-slider-head{gap:8px}
+.pulse-noise-module .pulse-noise-fields .pulse-slider-title,.pulse-noise-module .pulse-noise-fields .pulse-slider-value{font-size:11px}
+.pulse-noise-module .pulse-noise-profile{border-top:1px solid #19191970;border-bottom:1px solid #19191970;padding:16px 0;margin-bottom:18px}
+.pulse-noise-module .pulse-noise-profile-heading{display:flex;align-items:start;justify-content:space-between;gap:12px;font:700 10px/1.4 Arial,sans-serif;letter-spacing:.07em}
+.pulse-noise-module .pulse-noise-profile-heading strong{font:400 10px/1.4 Arial,sans-serif;text-align:right;letter-spacing:0}
+.pulse-noise-module .pulse-noise-profile p,.pulse-noise-module .pulse-noise-notice{font:400 11px/1.6 Arial,sans-serif;color:#575650;margin:10px 0 13px}
+.pulse-noise-module .pulse-noise-profile-actions,.pulse-noise-module .pulse-noise-actions,.pulse-noise-module .pulse-noise-output{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.pulse-noise-module .pulse-noise-profile-actions button,.pulse-noise-module .pulse-noise-ab button{border:1px solid #191919;background:transparent;color:#191919;min-height:40px;padding:9px 7px;font:400 10px/1.25 Arial,sans-serif;border-radius:0}
+.pulse-noise-module .pulse-noise-profile-actions button[aria-pressed=true],.pulse-noise-module .pulse-noise-ab button[aria-pressed=true]{background:#191919;color:#fff}
+.pulse-noise-module .pulse-noise-actions button,.pulse-noise-module .pulse-noise-output button{display:flex;align-items:center;justify-content:space-between;min-height:48px;text-align:left;padding:14px 12px;border:1px solid #191919;border-radius:0;background:#191919;color:#fff;font:700 10px/1.25 Arial,sans-serif}
+.pulse-noise-module .pulse-noise-output button{background:transparent;color:#191919}
+.pulse-noise-module [data-noise-action=cancel]{border-color:#777670;background:transparent;color:#191919}
+.pulse-noise-module button:disabled{opacity:.42;cursor:not-allowed}
+.pulse-noise-module button:focus-visible,.pulse-noise-module input:focus-visible{outline:2px solid #191919;outline-offset:3px}
+.pulse-noise-module .pulse-noise-progress-wrap{padding:15px 0}
+.pulse-noise-module .pulse-noise-progress-wrap[hidden],.pulse-noise-module button[hidden]{display:none!important}
+.pulse-noise-module .pulse-noise-progress-wrap label{display:flex;justify-content:space-between;font:700 10px Arial,sans-serif;margin:0 0 10px}
+.pulse-noise-module .pulse-noise-progress-wrap progress{display:block;width:100%;height:5px;border-radius:0;appearance:none;-webkit-appearance:none;background:#d1d0cc}
+.pulse-noise-module .pulse-noise-progress-wrap progress::-webkit-progress-bar{background:#d1d0cc}
+.pulse-noise-module .pulse-noise-progress-wrap progress::-webkit-progress-value{background:#191919}
+.pulse-noise-module .pulse-noise-progress-wrap progress::-moz-progress-bar{background:#191919}
+.pulse-noise-module .pulse-noise-report{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:15px 0;border:1px solid #b9b7b0}
+.pulse-noise-module .pulse-noise-report>div{display:flex;flex-direction:column;gap:10px;padding:13px 15px;min-width:0}
+.pulse-noise-module .pulse-noise-report>div+div{border-left:1px solid #b9b7b0}
+.pulse-noise-module .pulse-noise-report span{font:400 9px Arial,sans-serif;color:#5a5854;letter-spacing:.05em}
+.pulse-noise-module .pulse-noise-report strong{font:600 20px/1.1 Arial,sans-serif;letter-spacing:-.03em}
+.pulse-noise-module .pulse-noise-ab{display:flex;justify-content:space-between;align-items:stretch;gap:8px;margin:2px 0 13px}
+.pulse-noise-module .pulse-noise-ab>div{display:flex;flex:1;gap:5px}
+.pulse-noise-module .pulse-noise-ab>div button{flex:1}
+.pulse-noise-module .pulse-noise-ab>[data-noise-action=listen]{border:1px solid #191919;background:transparent;padding:10px;white-space:nowrap;font:700 10px Arial,sans-serif}
+.pulse-noise-module .pulse-noise-status{margin:15px 0 0;font:400 11px/1.55 Arial,sans-serif;min-height:20px}
+.pulse-noise-module .pulse-noise-status[data-error=true]{font-weight:700}
+.pulse-noise-module .pulse-noise-notice{border-top:1px solid #b9b7b0;padding-top:12px;margin:14px 0 0}
+@media(max-width:450px){.pulse-noise-module .pulse-noise-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.pulse-noise-module .pulse-noise-fields{grid-template-columns:1fr}.pulse-noise-module .pulse-noise-field:last-child{grid-column:auto}.pulse-noise-module .pulse-noise-ab{flex-direction:column}.pulse-noise-module .pulse-noise-profile-actions{grid-template-columns:1fr}}

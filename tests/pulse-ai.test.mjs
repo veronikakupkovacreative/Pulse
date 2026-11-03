@@ -74,7 +74,7 @@ test('new voice changer and SFX actions proxy to documented ElevenLabs endpoints
  const calls=[];
  await withServer(async(url,opts)=>{calls.push({url,opts});return new Response(new Uint8Array([1,2,3]),{status:200,headers:{'content-type':'audio/mpeg'}})},async()=>{
   const changed=new MockResponse();await handler(req({action:'change',voiceId:'JBFqnCBsd6RMkjVDRZzb',profile:'natural',filename:'source.mp3',mime:'audio/mpeg',audioBase64:largeAudioBase64}),changed);
-  assert.equal(changed.statusCode,200);assert.deepEqual([...changed.body],[1,2,3]);
+  assert.equal(changed.statusCode,200,JSON.stringify(changed.body));assert.deepEqual([...changed.body],[1,2,3]);
   const effect=new MockResponse();await handler(req({action:'effects',text:'A metallic cinematic impact with a long tail',duration:5,influence:.7,loop:true}),effect);
   assert.equal(effect.statusCode,200);
   const voices=new MockResponse();await handler(req({action:'voices'}),voices);

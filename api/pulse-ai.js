@@ -5,7 +5,7 @@
  *   PULSE_AI_GATE_TOKEN  long random private owner access token, required for ANY cloud action.
  * Intended as owner-only integration. Replace gate token with per-user authentication,
  * quotas and billing before offering publicly.
- * No third-party libraries required. Node 20+ global fetch/FormData/Blob.
+ * Uses documented ElevenLabs REST endpoints from a Node 20+ server-side proxy (SDK-equivalent calls).
  */
 import {timingSafeEqual} from 'node:crypto';
 
@@ -86,7 +86,59 @@ export default async function handler(req,res) {
   try{
     const request=parseBody(req.body);
     const action=request.action;
-    if(!['isolate','clone','speak','delete'].includes(action))return json(res,400,{error:'Unknown AI action.'});
+    if(!['isolate','clone','speak','delete','change','effects','voices'].includes(action))return json(res,400,{error:'Unknown AI action.'});
+
+    // New ElevenLabs capabilities, all authenticated and routed to fixed endpoints.
+    if(action==='voices'){
+      const response=await eleven('/v2/voices?page_size=100',{method:'GET',key});
+      const data=await response.json();
+      const entries=Array.isArray(data.voices)?data.voices:[];
+      const voices=entries.filter(item=>voicePattern.test(String(item.voice_id||'')))
+        .slice(0,100).map(item=>({
+          voice_id:item.voice_id,
+          name:typeof item.name==='string'?item.name.slice(0,90):'Untitled voice',
+          category:typeof item.category==='string'?item.category.slice(0,32):'voice'
+        }));
+      return json(res,200,{voices,has_more:!!data.has_more});
+    }
+    if(action==='effects'){
+      const text=typeof request.text==='string'?request.text.trim():'';
+      const duration=request.duration==null?null:Number(request.duration);
+      const influence=request.influence==null?.3:Number(request.influence);
+      if(text.length<4||text.length>600)return json(res,400,{error:'Sound effect description must contain 4–600 characters.'});
+      if(duration!==null&&(!Number.isFinite(duration)||duration<.5||duration>30))return json(res,400,{error:'Sound duration must be 0.5–30 seconds.'});
+      if(!Number.isFinite(influence)||influence<0||influence>1)return json(res,400,{error:'Prompt influence must be between 0 and 1.'});
+      if(request.loop!==undefined&&typeof request.loop!=='boolean')return json(res,400,{error:'Invalid loop setting.'});
+      const payload={text,model_id:'eleven_text_to_sound_v3',prompt_influence:influence,loop:request.loop===true};
+      if(duration!==null)payload.duration_seconds=duration;
+      const response=await eleven('/v1/sound-generation?output_format=mp3_44100_128',{
+        key,headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+      });
+      const binary=await readSmallBinary(response);
+      res.setHeader('Content-Type','audio/mpeg');
+      return res.status(200).send(binary);
+    }
+    if(action==='change'){
+      const voiceId=typeof request.voiceId==='string'?request.voiceId.trim():'';
+      if(!voicePattern.test(voiceId))return json(res,400,{error:'Select a valid destination Voice ID.'});
+      const profile=typeof request.profile==='string'?request.profile:'natural';
+      const profiles={
+        natural:{stability:.50,similarity_boost:.78,style:.08,use_speaker_boost:true},
+        expressive:{stability:.30,similarity_boost:.80,style:.45,use_speaker_boost:true},
+        stable:{stability:.82,similarity_boost:.75,style:0,use_speaker_boost:true}
+      };
+      if(!Object.hasOwn(profiles,profile))return json(res,400,{error:'Unknown voice preset.'});
+      if(request.denoise!==undefined&&typeof request.denoise!=='boolean')return json(res,400,{error:'Invalid denoise option.'});
+      const file=validateAudio(request),body=new FormData();
+      body.append('audio',new Blob([file.bytes],{type:file.type}),file.name);
+      body.append('model_id','eleven_multilingual_sts_v2');
+      body.append('voice_settings',JSON.stringify(profiles[profile]));
+      body.append('remove_background_noise',String(request.denoise===true));
+      const response=await eleven('/v1/voice-changer/'+voiceId+'?output_format=mp3_44100_128',{body,key});
+      const binary=await readSmallBinary(response);
+      res.setHeader('Content-Type','audio/mpeg');
+      return res.status(200).send(binary);
+    }
     if(action==='isolate'||action==='clone'){
       const file=validateAudio(request),body=new FormData();
       if(action==='isolate'){
@@ -125,7 +177,7 @@ export default async function handler(req,res) {
   }catch(error){
     const known=error?.httpStatus;
     const code=known===401||known===403?502:known===429?429:known===413?413:known>=400&&known<500?400:502;
-    const isBadInput=error instanceof SyntaxError || /invalid|unsupported|audio must|payload too large|exceeds|voice name|voice cloning authorization/i.test(error.message||'');
+    const isBadInput=error instanceof SyntaxError || /invalid|unsupported|audio must|payload too large|exceeds|voice name|voice cloning authorization|prompt|duration|voice preset/i.test(error.message||'');
     return json(res,isBadInput?400:code,{error:String(error.message||'Cloud AI request failed.').slice(0,380)});
   }
 }

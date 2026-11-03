@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TOOL_EDITORIAL,renderToolEditorial} from '../source/modules/tool-editorial.mjs';
 
-const existing = ['bpm','key','beats','tap','editor','reverse','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','video-audio','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','visualizer','reference-matcher','room-tail-reducer','key-chords'];
+const existing = ['bpm','key','beats','tap','editor','reverse','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','video-audio','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-changer','ai-text-to-sound-effects','ai-voice-cloning','ai-voice-isolator','visualizer','reference-matcher','room-tail-reducer','key-chords'];
 
 test('every currently registered tool has individual editorial summary and steps',()=>{
   assert.deepEqual(Object.keys(TOOL_EDITORIAL).sort(),existing.sort());

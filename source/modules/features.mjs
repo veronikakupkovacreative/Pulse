@@ -10,6 +10,7 @@ import {mountEqResponse} from './eq-response.mjs';
 import {webModules} from './web-tools.mjs';
 import {aiNormalizerModule} from './normalizer-tool.mjs';
 import {pulseAiModules} from './pulse-ai-master.mjs';
+import {mountMasteringTool} from './mastering-ui.mjs';
 import {AUDIO_FORMATS,conversionOptions,convertBuffer,downloadConversion} from './converter.mjs';
 import {estimateBpm,estimateKey,detectBeats,editRegion,reverseBuffer,normalizeBuffer,gainBuffer,applySmartMaster,equalize,audioMetrics} from './dsp.mjs';
 
@@ -125,6 +126,7 @@ function initPresets(host,id){
  if(id==='master'){const presets={balanced:[-15,3,-1],warm:[-17,2,-1.2],loud:[-19,5,-.8],glue:[-12,1.8,-1],punch:[-18,3.6,-.9]};for(const button of host.querySelectorAll('[data-master]'))button.onclick=()=>{const v=presets[button.dataset.master];['threshold','ratio','ceiling'].forEach((name,i)=>{const input=host.querySelector('#'+name);input.value=String(v[i]);input.dispatchEvent(new Event('input',{bubbles:true}));});for(const b of host.querySelectorAll('[data-master]'))b.setAttribute('aria-pressed',String(b===button))};}
 }
 export const toolModules=Object.freeze([...Object.entries(describe).filter(([id])=>id!=='normalize').map(([id,d])=>({id,category:({bpm:'analyze',key:'analyze',beats:'analyze',editor:'edit',reverse:'edit',normalize:'edit',equalizer:'edit',volume:'edit',wav:'export',loop:'export',health:'ai',master:'ai',quickfix:'ai'})[id],label:({bpm:'BPM Analyzer',key:'Key Finder',beats:'Beat Detection',editor:'Audio Editor',reverse:'Reverse Audio',normalize:'Normalizer',equalizer:'AI Equalizer',volume:'Gain',wav:'Converter',loop:'Loop Cutter',health:'Mix Health',master:'Smart Master',quickfix:'Mix Quick Fix'})[id],mount({host}){
+ if(id==='master')return mountMasteringTool({host,mode:'smart'});
  host.innerHTML='<div class="tool-view module-work">'+section(d.top,d.meta)+'<h3>'+d.title+'</h3><p class="tool-description">'+d.description+'</p>'+settings(id)+resultView(id)+'<div class="pulse-module-actions">'+d.actions.map(([name,value])=>actionButton(name,value)).join('')+'</div><p class="tool-footnote module-result" aria-live="polite" role="status">Load audio to begin.</p></div>';
  initPresets(host,id);
  if(id==='wav'){const format=host.querySelector('#format');const update=()=>{const v=format.value;for(const [name,active] of [['bitrate',['mp3','aac','m4a','wma'].includes(v)],['depth',v==='wav'],['ogg',v==='ogg'],['flac',v==='flac']])host.querySelector('[data-converter="'+name+'"]').hidden=!active;const note=host.querySelector('#converter-codec-note');note.textContent=v==='wav'&&host.querySelector('#sampleRate').value==='original'?'Native PCM WAV conversion · no extra codec download.':'Local FFmpeg WebAssembly processing · first use downloads the codec. WMA and other legacy formats may depend on codec compatibility.';};format.addEventListener('change',update);host.querySelector('#sampleRate').addEventListener('change',update);update();}

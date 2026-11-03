@@ -386,3 +386,22 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset
 .toolkit-heading #toolkit-title span,
 .toolkit-heading #toolkit-title.is-long{font-weight:700}
 input[type="range"]{accent-color:#191919}
+
+/* Three changing editorial advantages under 02 / PRODUCER TOOLKITS. */
+.toolkit:has(+.pulse-benefits) .toolkit-note{margin-bottom:22px}
+.pulse-benefits{background:#191919;color:#f5f4f0;padding:31px 34px 33px;margin:0 0 72px;border-radius:0}
+.pulse-benefits-head{display:flex;align-items:end;justify-content:space-between;gap:24px;border-bottom:1px solid #777670;padding:0 0 24px;margin:0 0 18px}
+.pulse-benefits-eyebrow{font:400 11px/1.5 monospace;letter-spacing:.13em;color:#b7b7b1;margin:0 0 10px}
+.pulse-benefits-head h2{font:400 clamp(30px,3.4vw,48px)/1 Arial,sans-serif;letter-spacing:-.04em;margin:0}
+.pulse-benefits-current{text-align:right;font:400 10px/1.55 Arial,sans-serif;min-width:0}
+.pulse-benefits-current strong{display:block;color:#fff;font:700 15px/1.35 Arial,sans-serif;margin-bottom:5px;overflow-wrap:anywhere}
+.pulse-benefits-current span{display:block;color:#aaa;letter-spacing:.08em}
+.pulse-benefits-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pulse-benefit-card{min-width:0;min-height:183px;display:flex;flex-direction:column;border:1px solid #636363;padding:19px 19px 20px}
+.pulse-benefit-top{display:flex;align-items:flex-start;justify-content:space-between;gap:13px}
+.pulse-benefit-top h3{font:400 clamp(15px,1.7vw,21px)/1.18 Arial,sans-serif;letter-spacing:-.03em;margin:0;overflow-wrap:anywhere}
+.pulse-benefit-top>span{font:700 10px Arial,sans-serif;flex:none;color:#eee}
+.pulse-benefit-card p{font:400 12px/1.63 Arial,sans-serif;color:#cecece;max-width:34ch;margin:auto 0 0;padding-top:19px}
+.pulse-benefits+.pulse-directory{margin-top:62px}
+@media(max-width:850px){.pulse-benefits{padding:25px 22px 27px}.pulse-benefits-grid{gap:8px}.pulse-benefit-card{padding:15px;min-height:175px}}
+@media(max-width:600px){.pulse-benefits-head{align-items:start;flex-direction:column;gap:12px}.pulse-benefits-current{text-align:left}.pulse-benefits-grid{grid-template-columns:1fr}.pulse-benefit-card{min-height:125px}.pulse-benefit-card p{margin-top:4px;padding-top:14px;max-width:44ch}}

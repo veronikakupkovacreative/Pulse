@@ -1,6 +1,7 @@
 import {toolModules} from './modules/index.mjs';
 import {enhanceParameterControls} from './modules/slider-ui.mjs';
 import {renderToolEditorial} from './modules/tool-editorial.mjs';
+import {renderToolBenefits} from './modules/tool-benefits.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -35,6 +36,7 @@ function mountTool(definition){
   clearMountedTool();
   blank.hidden=true;
   renderToolEditorial(definition);
+  renderToolBenefits(definition);
   tabs.querySelectorAll('button').forEach((button)=>{
     const selected=button.dataset.tool===definition.id;
     button.classList.toggle('selected',selected);

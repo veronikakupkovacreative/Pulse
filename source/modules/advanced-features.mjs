@@ -1,6 +1,7 @@
 import {workspace as w} from './workspace.mjs';
 import {clipBalance,sidechainCompress,modulationEffect,runRack,RACK_PRESETS} from './advanced-dsp.mjs';
 import {applySmartMaster,audioMetrics} from './dsp.mjs';
+import {mountMasteringTool} from './mastering-ui.mjs';
 const catalogs=[
  {id:'sidechain',category:'edit',label:'Sidechain Compressor',title:'Make it<br><span>pump.</span>',desc:'External kick-triggered compression or synchronized rhythmic pumping.',presets:{'4/4 Pump':{mode:'internal',threshold:-28,ratio:7,attack:3,release:160,amount:82,bpm:120},'Soft Duck':{mode:'internal',threshold:-21,ratio:3,attack:15,release:270,amount:48,bpm:120},'Gentle Groove':{mode:'internal',threshold:-18,ratio:2.5,attack:18,release:280,amount:35,bpm:120},'Kick Trigger':{mode:'external',threshold:-27,ratio:5,attack:5,release:180,amount:85,bpm:120}},fields:[['threshold','Threshold (dB)',-60,-3,-24],['ratio','Ratio',1,20,5],['attack','Attack (ms)',1,100,5],['release','Release (ms)',20,1000,180],['amount','Mix (%)',0,100,85],['bpm','Tempo (BPM)',60,200,120]]},
  {id:'modulation',category:'edit',label:'Modulation Effects',title:'Move the<br><span>sound.</span>',desc:'Chorus, flanger and four-stage allpass phaser processing.',presets:{'Wide Chorus':{type:'chorus',rate:.35,depth:70,mix:45,feedback:16},'Jet Flanger':{type:'flanger',rate:.65,depth:82,mix:60,feedback:55},'Micro Chorus':{type:'chorus',rate:.18,depth:32,mix:24,feedback:7},'Slow Phaser':{type:'phaser',rate:.23,depth:75,mix:55,feedback:0}},fields:[['rate','LFO (Hz)',.05,8,.7],['depth','Depth (%)',0,100,50],['mix','Wet (%)',0,100,35],['feedback','Feedback (%)',0,80,20]]},
@@ -44,4 +45,4 @@ function mount(model,{host}){
    finally{btn.disabled=false}
  };
 }
-export const advancedModules=Object.freeze(catalogs.map(model=>({id:model.id,category:model.category,label:model.label,mount:args=>mount(model,args)})));
+export const advancedModules=Object.freeze(catalogs.map(model=>({id:model.id,category:model.category,label:model.label,mount:args=>model.id==='mix-master'?mountMasteringTool({host:args.host,mode:'mix'}):mount(model,args)})));

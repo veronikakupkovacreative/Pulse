@@ -1,4 +1,6 @@
 import {bandLayout, eqFilters, formatEqFrequency} from './eq-engine.mjs';
+import {workspace as w} from './workspace.mjs';
+import {paintEqWaveform} from './eq-waveform.mjs';
 
 const NS = 'http://www.w3.org/2000/svg';
 const create = (name, properties = {}, parent) => {
@@ -17,7 +19,7 @@ const frequencyX=hz=>X0 + Math.log(clamp(hz,20,20000)/20)/Math.log(1000)*(X1-X0)
  * The curve uses BiquadFilterNode.getFrequencyResponse, matching the actual
  * filters used by both EQ processing paths. The host owns user inputs.
  */
-export function mountEqResponse({host, count = () => 3, gains, changeGain, changeCount = null, bandOptions = [3,10,20]}) {
+export function mountEqResponse({host, count = () => 3, gains, changeGain, changeCount = null, bandOptions = [3,5,10,20]}) {
   const player=document.querySelector('.audio-source-area');
   if(!player) return () => {};
   const stage=document.createElement('section');
@@ -30,11 +32,22 @@ export function mountEqResponse({host, count = () => 3, gains, changeGain, chang
     : '';
   stage.innerHTML=`<div class="eq-left-heading"><strong>PARAMETRIC EQ &middot; LIVE RESPONSE</strong><span>20 Hz - 20 kHz</span></div>
     ${bandSwitch}
-    <div class="pulse-eq-stage"><svg class="pulse-eq-graph" viewBox="0 0 640 232" role="group" aria-label="Live equalizer response; drag handles or use arrow keys to set gain.">
-    <g class="eq-graph-grid"></g><path class="eq-zero-axis"></path><path class="eq-graph-curve"></path><g class="eq-graph-handles"></g></svg></div>
+    <div class="pulse-eq-stage"><div class="pulse-eq-graph-layers"><canvas class="pulse-eq-underlay" width="640" height="232" aria-hidden="true"></canvas><svg class="pulse-eq-graph" viewBox="0 0 640 232" role="group" aria-label="Live equalizer response; drag handles or use arrow keys to set gain.">
+    <g class="eq-graph-grid"></g><path class="eq-zero-axis"></path><path class="eq-graph-curve"></path><g class="eq-graph-handles"></g></svg></div></div>
     <div class="pulse-eq-feedback"><span data-eq-readout>FLAT RESPONSE</span><span data-eq-count>${count()} ACTIVE BANDS</span></div>
     <p class="pulse-eq-editor-note">Drag a point or use arrow keys. The curve updates immediately; Apply renders the change to audio.</p>`;
   player.append(stage);
+  const underlay=stage.querySelector('.pulse-eq-underlay');
+  let waveformBuffer=undefined;
+  const updateWaveform=()=>{
+    const buffer=w.buffer||null;
+    if(buffer===waveformBuffer)return;
+    waveformBuffer=buffer;
+    paintEqWaveform(underlay,buffer);
+    stage.classList.toggle('has-eq-audio',Boolean(buffer));
+  };
+  updateWaveform();
+  const waveformWatch=setInterval(updateWaveform,400);
   const svg=stage.querySelector('svg'),grid=stage.querySelector('.eq-graph-grid');
   const curve=stage.querySelector('.eq-graph-curve'),zero=stage.querySelector('.eq-zero-axis'),handles=stage.querySelector('.eq-graph-handles');
   for(let i=0;i<=6;i++) {
@@ -147,7 +160,7 @@ export function mountEqResponse({host, count = () => 3, gains, changeGain, chang
   });
   graphFilters();draw();
   const cleanup=()=>{
-    closed=true;host.removeEventListener('input',onInput);if(frame)cancelAnimationFrame(frame);
+    closed=true;clearInterval(waveformWatch);host.removeEventListener('input',onInput);if(frame)cancelAnimationFrame(frame);
     svg.removeEventListener('pointerdown',down);svg.removeEventListener('pointermove',drag);
     svg.removeEventListener('pointerup',end);svg.removeEventListener('pointercancel',end);
     svg.removeEventListener('lostpointercapture',end);svg.removeEventListener('keydown',keydown);

@@ -6,6 +6,7 @@ import {legacyModules} from './legacy-tools.mjs';
 import {advancedEqualizerModule} from './eq-advanced.mjs';
 import {EQ3_PRESETS,EQ_GENRE_PRESETS,bandLayout,eqPresetGains,eqFilters,interpolateEqGains,formatEqFrequency} from './eq-engine.mjs';
 import {renderWithNodes} from './legacy-dsp.mjs';
+import {downloadEqWav} from './eq-export.mjs';
 import {mountEqResponse} from './eq-response.mjs';
 import {webModules} from './web-tools.mjs';
 import {aiNormalizerModule} from './normalizer-tool.mjs';
@@ -25,7 +26,7 @@ const describe={
  editor:{top:'02 / AUDIO EDITOR',meta:'PRECISION EDIT',title:'Cut the sound.<br><span>Keep the groove.</span>',description:'Shift + drag across the waveform to choose an area. Trim keeps the selection; Cut removes it. Short fades reduce clicks.',result:'SELECTED RANGE',actions:[['Trim to selection','trim'],['Cut selection','cut']]},
  reverse:{top:'02 / AUDIO REVERSE',meta:'TIME DIRECTION',title:'Reverse<br><span>the sound.</span>',description:'Flip the track in time while retaining original duration and sample rate.',result:'PLAYBACK DIRECTION',actions:[['Reverse audio','reverse']]},
  normalize:{top:'02 / NORMALIZER',meta:'LEVEL CONTROL',title:'Control<br><span>the level.</span>',description:'Apply peak normalization to a chosen dBFS ceiling. This is not integrated LUFS normalization.',result:'PEAK TARGET',actions:[['Normalize audio','normalize']]},
- equalizer:{top:'02 / AI EQUALIZER',meta:'3 / 10 / 20 BANDS · LOCAL DSP',title:'AI Equalizer.<br><span>Shape your sound.</span>',description:'Genre-inspired 3, 10 or 20-band parametric EQ for EDM, vocals, hip-hop and acoustic music. The interactive response curve is rendered with real local filters.',result:'FREQUENCY RESPONSE',actions:[['Apply to workspace','equalizer']]},
+ equalizer:{top:'02 / AI EQUALIZER',meta:'3 / 5 / 10 / 20 BANDS · LOCAL DSP',title:'AI Equalizer.<br><span>Shape your sound.</span>',description:'Genre-inspired 3, 5, 10 or 20-band parametric EQ for EDM, vocals, hip-hop and acoustic music. The interactive response curve is rendered with real local filters.',result:'FREQUENCY RESPONSE',actions:[['Apply to workspace','equalizer'],['Export EQ · WAV 24-bit','export-eq']]},
  volume:{top:'02 / GAIN',meta:'AMPLITUDE',title:'Shape<br><span>the volume.</span>',description:'Adjust global track gain in decibels. The processed audio replaces the current workspace buffer.',result:'AMPLIFICATION',actions:[['Apply gain','volume']]},
  wav:{top:'03 / AUDIO CONVERTER',meta:'FORMAT CONTROL',title:'Change the format.<br><span>Keep creating.</span>',description:'Convert audio locally to MP3, WAV, FLAC, AAC, M4A, OGG or WMA. Choose compression quality and output sample rate.',result:'EXPORT FORMAT',actions:[['Convert & download','export']]},
  loop:{top:'03 / LOOP CUTTER',meta:'PRECISION EXPORT',title:'Cut the loop.<br><span>Keep the groove.</span>',description:'Choose a selection in the waveform and download only the selected range.',result:'LOOP RANGE',actions:[['Export selection','export']]},
@@ -65,7 +66,7 @@ const run=async(id,mode,host)=>{
  if(id==='reverse'){w.commit(reverseBuffer(b));setMetric(host,'primary','REVERSED');return 'Audio reversed. Use Undo to compare.'}
  if(id==='normalize'){const v=numeric(host,'value',-18,0);w.commit(normalizeBuffer(b,v));setMetric(host,'primary',v.toFixed(1)+' dBFS');return 'Peak normalized.'}
  if(id==='volume'){const v=numeric(host,'value',-24,24);w.commit(gainBuffer(b,v));setMetric(host,'primary',(v>0?'+':'')+v.toFixed(1)+' dB');return 'Gain applied.'}
- if(id==='equalizer'){const controller=host.__pulseEqController;if(!controller)throw Error('Equalizer is not initialized.');const {count,values}=controller.read();const filters=eqFilters(count,values);w.commit(await renderWithNodes(b,filters),count+'-band Parametric EQ applied.');setMetric(host,'primary',count+' BANDS');return count+'-band Parametric EQ applied. Use Undo to compare.'}
+ if(id==='equalizer'){const controller=host.__pulseEqController;if(!controller)throw Error('Equalizer is not initialized.');const {count,values}=controller.read();const filters=eqFilters(count,values);const output=await renderWithNodes(b,filters);setMetric(host,'primary',count+' BANDS');if(mode==='export-eq'){const file=downloadEqWav(output,w.name,'ai-equalizer');return 'Exported '+file.filename+' · '+(file.bytes/1048576).toFixed(2)+' MB.';}w.commit(output,count+'-band Parametric EQ applied.');return count+'-band Parametric EQ applied. Use Undo to compare.'}
  if(id==='wav'){const options=conversionOptions({format:host.querySelector('#format').value,sampleRate:host.querySelector('#sampleRate').value,bitrate:host.querySelector('#bitrate').value,bitDepth:host.querySelector('#bitDepth').value,oggQuality:host.querySelector('#oggQuality').value,flacLevel:host.querySelector('#flacLevel').value});const bar=host.querySelector('.converter-progress');const blob=await convertBuffer(b,options,msg=>{host.querySelector('.module-result').textContent=msg;},percent=>{bar.setAttribute('aria-valuenow',String(percent));bar.querySelector('i').style.width=percent+'%';});downloadConversion(blob,w.name,options.format);setMetric(host,'primary',options.format.toUpperCase());return 'Converted and downloaded '+options.format.toUpperCase()+' · '+(blob.size/1024/1024).toFixed(2)+' MB.';}
  if(id==='loop'){const choice=host.querySelector('#bits').value,bits=choice==='auto'?16:Number(choice);w.save(bits,true);return 'Selected loop exported.'}
  if(id==='health'){const r=audioMetrics(b);setMetric(host,'peak',r.peakDb.toFixed(1));setMetric(host,'rms',r.rmsDb.toFixed(1));setMetric(host,'crest',r.crestDb.toFixed(1));setMetric(host,'clipped',r.clipped);return 'Analysis complete · measurements are sample based.'}
@@ -76,7 +77,7 @@ function installEqGraph(host){
  if(!fields)throw Error('EQ controls are missing.');
  const presetButtons=[...host.querySelectorAll('[data-preset]')];
  let count=3,preset='flat',values=eqPresetGains(3,'flat'),graph=null;
- const allowed=new Set([3,10,20]);
+ const allowed=new Set([3,5,10,20]);
  const markPreset=()=>presetButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.preset===preset)));
  function paintFields(){
   const bands=bandLayout(count);
@@ -117,7 +118,7 @@ function installEqGraph(host){
  paintFields();
  graph=mountEqResponse({
   host,count:()=>count,gains:()=>values,changeGain:updateGain,
-  changeCount,bandOptions:[3,10,20]
+  changeCount,bandOptions:[3,5,10,20]
  });
  host.__pulseEqController={read:()=>({count,values:[...values]})};
  return()=>{graph?.cleanup();delete host.__pulseEqController;};

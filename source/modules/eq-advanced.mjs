@@ -2,27 +2,28 @@ import {workspace as w} from './workspace.mjs';
 import {equalize5, renderWithNodes} from './legacy-dsp.mjs';
 import {bandLayout,eqPresetGains,eqFilters,interpolateEqGains,EQ_GENRE_PRESETS,formatEqFrequency} from './eq-engine.mjs';
 import {mountEqResponse} from './eq-response.mjs';
+import {downloadEqWav} from './eq-export.mjs';
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 export const advancedEqualizerModule=Object.freeze({
   id:'eq5',category:'edit',label:'Advanced Audio Equalizer',
   mount({host}){
-    let count=3,preset='flat',values=eqPresetGains(3,'flat'),busy=false;
+    let count=5,preset='flat',values=eqPresetGains(5,'flat'),busy=false;
     const names=Object.entries(EQ_GENRE_PRESETS);
     host.innerHTML=`<div class="tool-view module-work pulse-legacy pulse-eq-advanced">
-      <div class="tool-view-header"><span>02 / ADVANCED AUDIO EQUALIZER</span><span>3 / 10 / 20 BAND DSP</span></div>
+      <div class="tool-view-header"><span>02 / ADVANCED AUDIO EQUALIZER</span><span>3 / 5 / 10 / 20 BAND DSP</span></div>
       <h3>Fine-tune.<br><span>Every frequency.</span></h3>
       <p class="tool-description">A professional multi-band EQ for sub-bass, bass, mids, high-mids and brilliance. Choose a sound profile, switch the band count below the waveform, then refine each frequency.</p>
       <p class="pulse-detail-label">GENRE &amp; MASTERING PRESETS</p>
       <div class="pulse-legacy-presets eq-genre-presets" role="group" aria-label="Advanced Equalizer presets">${names.map(([id,item])=>`<button type="button" data-eq-preset="${id}" aria-pressed="${id==='flat'}">${escapeHtml(item.name)}</button>`).join('')}</div>
-      <div class="eq-fields-heading"><span>FREQUENCY CONTROL</span><span data-eq-mode>3 BANDS</span></div>
+      <div class="eq-fields-heading"><span>FREQUENCY CONTROL</span><span data-eq-mode>5 BANDS</span></div>
       <div class="pulse-legacy-fields eq-advanced-fields"></div>
       <p class="eq-advanced-note">Gain -18 to +18 dB per band. A/B compare using SOURCE AUDIO Undo. Presets are deterministic EQ curves, not neural AI.</p>
-      <button class="tool-action tool-action-dark pulse-legacy-run eq-advanced-apply" type="button"><span>APPLY EQ TO WORKSPACE</span><span aria-hidden="true">&#8599;</span></button>
+      <div class="eq-advanced-actions"><button class="tool-action tool-action-dark pulse-legacy-run eq-advanced-apply" type="button"><span>APPLY EQ TO WORKSPACE</span><span aria-hidden="true">&#8599;</span></button><button class="eq-advanced-export" type="button"><span>EXPORT EQ · WAV 24-BIT</span><span aria-hidden="true">&#8599;</span></button></div>
       <p class="pulse-legacy-status" role="status" aria-live="polite">Choose a preset or adjust the graph to begin.</p>
     </div>`;
     const root=host.querySelector('.pulse-eq-advanced'),fields=host.querySelector('.eq-advanced-fields');
-    const status=host.querySelector('[role=status]'),apply=host.querySelector('.eq-advanced-apply');
+    const status=host.querySelector('[role=status]'),apply=host.querySelector('.eq-advanced-apply'),exportButton=host.querySelector('.eq-advanced-export');
     const btns=[...host.querySelectorAll('[data-eq-preset]')];
     let graph=null;
     function setStatus(text,kind='info'){status.textContent=text;status.dataset.kind=kind;}
@@ -59,24 +60,31 @@ export const advancedEqualizerModule=Object.freeze({
       setStatus(`Custom EQ curve updated. ${count} bands active.`);
     });
     paintFields();
-    graph=mountEqResponse({host,count:()=>count,gains:()=>values,changeGain:updateGain,changeCount:selectBandCount,bandOptions:[3,10,20]});
-    apply.addEventListener('click',async()=>{
+    graph=mountEqResponse({host,count:()=>count,gains:()=>values,changeGain:updateGain,changeCount:selectBandCount,bandOptions:[3,5,10,20]});
+    async function execute(action){
       if(busy)return;
-      busy=true;apply.disabled=true;setStatus('Rendering all EQ bands locally...');
+      busy=true;apply.disabled=true;exportButton.disabled=true;
+      setStatus(action==='export'?'Rendering EQ for 24-bit WAV export...':'Rendering all EQ bands locally...');
       try {
-        const audio=w.ensureAudio();
-        const inputs=[...fields.querySelectorAll('[data-eq-gain]')];
+        const audio=w.ensureAudio(),inputs=[...fields.querySelectorAll('[data-eq-gain]')];
         const typed=inputs.map(input=>{
           if(input.value.trim()==='')throw Error('A band gain cannot be empty.');
           return Number(input.value);
         });
         const specs=eqFilters(count,typed);
         const output=count===5?await equalize5(audio,typed):await renderWithNodes(audio,specs);
-        w.commit(output,`Advanced Audio Equalizer ${count} bands applied.`);
-        setStatus(`${count}-band EQ applied. Use Undo to compare with the original.`, 'success');
+        if(action==='export'){
+          const file=downloadEqWav(output,w.name,'advanced-equalizer');
+          setStatus('Exported '+file.filename+' · '+(file.bytes/1048576).toFixed(2)+' MB.','success');
+        }else{
+          w.commit(output,'Advanced Audio Equalizer '+count+' bands applied.');
+          setStatus(count+'-band EQ applied. Use Undo to compare with the original.','success');
+        }
       } catch(error){setStatus(error.message||'EQ processing failed.','error');}
-      finally{busy=false;apply.disabled=false;}
-    });
+      finally{busy=false;apply.disabled=false;exportButton.disabled=false;}
+    }
+    apply.addEventListener('click',()=>execute('apply'));
+    exportButton.addEventListener('click',()=>execute('export'));
     return ()=>{graph?.cleanup();};
   }
 });

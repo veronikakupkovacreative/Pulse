@@ -18,21 +18,21 @@ test('3-band genre presets are wired to gain inputs',()=>{
   assert.ok(EQ_GENRE_PRESETS[key]);
  }
  assert.match(source,/EQ3_PRESETS\[button\.dataset\.preset\]/);
- assert.match(source,/bandOptions:\[3,10,20\]/);
+ assert.match(source,/bandOptions:\[3,5,10,20\]/);
  assert.match(source,/renderWithNodes\(b,filters\)/);
  assert.match(source,/mountEqResponse\(/);
 });
-test('advanced EQ supports actual 3/10/20-band DSP and interactive graph',()=>{
+test('advanced EQ supports actual 3/5/10/20-band DSP and interactive graph',()=>{
  const source=read('modules/eq-advanced.mjs'),graph=read('modules/eq-response.mjs');
  assert.match(source,/count===5\?await equalize5\(audio,typed\):await renderWithNodes\(audio,specs\)/);
- assert.match(source,/bandOptions:\[3,10,20\]/);
- assert.match(graph,/bandOptions = \[3,10,20\]/);
+ assert.match(source,/bandOptions:\[3,5,10,20\]/);
+ assert.match(graph,/bandOptions = \[3,5,10,20\]/);
  assert.match(graph,/getFrequencyResponse/);
  assert.match(graph,/key==='ArrowUp'/);
 });
 test('both equalizers have individual editorial copy',()=>{
  assert.match(TOOL_EDITORIAL.equalizer.summary,/EDM, Vocals, Hip-Hop or Acoustic/);
- assert.match(TOOL_EDITORIAL.eq5.summary,/three, ten or twenty/);
+ assert.match(TOOL_EDITORIAL.eq5.summary,/three, five, ten or twenty/);
 });
 test('EQ UI includes a black branded band switcher and no white inputs',()=>{
  const css=read('modules/eq-ui.css');

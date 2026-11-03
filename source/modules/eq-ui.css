@@ -40,3 +40,17 @@
 @media(max-width:650px){.pulse-eq-live .eq-band-switch{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.pulse-eq-live .eq-band-switch button{min-height:38px;font-size:11px}.pulse-eq-live .pulse-eq-stage{padding:6px 5px 0}.pulse-eq-live .eq-graph-grid text{font-size:11px}.pulse-eq-advanced .eq-genre-presets{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:390px){.pulse-eq-advanced .eq-genre-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.module-work .eq-preset-pills{grid-template-columns:repeat(2,minmax(0,1fr))}.pulse-eq-advanced .eq-advanced-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.pulse-eq-live .eq-graph-handles circle,.pulse-eq-live .eq-band-switch button{transition:none}}
+/* PULSE SOURCE AUDIO waveform behind the shared frequency response chart. */
+.pulse-eq-live .pulse-eq-graph-layers{position:relative;isolation:isolate}
+.pulse-eq-live .pulse-eq-underlay{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
+.pulse-eq-live .pulse-eq-graph{position:relative;z-index:1}
+.pulse-eq-live .eq-band-switch{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pulse-eq-advanced .eq-advanced-actions{display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.pulse-eq-advanced .eq-advanced-actions .eq-advanced-apply{margin-top:0}
+.pulse-eq-advanced .eq-advanced-actions .eq-advanced-export{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:49px;padding:13px 18px;border:1px solid #191919;border-radius:0;background:transparent;color:#191919;text-align:left;font:600 11px Arial,sans-serif;letter-spacing:.03em;cursor:pointer}
+.pulse-eq-advanced .eq-advanced-actions .eq-advanced-export:hover:not(:disabled){background:#191919;color:#fff}
+.pulse-eq-advanced .eq-advanced-actions .eq-advanced-export:disabled{opacity:.5;cursor:wait}
+.pulse-eq-advanced .eq-advanced-actions .eq-advanced-export:focus-visible{outline:2px solid #191919;outline-offset:3px}
+.module-work .pulse-module-actions:has([data-action="export-eq"]) .module-action:last-child{background:transparent;color:#191919;border:1px solid #191919}
+.module-work .pulse-module-actions:has([data-action="export-eq"]) .module-action:last-child:hover:not(:disabled){background:#191919;color:#fff}
+@media(max-width:650px){.pulse-eq-live .eq-band-switch{grid-template-columns:repeat(2,minmax(0,1fr))}}

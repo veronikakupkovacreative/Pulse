@@ -2,6 +2,8 @@ import {toolModules} from './modules/index.mjs';
 import {enhanceParameterControls} from './modules/slider-ui.mjs';
 import {renderToolEditorial} from './modules/tool-editorial.mjs';
 import {renderToolBenefits} from './modules/tool-benefits.mjs';
+import {workspace as w} from './modules/workspace.mjs';
+import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -50,7 +52,8 @@ function mountTool(definition){
   try{
     const cleanup=definition.mount({host,category:activeCategory});
     const stopSliders=enhanceParameterControls(host);
-    currentCleanup=()=>{stopSliders();if(typeof cleanup==='function')cleanup();};
+    const stopAudioActions=mountWorkspaceActions(host,w);
+    currentCleanup=()=>{stopAudioActions();stopSliders();if(typeof cleanup==='function')cleanup();};
   }catch(error){
     host.replaceChildren();
     const msg=document.createElement('p');

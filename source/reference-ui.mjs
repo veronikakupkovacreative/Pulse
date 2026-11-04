@@ -1,5 +1,7 @@
 import {workspace as w} from './modules/workspace.mjs';
+import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 const $=id=>document.getElementById(id);
+mountWorkspaceActions(document.querySelector('#analyzer .bpm-result-panel'),w);
 const duration=t=>{const x=Math.floor(Math.max(0,t));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};
 let result=null,track=null,runId=0,playingMetro=false,metroTimer=null,metroContext=null,metroStep=0;
 function status(msg){$('bpm-error').textContent=msg||''}

@@ -1,4 +1,5 @@
 /** Three truthful, tool-specific reasons, updated from the active PULSE module. */
+import {TOOL_EDITORIAL} from './tool-editorial.mjs';
 export const TOOL_BENEFITS=Object.freeze({
   bpm:[['TEMPO ESTIMATE','Find a practical BPM starting point from rhythmic transients.'],['ONSET CONTEXT','Check detected beats on the waveform before committing to a tempo.'],['LOCAL ANALYSIS','Your audio stays in browser memory while BPM is estimated.']],
   key:[['HARMONIC START','Estimate the track key without exporting it to another application.'],['CAMELOT REFERENCE','Use the wheel notation to plan a harmonically compatible transition.'],['QUICK CROSS-CHECK','See a confidence indicator and verify complex chords by ear.']],
@@ -50,18 +51,26 @@ export function renderToolBenefits(tool,root=document){
   if(!benefits||benefits.length!==3)throw Error('Missing three benefits for '+String(tool?.id));
   const host=root.querySelector('#pulse-benefits-grid');
   const label=root.querySelector('#pulse-benefits-tool');
+  const summary=root.querySelector('#pulse-benefits-summary');
   const state=root.querySelector('#pulse-benefits-state');
   if(!host||!label)return;
   label.textContent=tool.label;
+  if(summary)summary.textContent=TOOL_EDITORIAL[tool.id]?.summary||'Explore the selected tool in the audio workspace.';
   if(state)state.textContent=planned.has(tool.id)?'PLANNED / NOT ACTIVE':'THREE REASONS / ONE WORKSPACE';
   const create=name=>root.createElement?root.createElement(name):document.createElement(name);
+  const icons=[
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h10a3 3 0 1 0-2.7-4.3"/><path d="M2 12h16a3 3 0 1 1-2.8 4.1"/><path d="M4 17h7a2.5 2.5 0 1 1-2.4 3.3"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v18M12 3v18M19 3v18"/><path d="M2 8h6M9 14h6M16 9h6"/><rect x="3" y="6" width="4" height="4" rx="1"/><rect x="10" y="12" width="4" height="4" rx="1"/><rect x="17" y="7" width="4" height="4" rx="1"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v2a6 6 0 0 0 12 0v-2M12 19v3M8 22h8"/></svg>'
+  ];
   host.replaceChildren(...benefits.map(([heading,description],i)=>{
     const card=create('article');card.className='pulse-benefit-card';
     const top=create('div');top.className='pulse-benefit-top';
-    const title=create('h3');title.textContent=heading;
+    const icon=create('span');icon.className='pulse-benefit-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML=icons[i];
     const number=create('span');number.textContent=String(i+1).padStart(2,'0');
-    top.append(title,number);
+    top.append(icon,number);
+    const title=create('h3');title.textContent=heading;
     const body=create('p');body.textContent=description;
-    card.append(top,body);return card;
+    card.append(top,title,body);return card;
   }));
 }

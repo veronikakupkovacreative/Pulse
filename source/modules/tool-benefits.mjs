@@ -1,5 +1,4 @@
 /** Three truthful, tool-specific reasons, updated from the active PULSE module. */
-import {TOOL_EDITORIAL} from './tool-editorial.mjs';
 export const TOOL_BENEFITS=Object.freeze({
   bpm:[['TEMPO ESTIMATE','Find a practical BPM starting point from rhythmic transients.'],['ONSET CONTEXT','Check detected beats on the waveform before committing to a tempo.'],['LOCAL ANALYSIS','Your audio stays in browser memory while BPM is estimated.']],
   key:[['HARMONIC START','Estimate the track key without exporting it to another application.'],['CAMELOT REFERENCE','Use the wheel notation to plan a harmonically compatible transition.'],['QUICK CROSS-CHECK','See a confidence indicator and verify complex chords by ear.']],
@@ -45,18 +44,11 @@ export const TOOL_BENEFITS=Object.freeze({
   'noise-remover':[['LEARN THE NOISE','Automatically profile quiet passages or select a noise-only portion of the waveform.'],['PRECISE THREE-STAGE CLEANUP','Combine rumble filtering, hiss filtering and frequency-dependent spectral attenuation.'],['A/B WITHOUT COMMITTING','Audition before and after, then apply with Undo or export the cleaned 24-bit WAV.']],
   visualizer:[['LIVE AUDIO SHAPES','Watch waveform and spectrum patterns react to sound.'],['STYLE VARIETY','Switch among multiple visual modes without generating video.'],['SIGNAL SETTINGS','Adjust bar count and sensitivity for your recording.']]
 });
-const planned=new Set(['pitch-correction','time-stretch','stems']);
 export function renderToolBenefits(tool,root=document){
   const benefits=TOOL_BENEFITS[tool?.id];
   if(!benefits||benefits.length!==3)throw Error('Missing three benefits for '+String(tool?.id));
   const host=root.querySelector('#pulse-benefits-grid');
-  const label=root.querySelector('#pulse-benefits-tool');
-  const summary=root.querySelector('#pulse-benefits-summary');
-  const state=root.querySelector('#pulse-benefits-state');
-  if(!host||!label)return;
-  label.textContent=tool.label;
-  if(summary)summary.textContent=TOOL_EDITORIAL[tool.id]?.summary||'Explore the selected tool in the audio workspace.';
-  if(state)state.textContent=planned.has(tool.id)?'PLANNED / NOT ACTIVE':'THREE REASONS / ONE WORKSPACE';
+  if(!host)return;
   const create=name=>root.createElement?root.createElement(name):document.createElement(name);
   const icons=[
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h10a3 3 0 1 0-2.7-4.3"/><path d="M2 12h16a3 3 0 1 1-2.8 4.1"/><path d="M4 17h7a2.5 2.5 0 1 1-2.4 3.3"/></svg>',

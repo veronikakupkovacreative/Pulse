@@ -390,7 +390,7 @@ input[type="range"]{accent-color:#191919}
 /* Advantages: heading outside a single stroked, three-column editorial panel. */
 .toolkit:has(+.pulse-benefits) .toolkit-note{margin-bottom:24px}
 .pulse-benefits{background:transparent;color:#191919;padding:0;margin:52px 0 62px;border:0;border-radius:0}
-.pulse-benefits-head{display:flex;align-items:end;justify-content:space-between;gap:36px;border:0;padding:0;margin:0 0 28px}
+.pulse-benefits-head{display:flex;align-items:end;justify-content:flex-start;gap:36px;border:0;padding:0;margin:0 0 28px}
 .pulse-benefits-eyebrow{display:flex;align-items:center;gap:13px;font:400 11px/1.5 monospace;letter-spacing:.13em;color:#777670;margin:0 0 20px}
 .pulse-benefits-eyebrow::before{content:'';display:inline-block;width:6px;height:6px;flex:none;border-radius:50%;background:#ff2b20}
 .pulse-benefits-head h2{font:700 clamp(42px,5.5vw,82px)/.98 Arial,Helvetica,sans-serif;letter-spacing:-.065em;max-width:700px;margin:0}
@@ -398,7 +398,7 @@ input[type="range"]{accent-color:#191919}
 .pulse-benefits-current strong{display:block;color:#191919;font:700 14px/1.4 Arial,sans-serif;margin:0 0 11px;overflow-wrap:anywhere}
 .pulse-benefits-current p{font:400 clamp(13px,1.25vw,16px)/1.65 Arial,sans-serif;color:#66645f;margin:0;max-width:48ch}
 .pulse-benefits-current span{display:block;color:#8b8982;letter-spacing:.1em;font:400 9px/1.4 monospace;margin:12px 0 0}
-.pulse-benefits-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid #bdbab2;border-radius:31px;overflow:hidden;background:transparent}
+.pulse-benefits-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid #bdbab2;border-radius:0;overflow:hidden;background:transparent}
 .pulse-benefit-card{min-width:0;min-height:264px;display:flex;flex-direction:column;border:0;background:transparent;padding:24px 28px 29px}
 .pulse-benefit-card+.pulse-benefit-card{border-left:1px solid #d0cdc5}
 .pulse-benefit-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
@@ -420,7 +420,7 @@ input[type="range"]{accent-color:#191919}
  .pulse-benefits-head{align-items:flex-start;flex-direction:column;gap:18px;margin-bottom:24px}
  .pulse-benefits-current{flex:auto;max-width:100%}
  .pulse-benefits-head h2{font-size:clamp(38px,9vw,60px)}
- .pulse-benefits-grid{grid-template-columns:1fr;border-radius:23px}
+ .pulse-benefits-grid{grid-template-columns:1fr;border-radius:0}
  .pulse-benefit-card{min-height:0;padding:21px 22px 25px}
  .pulse-benefit-card+.pulse-benefit-card{border-left:0;border-top:1px solid #d0cdc5}
  .pulse-benefit-card h3{font-size:22px;margin-top:19px}

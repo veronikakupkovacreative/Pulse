@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {readFileSync} from 'node:fs';
 import {normalizationPlan,applyPeakGain,exportNormalizedWav} from '../source/modules/normalizer-core.mjs';
 const buffer=(samples,rate=44100)=>({numberOfChannels:samples.length,sampleRate:rate,length:samples[0].length,getChannelData:i=>Float32Array.from(samples[i])});
 test('attenuates 0 dBFS peak to -1 dBFS',()=>{const p=normalizationPlan(buffer([[1,-1]]));assert.ok(Math.abs(p.outputDbfs+1)<1e-8);assert.ok(p.gain<1);});

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TOOL_EDITORIAL,renderToolEditorial} from '../source/modules/tool-editorial.mjs';
 
-const existing = ['bpm','key','beats','tap','editor','reverse','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','video-audio','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','visualizer','reference-matcher','room-tail-reducer','key-chords','noise-remover'];
+const existing = ['rhythm','key','tap','editor','reverse','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','video-audio','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','visualizer','reference-matcher','room-tail-reducer','key-chords','noise-remover'];
 
 test('every currently registered tool has individual editorial summary and steps',()=>{
   assert.deepEqual(Object.keys(TOOL_EDITORIAL).sort(),existing.sort());
@@ -14,7 +14,7 @@ test('tool description changes when mounting another module',()=>{
  const node=(name)=>({name,textContent:'',children:[],classList:{toggle(){}},replaceChildren(...x){this.children=x}});
  for(const id of ['#toolkit-title','#pulse-tool-summary','#pulse-tool-steps'])elements.set(id,node(id));
  const doc={querySelector:id=>elements.get(id),createElement:name=>node(name)};
- renderToolEditorial({id:'bpm',label:'BPM Analyzer'},doc);
+ renderToolEditorial({id:'rhythm',label:'Rhythm Engine'},doc);
  assert.match(elements.get('#pulse-tool-summary').textContent,/tempo/);
  renderToolEditorial({id:'ai-voice-cloning',label:'Voice Cloning'},doc);
  assert.match(elements.get('#pulse-tool-summary').textContent,/voice clone/);

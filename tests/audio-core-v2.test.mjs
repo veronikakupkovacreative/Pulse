@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {HistoryStack,estimateAudioBytes,defaultHistoryBudget} from '../source/modules/history-stack.mjs';
+import {analyzeTempo} from '../source/modules/original-bpm.mjs';
+import {estimateKeyFromWindows} from '../source/modules/key-analysis.mjs';
+function beat(bpm,seconds=18){const sr=22050,data=new Float32Array(sr*seconds);for(let n=0;n<bpm/60*seconds;n++){const start=Math.round(n*60/bpm*sr);for(let j=0;j<sr*.1&&start+j<data.length;j++)data[start+j]+=.8*Math.sin(2*Math.PI*90*j/sr)*Math.exp(-j/(sr*.018));}return data;}
+const mockBuffer=(length,channels=2)=>({length,numberOfChannels:channels});
+test('history stores references and supports undo and redo',()=>{const h=new HistoryStack({maxBytes:1024*1024,maxEntries:8}),a=mockBuffer(100),b=mockBuffer(120);assert.equal(h.push(a,b,'trim'),true);assert.equal(h.undo(b),a);assert.equal(h.canRedo,true);assert.equal(h.redo(a),b);assert.equal(h.canUndo,true);});
+test('history prunes snapshots over the memory budget',()=>{const h=new HistoryStack({maxBytes:1200,maxEntries:10}),a=mockBuffer(100),b=mockBuffer(100),c=mockBuffer(100),d=mockBuffer(100);h.push(a,b);h.push(b,c);h.push(c,d);assert.ok(h.retainedBytes<=1200);assert.ok(h.undoEntries.length<3);});
+test('history refuses one snapshot larger than the budget',()=>{const h=new HistoryStack({maxBytes:100}),a=mockBuffer(100),b=mockBuffer(100);assert.equal(h.push(a,b),false);assert.equal(h.canUndo,false);});
+test('history memory estimates are Float32 PCM and budget is bounded',()=>{assert.equal(estimateAudioBytes(mockBuffer(100)),800);assert.equal(defaultHistoryBudget(8),192*1024*1024);});
+for(const bpm of [60,72,85,100,120,128,140,174,200])test('rhythm detects '+bpm+' BPM',()=>{const result=analyzeTempo(beat(bpm),22050);assert.ok(Math.abs(result.bpm-bpm)<1.1);assert.ok(result.beatTimes.length>10);});
+test('rhythm beat markers follow the detected tempo interval',()=>{const result=analyzeTempo(beat(120),22050),intervals=result.beatTimes.slice(1).map((t,i)=>t-result.beatTimes[i]).sort((a,b)=>a-b);assert.ok(Math.abs(intervals[Math.floor(intervals.length/2)]-60/result.bpm)<.04);});
+test('rhythm rejects silence and unstructured noise',()=>{assert.throws(()=>analyzeTempo(new Float32Array(22050*8),22050),/SILENCE/);let seed=22;const noise=Float32Array.from({length:22050*20},()=>{seed=(seed*1664525+1013904223)>>>0;return(seed/4294967296*2-1)*.5;});assert.throws(()=>analyzeTempo(noise,22050),/NO_RHYTHM/);});
+test('key analysis returns a valid estimate and rejects silence',()=>{const sr=44100,size=4096,frames=8,windows=new Float32Array(size*frames),notes=[261.6256,329.6276,391.9954];for(let f=0;f<frames;f++)for(let i=0;i<size;i++){const t=i/sr;windows[f*size+i]=notes.reduce((sum,hz)=>sum+Math.sin(2*Math.PI*hz*t)/3,0);}const result=estimateKeyFromWindows(windows,sr,frames);assert.match(result.key,/^(C|C#|D|D#|E|F|F#|G|G#|A|A#|B) (major|minor)$/);assert.equal(estimateKeyFromWindows(new Float32Array(size*2),sr,2).key,'Undetermined');});
+test('rhythm and key analysis are registered as worker modules',async()=>{const features=(await import('../source/modules/features.mjs')).toolModules;assert.ok(features.some(tool=>tool.id==='rhythm'));assert.ok(!features.some(tool=>tool.id==='bpm'||tool.id==='beats'));assert.ok(features.some(tool=>tool.id==='key'));});

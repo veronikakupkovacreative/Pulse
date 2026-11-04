@@ -92,6 +92,35 @@ export function analyzeTempo(samples, sampleRate) {
   });
   const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;
   const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';
+  // Estimate beat phase from the onset envelope, then snap each grid point to a local onset.
+  const period = 60 * rate / best.bpm;
+  const phaseLimit = Math.max(1, Math.ceil(period));
+  let bestPhase = 0, bestPhaseScore = -Infinity;
+  const envelopeAt = position => {
+    const lower = Math.floor(position), fraction = position - lower;
+    if (lower < 0 || lower >= envelope.length) return 0;
+    return envelope[lower] * (1 - fraction) + (envelope[lower + 1] || 0) * fraction;
+  };
+  for (let phase = 0; phase < phaseLimit; phase++) {
+    let score = 0;
+    for (let position = phase; position < frames; position += period) score += envelopeAt(position);
+    if (score > bestPhaseScore) { bestPhaseScore = score; bestPhase = phase; }
+  }
+  const searchRadius = Math.max(2, Math.min(12, Math.round(period * 0.12)));
+  const beatTimes = [];
+  let lastFrame = -Infinity, firstPosition = bestPhase;
+  while (firstPosition - period >= -searchRadius) firstPosition -= period;
+  for (let position = firstPosition; position < frames; position += period) {
+    const center = Math.round(position), from = Math.max(2, center - searchRadius), to = Math.min(frames - 3, center + searchRadius);
+    let peakIndex = center, peakValue = -Infinity;
+    for (let i = from; i <= to; i++) {
+      if (envelope[i] > peakValue && envelope[i] >= envelope[i - 1] && envelope[i] >= envelope[i + 1]) { peakValue = envelope[i]; peakIndex = i; }
+    }
+    if (!Number.isFinite(peakValue) || peakValue <= 0 || peakIndex - lastFrame < period * 0.65) continue;
+    beatTimes.push(Math.max(0, Math.min(duration, peakIndex / rate)));
+    lastFrame = peakIndex;
+  }
+
   const waveform = Array.from({length:220}, (_,i) => {
     const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);
     let sum = 0, count = 0;
@@ -99,5 +128,5 @@ export function analyzeTempo(samples, sampleRate) {
     return Math.sqrt(sum / (count || 1));
   });
   const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};
+  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatTimes, interpretations:{half:Math.round(best.bpm*5)/10,main:Math.round(best.bpm*10)/10,double:Math.round(best.bpm*20)/10}};
 }

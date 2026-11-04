@@ -1,0 +1,11 @@
+const WINDOW_SIZE=4096;
+const makeId=()=>globalThis.crypto?.randomUUID?.()||'key-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+export function analyzeKeyInWorker(buffer,{signal,timeoutMs=30000}={}){
+ if(!buffer||!Number.isInteger(buffer.length)||buffer.length<WINDOW_SIZE||!Number.isFinite(buffer.sampleRate)||typeof buffer.getChannelData!=='function')return Promise.reject(new Error('Audio is too short for key analysis.'));
+ if(signal?.aborted)return Promise.reject(signal.reason||new DOMException('Analysis cancelled','AbortError'));
+ if(typeof Worker==='undefined')return Promise.reject(new Error('Web Workers are not available in this browser.'));
+ const frameCount=Math.min(80,Math.max(1,Math.floor(buffer.length/(buffer.sampleRate*.18)))),windows=new Float32Array(frameCount*WINDOW_SIZE),channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i));
+ for(let frame=0;frame<frameCount;frame++){const start=Math.floor(frame*(buffer.length-WINDOW_SIZE)/Math.max(1,frameCount-1)),offset=frame*WINDOW_SIZE;for(let sample=0;sample<WINDOW_SIZE;sample++){let sum=0;for(const channel of channels)sum+=channel[start+sample]||0;windows[offset+sample]=sum/channels.length;}}
+ const worker=new Worker(new URL('./key-worker.mjs',import.meta.url),{type:'module'}),id=makeId();
+ return new Promise((resolve,reject)=>{let settled=false;const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',onAbort);worker.terminate();};const finish=(fn,value)=>{if(settled)return;settled=true;cleanup();fn(value);};const onAbort=()=>finish(reject,signal.reason||new DOMException('Analysis cancelled','AbortError'));const timer=setTimeout(()=>finish(reject,new Error('Key analysis timed out.')),timeoutMs);worker.onmessage=({data})=>{if(data?.id!==id)return;if(data.type==='done')finish(resolve,data.result);else if(data.type==='error')finish(reject,new Error(data.error));};worker.onerror=()=>finish(reject,new Error('Key analysis worker failed.'));signal?.addEventListener('abort',onAbort,{once:true});worker.postMessage({type:'analyze',id,sampleRate:buffer.sampleRate,frameCount,windowSize:WINDOW_SIZE,windows:windows.buffer},[windows.buffer]);});
+}

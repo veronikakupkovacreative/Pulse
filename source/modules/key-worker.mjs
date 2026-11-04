@@ -1,0 +1,2 @@
+import {estimateKeyFromWindows} from './key-analysis.mjs';
+self.onmessage=({data})=>{if(data?.type!=='analyze'||typeof data.id!=='string')return;try{const windows=new Float32Array(data.windows);const result=estimateKeyFromWindows(windows,data.sampleRate,data.frameCount,data.windowSize||4096);self.postMessage({type:'done',id:data.id,result});}catch(error){self.postMessage({type:'error',id:data.id,error:error?.message||'KEY_ANALYSIS_FAILED'});}};

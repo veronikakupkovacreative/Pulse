@@ -8,7 +8,7 @@ import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
 const categories=Object.freeze({
-  analyze:{name:'ANALYZE',title:'Analyze.',description:'This category is ready for new analysis modules.',number:'01'},
+  analyze:{name:'ANALYZE',title:'Analyze.',description:'Analyze tempo, beat positions and musical key from the active track.',number:'01'},
   edit:{name:'EDIT',title:'Edit.',description:'This category is ready for new audio editing modules.',number:'02'},
   export:{name:'EXPORT',title:'Export.',description:'This category is ready for new audio export modules.',number:'03'},
   ai:{name:'AI STUDIO',title:'AI Studio.',description:'This category is ready for new AI audio modules.',number:'04'},
@@ -130,4 +130,18 @@ document.addEventListener('click',event=>{
  const control=[...document.querySelectorAll('#module-visualizer [data-mode]')].find(b=>b.dataset.mode===mode);
  if(control)control.click();
  query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+});
+/* Global edit history shortcuts; text-entry controls keep their native behavior. */
+document.addEventListener('keydown',event=>{
+  const target=event.target;
+  if(target?.closest?.('input:not([type="range"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),textarea,select,[contenteditable="true"],[role="textbox"]'))return;
+  if(!(event.ctrlKey||event.metaKey)||event.altKey)return;
+  const key=event.key.toLowerCase();
+  if(key==='z'){
+    event.preventDefault();
+    if(event.shiftKey)w.redo();else w.undo();
+  }else if(key==='y'){
+    event.preventDefault();
+    w.redo();
+  }
 });

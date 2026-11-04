@@ -4,6 +4,7 @@ import {renderToolEditorial} from './modules/tool-editorial.mjs';
 import {renderToolBenefits} from './modules/tool-benefits.mjs';
 import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
+import {studioStore} from './modules/studio-store.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -29,12 +30,14 @@ function clearMountedTool(){
   panel.querySelectorAll('.tool-module-host').forEach((element)=>element.remove());
 }
 function showEmpty(){
+  studioStore.setActiveModule(null);
   clearMountedTool();
   blank.hidden=false;
   query('#empty-title').textContent=categories[activeCategory].title;
   query('#empty-description').textContent=categories[activeCategory].description;
 }
 function mountTool(definition){
+  studioStore.setActiveModule(definition.id);
   clearMountedTool();
   blank.hidden=true;
   renderToolEditorial(definition);
@@ -71,6 +74,7 @@ function validModules(category){
 function activateCategory(category){
   if(!Object.hasOwn(categories,category))return;
   activeCategory=category;
+  studioStore.setActiveCategory(category);
   const info=categories[category];
   query('#category-number').textContent=info.number+' / '+info.name;
   document.querySelectorAll('[data-category]').forEach((button)=>{

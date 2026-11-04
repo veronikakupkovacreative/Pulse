@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {studioStore} from '../source/modules/studio-store.mjs';
 
 test('studio store exposes a stable external-store API',()=>{
@@ -19,4 +20,11 @@ test('studio store publishes active category and module changes',()=>{
  unsubscribe();
  studioStore.setActiveCategory('analyze');
  assert.equal(notifications,2);
+});
+
+test('application shell publishes the active category and tool to the shared store',()=>{
+ const app=readFileSync(new URL('../source/app.mjs',import.meta.url),'utf8');
+ assert.match(app,/import \{studioStore\} from '\.\/modules\/studio-store\.mjs'/);
+ assert.match(app,/studioStore\.setActiveModule\(definition\.id\)/);
+ assert.match(app,/studioStore\.setActiveCategory\(category\)/);
 });

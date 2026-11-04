@@ -26,7 +26,7 @@
 .tool-settings:has(.pulse-normalizer){background:#ff2b20;color:#191919}
 .pulse-normalizer{gap:0}
 .pulse-normalizer .tool-view-header{padding-bottom:18px;border-bottom:1px solid #191919}
-.pulse-normalizer h3{font-weight:600;line-height:1.05;margin:19px 0 14px}
+.pulse-normalizer h3{font-weight:700;line-height:1.05;margin:19px 0 14px}
 .pulse-normalizer .tool-description{max-width:42ch;margin-bottom:22px}
 .pulse-normalizer .pn-presets{margin:0 0 20px;gap:7px}
 .pulse-normalizer .pn-presets button{min-height:39px;border-color:#1919197a;padding:10px 12px}
@@ -43,3 +43,21 @@
 .pulse-normalizer .pn-status{border-left:2px solid #191919;padding:6px 0 6px 11px}
 .pulse-normalizer .pn-disclaimer{border-top:1px solid #19191940;padding-top:12px;line-height:1.6}
 @media(max-width:430px){.pulse-normalizer .pn-meters>div{min-height:74px;padding:13px 10px}}
+
+/* AI Normalizer typography: bold headline, regular weight everywhere else. */
+.pulse-normalizer{font-weight:400}
+.pulse-normalizer .tool-view-header,
+.pulse-normalizer .tool-description,
+.pulse-normalizer .pn-presets button,
+.pulse-normalizer .pn-fields label,
+.pulse-normalizer .pn-fields input,
+.pulse-normalizer .pn-fields select,
+.pulse-normalizer .pn-meters span,
+.pulse-normalizer .pn-meters strong,
+.pulse-normalizer .pn-ab button,
+.pulse-normalizer [data-pn-play],
+.pulse-normalizer .pn-actions button,
+.pulse-normalizer .pn-status,
+.pulse-normalizer .pn-disclaimer{font-weight:400}
+.pulse-normalizer h3,
+.pulse-normalizer h3 *{font-weight:700}

@@ -5,6 +5,7 @@ import {renderToolBenefits} from './modules/tool-benefits.mjs';
 import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 import {studioStore} from './modules/studio-store.mjs';
+import {initializeStudioShell} from './modules/studio-shell.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -90,6 +91,7 @@ function activateCategory(category){
   });
   tabs.replaceChildren();
   const available=validModules(category);
+  const countLabel=query('#studio-tool-count');if(countLabel)countLabel.textContent=String(available.length).padStart(2,'0');
   tabs.hidden=available.length===0;
   for(const tool of available){
     const button=document.createElement('button');
@@ -113,6 +115,8 @@ document.querySelectorAll('[data-category-link]').forEach((link)=>{
   link.addEventListener('click',()=>activateCategory(link.dataset.categoryLink));
 });
 activateCategory('analyze');
+const totalLabel=query('#studio-module-count');if(totalLabel)totalLabel.textContent=toolModules.length+' MODULES';
+initializeStudioShell();
 // Directory and footer links open their registered tool in the existing toolkit.
 document.addEventListener('click',event=>{
  const trigger=event.target.closest('[data-open-tool]');if(!trigger)return;
@@ -120,7 +124,7 @@ document.addEventListener('click',event=>{
  event.preventDefault();if(activeCategory!==selected.category)activateCategory(selected.category);
  const tab=[...tabs.querySelectorAll('[data-tool]')].find(button=>button.dataset.tool===selected.id);
  if(tab)tab.click();
- query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+ query('.studio-inspector')?.scrollTo?.({top:0,behavior:'smooth'});
 });
 
 
@@ -133,7 +137,7 @@ document.addEventListener('click',event=>{
  const mode=shortcut.dataset.openVisual;
  const control=[...document.querySelectorAll('#module-visualizer [data-mode]')].find(b=>b.dataset.mode===mode);
  if(control)control.click();
- query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+ query('.studio-inspector')?.scrollTo?.({top:0,behavior:'smooth'});
 });
 /* Global edit history shortcuts; text-entry controls keep their native behavior. */
 document.addEventListener('keydown',event=>{

@@ -6,6 +6,7 @@ if(typeof document!=='undefined'){
   const eqStyle=document.createElement('link');eqStyle.rel='stylesheet';eqStyle.href='/modules/eq-ui.css';document.head.append(eqStyle);
   const producerStyle=document.createElement('link');producerStyle.rel='stylesheet';producerStyle.href='/modules/producer-tools.css';document.head.append(producerStyle);
   const noiseStyle=document.createElement('link');noiseStyle.rel='stylesheet';noiseStyle.href='/modules/noise-tool.css';document.head.append(noiseStyle);
+  const studioStyle=document.createElement('link');studioStyle.rel='stylesheet';studioStyle.href='/modules/studio-spa.css';document.head.append(studioStyle);
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
   set('.hero-description','Analyze, edit, enhance and export audio directly in your browser. Upload a track, work with its waveform and choose a tool from the four categories.');

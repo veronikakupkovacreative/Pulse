@@ -18,17 +18,13 @@ test('all registered tools have three individual and truthful benefits',()=>{
  }
  assert.equal(Object.keys(TOOL_BENEFITS).length,toolModules.length);
 });
-test('benefits appear between producer toolkit and directory, linked to active tab',()=>{
- const html=read('index.html'),app=read('app.mjs');
+test('tool-specific benefits remain available in the collapsible DAW inspector',()=>{
+ const html=read('index.html'),app=read('app.mjs'),style=read('modules/studio-spa.css');
  assert.ok(html.indexOf('id="pulse-benefits-grid"')>html.indexOf('class="tool-board"'));
- assert.ok(html.indexOf('id="pulse-benefits-grid"')<html.indexOf('class="pulse-directory"'));
+ assert.match(html,/class="studio-benefits"/);
+ assert.match(html,/WHY THIS TOOL/);
  assert.match(app,/renderToolBenefits\(definition\)/);
- assert.match(read('style.css'),/\.pulse-benefits\{background:transparent;color:#191919;[^}]*border:0/);
- assert.match(read('style.css'),/\.pulse-benefits-grid\{[^}]*border:1px solid #bdbab2;border-radius:0/);
- assert.match(read('style.css'),/\.pulse-benefits-grid\{grid-template-columns:1fr;border-radius:0\}/);
- assert.match(read('style.css'),/\.pulse-benefit-card\{[^}]*min-height:264px;[^}]*border:0;background:transparent/);
- assert.doesNotMatch(html,/class="pulse-benefits-current"/);
- assert.doesNotMatch(html,/id="pulse-benefits-summary"|id="pulse-benefits-state"|id="pulse-benefits-tool"/);
+ assert.match(style,/\.studio-spa #pulse-benefits-grid\{display:block/);
  assert.match(read('modules/tool-benefits.mjs'),/pulse-benefit-icon/);
 });
 test('existing AI mix and smart master tools use one local engine UI',()=>{

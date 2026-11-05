@@ -1,123 +1,68 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f5f4f0">
-<meta name="description" content="PULSE Studio — analyze BPM, edit sound, master and export locally in your browser.">
-<title>PULSE Studio — Audio Workspace</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/style.css"><script type="module" src="/app.mjs"></script><script type="module" src="/reference-ui.mjs"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#151515">
+  <meta name="description" content="PULSE Studio — a local-first audio workspace. Analyze, edit, mix, master and export with one shared track.">
+  <title>PULSE Studio — Producer Workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.mjs"></script>
 </head>
-<body>
-<div class="shell">
-<header class="header">
-  <a class="brand" href="#top" aria-label="Pulse Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a>
-  <nav aria-label="Main navigation" class="header-nav"><a href="#analyzer" class="nav-bpm">RHYTHM</a>
-    <a href="#toolkit" data-category-link="analyze">ANALYZE</a>
-    <a href="#toolkit" data-category-link="edit">EDIT</a>
-    <a href="#toolkit" data-category-link="export">EXPORT</a>
-    <a href="#toolkit" data-category-link="ai">AI STUDIO</a>
-    <a href="#toolkit" data-category-link="visuals">VISUALS</a>
-  </nav>
-</header>
-<main id="top">
-  <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy"><h1 id="hero-title">Find your<br><span>rhythm.</span></h1><p class="intro"></p></div>
-      <aside class="pulse-hero-info" aria-label="About Pulse Studio">
-        <p class="pulse-info-eyebrow"><span class="pulse-info-dot" aria-hidden="true"></span>( WHAT IT IS )</p>
-        <p class="pulse-hero-description">Edit audio without installing apps, creating accounts, or leaving the tab. Pulse Studio brings common audio edits into one focused workspace: open compatible audio formats, make changes in browser memory, then export as MP3, 16-bit PCM WAV, M4A/AAC at 192 kbps where supported, or FLAC.</p>
-        <div class="pulse-formats">
-          <p class="pulse-info-eyebrow">( IN · OUT )</p>
-          <div class="pulse-format-tags" aria-label="Export formats"><span>MP3</span><span>WAV</span><span>M4A</span><span>FLAC</span></div>
-        </div>
-      </aside>
-      <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
-    </section>
+<body class="studio-spa">
+<div class="studio-app" id="top">
+  <header class="studio-topbar" aria-label="Studio header">
+    <a class="studio-wordmark" href="/" aria-label="PULSE Studio home"><span class="studio-brand-glyph" aria-hidden="true"><span></span><span></span><span></span><span></span></span><strong>PULSE</strong><span>STUDIO</span></a>
+    <div class="studio-project-name"><span class="studio-micro-label">SESSION / 01</span><strong id="studio-project-name">UNTITLED PROJECT</strong></div>
+    <div class="studio-top-actions">
+      <span class="studio-local-pill"><i aria-hidden="true"></i> LOCAL PROCESSING</span>
+      <button type="button" class="studio-action studio-demo-action" id="studio-load-demo" title="Load an original 120 BPM demo track">DEMO TRACK</button>
+      <button type="button" class="studio-action" id="studio-import">IMPORT AUDIO <span aria-hidden="true">+</span></button>
+      <button type="button" class="studio-action studio-export-action" id="studio-export" disabled>EXPORT WAV <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+  <div class="studio-layout toolkit" id="toolkit">
+    <aside class="studio-sidebar" aria-label="Tool library">
+      <div class="studio-sidebar-head"><span class="studio-micro-label">01 / TOOL LIBRARY</span><span class="studio-nav-count" id="studio-module-count">MODULES</span></div>
+      <div class="tool-category-nav" role="group" aria-label="Tool categories">
+        <button type="button" data-category="analyze" aria-pressed="true" class="is-active"><span class="studio-nav-symbol" aria-hidden="true">◈</span> ANALYZE <span>01</span></button>
+        <button type="button" data-category="edit" aria-pressed="false"><span class="studio-nav-symbol" aria-hidden="true">⌗</span> EDIT <span>02</span></button>
+        <button type="button" data-category="export" aria-pressed="false"><span class="studio-nav-symbol" aria-hidden="true">⇥</span> EXPORT <span>03</span></button>
+        <button type="button" data-category="ai" aria-pressed="false"><span class="studio-nav-symbol" aria-hidden="true">✳</span> AI STUDIO <span>04</span></button>
+        <button type="button" data-category="visuals" aria-pressed="false"><span class="studio-nav-symbol" aria-hidden="true">▥</span> VISUALS <span>05</span></button>
+      </div>
+      <div class="studio-sidebar-divider"><span class="studio-micro-label">SELECT A TOOL</span><span class="studio-micro-label" id="studio-tool-count">00</span></div>
+      <div class="tool-tabs" id="tool-tabs" role="tablist" aria-label="Available modules"></div>
+      <div class="studio-sidebar-foot"><span class="studio-micro-label">WORKSPACE SHORTCUTS</span><p><kbd>SPACE</kbd> Play / Pause</p><p><kbd>⌘ Z</kbd> Undo edit</p><p><kbd>SHIFT</kbd> + drag to select</p></div>
+    </aside>
 
-<section id="analyzer" class="pulse-bpm-section" aria-label="Rhythm Engine">
-  <div class="section-label"><h2>01 / RHYTHM ENGINE</h2><span>ORIGINAL RHYTHM ENGINE / LOCAL</span></div>
-  <div class="bpm-workspace">
-    <div class="bpm-upload-panel" id="bpm-drop-zone">
-      <input type="file" id="bpm-file" accept="audio/*,video/mp4,.wav,.mp3,.m4a,.aac,.mp4" hidden aria-label="Choose audio for tempo analysis">
-      <div class="bpm-upload-empty" id="bpm-empty">
-        <div class="bpm-upload-icon" aria-hidden="true">↑</div>
-        <h3>Drop your track.</h3><p>Estimate tempo and detect beat markers in one rhythm analysis.</p>
-        <button type="button" id="bpm-choose" class="bpm-button-light">Choose file <span>↗</span></button>
-        <span class="bpm-file-limit">WAV · MP3 · M4A · AAC · MP4 · max. 100 MB / 20 min</span>
+    <main class="studio-main" aria-label="Central audio workspace">
+      <div class="studio-main-top"><div><span class="studio-micro-label">02 / WORKSPACE</span><h1>YOUR AUDIO<span class="studio-red-dot">.</span></h1><p>ONE TRACK. EVERY TOOL.</p></div><div class="studio-main-status"><span id="studio-source-indicator" class="studio-source-indicator"><i aria-hidden="true"></i> NO AUDIO LOADED</span><span id="studio-track-format">—</span></div></div>
+      <div class="tool-board">
+        <section class="tool-source" aria-label="Single shared audio workspace">
+          <div class="tool-head"><span>TRACK 01 / AUDIO SOURCE</span><span class="tiny-status"><i aria-hidden="true"></i> IN BROWSER</span></div>
+          <div class="tool-empty"><p>Drop a track or load the demo to begin.</p></div>
+        </section>
       </div>
-      <div class="bpm-loaded" id="bpm-loaded" hidden>
-        <div class="bpm-file-top"><span class="bpm-file-type" id="bpm-file-type">MP3</span><button type="button" id="bpm-remove" aria-label="Remove track">×</button></div>
-        <h3 id="bpm-track-name">Track name.mp3</h3>
-        <p id="bpm-track-details">0:00 · 2 ch · 44.1 kHz</p>
-        <div class="bpm-wave-wrap"><canvas id="bpm-canvas" height="108" aria-label="Loaded track waveform"></canvas><div class="bpm-wave-playhead" aria-hidden="true"></div></div>
-        <div class="bpm-player"><button id="bpm-play" type="button" aria-label="Play or pause audio">▶</button><span id="bpm-time">0:00 / 0:00</span><button type="button" id="bpm-replace">Replace file ↗</button></div>
+      <div class="studio-workspace-bottom">
+        <div class="studio-track-readout"><span class="studio-micro-label">TRACK METADATA</span><strong id="studio-track-readout">NO TRACK SELECTED</strong></div>
+        <div class="studio-rhythm-readout"><span class="studio-micro-label">RHYTHM MARKERS</span><strong id="studio-rhythm-readout">—</strong></div>
+        <div class="studio-selection-readout"><span class="studio-micro-label">SELECTION</span><strong id="studio-selection-readout">—</strong></div>
       </div>
-      <div class="bpm-privacy"><span aria-hidden="true">♙</span> Processed locally in your browser.</div>
-      <p class="bpm-error" id="bpm-error" role="status" aria-live="polite"></p>
-    </div>
-    <div class="bpm-result-panel" id="bpm-result-panel">
-      <div class="bpm-result-head"><h3>YOUR TEMPO</h3><span id="bpm-status">AWAITING TRACK <i></i></span></div>
-      <div class="bpm-tempo-circle"><strong id="bpm-number">—</strong><span>BEATS PER MINUTE</span><i class="bpm-orbit-dot"></i></div>
-      <div id="bpm-empty-result" class="bpm-result-footer"><span>Start with a beat.</span><button id="bpm-reanalyze" type="button" disabled aria-label="Re-analyze tempo">↗</button></div>
-      <div class="bpm-expanded" id="bpm-expanded" hidden>
-        <div class="bpm-actions"><div class="bpm-tempo-buttons"><button type="button" id="bpm-half" aria-label="Half tempo">÷ 2</button><button type="button" id="bpm-double" aria-label="Double tempo">× 2</button></div><button type="button" id="bpm-copy">▣ &nbsp; Copy</button></div>
-        <div class="bpm-edit-row"><label for="bpm-edit">EDIT BPM <input type="number" min="20" max="400" step="0.1" id="bpm-edit" value="120"></label><button type="button" id="bpm-apply">Apply to Toolkit ↗</button></div>
-        <div class="bpm-grid-row"><label for="bpm-offset">First beat (s)<input type="number" min="0" step="0.001" id="bpm-offset" value="0"></label><label for="bpm-meter">Beats per bar<select id="bpm-meter"><option value="3">3/4</option><option value="4" selected>4/4</option><option value="5">5/4</option><option value="6">6/4</option></select></label></div>
-        <div class="bpm-metronome-row"><button type="button" id="bpm-metronome" aria-pressed="false"><span class="bpm-switch"><i></i></span> Preview tempo</button><label for="bpm-volume">Volume<input type="range" id="bpm-volume" min="0" max="100" value="60" step="5"></label><div id="bpm-beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
-      </div>
-    </div>
-  </div>
-  <p id="bpm-note" class="bpm-note" role="status" aria-live="polite">Tempo and beat markers are estimates. Verify by ear or use Tap Tempo.</p>
-  <div class="bpm-demo-line"><button type="button" id="bpm-open-tap">Open Tap Tempo ↗</button><a href="#toolkit">Explore the toolkit ↗</a></div>
-</section>
+    </main>
 
-<section class="toolkit" id="toolkit" aria-labelledby="toolkit-title">
-    <div class="section-label"><h2>02 / PRODUCER TOOLKITS</h2><span>LOCAL PRODUCER WORKSPACE</span></div>
-    <div class="toolkit-heading pulse-editorial-intro">
-      <h2 id="toolkit-title">BPM<br><span>Analyzer.</span></h2>
-      <div class="toolkit-intro pulse-editorial-copy" aria-live="polite" aria-atomic="true"><p id="pulse-tool-summary">Analyze rhythmic onsets to estimate the tempo of your audio, directly in your browser.</p><strong>How to use:</strong><ol id="pulse-tool-steps"><li>Load an audio file.</li><li>Run the selected tool.</li><li>Review the results.</li></ol></div>
-    </div>
-    <div class="tool-category-nav" role="group" aria-label="Tool categories">
-      <button type="button" data-category="analyze" aria-pressed="true" class="is-active">ANALYZE <span>01</span></button>
-      <button type="button" data-category="edit" aria-pressed="false">EDIT <span>02</span></button>
-      <button type="button" data-category="export" aria-pressed="false">EXPORT <span>03</span></button>
-      <button type="button" data-category="ai" aria-pressed="false">AI STUDIO <span>04</span></button>
-      <button type="button" data-category="visuals" aria-pressed="false">VISUALS <span>05</span></button>
-    </div>
-    <section class="pulse-visual-shortcuts" hidden aria-labelledby="pulse-visual-title"><div class="pulse-visual-shortcuts-head"><div><p>05 / VISUALS · REAL-TIME AUDIO</p><h2 id="pulse-visual-title">See your sound.</h2></div><p>Seven live modes in one workspace. Choose a visualization and press Play in SOURCE AUDIO.</p></div><div class="pulse-visual-shortcut-grid"><button type="button" data-open-visual="audiogram">CIRCULAR AUDIOGRAM <span>↗</span></button><button type="button" data-open-visual="podcast">PODCAST <span>↗</span></button><button type="button" data-open-visual="bars">BARS <span>↗</span></button><button type="button" data-open-visual="sound_wave_maker">SOUND WAVE MAKER <span>↗</span></button><button type="button" data-open-visual="waveform">WAVEFORM <span>↗</span></button><button type="button" data-open-visual="audio_waveform_generator">WAVEFORM GENERATOR <span>↗</span></button><button type="button" data-open-visual="spectrum">SPECTRUM <span>↗</span></button></div></section>
-    <div class="tool-tabs" id="tool-tabs" role="tablist" aria-label="Registered tools" hidden></div>
-    <div class="tool-board">
-      <section class="tool-source" aria-label="Audio workspace">
-        <div class="tool-head"><span>01 / SOURCE AUDIO</span><span class="tiny-status"><i aria-hidden="true"></i> LOCAL PROCESSING</span></div>
-        <div class="tool-empty">
-          <div class="empty-ring" aria-hidden="true">+</div>
-          <h3>No audio tools<br>installed.</h3>
-          <p>This space is reserved for a future source loader, waveform and audio editor. Nothing is running here.</p>
-          <span class="empty-code">[ WORKSPACE SLOT / READY ]</span>
-        </div>
-      </section>
-      <section class="tool-settings" aria-label="Future tool settings">
-        <div class="tool-view-header"><span id="category-number">01 / ANALYZE</span><span>LOCAL AUDIO PROCESSING</span></div>
-        <div class="tool-panel" id="tool-panel" aria-live="polite">
-          <div class="blank-panel" id="blank-panel">
-            <p class="section-index">01 / NO MODULE SELECTED</p><h3 id="empty-title">Analyze.</h3>
-            <p id="empty-description">This category is ready for new analysis modules.</p>
-            <div class="blank-rule" aria-hidden="true"></div><p class="blank-meta">NO TOOLS REGISTERED <span aria-hidden="true">↗</span></p>
-          </div>
-        </div>
-      </section>
-    </div>
-    <p class="toolkit-note"><span>+</span> The category structure and application shell are retained. New tools can be registered independently.</p>
-  </section>
-<section class="pulse-benefits" aria-labelledby="pulse-benefits-title">
-  <div class="pulse-benefits-head">
-    <div><p class="pulse-benefits-eyebrow">{ THE ADVANTAGES }</p><h2 id="pulse-benefits-title">Why this tool.</h2></div>
+    <aside class="studio-inspector" aria-label="Selected tool inspector">
+      <div class="studio-inspector-top"><span class="studio-micro-label">03 / INSPECTOR</span><span class="studio-micro-label" id="category-number">01 / ANALYZE</span></div>
+      <div class="toolkit-heading pulse-editorial-intro">
+        <h2 id="toolkit-title">Rhythm<br><span>Engine.</span></h2>
+        <div class="toolkit-intro pulse-editorial-copy" aria-live="polite"><p id="pulse-tool-summary">Analyze tempo and beats with one track.</p><details class="studio-howto"><summary>HOW TO USE <span aria-hidden="true">+</span></summary><ol id="pulse-tool-steps"><li>Load your track.</li><li>Select a tool.</li><li>Review the output.</li></ol></details></div>
+      </div>
+      <section class="tool-settings" aria-label="Tool processing controls"><div class="tool-panel" id="tool-panel"><div class="blank-panel" id="blank-panel"><p class="section-index">NO MODULE SELECTED</p><h3 id="empty-title">Analyze.</h3><p id="empty-description">Select a tool to get started.</p></div></div></section>
+      <details class="studio-benefits"><summary>WHY THIS TOOL <span aria-hidden="true">+</span></summary><div class="pulse-benefits-grid" id="pulse-benefits-grid" aria-label="Selected tool benefits"></div></details>
+    </aside>
   </div>
-  <div class="pulse-benefits-grid" id="pulse-benefits-grid" aria-label="Benefits of the selected audio tool"></div>
-</section>
-<section class="pulse-directory" aria-label="The Toolkit"><p class="pulse-directory-eyebrow">{ THE TOOLKIT }</p><div class="pulse-directory-cards"><div class="pulse-directory-column"><article class="pulse-directory-card is-featured"><div class="pulse-card-head"><h3>Rhythm Engine</h3><span>01</span></div><p>Estimate tempo and place beat markers in one local analysis.</p><button class="pulse-card-action" type="button" data-open-tool="rhythm">Open tool <span aria-hidden="true">↗</span></button></article><article class="pulse-directory-card"><div class="pulse-card-head"><h3>Key Finder</h3><span>02</span></div><p>Estimate musical key and Camelot notation from your audio.</p><button class="pulse-card-action" type="button" data-open-tool="key">Open tool <span aria-hidden="true">↗</span></button></article><aside class="pulse-directory-note"><strong>{ FILE PROCESSING }</strong><p>Audio processing and editing take place in browser memory. Files are not uploaded to our server.</p></aside></div><div class="pulse-directory-column"><article class="pulse-directory-card"><div class="pulse-card-head"><h3>Audio Editor</h3><span>04</span></div><p>Cut and trim selections directly in the audio workspace.</p><button class="pulse-card-action" type="button" data-open-tool="editor">Open tool <span aria-hidden="true">↗</span></button></article><article class="pulse-directory-card"><div class="pulse-card-head"><h3>Equalizer</h3><span>05</span></div><p>Shape lows, mids and highs with presets and an interactive response curve.</p><button class="pulse-card-action" type="button" data-open-tool="equalizer">Open tool <span aria-hidden="true">↗</span></button></article></div><div class="pulse-directory-column"><article class="pulse-directory-card"><div class="pulse-card-head"><h3>Audio Converter</h3><span>06</span></div><p>Export audio in your chosen supported file format.</p><button class="pulse-card-action" type="button" data-open-tool="wav">Open tool <span aria-hidden="true">↗</span></button></article><article class="pulse-directory-card"><div class="pulse-card-head"><h3>Loop Cutter</h3><span>07</span></div><p>Create and export precisely selected audio loops.</p><button class="pulse-card-action" type="button" data-open-tool="loop">Open tool <span aria-hidden="true">↗</span></button></article><article class="pulse-directory-card is-dark"><div class="pulse-card-head"><h3>Smart Master</h3><span>08</span></div><p>Master with local compression, dynamic control and output ceiling.</p><button class="pulse-card-action" type="button" data-open-tool="master">Open tool <span aria-hidden="true">↗</span></button></article></div></div></section>
-</main>
-<footer class="pulse-footer" aria-label="PULSE Studio footer"><div class="pulse-footer-top"><div class="pulse-footer-brand"><a class="pulse-footer-logo" href="#top"><i aria-hidden="true"></i>Pulse<sup>STUDIO</sup></a><p>Focused audio tools for producers. Analyze, edit and export your sound in one browser workspace.</p><a class="pulse-privacy-link" href="#analyzer">Privacy ↗</a></div><div class="pulse-footer-links"><div class="pulse-footer-col"><h2>ANALYZE</h2><ul><li><button type="button" data-open-tool="rhythm">Rhythm Engine</button></li><li><button type="button" data-open-tool="key">Key Finder</button></li><li><button type="button" data-open-tool="tap">Tap Tempo</button></li></ul></div><div class="pulse-footer-col"><h2>EDIT</h2><ul><li><button type="button" data-open-tool="editor">Audio Editor</button></li><li><button type="button" data-open-tool="reverse">Reverse Audio</button></li><li><button type="button" data-open-tool="equalizer">Equalizer</button></li><li><button type="button" data-open-tool="normalize">Normalizer</button></li><li><button type="button" data-open-tool="volume">Gain</button></li></ul></div><div class="pulse-footer-col"><h2>EXPORT</h2><ul><li><button type="button" data-open-tool="wav">Audio Converter</button></li><li><button type="button" data-open-tool="loop">Loop Cutter</button></li></ul></div><div class="pulse-footer-col"><h2>AI STUDIO</h2><ul><li><button type="button" data-open-tool="health">Mix Health</button></li><li><button type="button" data-open-tool="quickfix">Mix Quick Fix</button></li><li><button type="button" data-open-tool="master">Smart Master</button></li><li><button type="button" data-open-tool="enhancer">Audio Enhancer</button></li></ul></div><div class="pulse-footer-col"><h2>VISUALS</h2><ul><li><button type="button" data-open-tool="visualizer">Audiogram Visualizer</button></li><li><button type="button" data-open-visual="bars">Bars / Sound Wave</button></li><li><button type="button" data-open-visual="waveform">Waveform</button></li><li><button type="button" data-open-visual="podcast">Podcast</button></li><li><button type="button" data-open-visual="spectrum">Spectrum</button></li></ul></div></div></div><div class="pulse-footer-bottom"><span>© 2026 PULSE STUDIO</span><span>BUILT FOR THE SOUND YOU MAKE.</span><a href="#top">BACK TO TOP ↑</a></div></footer>
+  <footer class="studio-statusbar"><div><span class="studio-status-signal" aria-hidden="true"></span><span>LOCAL SESSION</span><span class="studio-status-separator">/</span><span id="studio-session-status" role="status" aria-live="polite">READY FOR AUDIO</span></div><div><span>WAV / MP3 / M4A / AAC</span><span class="studio-status-separator">·</span><span>NO ACCOUNT REQUIRED</span></div></footer>
 </div>
 </body>
 </html>

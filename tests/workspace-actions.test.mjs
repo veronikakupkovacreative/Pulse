@@ -35,9 +35,12 @@ test('status updates after a workspace buffer is added and no stale listeners re
  ui.listeners.get('pulse:audio-source')();assert.equal(ui.preview.disabled,false);
  ui.cleanup();assert.equal(ui.listeners.has('pulse:audio-source'),false);
 });
-test('tool panel and standalone BPM both mount shared output controls',()=>{
+test('inspector tools retain shared preview/output; SPA uses a single waveform and master export',()=>{
  const app=readFileSync(new URL('../source/app.mjs',import.meta.url),'utf8');
- const bpm=readFileSync(new URL('../source/reference-ui.mjs',import.meta.url),'utf8');
+ const html=readFileSync(new URL('../source/index.html',import.meta.url),'utf8');
+ const shell=readFileSync(new URL('../source/modules/studio-shell.mjs',import.meta.url),'utf8');
  assert.match(app,/mountWorkspaceActions\(host,w\)/);
- assert.match(bpm,/mountWorkspaceActions\(document\.querySelector\('#analyzer \.bpm-result-panel'\),w\)/);
+ assert.match(html,/class="studio-main"/);
+ assert.doesNotMatch(html,/id="analyzer"/);
+ assert.match(shell,/workspace\.save\(24,false\)/);
 });

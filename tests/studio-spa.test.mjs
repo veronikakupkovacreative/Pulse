@@ -20,3 +20,11 @@ test('Load Demo Track, import and 24-bit WAV export are wired to the real worksp
  for(const id of ['studio-load-demo','studio-import','studio-export'])assert.ok(html.includes('id="'+id+'"'));
  assert.match(shell,/createDemoTrack\(/);assert.match(shell,/await workspace\.load\(file\)/);assert.match(shell,/workspace\.save\(24,false\)/);
 });
+
+test('Rhythm analysis updates the shared tempo grid, while zoom and pan use real viewport state',()=>{
+ const feature=read('modules/features.mjs'),source=read('modules/source-ui.mjs'),workspace=read('modules/workspace.mjs');
+ assert.match(feature,/new CustomEvent\('pulse:tempo'/);
+ assert.match(source,/w\.zoomAt\(v\)/);
+ assert.match(source,/w\.panWave\(1\)/);
+ assert.match(workspace,/setViewport\(zoom=1,start=0\)/);
+});

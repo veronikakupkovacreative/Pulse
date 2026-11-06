@@ -21,6 +21,10 @@ const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');
 let activeCategory='analyze';
 let currentCleanup=null;
+const bitrateGuide=query('#pulse-bitrate-guide');
+function showBitrateGuide(show){
+  if(bitrateGuide)bitrateGuide.hidden=!show;
+}
 
 function clearMountedTool(){
   if(typeof currentCleanup==='function'){
@@ -31,6 +35,7 @@ function clearMountedTool(){
 }
 function showEmpty(){
   studioStore.setActiveModule(null);
+  showBitrateGuide(false);
   clearMountedTool();
   blank.hidden=false;
   query('#empty-title').textContent=categories[activeCategory].title;
@@ -38,6 +43,7 @@ function showEmpty(){
 }
 function mountTool(definition){
   studioStore.setActiveModule(definition.id);
+  showBitrateGuide(false);
   clearMountedTool();
   blank.hidden=true;
   renderToolEditorial(definition);
@@ -54,10 +60,17 @@ function mountTool(definition){
   panel.append(host);
   try{
     const cleanup=definition.mount({host,category:activeCategory});
+    const converterFormat=definition.id==='wav'?host.querySelector('#format'):null;
+    const syncBitrateGuide=()=>showBitrateGuide(converterFormat?.value==='mp3');
+    if(converterFormat){
+      converterFormat.addEventListener('change',syncBitrateGuide);
+      syncBitrateGuide();
+    }
     const stopSliders=enhanceParameterControls(host);
     const stopAudioActions=mountWorkspaceActions(host,w);
-    currentCleanup=()=>{stopAudioActions();stopSliders();if(typeof cleanup==='function')cleanup();};
+    currentCleanup=()=>{converterFormat?.removeEventListener('change',syncBitrateGuide);stopAudioActions();stopSliders();if(typeof cleanup==='function')cleanup();};
   }catch(error){
+    showBitrateGuide(false);
     host.replaceChildren();
     const msg=document.createElement('p');
     msg.setAttribute('role','alert');

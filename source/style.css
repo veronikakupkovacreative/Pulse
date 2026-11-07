@@ -71,3 +71,32 @@
 .hero-quicklink-disabled span{font-size:9px;letter-spacing:1px;font-weight:700;border:1px solid currentColor;padding:5px 7px}
 @media(max-width:760px){.tool-tab.tool-tab-disabled b{font-size:8px;padding:4px}}
 @media(max-width:580px){.tool-tab.tool-tab-disabled b{align-self:flex-start;margin:3px 0 0;font-size:8px}}
+
+
+/* Song Analyzer: compact black metrics below the shared tempo controls. */
+.result-panel:has(.song-results:not([hidden])){background:#191919;color:#fff;align-items:stretch;justify-content:flex-start;gap:0;overflow:visible}
+.result-panel:has(.song-results:not([hidden])) .result-top{border-bottom:1px solid #3a3a3a;padding-bottom:12px}
+.result-panel:has(.song-results:not([hidden])) .tempo-circle{align-self:center;width:142px;height:142px;margin:16px 0 12px;border-color:#5c5c5c}
+.result-panel:has(.song-results:not([hidden])) .bpm-number{font-size:54px;letter-spacing:-3px;padding-right:0;color:#fff}
+.result-panel:has(.song-results:not([hidden])) .bpm-number.decimal{font-size:45px;letter-spacing:-2px}
+.result-panel:has(.song-results:not([hidden])) .orbit-dot{width:9px;height:9px;top:15px;right:12px;background:#ff0000;outline:4px solid #191919}
+.result-panel:has(.song-results:not([hidden])) .bpm-label{font-size:8px;letter-spacing:1.1px}
+.result-panel:has(.song-results:not([hidden])) .result-controls{margin:0 0 15px}
+.result-panel:has(.song-results:not([hidden])) .tempo-actions{border-bottom-color:#414141}
+.result-panel:has(.song-results:not([hidden])) .tempo-multipliers button{border-color:#555}
+.result-panel:has(.song-results:not([hidden])) .switch{border-color:#777}
+.result-panel:has(.song-results:not([hidden])) .switch i{background:#fff}
+.result-panel:has(.song-results:not([hidden])) .metronome-row button[aria-pressed=true] .switch{background:#ff0000}
+.result-panel:has(.song-results:not([hidden])) .metronome-row button[aria-pressed=true] .switch i{background:#fff}
+.result-panel:has(.song-results:not([hidden])) .beat-dots i{border-color:#777}
+.result-panel:has(.song-results:not([hidden])) .beat-dots i.on{background:#ff0000}
+.song-results{width:100%}
+.song-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.song-result-card{min-height:73px;padding:12px;background:#282828;display:flex;flex-direction:column;gap:8px;min-width:0}
+.song-result-card span{font-size:9px;letter-spacing:1px;color:#aaa}
+.song-result-card strong{font-size:19px;font-weight:400;overflow-wrap:anywhere}
+.song-analysis-note{font-size:10px;line-height:1.5;color:#aaa;margin:14px 0}
+.song-export-json{width:100%;min-height:39px;text-align:center;background:#ff0000;color:white;font-size:11px;letter-spacing:.4px}
+.song-export-json:hover{background:#d90000}
+.song-export-json:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:580px){.result-panel:has(.song-results:not([hidden])) .tempo-circle{width:154px;height:154px}.song-result-card{min-height:70px}}

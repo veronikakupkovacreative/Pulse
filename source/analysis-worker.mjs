@@ -1,5 +1,5 @@
-import {analyzeTempo} from './analyzer.mjs';
+import {analyzeSong} from './song-analyzer.mjs';
 self.onmessage = ({data}) => {
-  try { self.postMessage({result:analyzeTempo(data.samples,data.sampleRate)}); }
+  try { self.postMessage({result:analyzeSong(data.samples,data.sampleRate)}); }
   catch(error) { self.postMessage({error:error.message}); }
 };

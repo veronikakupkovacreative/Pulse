@@ -1,7 +1,8 @@
 import {initStudioTools} from './tools.mjs';
+import {gridLines} from './beat-grid.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
-const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
+const state = {file:null,generation:0,busy:false,fullResult:null,selection:null,selectionBusy:false,selectMode:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
 const messages = {
   TOO_SHORT:'Track too short. Use at least 6 seconds.',
   SILENCE:'Silence or weak audio. Try a track with a clear beat.',
@@ -25,8 +26,8 @@ function stopPlayback() {
   state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Play track');
 }
 function reset() {
-  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
-  $('#tempo-circle').hidden=false;ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');$('#song-results').hidden=true;ui['file-input'].value='';setBusy(false);
+  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;state.fullResult=null;state.selection=null;state.selectMode=false;state.selectionBusy=false;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
+  $('#tempo-circle').hidden=false;ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');$('#song-results').hidden=true;$('#selection-tools').hidden=true;$('#select-range').setAttribute('aria-pressed','false');$('#analyzer-waveform').classList.remove('is-selecting');$('#analysis-scope').hidden=true;ui['file-input'].value='';setBusy(false);
 }
 async function processFile(file) {
   if(!file||state.busy)return;
@@ -58,7 +59,7 @@ async function processFile(file) {
       worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Song analysis completed. Estimated tempo: ${bpmLabel(result.bpm)} BPM. Key: ${result.key?.primary?.display??'unavailable'}.`);
+    state.file=file;state.buffer=buffer;state.result=result;state.fullResult=result;state.selection={from:0,to:buffer.duration};window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);initializeRange();announce(`Song analysis completed. Estimated tempo: ${bpmLabel(result.bpm)} BPM. Key: ${result.key?.primary?.display??'unavailable'}.`);
   } catch(error) {
     if(generation!==state.generation)return;
     setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
@@ -70,6 +71,9 @@ function renderResult(file) {
   $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
+  renderSongMetrics();
+}
+function renderSongMetrics(){
   const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE',unavailable:'NO STEADY BEAT'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
   ui['result-note'].textContent=state.result.bpm==null?'No steady tempo found. Harmony analysis may still be available.':state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
@@ -80,6 +84,8 @@ function renderResult(file) {
   $('#song-tuning').textContent=state.result.tuning?state.result.tuning.hz.toFixed(1)+' Hz':'Not detected';
   $('#song-analysis-note').textContent='Estimates only. Tempo, tonal center and tuning can be ambiguous in complex audio.';
   $('#song-results').hidden=false;
+  $('#analysis-scope').hidden=false;
+  $('#analysis-scope').textContent=state.result===state.fullResult?'FULL TRACK':'SELECTED RANGE';
   $('#tempo-circle').hidden=state.result.bpm==null;
   updateTempo();drawWaveform();
 }
@@ -95,9 +101,20 @@ function drawWaveform() {
   if(!state.result)return;
   const canvas=$('#waveform'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
   canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
-  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=state.result.waveform,bar=rect.width/peaks.length;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=(state.fullResult??state.result).waveform,bar=rect.width/peaks.length;
   const progress=Number($('#seek').value)/state.buffer.duration;
   for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
+  const grid=state.result.bpm!=null?gridLines(state.buffer.duration,state.bpm,state.result.beatOffset??0,5000):[];
+  const visibleSpacing=state.result.bpm?rect.width*60/state.result.bpm/state.buffer.duration:0;
+  const stride=Math.max(1,Math.ceil(7/Math.max(visibleSpacing,0.01)));
+  ctx.strokeStyle='#ffffff50';ctx.lineWidth=1;
+  for(let i=0;i<grid.length;i+=stride){const x=grid[i]/state.buffer.duration*rect.width;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,rect.height);ctx.stroke();}
+  if(state.selection){
+    const from=state.selection.from/state.buffer.duration*rect.width;
+    const to=state.selection.to/state.buffer.duration*rect.width;
+    ctx.fillStyle='#ff000030';ctx.fillRect(from,0,to-from,rect.height);
+    ctx.strokeStyle='#ff0000';ctx.beginPath();ctx.moveTo(from,0);ctx.lineTo(from,rect.height);ctx.moveTo(to,0);ctx.lineTo(to,rect.height);ctx.stroke();
+  }
   ctx.fillStyle='#f5f4f0';ctx.fillRect(progress*rect.width-1,0,1,rect.height);
 }
 async function getAudioContext() {
@@ -157,7 +174,90 @@ ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){d
 ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Upload one track at a time.');return;}processFile(event.dataTransfer.files[0]);});
 $('#play-track').onclick=play;
 $('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
-$('#song-export-json').onclick=()=>{if(!state.result||!state.file)return;const {key,tuning,diagnostics,bpm,confidence}=state.result;const report={schema:'pulse.song-analysis.v1',filename:state.file.name,bytes:state.file.size,durationSeconds:state.buffer.duration,channels:state.buffer.numberOfChannels,sampleRate:state.buffer.sampleRate,rhythm:{bpm,confidence},harmony:{key:key?.primary??null,confidence:key?.confidence??'unavailable',alternatives:key?.alternatives??[]},tuning,diagnostics};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=(state.file.name.replace(/\.[^/.]+$/,'')||'song')+'_analysis.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+
+function initializeRange(){
+  const duration=state.buffer.duration;
+  $('#selection-tools').hidden=false;
+  for(const id of ['selection-start','selection-end']){$('#'+id).max=duration;$('#'+id).step=.1;}
+  $('#selection-start').value=0;$('#selection-end').value=duration;
+  state.selection={from:0,to:duration};updateRange();
+}
+function updateRange(){
+  if(!state.buffer||!state.selection)return;
+  $('#selection-start-label').textContent=timeLabel(state.selection.from);
+  $('#selection-end-label').textContent=timeLabel(state.selection.to);
+  const length=state.selection.to-state.selection.from;
+  $('#analyze-selection').disabled=state.selectionBusy||length<6;
+  $('#analyze-full').disabled=state.selectionBusy;
+  $('#selection-status').textContent=state.selectionBusy?'Analyzing selected audio…':length<6?'Select at least 6 seconds.':'Range '+timeLabel(state.selection.from)+'–'+timeLabel(state.selection.to)+' · '+Math.round(length)+' seconds';
+  drawWaveform();
+}
+function setSelection(from,to){
+  if(!state.buffer)return;
+  const duration=state.buffer.duration;
+  const a=Math.min(duration,Math.max(0,Math.min(from,to)));
+  const b=Math.min(duration,Math.max(0,Math.max(from,to)));
+  state.selection={from:a,to:b};
+  $('#selection-start').value=a;$('#selection-end').value=b;
+  updateRange();
+}
+$('#selection-start').oninput=()=>setSelection(Number($('#selection-start').value),state.selection.to);
+$('#selection-end').oninput=()=>setSelection(state.selection.from,Number($('#selection-end').value));
+$('#select-range').onclick=()=>{
+  state.selectMode=!state.selectMode;
+  $('#select-range').setAttribute('aria-pressed',String(state.selectMode));
+  $('#analyzer-waveform').classList.toggle('is-selecting',state.selectMode);
+};
+let selectionPointer=null;
+const selectionWrap=$('#analyzer-waveform');
+function pointerTime(event){
+  const rect=selectionWrap.getBoundingClientRect();
+  return Math.min(state.buffer.duration,Math.max(0,(event.clientX-rect.left)/rect.width*state.buffer.duration));
+}
+selectionWrap.addEventListener('pointerdown',event=>{
+  if(!state.selectMode||!state.buffer||state.selectionBusy||event.button!==0)return;
+  event.preventDefault();
+  const start=pointerTime(event);
+  selectionPointer={id:event.pointerId,start};
+  selectionWrap.setPointerCapture(event.pointerId);
+  setSelection(start,start);
+});
+selectionWrap.addEventListener('pointermove',event=>{
+  if(selectionPointer?.id!==event.pointerId||!state.buffer)return;
+  setSelection(selectionPointer.start,pointerTime(event));
+});
+for(const name of ['pointerup','pointercancel'])selectionWrap.addEventListener(name,event=>{
+  if(selectionPointer?.id!==event.pointerId)return;
+  if(name==='pointerup'&&state.buffer)setSelection(selectionPointer.start,pointerTime(event));
+  selectionPointer=null;
+});
+$('#analyze-selection').onclick=async()=>{
+  if(!state.buffer||!state.selection||state.selectionBusy)return;
+  const {from,to}=state.selection;
+  if(to-from<6){toast('Select at least 6 seconds.');return;}
+  const generation=state.generation;state.selectionBusy=true;updateRange();
+  const samples=state.buffer.getChannelData(0).slice(Math.floor(from*state.buffer.sampleRate),Math.floor(to*state.buffer.sampleRate));
+  let worker=null,timer=null;
+  try{
+    const result=await new Promise((resolve,reject)=>{
+      worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});
+      timer=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
+      worker.onmessage=({data})=>data.error?reject(new Error(data.error)):resolve(data.result);
+      worker.onerror=()=>reject(new Error('Analysis worker failed.'));
+      worker.postMessage({samples,sampleRate:state.buffer.sampleRate},[samples.buffer]);
+    });
+    if(generation!==state.generation)return;
+    state.result={...result,beatOffset:result.beatOffset==null?null:result.beatOffset+from};
+    state.bpm=state.result.bpm;state.factor=1;stopMetronome();renderSongMetrics();
+    announce('Selected range analysis completed.');
+  }catch(error){if(generation===state.generation){toast(messages[error.message]||error.message);announce('Selection analysis failed.');}}
+  finally{if(timer)clearTimeout(timer);worker?.terminate();if(generation===state.generation){state.selectionBusy=false;updateRange();}}
+};
+$('#analyze-full').onclick=()=>{
+  if(!state.fullResult)return;
+  state.result=state.fullResult;state.bpm=state.result.bpm;state.factor=1;stopMetronome();renderSongMetrics();announce('Showing full track analysis.');
+};
+$('#song-export-json').onclick=()=>{if(!state.result||!state.file)return;const {key,tuning,diagnostics,bpm,confidence}=state.result;const report={schema:'pulse.song-analysis.v2',range:state.result===state.fullResult?null:state.selection,filename:state.file.name,bytes:state.file.size,durationSeconds:state.buffer.duration,channels:state.buffer.numberOfChannels,sampleRate:state.buffer.sampleRate,rhythm:{bpm,confidence,estimatedBeatOffsetSeconds:state.result.beatOffset??null},harmony:{key:key?.primary??null,confidence:key?.confidence??'unavailable',alternatives:key?.alternatives??[]},tuning,diagnostics};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=(state.file.name.replace(/\.[^/.]+$/,'')||'song')+'_analysis.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};

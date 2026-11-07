@@ -2,7 +2,7 @@ import {initStudioTools} from './tools.mjs';
 import {gridLines} from './beat-grid.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
-const state = {file:null,generation:0,busy:false,fullResult:null,selection:null,selectionBusy:false,selectMode:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
+const state = {file:null,generation:0,busy:false,fullResult:null,selection:null,selectionBusy:false,selectionWorker:null,selectMode:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
 const messages = {
   TOO_SHORT:'Track too short. Use at least 6 seconds.',
   SILENCE:'Silence or weak audio. Try a track with a clear beat.',
@@ -26,7 +26,7 @@ function stopPlayback() {
   state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Play track');
 }
 function reset() {
-  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;state.fullResult=null;state.selection=null;state.selectMode=false;state.selectionBusy=false;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
+  state.generation++;state.selectionWorker?.terminate();state.selectionWorker=null;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;state.fullResult=null;state.selection=null;state.selectMode=false;state.selectionBusy=false;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
   $('#tempo-circle').hidden=false;ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');$('#song-results').hidden=true;$('#selection-tools').hidden=true;$('#select-range').setAttribute('aria-pressed','false');$('#analyzer-waveform').classList.remove('is-selecting');$('#analysis-scope').hidden=true;ui['file-input'].value='';setBusy(false);
 }
 async function processFile(file) {
@@ -109,7 +109,7 @@ function drawWaveform() {
   const stride=Math.max(1,Math.ceil(7/Math.max(visibleSpacing,0.01)));
   ctx.strokeStyle='#ffffff50';ctx.lineWidth=1;
   for(let i=0;i<grid.length;i+=stride){const x=grid[i]/state.buffer.duration*rect.width;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,rect.height);ctx.stroke();}
-  if(state.selection){
+  if(state.selection&&(state.selection.from>.01||state.selection.to<state.buffer.duration-.01)){
     const from=state.selection.from/state.buffer.duration*rect.width;
     const to=state.selection.to/state.buffer.duration*rect.width;
     ctx.fillStyle='#ff000030';ctx.fillRect(from,0,to-from,rect.height);
@@ -240,7 +240,7 @@ $('#analyze-selection').onclick=async()=>{
   let worker=null,timer=null;
   try{
     const result=await new Promise((resolve,reject)=>{
-      worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});
+      worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});state.selectionWorker=worker;
       timer=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
       worker.onmessage=({data})=>data.error?reject(new Error(data.error)):resolve(data.result);
       worker.onerror=()=>reject(new Error('Analysis worker failed.'));
@@ -251,7 +251,7 @@ $('#analyze-selection').onclick=async()=>{
     state.bpm=state.result.bpm;state.factor=1;stopMetronome();renderSongMetrics();
     announce('Selected range analysis completed.');
   }catch(error){if(generation===state.generation){toast(messages[error.message]||error.message);announce('Selection analysis failed.');}}
-  finally{if(timer)clearTimeout(timer);worker?.terminate();if(generation===state.generation){state.selectionBusy=false;updateRange();}}
+  finally{if(timer)clearTimeout(timer);worker?.terminate();if(state.selectionWorker===worker)state.selectionWorker=null;if(generation===state.generation){state.selectionBusy=false;updateRange();}}
 };
 $('#analyze-full').onclick=()=>{
   if(!state.fullResult)return;

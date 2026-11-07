@@ -43,7 +43,13 @@ export function analyzeSong(samples,sampleRate) {
   if(power/Math.ceil(samples.length/128)<1e-9)throw new Error('SILENCE');
   let tempo=null,key=null,tuning=null,tempoError=null,keyError=null;
   try{if(hasRhythmicDynamics(samples,sampleRate))tempo=analyzeTempo(samples,sampleRate);else tempoError='NO_RHYTHM';}catch(error){tempoError=error.message;}
-  try{key=detectKey(samples,sampleRate);}catch(error){keyError=error.message;}
+  try{
+    key=detectKey(samples,sampleRate);
+    // A single spectral pitch cannot establish a major/minor key reliably.
+    const chroma=key.chroma;
+    const total=chroma.reduce((sum,value)=>sum+value,0);
+    if(total>0&&Math.max(...chroma)/total>.6){key=null;keyError='INSUFFICIENT_HARMONY';}
+  }catch(error){keyError=error.message;}
   // Only present a detuning estimate alongside a plausible pitched-signal result.
   if(key && key.confidence!=='low'){
     try{tuning=estimateTuning(samples,sampleRate);}catch{}

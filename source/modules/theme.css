@@ -1,0 +1,157 @@
+/* PULSE Studio appearance. Theme is opt-in; original light styles remain unchanged. */
+
+/* One compact, square, icon-only switch at the top of the page. */
+.header .brand{order:1}
+.header .header-nav{order:2;margin-left:auto}
+.header .pulse-theme-toggle{
+  order:3;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 42px;width:42px;height:42px;
+  margin:0;padding:0;
+  border:1px solid #b9b7b0;border-radius:0;
+  background:transparent;color:#191919;
+  cursor:pointer;
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease;
+}
+.header .pulse-theme-toggle:hover{background:#e8e6e1;border-color:#191919}
+.header .pulse-theme-toggle:focus-visible{outline:2px solid #ff2b20;outline-offset:3px}
+.pulse-theme-toggle svg{display:block;flex:none}
+.pulse-theme-toggle .pulse-theme-sun{display:none}
+html[data-theme="dark"] .pulse-theme-toggle .pulse-theme-moon{display:none}
+html[data-theme="dark"] .pulse-theme-toggle .pulse-theme-sun{display:block}
+@media(max-width:700px){
+  .header .brand{order:1}
+  .header .pulse-theme-toggle{order:2;margin-left:auto}
+  .header .header-nav{order:3;margin-left:0;width:100%}
+}
+
+/* Dark surfaces: keep the PULSE red/black audio workspaces, never invert audio canvases. */
+html[data-theme="dark"]{color-scheme:dark}
+html[data-theme="dark"] body{background:#121314;color:#f5f4f0}
+html[data-theme="dark"] .header{border-bottom-color:#444549}
+html[data-theme="dark"] .header .header-nav a{color:#c2c1bd;border-color:#4b4b4e}
+html[data-theme="dark"] .header .header-nav a:hover{color:#ffffff;border-color:#999995}
+html[data-theme="dark"] .header .header-nav a.is-active{
+  color:#181818;background:#f5f4f0;border-color:#f5f4f0;
+}
+html[data-theme="dark"] .header .header-nav a.nav-bpm:not(.is-active){color:#d6d5d0}
+html[data-theme="dark"] .header .pulse-theme-toggle{
+  color:#f5f4f0;border-color:#77787b;background:#1c1d1f;
+}
+html[data-theme="dark"] .header .pulse-theme-toggle:hover{
+  color:#ffffff;border-color:#f5f4f0;background:#292a2d;
+}
+html[data-theme="dark"] .hero-copy .intro,
+html[data-theme="dark"] .hero:has(.pulse-hero-info) .pulse-hero-description,
+html[data-theme="dark"] .section-label span,
+html[data-theme="dark"] .toolkit-note,
+html[data-theme="dark"] .pulse-editorial-copy ol,
+html[data-theme="dark"] .pulse-directory-eyebrow,
+html[data-theme="dark"] .bpm-note,
+html[data-theme="dark"] .bpm-demo-line,
+html[data-theme="dark"] .pulse-footer>span,
+html[data-theme="dark"] .pulse-footer>a:last-child{color:#b5b4b0}
+html[data-theme="dark"] .hero:has(.pulse-hero-info) .pulse-format-tags span{
+  border-color:#7a7a77;color:#f5f4f0;
+}
+html[data-theme="dark"] .hero-art .circle-grid i.black{background:#f5f4f0}
+html[data-theme="dark"] .bpm-demo-line a,
+html[data-theme="dark"] .bpm-demo-line button{color:#f5f4f0}
+
+/* Tool navigation is visible on the dark canvas; the active tab uses brand red. */
+html[data-theme="dark"] .tool-category-nav button:not(.is-active){
+  background:#222326;color:#eae9e4;border-color:#414247;
+}
+html[data-theme="dark"] .tool-category-nav button:hover:not(.is-active){
+  background:#323337;border-color:#77787c;
+}
+html[data-theme="dark"] .tool-category-nav button.is-active{
+  background:#ff2b20;color:#191919;border-color:#ff2b20;
+}
+html[data-theme="dark"] .tool-category-nav button.is-active span{color:#191919}
+html[data-theme="dark"] .tool-tabs .tool-tab,
+html[data-theme="dark"] .tool-tab{
+  background:transparent;color:#ecebe6;border-color:#6a6b70;
+}
+html[data-theme="dark"] .tool-tabs .tool-tab.selected{
+  border-color:#ff2b20;background:#252527;color:#fff;
+}
+html[data-theme="dark"] .tool-tabs .tool-tab:hover:not(.selected){
+  background:#232427;border-color:#c3c2bd;color:#fff;
+}
+html[data-theme="dark"] .tool-tabs .tool-tab:focus-visible{outline-color:#ff2b20}
+
+/* Inspector and rhythm result remain red with their original dark controls and text. */
+html[data-theme="dark"] .tool-settings,
+html[data-theme="dark"] .tool-settings:has(.pulse-normalizer),
+html[data-theme="dark"] #analyzer.pulse-bpm-section .bpm-result-panel{
+  background:#ff2b20;color:#191919;
+}
+html[data-theme="dark"] .tool-source,
+html[data-theme="dark"] #analyzer.pulse-bpm-section .bpm-upload-panel{
+  background:#191919;color:#f5f4f0;
+}
+html[data-theme="dark"] .pulse-source-original{background:#171717;color:#f5f4f0}
+html[data-theme="dark"] .module-work .pulse-metric-orbit,
+html[data-theme="dark"] .module-work .key-bubble{border-color:#19191998}
+
+/* Informational material, editorial benefits and guides. */
+html[data-theme="dark"] .pulse-benefits{background:transparent;color:#f5f4f0}
+html[data-theme="dark"] .pulse-benefits-eyebrow,
+html[data-theme="dark"] .pulse-benefit-top>span:last-child{color:#b2b0a9}
+html[data-theme="dark"] .pulse-benefits-grid{border-color:#5a5b5e}
+html[data-theme="dark"] .pulse-benefit-card+.pulse-benefit-card{border-color:#5a5b5e}
+html[data-theme="dark"] .pulse-benefit-icon{
+  color:#f5f4f0;border-color:#deddd6;
+}
+html[data-theme="dark"] .pulse-benefit-card p,
+html[data-theme="dark"] .pulse-benefits-current p{color:#c6c4bd}
+html[data-theme="dark"] .pulse-benefits-current strong{color:#f5f4f0}
+
+html[data-theme="dark"] .pulse-bitrate-guide{color:#f5f4f0}
+html[data-theme="dark"] .pulse-bitrate-eyebrow,
+html[data-theme="dark"] .pulse-bitrate-description{color:#bcbab4}
+html[data-theme="dark"] .pulse-bitrate-card{
+  background:#1d1e20;color:#f5f4f0;border-color:#404144;
+}
+html[data-theme="dark"] .pulse-bitrate-card p{color:#e7e6e1}
+html[data-theme="dark"] .pulse-bitrate-label{color:#b8b5b0}
+
+html[data-theme="dark"] .pulse-directory-card:not(.is-featured){
+  background:#202123;border-color:#535459;color:#f5f4f0;
+}
+html[data-theme="dark"] .pulse-directory-card.is-featured{color:#191919}
+html[data-theme="dark"] .pulse-directory-card:not(.is-featured) .pulse-card-action{
+  background:#303135;color:#f5f4f0;border:1px solid #6c6d72;
+}
+html[data-theme="dark"] .pulse-directory-card:not(.is-featured) .pulse-card-action:hover{
+  background:#ff2b20;color:#191919;border-color:#ff2b20;
+}
+html[data-theme="dark"] .pulse-directory-note p{color:#c2c1bd}
+html[data-theme="dark"] .pulse-footer{
+  background:#191919;color:#f5f4f0;border-color:#515155;
+}
+html[data-theme="dark"] .pulse-footer-col button,
+html[data-theme="dark"] .pulse-footer-col li{color:#eae9e4}
+
+/* Tap Tempo overlay is part of the workspace and follows the selected theme. */
+html[data-theme="dark"] .tap-tempo-dialog{
+  background:#222326;color:#f5f4f0;border:1px solid #67676b;
+}
+html[data-theme="dark"] .tap-dialog-close,
+html[data-theme="dark"] .tap-dialog-actions button{
+  color:#f5f4f0;border-color:#7b7b7d;
+}
+html[data-theme="dark"] .tap-dialog-pad{color:#191919}
+html[data-theme="dark"] .tap-dialog-close:hover{background:#36373a}
+
+/* Native input text remains legible on the PULSE red inspector. */
+html[data-theme="dark"] .tool-settings input:not([type="range"]),
+html[data-theme="dark"] .tool-settings select,
+html[data-theme="dark"] .tool-settings textarea{color:#191919;accent-color:#191919}
+html[data-theme="dark"] .tool-settings select option{background:#f5f4f0;color:#191919}
+
+/* Native controls and browser chrome. Respect explicit reduced-motion setting. */
+@media(prefers-reduced-motion:reduce){
+  .header .pulse-theme-toggle{transition:none}
+}

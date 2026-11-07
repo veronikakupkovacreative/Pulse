@@ -5,6 +5,7 @@ import {renderToolBenefits} from './modules/tool-benefits.mjs';
 import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 import {studioStore} from './modules/studio-store.mjs';
+import {initializeThemeToggle} from './modules/theme-toggle.mjs';
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
@@ -16,6 +17,7 @@ const categories=Object.freeze({
   visuals:{name:'VISUALS',title:'Visuals.',description:'Audio visualizations are ready.',number:'05'}
 });
 const query=(selector)=>document.querySelector(selector);
+initializeThemeToggle();
 const blank=query('#blank-panel');
 const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');

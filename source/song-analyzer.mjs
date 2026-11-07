@@ -15,13 +15,34 @@ function fallbackWaveform(samples,count=220) {
   return values.map(value=>maximum?value/maximum:0);
 }
 
+// Reject false tempo candidates in essentially static harmonic material.
+// This deliberately only handles nearly flat envelopes, not moderately compressed music.
+function hasRhythmicDynamics(samples,sampleRate){
+  const hop=Math.max(256,Math.round(sampleRate*.03));
+  const frames=Math.floor(samples.length/hop);
+  let sum=0,sumSquared=0,delta=0,previous=0;
+  for(let f=0;f<frames;f++){
+    let energy=0;const start=f*hop;
+    for(let i=start;i<start+hop;i++)energy+=samples[i]*samples[i];
+    const rms=Math.sqrt(energy/hop);
+    sum+=rms;sumSquared+=rms*rms;
+    if(f)delta+=Math.abs(rms-previous);
+    previous=rms;
+  }
+  const average=sum/frames;
+  if(average<1e-6)return false;
+  const variation=Math.sqrt(Math.max(0,sumSquared/frames-average*average))/average;
+  const changes=delta/Math.max(1,frames-1)/average;
+  return variation>=.04||changes>=.025;
+}
+
 export function analyzeSong(samples,sampleRate) {
   if(!samples || !Number.isFinite(sampleRate) || sampleRate<=0 || samples.length<sampleRate*6)throw new Error('TOO_SHORT');
   let power=0;
   for(let i=0;i<samples.length;i+=128)power+=samples[i]*samples[i];
   if(power/Math.ceil(samples.length/128)<1e-9)throw new Error('SILENCE');
   let tempo=null,key=null,tuning=null,tempoError=null,keyError=null;
-  try{tempo=analyzeTempo(samples,sampleRate);}catch(error){tempoError=error.message;}
+  try{if(hasRhythmicDynamics(samples,sampleRate))tempo=analyzeTempo(samples,sampleRate);else tempoError='NO_RHYTHM';}catch(error){tempoError=error.message;}
   try{key=detectKey(samples,sampleRate);}catch(error){keyError=error.message;}
   // Only present a detuning estimate alongside a plausible pitched-signal result.
   if(key && key.confidence!=='low'){

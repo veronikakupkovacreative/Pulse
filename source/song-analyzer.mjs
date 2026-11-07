@@ -1,5 +1,6 @@
 import {analyzeTempo} from './analyzer.mjs';
 import {detectKey,estimateTuning} from './studio-audio.mjs';
+import {estimateBeatOffset} from './beat-grid.mjs';
 
 // Independent rhythm and harmony branches: a missing beat should not hide a key.
 function fallbackWaveform(samples,count=220) {
@@ -60,7 +61,7 @@ export function analyzeSong(samples,sampleRate) {
     waveform:tempo?.waveform??fallbackWaveform(samples),
     duration:samples.length/sampleRate,
     analyzedWindows:tempo?.analyzedWindows??0,
-    key,tuning,
+    key,tuning,beatOffset:tempo?estimateBeatOffset(samples,sampleRate,tempo.bpm):null,
     diagnostics:{rhythm:tempoError,harmony:keyError}
   };
 }

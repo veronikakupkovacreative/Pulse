@@ -11,5 +11,8 @@
     "@ffmpeg/core": "0.12.10",
     "@ffmpeg/ffmpeg": "0.12.15",
     "web-audio-beat-detector": "8.2.39"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
   }
 }

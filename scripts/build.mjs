@@ -1,4 +1,5 @@
 import {mkdir,copyFile,readFile,readdir,cp} from 'node:fs/promises';
+import {build as bundle} from 'esbuild';
 import {join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=join(dirname(fileURLToPath(import.meta.url)),'..');
@@ -8,7 +9,12 @@ for(const file of ['index.html','style.css','app.mjs','reference-ui.mjs']){await
 for(const file of await readdir(join(source,'modules'))){if(file.endsWith('.mjs')||file.endsWith('.css'))await copyFile(join(source,'modules',file),join(output,'modules',file));}
 // Publish a pinned same-origin beat detector for lazy browser loading.
 await mkdir(join(output,'vendor','beat-detector'),{recursive:true});
-await copyFile(join(root,'node_modules','web-audio-beat-detector','build','es5','bundle.js'),join(output,'vendor','beat-detector','bundle.js'));
+await bundle({
+ entryPoints:[join(root,'node_modules','web-audio-beat-detector','build','es2019','module.js')],
+ outfile:join(output,'vendor','beat-detector','bundle.js'),
+ bundle:true,platform:'browser',format:'iife',globalName:'webAudioBeatDetector',
+ target:'es2020',minify:true,legalComments:'inline'
+});
 await copyFile(join(root,'node_modules','web-audio-beat-detector','LICENSE'),join(output,'vendor','beat-detector','LICENSE.txt'));
 console.log('Built PULSE Studio with browser audio modules.');
 

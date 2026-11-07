@@ -115,3 +115,55 @@ export function detectKey(samples,sampleRate){
   const [top,second]=candidates;
   return {primary:top,alternatives:candidates.slice(1,4),chroma:Array.from(chroma,v=>v/Math.max(...chroma)),confidence:top.score>.75&&top.score-second.score>.13?'higher':top.score>.45?'moderate':'low'};
 }
+
+/**
+ * Estimate the reference A frequency from stable spectral peaks.
+ * Returns null for diffuse, non-tonal audio; values are estimates, not calibration.
+ */
+export function estimateTuning(samples,sampleRate){
+  const size=8192,count=Math.min(48,Math.floor(samples.length/size));
+  if(count<3)return null;
+  const real=new Float64Array(size),imag=new Float64Array(size),magnitudes=new Float64Array(size/2);
+  const peaks=[],frames=Math.min(count,32);
+  for(let frame=0;frame<frames;frame++){
+    const start=Math.floor((samples.length-size)*frame/Math.max(1,frames-1));
+    let energy=0;
+    for(let i=0;i<size;i++){const x=samples[start+i];real[i]=x*(.5-.5*Math.cos(2*Math.PI*i/(size-1)));imag[i]=0;energy+=x*x;}
+    if(energy/size<2e-7)continue;
+    fft(real,imag);
+    let maximum=0;
+    const minBin=Math.max(2,Math.ceil(100*size/sampleRate)),maxBin=Math.min(magnitudes.length-2,Math.floor(1600*size/sampleRate));
+    for(let bin=0;bin<magnitudes.length;bin++){
+      const v=Math.hypot(real[bin],imag[bin]);magnitudes[bin]=v;
+      if(bin>=minBin&&bin<=maxBin)maximum=Math.max(maximum,v);
+    }
+    if(maximum<.01)continue;
+    const framePeaks=[];
+    for(let bin=minBin;bin<=maxBin;bin++){
+      const value=magnitudes[bin];
+      if(value<maximum*.16||value<=magnitudes[bin-1]||value<=magnitudes[bin+1])continue;
+      const left=Math.log(magnitudes[bin-1]+1e-8),center=Math.log(value+1e-8),right=Math.log(magnitudes[bin+1]+1e-8);
+      const divisor=left-2*center+right;
+      const shift=divisor?Math.max(-.5,Math.min(.5,.5*(left-right)/divisor)):0;
+      const hz=(bin+shift)*sampleRate/size;
+      const midi=69+12*Math.log2(hz/440);
+      const cents=(midi-Math.round(midi))*100;
+      if(Math.abs(cents)>48)continue;
+      framePeaks.push({cents,weight:Math.sqrt(value/maximum)});
+    }
+    framePeaks.sort((a,b)=>b.weight-a.weight);
+    peaks.push(...framePeaks.slice(0,7));
+  }
+  if(peaks.length<12)return null;
+  let strongestCenter=0,strongestWeight=0,totalWeight=0;
+  for(const peak of peaks)totalWeight+=peak.weight;
+  for(let center=-45;center<=45;center+=2){
+    let weight=0;
+    for(const peak of peaks)if(Math.abs(peak.cents-center)<7)weight+=peak.weight;
+    if(weight>strongestWeight){strongestWeight=weight;strongestCenter=center;}
+  }
+  if(strongestWeight/totalWeight<.27)return null;
+  const nearby=peaks.filter(peak=>Math.abs(peak.cents-strongestCenter)<7);
+  const cents=nearby.reduce((sum,peak)=>sum+peak.cents*peak.weight,0)/nearby.reduce((sum,peak)=>sum+peak.weight,0);
+  return {hz:Math.round(440*2**(cents/1200)*10)/10,cents:Math.round(cents),confidence:strongestWeight/totalWeight};
+}

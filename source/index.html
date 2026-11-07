@@ -61,7 +61,7 @@
       <div id="bpm-empty-result" class="bpm-result-footer"><span>Start with a beat.</span><button id="bpm-reanalyze" type="button" disabled aria-label="Re-analyze tempo">↗</button></div>
       <div class="bpm-expanded" id="bpm-expanded" hidden>
         <div class="bpm-actions"><div class="bpm-tempo-buttons"><button type="button" id="bpm-half" aria-label="Half tempo">÷ 2</button><button type="button" id="bpm-double" aria-label="Double tempo">× 2</button></div><button type="button" id="bpm-copy">▣ &nbsp; Copy</button></div>
-        <div class="bpm-edit-row"><label for="bpm-edit">EDIT BPM <input type="number" min="20" max="400" step="0.1" id="bpm-edit" value="120"></label><button type="button" id="bpm-apply">Apply to Toolkit ↗</button></div>
+        <div class="bpm-edit-row"><label for="bpm-edit">EDIT BPM <input type="number" min="20" max="400" step="0.01" id="bpm-edit" value="120"></label><button type="button" id="bpm-apply">Apply to Toolkit ↗</button></div>
         <div class="bpm-grid-row"><label for="bpm-offset">First beat (s)<input type="number" min="0" step="0.001" id="bpm-offset" value="0"></label><label for="bpm-meter">Beats per bar<select id="bpm-meter"><option value="3">3/4</option><option value="4" selected>4/4</option><option value="5">5/4</option><option value="6">6/4</option></select></label></div>
         <div class="bpm-metronome-row"><button type="button" id="bpm-metronome" aria-pressed="false"><span class="bpm-switch"><i></i></span> Preview tempo</button><label for="bpm-volume">Volume<input type="range" id="bpm-volume" min="0" max="100" value="60" step="5"></label><div id="bpm-beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
       </div>

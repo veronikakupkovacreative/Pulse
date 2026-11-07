@@ -21,7 +21,7 @@ function syncTrack(){
 }
 function setTempo(v){
  const bpm=Number(String(v).replace(',','.'));if(!Number.isFinite(bpm)||bpm<20||bpm>400){status('Enter a tempo between 20 and 400 BPM.');return false}
- result={...result,bpm:Math.round(bpm*10)/10};$('bpm-number').textContent=result.bpm.toFixed(1);$('bpm-edit').value=result.bpm;status('');return true;
+ result={...result,bpm:Math.round(bpm*100)/100};$('bpm-number').textContent=result.bpm.toFixed(2);$('bpm-edit').value=result.bpm.toFixed(2);status('');return true;
 }
 function stopMetro(){playingMetro=false;if(metroTimer)clearInterval(metroTimer);metroTimer=null;$('bpm-metronome').setAttribute('aria-pressed','false')}
 function beat(){if(!playingMetro)return;const ctx=metroContext,t=ctx.currentTime,osc=ctx.createOscillator(),g=ctx.createGain(),accent=metroStep%Number($('bpm-meter').value)===0;osc.frequency.value=accent?1100:800;osc.connect(g);g.connect(ctx.destination);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,Number($('bpm-volume').value)/100*.18),t+.002);g.gain.exponentialRampToValueAtTime(.001,t+.055);osc.start(t);osc.stop(t+.06);const dots=[...$('bpm-beat-dots').children];dots.forEach((x,i)=>x.classList.toggle('active',i===metroStep%dots.length));metroStep++}
@@ -31,9 +31,9 @@ async function analyze(){
  try{
   const next=await analyzeRhythmInWorker(b,{signal:controller.signal,onProgress:value=>{if(id===runId)$('bpm-status').textContent='ANALYZING '+value+'%';}});
   if(id!==runId)return;
-  result=next;w.setMarkers(next.beatTimes);setTempo(next.bpm);$('bpm-status').textContent='RHYTHM ANALYZED';
+  result=next;w.setMarkers(next.beatTimes);setTempo(next.bpm);$('bpm-offset').value=String(next.offset??0);$('bpm-status').textContent='RHYTHM ANALYZED';
   $('bpm-expanded').hidden=false;$('bpm-empty-result').hidden=true;
-  $('bpm-note').textContent='Tempo estimate · '+next.confidence.toUpperCase()+' rhythmic confidence · '+next.beatTimes.length+' beat markers placed on the shared waveform. Verify by ear or use half/double tempo.';
+  $('bpm-note').textContent='Tempo estimate · '+(next.method==='web-audio-beat-detector'?'Web Audio Beat Detector':'onset fallback')+' · '+next.confidence.toUpperCase()+' rhythmic confidence · '+next.beatTimes.length+' beat markers. Half/double tempos remain possible.';
  }catch(error){
   if(id!==runId||error?.name==='AbortError')return;
   result=null;$('bpm-status').textContent='NO RHYTHM FOUND';$('bpm-number').textContent='—';$('bpm-expanded').hidden=true;$('bpm-empty-result').hidden=false;
@@ -47,8 +47,8 @@ $('bpm-remove').onclick=()=>{analysisController?.abort();w.clear();track=null;pr
 const dz=$('bpm-drop-zone');dz.ondragover=e=>{e.preventDefault();dz.classList.add('is-dragover')};dz.ondragleave=()=>dz.classList.remove('is-dragover');dz.ondrop=e=>{e.preventDefault();dz.classList.remove('is-dragover');void load(e.dataTransfer.files?.[0])};
 $('bpm-reanalyze').onclick=analyze;$('bpm-half').onclick=()=>result&&setTempo(result.bpm/2);$('bpm-double').onclick=()=>result&&setTempo(result.bpm*2);
 $('bpm-edit').onchange=e=>setTempo(e.target.value);
-$('bpm-copy').onclick=async()=>{if(!result)return;try{await navigator.clipboard.writeText(result.bpm.toFixed(1));$('bpm-copy').textContent='Copied ✓'}catch{status('Clipboard unavailable')}};
-$('bpm-apply').onclick=()=>{if(!result||!setTempo($('bpm-edit').value))return;document.dispatchEvent(new CustomEvent('pulse:tempo',{detail:{bpm:result.bpm,offset:Number($('bpm-offset').value)||0,meter:Number($('bpm-meter').value)||4}}));status('Tempo applied to source grid: '+result.bpm.toFixed(1)+' BPM.')};
+$('bpm-copy').onclick=async()=>{if(!result)return;try{await navigator.clipboard.writeText(result.bpm.toFixed(2));$('bpm-copy').textContent='Copied ✓'}catch{status('Clipboard unavailable')}};
+$('bpm-apply').onclick=()=>{if(!result||!setTempo($('bpm-edit').value))return;document.dispatchEvent(new CustomEvent('pulse:tempo',{detail:{bpm:result.bpm,offset:Number($('bpm-offset').value)||0,meter:Number($('bpm-meter').value)||4}}));status('Tempo applied to source grid: '+result.bpm.toFixed(2)+' BPM.')};
 $('bpm-metronome').onclick=toggleMetro;
 $('bpm-play').onclick=()=>w.togglePlay().catch(e=>status(e.message));
 $('bpm-canvas').onclick=e=>{if(!w.buffer)return;w.seek((e.clientX-e.currentTarget.getBoundingClientRect().left)/e.currentTarget.clientWidth*w.buffer.duration)};

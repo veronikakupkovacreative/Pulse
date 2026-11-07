@@ -10,7 +10,7 @@ const messages = {
   TIMEOUT:'Analysis timed out. Try a shorter track.'
 };
 const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
-const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.',',');
+const bpmLabel = value => value==null?'—':Number.isInteger(value)?String(value):value.toFixed(1).replace('.',',');
 function announce(text) { ui['live-status'].textContent=text; }
 function showError(message) { ui.error.textContent=message; ui.error.hidden=false; }
 let toastTimer;
@@ -26,7 +26,7 @@ function stopPlayback() {
 }
 function reset() {
   state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
-  ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
+  $('#tempo-circle').hidden=false;ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');$('#song-results').hidden=true;ui['file-input'].value='';setBusy(false);
 }
 async function processFile(file) {
   if(!file||state.busy)return;
@@ -34,7 +34,7 @@ async function processFile(file) {
   if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Unsupported format. Use WAV, MP3 or MP4.');return;}
   if(file.size>100*1024*1024){showError('File exceeds 100 MB. Choose a smaller file.');return;}
   if(file.size===0){showError('Empty file. Try another.');return;}
-  reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Loading audio…';
+  reset();const generation=state.generation;setBusy(true);announce('Loading and analyzing your song.');$('#progress-detail').textContent='Loading audio…';
   try {
     const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     if(!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
@@ -44,7 +44,7 @@ async function processFile(file) {
     if(generation!==state.generation)return;
     if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
-    $('#progress-detail').textContent='Finding the beat…';
+    $('#progress-detail').textContent='Analyzing rhythm, key and tuning…';
     // Use the most energetic channel to avoid phase cancellation in stereo recordings.
     let bestChannel=0,bestEnergy=-1;
     for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
@@ -58,7 +58,7 @@ async function processFile(file) {
       worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
+    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Song analysis completed. Estimated tempo: ${bpmLabel(result.bpm)} BPM. Key: ${result.key?.primary?.display??'unavailable'}.`);
   } catch(error) {
     if(generation!==state.generation)return;
     setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
@@ -70,18 +70,26 @@ function renderResult(file) {
   $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
-  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
+  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE',unavailable:'NO STEADY BEAT'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
-  ui['result-note'].textContent=state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
+  ui['result-note'].textContent=state.result.bpm==null?'No steady tempo found. Harmony analysis may still be available.':state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
+  const key=state.result.key?.primary;
+  $('#song-key').textContent=key?key.name+' '+(key.mode==='minor'?'Minor':'Major'):'Not detected';
+  $('#song-camelot').textContent=key?.camelot??'—';
+  $('#song-key-confidence').textContent=state.result.key?({higher:'HIGHER',moderate:'MODERATE',low:'LOW'})[state.result.key.confidence]:'UNAVAILABLE';
+  $('#song-tuning').textContent=state.result.tuning?state.result.tuning.hz.toFixed(1)+' Hz':'Not detected';
+  $('#song-analysis-note').textContent='Estimates only. Tempo, tonal center and tuning can be ambiguous in complex audio.';
+  $('#song-results').hidden=false;
+  $('#tempo-circle').hidden=state.result.bpm==null;
   updateTempo();drawWaveform();
 }
 function updateTempo() {
-  ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',!Number.isInteger(state.bpm));
-  $('#reset-tempo').hidden=Math.abs(state.bpm-state.result.bpm)<.01;
-  $('#half-tempo').disabled=state.bpm/2<20;$('#double-tempo').disabled=state.bpm*2>400;
+  ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',state.bpm!=null&&!Number.isInteger(state.bpm));
+  $('#reset-tempo').hidden=state.result.bpm==null||Math.abs(state.bpm-state.result.bpm)<.01;
+  $('#half-tempo').disabled=state.result.bpm==null||state.bpm/2<20;$('#double-tempo').disabled=state.result.bpm==null||state.bpm*2>400;$('#copy-bpm').disabled=state.result.bpm==null;$('#metronome').disabled=state.result.bpm==null;
 }
 function changeTempo(multiplier) {
-  if(!state.result)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
+  if(!state.result||state.result.bpm==null)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
 }
 function drawWaveform() {
   if(!state.result)return;
@@ -149,6 +157,7 @@ ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){d
 ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Upload one track at a time.');return;}processFile(event.dataTransfer.files[0]);});
 $('#play-track').onclick=play;
 $('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
+$('#song-export-json').onclick=()=>{if(!state.result||!state.file)return;const {key,tuning,diagnostics,bpm,confidence}=state.result;const report={schema:'pulse.song-analysis.v1',filename:state.file.name,bytes:state.file.size,durationSeconds:state.buffer.duration,channels:state.buffer.numberOfChannels,sampleRate:state.buffer.sampleRate,rhythm:{bpm,confidence},harmony:{key:key?.primary??null,confidence:key?.confidence??'unavailable',alternatives:key?.alternatives??[]},tuning,diagnostics};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=(state.file.name.replace(/\\.[^/.]+$/,'')||'song')+'_analysis.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};

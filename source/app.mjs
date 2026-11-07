@@ -1,7 +1,8 @@
 import {initStudioTools} from './tools.mjs';
+import {gridLines} from './beat-grid.mjs';
 const $ = selector => document.querySelector(selector);
 const ui = Object.fromEntries(['file-input','drop-zone','upload-empty','processing','track-content','result-panel','result-empty','result-controls','result-note','result-status','bpm-number','error','live-status'].map(id=>[id,$('#'+id)]));
-const state = {file:null,generation:0,busy:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
+const state = {file:null,generation:0,busy:false,fullResult:null,selection:null,analyzedRange:null,channelIndex:0,selectionBusy:false,selectionWorker:null,selectMode:false,worker:null,cancelWorker:null,buffer:null,result:null,bpm:0,factor:1,context:null,source:null,playing:false,starting:false,offset:0,startedAt:0,raf:0,metroTimer:null,metroNext:0,metroBeat:0,metroNodes:new Set(),beatTimers:new Set()};
 const messages = {
   TOO_SHORT:'Track too short. Use at least 6 seconds.',
   SILENCE:'Silence or weak audio. Try a track with a clear beat.',
@@ -10,7 +11,7 @@ const messages = {
   TIMEOUT:'Analysis timed out. Try a shorter track.'
 };
 const timeLabel = seconds => `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
-const bpmLabel = value => Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.',',');
+const bpmLabel = value => value==null?'—':Number.isInteger(value)?String(value):value.toFixed(1).replace('.',',');
 function announce(text) { ui['live-status'].textContent=text; }
 function showError(message) { ui.error.textContent=message; ui.error.hidden=false; }
 let toastTimer;
@@ -25,8 +26,8 @@ function stopPlayback() {
   state.playing=false;cancelAnimationFrame(state.raf);$('#play-track use').setAttribute('href','#play');$('#play-track').setAttribute('aria-label','Play track');
 }
 function reset() {
-  state.generation++;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
-  ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');ui['file-input'].value='';setBusy(false);
+  state.generation++;state.selectionWorker?.terminate();state.selectionWorker=null;state.cancelWorker?.();state.cancelWorker=null;state.worker?.terminate();state.worker=null;stopPlayback();stopMetronome();state.file=null;state.buffer=null;state.result=null;state.fullResult=null;state.selection=null;state.analyzedRange=null;state.channelIndex=0;state.selectMode=false;state.selectionBusy=false;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.offset=0;state.bpm=0;state.factor=1;state.starting=false;
+  $('#tempo-circle').hidden=false;ui['result-panel'].classList.remove('has-result');ui['result-empty'].hidden=false;ui['result-controls'].hidden=true;ui['result-note'].hidden=true;ui.error.hidden=true;ui['bpm-number'].textContent='—';ui['bpm-number'].classList.remove('decimal');$('#song-results').hidden=true;$('#selection-tools').hidden=true;$('#select-range').setAttribute('aria-pressed','false');$('#analyzer-waveform').classList.remove('is-selecting');$('#analysis-scope').hidden=true;ui['file-input'].value='';setBusy(false);
 }
 async function processFile(file) {
   if(!file||state.busy)return;
@@ -34,7 +35,7 @@ async function processFile(file) {
   if(!/\.(wav|mp3|mp4)$/i.test(file.name)){showError('Unsupported format. Use WAV, MP3 or MP4.');return;}
   if(file.size>100*1024*1024){showError('File exceeds 100 MB. Choose a smaller file.');return;}
   if(file.size===0){showError('Empty file. Try another.');return;}
-  reset();const generation=state.generation;setBusy(true);announce('Loading audio and detecting tempo.');$('#progress-detail').textContent='Loading audio…';
+  reset();const generation=state.generation;setBusy(true);announce('Loading and analyzing your song.');$('#progress-detail').textContent='Loading audio…';
   try {
     const OfflineContext=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     if(!OfflineContext)throw new Error('Audio analysis is not supported in this browser.');
@@ -44,7 +45,7 @@ async function processFile(file) {
     if(generation!==state.generation)return;
     if(buffer.duration>1200)throw new Error('Track exceeds 20 minutes.');
     if(buffer.duration<6)throw new Error('TOO_SHORT');
-    $('#progress-detail').textContent='Finding the beat…';
+    $('#progress-detail').textContent='Analyzing rhythm, key and tuning…';
     // Use the most energetic channel to avoid phase cancellation in stereo recordings.
     let bestChannel=0,bestEnergy=-1;
     for(let ch=0;ch<buffer.numberOfChannels;ch++) {const data=buffer.getChannelData(ch);let energy=0;for(let i=0;i<data.length;i+=32)energy+=data[i]*data[i];if(energy>bestEnergy){bestEnergy=energy;bestChannel=ch;}}
@@ -58,7 +59,7 @@ async function processFile(file) {
       worker.postMessage({samples,sampleRate:buffer.sampleRate},[samples.buffer]);
     });
     if(generation!==state.generation)return;
-    state.file=file;state.buffer=buffer;state.result=result;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);announce(`Analysis complete. Estimated tempo: ${bpmLabel(result.bpm)} BPM.`);
+    state.file=file;state.buffer=buffer;state.result=result;state.fullResult=result;state.selection={from:0,to:buffer.duration};state.channelIndex=bestChannel;window.dispatchEvent(new Event('pulse:bpm-track-ready'));state.bpm=result.bpm;setBusy(false);renderResult(file);initializeRange();announce(`Song analysis completed. Estimated tempo: ${bpmLabel(result.bpm)} BPM. Key: ${result.key?.primary?.display??'unavailable'}.`);
   } catch(error) {
     if(generation!==state.generation)return;
     setBusy(false);showError(messages[error.message]||error.message);announce('Analysis could not be completed.');
@@ -70,26 +71,50 @@ function renderResult(file) {
   $('#track-meta').textContent=`${timeLabel(state.buffer.duration)} · ${(file.size/1024/1024).toLocaleString('en-US',{maximumFractionDigits:1})} MB · ${state.buffer.numberOfChannels===1?'Mono':'Stereo'}`;
   $('#total-time').textContent=timeLabel(state.buffer.duration);$('#current-time').textContent='0:00';$('#seek').max=state.buffer.duration;$('#seek').value=0;
   ui['result-panel'].classList.add('has-result');ui['result-empty'].hidden=true;ui['result-controls'].hidden=false;ui['result-note'].hidden=false;
-  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE'}[state.result.confidence];
+  renderSongMetrics();
+}
+function renderSongMetrics(){
+  const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE',unavailable:'NO STEADY BEAT'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
-  ui['result-note'].textContent=state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
+  ui['result-note'].textContent=state.result.bpm==null?'No steady tempo found. Harmony analysis may still be available.':state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
+  const key=state.result.key?.primary;
+  $('#song-key').textContent=key?key.name+' '+(key.mode==='minor'?'Minor':'Major'):'Not detected';
+  $('#song-camelot').textContent=key?.camelot??'—';
+  $('#song-key-confidence').textContent=state.result.key?({higher:'HIGHER',moderate:'MODERATE',low:'LOW'})[state.result.key.confidence]:'UNAVAILABLE';
+  $('#song-tuning').textContent=state.result.tuning?state.result.tuning.hz.toFixed(1)+' Hz':'Not detected';
+  $('#song-analysis-note').textContent='Estimates only. Tempo, tonal center and tuning can be ambiguous in complex audio.';
+  $('#song-results').hidden=false;
+  $('#analysis-scope').hidden=false;
+  $('#analysis-scope').textContent=state.result===state.fullResult?'FULL TRACK':'SELECTED RANGE';
+  $('#tempo-circle').hidden=state.result.bpm==null;
   updateTempo();drawWaveform();
 }
 function updateTempo() {
-  ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',!Number.isInteger(state.bpm));
-  $('#reset-tempo').hidden=Math.abs(state.bpm-state.result.bpm)<.01;
-  $('#half-tempo').disabled=state.bpm/2<20;$('#double-tempo').disabled=state.bpm*2>400;
+  ui['bpm-number'].textContent=bpmLabel(state.bpm);ui['bpm-number'].classList.toggle('decimal',state.bpm!=null&&!Number.isInteger(state.bpm));
+  $('#reset-tempo').hidden=state.result.bpm==null||Math.abs(state.bpm-state.result.bpm)<.01;
+  $('#half-tempo').disabled=state.result.bpm==null||state.bpm/2<20;$('#double-tempo').disabled=state.result.bpm==null||state.bpm*2>400;$('#copy-bpm').disabled=state.result.bpm==null;$('#metronome').disabled=state.result.bpm==null;
 }
 function changeTempo(multiplier) {
-  if(!state.result)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
+  if(!state.result||state.result.bpm==null)return;const wasRunning=!!state.metroTimer;stopMetronome();state.factor=multiplier?state.factor*multiplier:1;state.bpm=Math.round(state.result.bpm*state.factor*10)/10;updateTempo();if(wasRunning)startMetronome();announce(`Tempo ${bpmLabel(state.bpm)} BPM.`);
 }
 function drawWaveform() {
   if(!state.result)return;
   const canvas=$('#waveform'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
   canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
-  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=state.result.waveform,bar=rect.width/peaks.length;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const peaks=(state.fullResult??state.result).waveform,bar=rect.width/peaks.length;
   const progress=Number($('#seek').value)/state.buffer.duration;
   for(let i=0;i<peaks.length;i++){const h=Math.max(3,Math.pow(peaks[i],.6)*rect.height*.83);ctx.fillStyle=i/peaks.length<=progress?'#ff2b20':'#85857e';ctx.fillRect(i*bar,(rect.height-h)/2,Math.max(1,bar*.6),h);}
+  const grid=state.result.bpm!=null?gridLines(state.buffer.duration,state.bpm,state.result.beatOffset??0,5000):[];
+  const visibleSpacing=state.result.bpm?rect.width*60/state.result.bpm/state.buffer.duration:0;
+  const stride=Math.max(1,Math.ceil(7/Math.max(visibleSpacing,0.01)));
+  ctx.strokeStyle='#ffffff50';ctx.lineWidth=1;
+  for(let i=0;i<grid.length;i+=stride){if(state.analyzedRange&&(grid[i]<state.analyzedRange.from||grid[i]>state.analyzedRange.to))continue;const x=grid[i]/state.buffer.duration*rect.width;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,rect.height);ctx.stroke();}
+  if(state.selection&&(state.selection.from>.01||state.selection.to<state.buffer.duration-.01)){
+    const from=state.selection.from/state.buffer.duration*rect.width;
+    const to=state.selection.to/state.buffer.duration*rect.width;
+    ctx.fillStyle='#ff000030';ctx.fillRect(from,0,to-from,rect.height);
+    ctx.strokeStyle='#ff0000';ctx.beginPath();ctx.moveTo(from,0);ctx.lineTo(from,rect.height);ctx.moveTo(to,0);ctx.lineTo(to,rect.height);ctx.stroke();
+  }
   ctx.fillStyle='#f5f4f0';ctx.fillRect(progress*rect.width-1,0,1,rect.height);
 }
 async function getAudioContext() {
@@ -149,6 +174,90 @@ ui['drop-zone'].addEventListener('dragleave',()=>{dragDepth--;if(dragDepth<=0){d
 ui['drop-zone'].addEventListener('drop',event=>{event.preventDefault();dragDepth=0;ui['drop-zone'].classList.remove('is-dragging');if(event.dataTransfer.files.length>1){showError('Upload one track at a time.');return;}processFile(event.dataTransfer.files[0]);});
 $('#play-track').onclick=play;
 $('#seek').addEventListener('input',()=>{if(!state.buffer)return;const wasPlaying=state.playing;stopPlayback();state.offset=Number($('#seek').value);$('#current-time').textContent=timeLabel(state.offset);drawWaveform();if(wasPlaying)play();});
+
+function initializeRange(){
+  const duration=state.buffer.duration;
+  $('#selection-tools').hidden=false;
+  for(const id of ['selection-start','selection-end']){$('#'+id).max=duration;$('#'+id).step=.1;}
+  $('#selection-start').value=0;$('#selection-end').value=duration;
+  state.selection={from:0,to:duration};updateRange();
+}
+function updateRange(){
+  if(!state.buffer||!state.selection)return;
+  $('#selection-start-label').textContent=timeLabel(state.selection.from);
+  $('#selection-end-label').textContent=timeLabel(state.selection.to);
+  const length=state.selection.to-state.selection.from;
+  $('#analyze-selection').disabled=state.selectionBusy||length<6;
+  $('#analyze-full').disabled=state.selectionBusy;
+  $('#selection-status').textContent=state.selectionBusy?'Analyzing selected audio…':length<6?'Select at least 6 seconds.':'Range '+timeLabel(state.selection.from)+'–'+timeLabel(state.selection.to)+' · '+Math.round(length)+' seconds';
+  drawWaveform();
+}
+function setSelection(from,to){
+  if(!state.buffer)return;
+  const duration=state.buffer.duration;
+  const a=Math.min(duration,Math.max(0,Math.min(from,to)));
+  const b=Math.min(duration,Math.max(0,Math.max(from,to)));
+  state.selection={from:a,to:b};
+  $('#selection-start').value=a;$('#selection-end').value=b;
+  updateRange();
+}
+$('#selection-start').oninput=()=>setSelection(Number($('#selection-start').value),state.selection.to);
+$('#selection-end').oninput=()=>setSelection(state.selection.from,Number($('#selection-end').value));
+$('#select-range').onclick=()=>{
+  state.selectMode=!state.selectMode;
+  $('#select-range').setAttribute('aria-pressed',String(state.selectMode));
+  $('#analyzer-waveform').classList.toggle('is-selecting',state.selectMode);
+};
+let selectionPointer=null;
+const selectionWrap=$('#analyzer-waveform');
+function pointerTime(event){
+  const rect=selectionWrap.getBoundingClientRect();
+  return Math.min(state.buffer.duration,Math.max(0,(event.clientX-rect.left)/rect.width*state.buffer.duration));
+}
+selectionWrap.addEventListener('pointerdown',event=>{
+  if(!state.selectMode||!state.buffer||state.selectionBusy||event.button!==0)return;
+  event.preventDefault();
+  const start=pointerTime(event);
+  selectionPointer={id:event.pointerId,start};
+  selectionWrap.setPointerCapture(event.pointerId);
+  setSelection(start,start);
+});
+selectionWrap.addEventListener('pointermove',event=>{
+  if(selectionPointer?.id!==event.pointerId||!state.buffer)return;
+  setSelection(selectionPointer.start,pointerTime(event));
+});
+for(const name of ['pointerup','pointercancel'])selectionWrap.addEventListener(name,event=>{
+  if(selectionPointer?.id!==event.pointerId)return;
+  if(name==='pointerup'&&state.buffer)setSelection(selectionPointer.start,pointerTime(event));
+  selectionPointer=null;
+});
+$('#analyze-selection').onclick=async()=>{
+  if(!state.buffer||!state.selection||state.selectionBusy)return;
+  const {from,to}=state.selection;
+  if(to-from<6){toast('Select at least 6 seconds.');return;}
+  const generation=state.generation;state.selectionBusy=true;updateRange();
+  const samples=state.buffer.getChannelData(state.channelIndex).slice(Math.floor(from*state.buffer.sampleRate),Math.floor(to*state.buffer.sampleRate));
+  let worker=null,timer=null;
+  try{
+    const result=await new Promise((resolve,reject)=>{
+      worker=new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'});state.selectionWorker=worker;
+      timer=setTimeout(()=>{worker.terminate();reject(new Error('TIMEOUT'));},60000);
+      worker.onmessage=({data})=>data.error?reject(new Error(data.error)):resolve(data.result);
+      worker.onerror=()=>reject(new Error('Analysis worker failed.'));
+      worker.postMessage({samples,sampleRate:state.buffer.sampleRate},[samples.buffer]);
+    });
+    if(generation!==state.generation)return;
+    state.result={...result,beatOffset:result.beatOffset==null?null:result.beatOffset+from};state.analyzedRange={from,to};
+    state.bpm=state.result.bpm;state.factor=1;stopMetronome();renderSongMetrics();
+    announce('Selected range analysis completed.');
+  }catch(error){if(generation===state.generation){toast(messages[error.message]||error.message);announce('Selection analysis failed.');}}
+  finally{if(timer)clearTimeout(timer);worker?.terminate();if(state.selectionWorker===worker)state.selectionWorker=null;if(generation===state.generation){state.selectionBusy=false;updateRange();}}
+};
+$('#analyze-full').onclick=()=>{
+  if(!state.fullResult)return;
+  state.result=state.fullResult;state.analyzedRange=null;state.bpm=state.result.bpm;state.factor=1;stopMetronome();renderSongMetrics();announce('Showing full track analysis.');
+};
+$('#song-export-json').onclick=()=>{if(!state.result||!state.file)return;const {key,tuning,diagnostics,bpm,confidence}=state.result;const report={schema:'pulse.song-analysis.v2',range:state.analyzedRange,filename:state.file.name,bytes:state.file.size,durationSeconds:state.buffer.duration,channels:state.buffer.numberOfChannels,sampleRate:state.buffer.sampleRate,rhythm:{bpm,confidence,estimatedBeatOffsetSeconds:state.result.beatOffset??null},harmony:{key:key?.primary??null,confidence:key?.confidence??'unavailable',alternatives:key?.alternatives??[]},tuning,diagnostics};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=(state.file.name.replace(/\.[^/.]+$/,'')||'song')+'_analysis.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-help','help-dialog'],['open-tap','tap-dialog'],['open-privacy','privacy-dialog']])$('#'+button).onclick=()=>{if(dialog==='tap-dialog')stopMetronome();$('#'+dialog).showModal();};

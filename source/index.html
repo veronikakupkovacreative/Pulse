@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5f4f0">
-  <meta name="description" content="BPM, key detection, conversion and loops for producers.">
-  <title>Pulse Studio — BPM Analyzer & Producer Toolkit</title>
+  <meta name="description" content="Analyze BPM, key, Camelot and tuning locally in your browser. Audio stays on your device.">
+  <title>Pulse Studio — Song Analyzer & Producer Toolkit</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.mjs"></script>
@@ -23,7 +23,7 @@
 <div class="shell">
   <header class="header">
     <a class="brand" href="./" aria-label="Pulse Studio home"><span class="brand-dot"></span>Pulse<span class="brand-period">STUDIO</span></a>
-    <nav aria-label="Main navigation"><a href="#analyzer" class="nav-link active">BPM <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Help <span aria-hidden="true">↗</span></button></nav>
+    <nav aria-label="Main navigation"><a href="#analyzer" class="nav-link active">Song Analyzer <span class="nav-dot"></span></a><a href="#toolkit" class="nav-link" data-tool-nav="converter">Converter</a><a href="#toolkit" class="nav-link" data-tool-nav="key">Key Finder</a><a href="#toolkit" class="nav-link" data-tool-nav="cutter">Loop Cutter</a><button class="nav-link" id="open-tap">Tap tempo <span aria-hidden="true">↗</span></button><button class="nav-link" id="open-help">Help <span aria-hidden="true">↗</span></button></nav>
     
   </header>
   <main>
@@ -31,8 +31,8 @@
       <div class="hero-copy"><h1 id="hero-title">Find your<br><span>rhythm.</span></h1></div>
       <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
     </section>
-    <section id="analyzer" aria-label="BPM analyzer">
-      <div class="section-label"><h2>01 / BPM ANALYZER</h2></div>
+    <section id="analyzer" aria-label="Song Analyzer">
+      <div class="section-label"><h2>01 / SONG ANALYZER</h2></div>
       <div class="workspace">
         <div class="upload-panel" id="drop-zone">
           <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Select WAV, MP3 or MP4" hidden>
@@ -42,21 +42,40 @@
             <button class="button button-light" id="choose-file">Choose file <svg><use href="#arrow-ne"/></svg></button>
             <span class="file-limit">WAV, MP3 or MP4 <span>·</span> max. 100 MB / 20 min</span>
           </div>
-          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Finding the beat.</h3><p id="progress-detail">Loading audio…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Cancel analysis</button></div>
+          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Analyzing your song.</h3><p id="progress-detail">Loading audio…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Cancel analysis</button></div>
           <div class="track-content" id="track-content" hidden>
             <div class="track-top"><span class="track-type" id="track-type">WAV</span><button class="icon-button" id="remove-file" aria-label="Remove file"><svg><use href="#close"/></svg></button></div>
             <h3 id="track-name"></h3><p class="track-meta" id="track-meta"></p>
-            <div class="waveform-wrap"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Playback position"></div>
+            <div class="waveform-wrap" id="analyzer-waveform"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Playback position"></div>
+            <div class="selection-tools" id="selection-tools" hidden>
+              <div class="selection-heading"><span>ANALYSIS RANGE</span><button type="button" id="select-range" aria-pressed="false">DRAG TO SELECT</button></div>
+              <div class="selection-inputs">
+                <label>FROM <output id="selection-start-label">0:00</output><input id="selection-start" type="range" min="0" max="100" step="0.1" value="0" aria-label="Analysis selection start"></label>
+                <label>TO <output id="selection-end-label">0:00</output><input id="selection-end" type="range" min="0" max="100" step="0.1" value="100" aria-label="Analysis selection end"></label>
+              </div>
+              <div class="selection-actions"><button id="analyze-selection" type="button">ANALYZE SELECTION ↗</button><button id="analyze-full" type="button">FULL TRACK ↺</button></div>
+              <p class="selection-hint" id="selection-status" role="status">Select at least 6 seconds. The waveform remains the full track.</p>
+            </div>
             <div class="player"><button class="play-button" id="play-track" aria-label="Play track"><svg><use href="#play"/></svg></button><span class="player-time"><span id="current-time">0:00</span><span class="time-separator">/</span><span id="total-time">0:00</span></span><button class="text-button replace" id="replace-file">Replace file <span aria-hidden="true">↗</span></button></div>
           </div>
           <p class="privacy-note"><svg><use href="#lock"/></svg> Audio stays on your device.</p>
           <div class="drag-overlay" aria-hidden="true"><span>DROP IT HERE.</span><svg><use href="#arrow-up"/></svg></div>
         </div>
         <div class="result-panel" id="result-panel">
-          <div class="result-top"><h3>YOUR TEMPO</h3><span id="result-status">AWAITING TRACK <i></i></span></div>
-          <div class="tempo-circle" id="tempo-circle"><span class="bpm-number" id="bpm-number">—</span><span class="bpm-label">BEATS PER MINUTE</span><i class="orbit-dot"></i></div>
-          <div class="result-empty" id="result-empty"><span>Start with a beat.</span><span aria-hidden="true">↗</span></div>
+          <div class="result-top"><h3>SONG ANALYSIS <small id="analysis-scope" hidden>FULL TRACK</small></h3><span id="result-status">AWAITING TRACK <i></i></span></div>
+          <div class="tempo-circle" id="tempo-circle"><span class="bpm-number" id="bpm-number">—</span><span class="bpm-label">ESTIMATED BPM</span><i class="orbit-dot"></i></div>
+          <div class="result-empty" id="result-empty"><span>Upload a track to analyze.</span><span aria-hidden="true">↗</span></div>
           <div class="result-controls" id="result-controls" hidden><div class="tempo-actions"><div class="tempo-multipliers" aria-label="Tempo controls"><button id="half-tempo" title="Half tempo">÷ 2</button><button id="double-tempo" title="Double tempo">× 2</button><button id="reset-tempo" title="Original tempo" hidden>↺</button></div><button class="copy-button" id="copy-bpm" aria-label="Copy BPM"><svg><use href="#copy"/></svg><span>Copy</span></button></div><div class="metronome-row"><button id="metronome" aria-pressed="false"><span class="switch"><i></i></span>Hear tempo</button><span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div>
+          <div class="song-results" id="song-results" hidden>
+            <div class="song-result-grid">
+              <div class="song-result-card"><span>MUSICAL KEY</span><strong id="song-key">—</strong></div>
+              <div class="song-result-card"><span>CAMELOT</span><strong id="song-camelot">—</strong></div>
+              <div class="song-result-card"><span>REFERENCE TUNING</span><strong id="song-tuning">—</strong></div>
+              <div class="song-result-card"><span>KEY CONFIDENCE</span><strong id="song-key-confidence">—</strong></div>
+            </div>
+            <p id="song-analysis-note" class="song-analysis-note">Estimates depend on the audio content.</p>
+            <button id="song-export-json" class="song-export-json" type="button">EXPORT ANALYSIS / JSON ↗</button>
+          </div>
         </div>
       </div>
       <div class="message error-message" id="error" role="alert" hidden></div>
@@ -78,7 +97,7 @@
           <input type="file" id="tool-file-input" accept=".wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.aiff,.aif,audio/*,video/mp4" hidden aria-label="Select audio/video for toolkit">
           <div class="tool-empty" id="tool-empty"><span class="tool-empty-icon">↗</span><h3>Make some noise.</h3><button class="tool-action tool-action-light" id="tool-select-file">Choose file <span>↗</span></button><span class="tool-muted">MAX. 100 MB / 20 MIN</span></div>
           <div class="tool-loaded" id="tool-loaded" hidden><div class="tool-file-label"><span id="tool-ext">WAV</span><button id="tool-remove" aria-label="Remove file">×</button></div><h3 id="tool-name"></h3><p id="tool-details"></p><canvas id="tool-waveform" width="720" height="190" role="img" aria-label="Uploaded audio waveform"></canvas><div class="tool-player"><button id="tool-preview" class="tool-play" aria-label="Play audio">▶</button><span id="tool-time">00:00 / 00:00</span><button id="tool-change">Replace ↗</button></div></div>
-          <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Use BPM Analyzer track ↗</button>
+          <button class="tool-bpm-reuse" id="tool-reuse-bpm" hidden>Use Song Analyzer track ↗</button>
           <p class="tool-source-foot"><svg><use href="#lock"/></svg> Audio stays in your browser.</p>
         </div>
         <div class="tool-settings">
@@ -102,7 +121,7 @@
   </main>
   <footer><span class="footer-wordmark"><i></i> Pulse</span><button id="open-privacy">Privacy <span aria-hidden="true">↗</span></button></footer>
 </div>
-<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">QUICK START.</p><h2 id="help-title">From track<br>to tempo.</h2><ol class="help-list"><li><strong>Choose WAV, MP3 or MP4.</strong><span>Max 100 MB / 20 min. Use 6+ seconds of audio.</span></li><li><strong>Find the rhythm.</strong><span>Pulse detects the beat locally.</span></li><li><strong>Check by ear.</strong><span>Use the metronome, Tap Tempo, or ÷2 / ×2.</span></li></ol><p class="dialog-footnote">Tempo is an estimate, especially with irregular beats.</p></dialog>
+<dialog id="help-dialog" aria-labelledby="help-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">QUICK START.</p><h2 id="help-title">From track<br>to insight.</h2><ol class="help-list"><li><strong>Choose WAV, MP3 or MP4.</strong><span>Max 100 MB / 20 min. Use 6+ seconds of audio.</span></li><li><strong>Find the rhythm.</strong><span>Pulse estimates rhythm, musical key and reference tuning locally.</span></li><li><strong>Check by ear.</strong><span>Use the metronome, Tap Tempo, or ÷2 / ×2.</span></li></ol><p class="dialog-footnote">Tempo is an estimate, especially with irregular beats.</p></dialog>
 <dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">FEEL THE BEAT.</p><h2 id="tap-title">Your hands.<br>Your tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Tap the beat</span></button><p class="tap-instruction">Tap four times or press Space.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 taps</span><button id="tap-reset">Reset ↺</button><button id="tap-copy" hidden>Copy BPM ↗</button></div></dialog>
 <dialog id="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">PRIVACY FIRST.</p><h2 id="privacy-title">Your track.<br>Your control.</h2><p class="privacy-copy">Audio processing stays in your browser. YouTube Audio is not yet available.</p><p class="privacy-copy">Files are released when removed or when the page closes. The inactive YouTube tool makes no API requests.</p></dialog>
 <div class="sr-only" id="live-status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>

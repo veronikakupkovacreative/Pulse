@@ -100,3 +100,24 @@
 .song-export-json:hover{background:#d90000}
 .song-export-json:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media(max-width:580px){.result-panel:has(.song-results:not([hidden])) .tempo-circle{width:154px;height:154px}.song-result-card{min-height:70px}}
+
+
+/* Song Analyzer v2 / selected-range controls */
+.selection-tools{margin:9px 0 13px;padding:10px 0 0;border-top:1px solid #484848;color:#f5f4f0}
+.selection-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:9px;letter-spacing:.9px}
+.selection-heading button{font-size:9px;border:1px solid #777;padding:7px 9px;color:#fff}
+.selection-heading button[aria-pressed=true]{background:#ff0000;border-color:#ff0000}
+.selection-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.selection-inputs label{font-size:9px;letter-spacing:.5px;display:flex;flex-direction:column;gap:9px}
+.selection-inputs output{font-size:11px;color:#fff;font-variant-numeric:tabular-nums}
+.selection-inputs input{accent-color:#ff0000;width:100%;margin:0;cursor:pointer}
+.selection-actions{display:flex;gap:8px;flex-wrap:wrap}
+.selection-actions button{font-size:10px;min-height:34px;padding:8px 10px;border:1px solid #666;color:white}
+.selection-actions button:first-child{border-color:#ff0000;background:#ff0000}
+.selection-actions button:hover:not(:disabled){filter:brightness(1.15)}
+.selection-actions button:disabled{opacity:.45;cursor:not-allowed}
+.selection-hint{font-size:10px;line-height:1.45;color:#aaa;margin:10px 0 0}
+.waveform-wrap.is-selecting{cursor:crosshair;touch-action:none}
+.waveform-wrap.is-selecting input#seek{pointer-events:none}
+.result-top h3 small{display:block;margin-top:4px;font-size:8px;font-weight:400;color:#bbb;letter-spacing:.7px}
+@media(max-width:580px){.selection-inputs{gap:8px}.selection-heading button{font-size:8px}}

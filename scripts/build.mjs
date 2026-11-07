@@ -6,13 +6,13 @@ import vm from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,'source',name),'utf8');
-let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker]=await Promise.all([
+let [html,css,app,analyzer,worker,studioAudio,tools,keyWorker,songAnalyzer]=await Promise.all([
   read('index.html'),read('style.css'),read('app.mjs'),read('analyzer.mjs'),read('analysis-worker.mjs'),
-  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs')
+  read('studio-audio.mjs'),read('tools.mjs'),read('key-worker.mjs'),read('song-analyzer.mjs')
 ]);
 const noExports=source=>source.replace(/^export /gm,'');
 const noImports=source=>source.replace(/^import[^\n]+\n/gm,'');
-const workerSource=noExports(analyzer)+'\n'+noImports(worker);
+const workerSource=noExports(analyzer)+'\n'+noExports(studioAudio)+'\n'+noImports(noExports(songAnalyzer))+'\n'+noImports(worker);
 const keySource=noExports(studioAudio)+'\n'+noImports(keyWorker);
 new vm.Script(workerSource);new vm.Script(keySource);
 const originalWorker="new Worker(new URL('./analysis-worker.mjs',import.meta.url),{type:'module'})";

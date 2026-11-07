@@ -78,3 +78,8 @@ test('Song Analyzer styling is scoped and does not override toolkit styles',()=>
  assert.match(c,/html\[data-theme="dark"\] #analyzer.pulse-song-analyzer/);
  assert.doesNotMatch(c,/^\.tool-settings\{/m);
 });
+
+test('Vercel build publishes the Song Analyzer ESM, worker and stylesheet',()=>{
+ const build=readFileSync(new URL('../scripts/build.mjs',import.meta.url),'utf8');
+ assert.match(build,/await cp\(join\(source,'song'\),join\(output,'song'\),\{recursive:true\}\)/);
+});

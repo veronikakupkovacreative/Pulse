@@ -1,0 +1,29 @@
+name: Song Analyzer checks
+on:
+  push:
+    branches:
+      - feature/song-analyzer-v1-20261107
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build standalone app
+        run: npm run build
+      - name: Run unit and safety tests
+        run: npm test
+      - name: Ensure standalone HTML is current
+        run: |
+          node -e "const fs=require('node:fs');const html=fs.readFileSync('public/index.html','utf8');if(!html.includes('01 / SONG ANALYZER')||!html.includes('song-results'))process.exit(1);"

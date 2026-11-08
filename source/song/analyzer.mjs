@@ -107,7 +107,9 @@ export function analyzeTempo(samples, sampleRate) {
       other.periodicity >= candidate.periodicity * 0.78 &&
       other.stability >= candidate.stability * 0.85
     );
-    if (faster) candidate.combined *= 0.92;
+    // If a stable 3:2 faster pulse is nearly as strong, the slower pulse is
+    // often a metrical alias. Keep both as candidates rather than suppressing it.
+    if (faster && faster.combined >= candidate.combined * 0.72) candidate.combined *= 0.72;
   }
   scored.sort((a,b) => b.combined - a.combined);
   if (!scored.length || scored[0].periodicity < 0.14) throw new Error('NO_RHYTHM');

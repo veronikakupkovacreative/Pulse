@@ -61,6 +61,9 @@ export function analyzeSong(samples,sampleRate) {
     waveform:tempo?.waveform??fallbackWaveform(samples),
     duration:samples.length/sampleRate,
     analyzedWindows:tempo?.analyzedWindows??0,
+    alternatives:tempo?.alternatives??[],
+    tempoStability:tempo?.tempoStability??null,
+    candidateSeparation:tempo?.candidateSeparation??null,
     key,tuning,beatOffset:tempo?estimateBeatOffset(samples,sampleRate,tempo.bpm):null,
     diagnostics:{rhythm:tempoError,harmony:keyError}
   };

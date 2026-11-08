@@ -68,13 +68,57 @@ export function analyzeTempo(samples, sampleRate) {
     const bpm = 60 * rate / period;
     if (bpm < 45 || bpm > 220) continue;
     const periodicity = at(period);
-    const prior = Math.exp(-0.5 * (Math.log(bpm / 115) / 0.65) ** 2);
-    const score = (periodicity + 0.45 * at(period * 2) + 0.2 * at(period * 3)) * (0.84 + 0.16 * prior);
+    // No genre or tempo prior: a slow groove must not be preferred over a fast one.
+    // Compare beat-level periodicity to harmonic lag support, without allowing
+    // multiples to overwhelm the actual quarter-note pulse.
+    const harmonicSupport = 0.25 * at(period * 2) + 0.10 * at(period * 3);
+    const score = periodicity + harmonicSupport;
     candidates.push({bpm, score, periodicity});
   }
-  candidates.sort((a,b) => b.score - a.score);
-  if (!candidates.length || candidates[0].periodicity < 0.14) throw new Error('NO_RHYTHM');
-  const best = candidates[0];
+  // Measure each candidate in independent windows. A rhythmic subdivision
+  // can dominate global autocorrelation while failing to persist across a song.
+  function localScore(candidate, start) {
+    const period = 60 * rate / candidate.bpm;
+    const lag = Math.round(period);
+    let dot = 0, aa = 0, bb = 0;
+    for (let i = start + lag; i < start + windowFrames; i++) {
+      const a = envelope[i], b = envelope[i-lag];
+      dot += a*b; aa += a*a; bb += b*b;
+    }
+    return dot / (Math.sqrt(aa*bb) || 1);
+  }
+  const scored = candidates.map(candidate => {
+    const local = starts.map(start => localScore(candidate,start));
+    const sorted = [...local].sort((a,b) => a-b);
+    const median = sorted[Math.floor(sorted.length/2)];
+    const mean = local.reduce((sum,x)=>sum+x,0)/local.length;
+    // Penalize candidates with strong local disagreement.
+    const stability = Math.max(0, 1 - (Math.max(...local)-Math.min(...local)));
+    const combined = candidate.score * 0.45 + median * 0.40 + mean * 0.15;
+    return {...candidate, local, stability, combined:combined*(0.85+0.15*stability)};
+  });
+  // Explicitly evaluate metric ambiguities including 3:2 (e.g. 104 vs 156).
+  // When the underlying onset pulse is supported, prefer it over a weaker
+  // triplet interpretation, but do not hardcode any target BPM.
+  for (const candidate of scored) {
+    const faster = scored.find(other =>
+      other.bpm > candidate.bpm * 1.45 &&
+      other.bpm < candidate.bpm * 1.55 &&
+      other.periodicity >= candidate.periodicity * 0.78 &&
+      other.stability >= candidate.stability * 0.85
+    );
+    if (faster) candidate.combined *= 0.92;
+  }
+  scored.sort((a,b) => b.combined - a.combined);
+  if (!scored.length || scored[0].periodicity < 0.14) throw new Error('NO_RHYTHM');
+  const best = scored[0];
+  const alternatives = scored.slice(1).filter(other =>
+    Math.abs(Math.log(other.bpm/best.bpm)) > 0.025 &&
+    other.combined >= best.combined * 0.60
+  ).slice(0,3).map(({bpm,combined})=>({
+    bpm:Math.round(bpm*10)/10,
+    relativeScore:Math.round(100*combined/(best.combined||1))
+  }));
   const backgroundValues = Array.from(corr.slice(Math.floor(rate*60/220),Math.ceil(rate*60/45))).sort((a,b)=>a-b);
   const background = backgroundValues[Math.floor(backgroundValues.length/2)];
   const prominence = (best.periodicity-background)/(1-background || 1);
@@ -91,7 +135,10 @@ export function analyzeTempo(samples, sampleRate) {
     return winner.bpm;
   });
   const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;
-  const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';
+  const nearest = scored.slice(1).find(other => Math.abs(Math.log(other.bpm / best.bpm)) > 0.025);
+  const separation = nearest ? (best.combined-nearest.combined)/(Math.abs(best.combined)||1) : 1;
+  const confidence = prominence > 0.45 && consistency > 0.65 && separation > 0.18
+    ? 'high' : prominence > 0.18 && separation > 0.07 ? 'medium' : 'low';
   const waveform = Array.from({length:220}, (_,i) => {
     const start = Math.floor(i * samples.length / 220), end = Math.floor((i+1)*samples.length/220);
     let sum = 0, count = 0;
@@ -99,5 +146,5 @@ export function analyzeTempo(samples, sampleRate) {
     return Math.sqrt(sum / (count || 1));
   });
   const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length};
+  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, alternatives, tempoStability:Math.round(best.stability*100), candidateSeparation:Math.round(separation*100)};
 }

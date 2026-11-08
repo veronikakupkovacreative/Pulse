@@ -90,7 +90,14 @@ export function estimateSpectralTempo(samples,sampleRate) {
   }
   candidates.sort((a,b)=>b.score-a.score);
   if(!candidates.length||candidates[0].score<.12)return null;
-  const best=candidates[0];
+  let best=candidates[0];
+  // A sparse kick can dominate half-time. Prefer an independently repeating
+  // double pulse when it is nearly as strong across all measured windows.
+  if(best.bpm<100){
+    const doubled=candidates.find(item=>Math.abs(item.bpm/best.bpm-2)<.045 &&
+      item.score>=best.score*.78 && item.stability>=2/3);
+    if(doubled)best=doubled;
+  }
   return {bpm:Math.round(best.bpm*10)/10,score:best.score,stability:best.stability,
-    alternatives:candidates.slice(1,5).map(c=>({bpm:Math.round(c.bpm*10)/10,score:c.score}))};
+    alternatives:candidates.filter(c=>c!==best).slice(0,4).map(c=>({bpm:Math.round(c.bpm*10)/10,score:c.score}))};
 }

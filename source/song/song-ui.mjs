@@ -135,7 +135,14 @@ function renderResult(file) {
 function renderSongMetrics(){
   const confidence={high:'STRONG BEAT',medium:'ESTIMATED BPM',low:'LOW CONFIDENCE',unavailable:'NO STEADY BEAT'}[state.result.confidence];
   ui['result-status'].replaceChildren(document.createTextNode(confidence),document.createElement('i'));
-  ui['result-note'].textContent=state.result.bpm==null?'No steady tempo found. Harmony analysis may still be available.':state.result.confidence==='low'?'Low confidence. Verify with Tap Tempo.':'Half-time or double-time? Use ÷2 or ×2.';
+  const alternatives=(state.result.alternatives??[]).filter(item=>Number.isFinite(item.bpm));
+  const suggested=alternatives.length
+    ? ' · Alternatives: '+alternatives.map(item=>bpmLabel(item.bpm)).join(' / ')+' BPM'
+    : '';
+  const stability=state.result.tempoStability==null?'':' · Stability '+state.result.tempoStability+'%';
+  ui['result-note'].textContent=state.result.bpm==null
+    ? 'No steady tempo found. Harmony analysis may still be available.'
+    : (state.result.confidence==='low'?'Low confidence — confirm the pulse with Tap Tempo.':'Estimated rhythm — verify the beat grid.')+stability+suggested;
   const key=state.result.key?.primary;
   $('#song-key').textContent=key?key.name+' '+(key.mode==='minor'?'Minor':'Major'):'Not detected';
   $('#song-camelot').textContent=key?.camelot??'—';
@@ -327,7 +334,7 @@ $('#analyze-full').onclick=()=>{
   if(!state.fullResult)return;
   state.result=state.fullResult;state.analyzedRange=null;state.bpm=state.result.bpm;state.factor=1;stopMetronome();renderSongMetrics();publishRhythm();announce('Showing full track analysis.');
 };
-$('#song-export-json').onclick=()=>{if(!state.result||!state.file)return;const {key,tuning,diagnostics,bpm,confidence}=state.result;const report={schema:'pulse.song-analysis.v2',range:state.analyzedRange,filename:state.file.name,bytes:state.file.size,durationSeconds:state.buffer.duration,channels:state.buffer.numberOfChannels,sampleRate:state.buffer.sampleRate,rhythm:{bpm,confidence,estimatedBeatOffsetSeconds:state.result.beatOffset??null},harmony:{key:key?.primary??null,confidence:key?.confidence??'unavailable',alternatives:key?.alternatives??[]},tuning,diagnostics};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=(state.file.name.replace(/\.[^/.]+$/,'')||'song')+'_analysis.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('#song-export-json').onclick=()=>{if(!state.result||!state.file)return;const {key,tuning,diagnostics,bpm,confidence,alternatives,tempoStability,candidateSeparation}=state.result;const report={schema:'pulse.song-analysis.v2',range:state.analyzedRange,filename:state.file.name,bytes:state.file.size,durationSeconds:state.buffer.duration,channels:state.buffer.numberOfChannels,sampleRate:state.buffer.sampleRate,rhythm:{bpm,confidence,alternatives,tempoStability,candidateSeparation,estimatedBeatOffsetSeconds:state.result.beatOffset??null},harmony:{key:key?.primary??null,confidence:key?.confidence??'unavailable',alternatives:key?.alternatives??[]},tuning,diagnostics};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=(state.file.name.replace(/\.[^/.]+$/,'')||'song')+'_analysis.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('#half-tempo').onclick=()=>changeTempo(.5);$('#double-tempo').onclick=()=>changeTempo(2);$('#reset-tempo').onclick=()=>changeTempo(0);$('#copy-bpm').onclick=()=>copy(state.bpm);$('#metronome').onclick=()=>state.metroTimer?stopMetronome():startMetronome();
 new ResizeObserver(()=>drawWaveform()).observe($('#waveform'));
 for(const [button,dialog] of [['open-tap','tap-dialog']]){const trigger=$('#'+button);if(trigger)trigger.onclick=()=>{stopMetronome();$('#'+dialog).showModal();};}

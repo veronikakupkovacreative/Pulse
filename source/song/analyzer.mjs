@@ -1,3 +1,4 @@
+import {estimateSpectralTempo} from './spectral-tempo.mjs';
 // Multi-band onset envelope and normalized tempo autocorrelation.
 // Confidence describes rhythmic periodicity, not a calibrated probability.
 export function analyzeTempo(samples, sampleRate) {
@@ -148,5 +149,25 @@ export function analyzeTempo(samples, sampleRate) {
     return Math.sqrt(sum / (count || 1));
   });
   const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, alternatives, tempoStability:Math.round(best.stability*100), candidateSeparation:Math.round(separation*100)};
+  const spectral = estimateSpectralTempo(samples,sampleRate);
+  // Spectral changes disambiguate groove subdivisions better than raw energy
+  // onsets. Accept the independent estimate only when it repeats across windows.
+  const useSpectral = spectral && spectral.score >= 0.25 && spectral.stability >= 2/3;
+  const bpm = useSpectral ? spectral.bpm : Math.round(best.bpm*10)/10;
+  const reportedCandidates = useSpectral
+    ? spectral.alternatives.filter(item=>item.score>0.10).map(item=>({
+        bpm:item.bpm,relativeScore:Math.round(100*item.score/spectral.score)
+      })).slice(0,3)
+    : alternatives;
+  const spectralContrast = useSpectral
+    ? 1-(spectral.alternatives[0]?.score??0)/spectral.score
+    : null;
+  const reportedConfidence = useSpectral
+    ? (spectral.score>.55 && spectral.stability===1 && spectralContrast>.15 ? 'high'
+        : spectral.score>.35 ? 'medium' : 'low')
+    : confidence;
+  return {bpm, confidence:reportedConfidence, duration, waveform:waveform.map(x=>x/peak),
+    analyzedWindows:starts.length,alternatives:reportedCandidates,
+    tempoStability:useSpectral?Math.round(spectral.stability*100):Math.round(best.stability*100),
+    candidateSeparation:useSpectral?Math.round(spectralContrast*100):Math.round(separation*100)};
 }

@@ -2,6 +2,7 @@ import {toolModules} from './modules/index.mjs';
 import {enhanceParameterControls} from './modules/slider-ui.mjs';
 import {renderToolEditorial} from './modules/tool-editorial.mjs';
 import {renderToolBenefits} from './modules/tool-benefits.mjs';
+import {isAiV2,renderAiV2Copy} from './modules/ai-v2-copy.mjs';
 import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 import {studioStore} from './modules/studio-store.mjs';
@@ -13,7 +14,7 @@ const categories=Object.freeze({
   analyze:{name:'ANALYZE',title:'Analyze.',description:'Analyze tempo, beat positions and musical key from the active track.',number:'01'},
   edit:{name:'EDIT',title:'Edit.',description:'This category is ready for new audio editing modules.',number:'02'},
   export:{name:'EXPORT',title:'Export.',description:'This category is ready for new audio export modules.',number:'03'},
-  ai:{name:'AI STUDIO',title:'AI Studio.',description:'This category is ready for new AI audio modules.',number:'04'},
+  ai:{name:'AI STUDIO',title:'AI Studio.',description:'Eight focused audio tools for mixing, mastering, separation, repair and sound design.',number:'04'},
   visuals:{name:'VISUALS',title:'Visuals.',description:'Audio visualizations are ready.',number:'05'}
 });
 const query=(selector)=>document.querySelector(selector);
@@ -48,8 +49,8 @@ function mountTool(definition){
   showBitrateGuide(false);
   clearMountedTool();
   blank.hidden=true;
-  renderToolEditorial(definition);
-  renderToolBenefits(definition);
+  if(isAiV2(definition))renderAiV2Copy(definition);
+  else {renderToolEditorial(definition);renderToolBenefits(definition);}
   tabs.querySelectorAll('button').forEach((button)=>{
     const selected=button.dataset.tool===definition.id;
     button.classList.toggle('selected',selected);

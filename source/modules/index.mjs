@@ -1,11 +1,13 @@
-import {toolModules} from './features.mjs';
+import {toolModules as existingToolModules} from './features.mjs';
+import {aiV2Modules} from './ai-v2.mjs';
 import {workspace} from './workspace.mjs';
-export {toolModules};
+export const toolModules=Object.freeze([...existingToolModules.filter(module=>module.category!=='ai'),...aiV2Modules]);
 if(typeof document!=='undefined'){
   const link=document.createElement('link');link.rel='stylesheet';link.href='/modules/ui.css';document.head.append(link);
   const eqStyle=document.createElement('link');eqStyle.rel='stylesheet';eqStyle.href='/modules/eq-ui.css';document.head.append(eqStyle);
   const producerStyle=document.createElement('link');producerStyle.rel='stylesheet';producerStyle.href='/modules/producer-tools.css';document.head.append(producerStyle);
   const noiseStyle=document.createElement('link');noiseStyle.rel='stylesheet';noiseStyle.href='/modules/noise-tool.css';document.head.append(noiseStyle);
+  const aiV2Style=document.createElement('link');aiV2Style.rel='stylesheet';aiV2Style.href='/modules/ai-v2.css';document.head.append(aiV2Style);
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
   set('.hero-description','Analyze, edit, enhance and export audio directly in your browser. Upload a track, work with its waveform and choose a tool from the four categories.');

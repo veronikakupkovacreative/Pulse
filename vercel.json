@@ -6,6 +6,9 @@
   "functions": {
     "api/pulse-ai.js": {
       "maxDuration": 60
+    },
+    "api/pulse-stems.js": {
+      "maxDuration": 60
     }
   }
 }

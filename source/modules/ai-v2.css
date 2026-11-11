@@ -1,0 +1,38 @@
+/* AI Studio V2 — scoped styles, inheriting the original PULSE color system. */
+.ai2-panel{color:var(--ink,#191919);display:grid;gap:15px;min-width:0}
+.ai2-panel .tool-view-header{display:flex;justify-content:space-between;gap:10px;letter-spacing:.08em;font-size:10px}
+.ai2-panel h3{font-size:clamp(32px,3vw,46px);font-weight:400;line-height:1.07;letter-spacing:-.045em;margin:5px 0}
+.ai2-panel h3 span{opacity:.55}
+.ai2-panel .tool-description{font-size:13px;line-height:1.62;max-width:580px;margin:0 0 9px}
+.ai2-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ai2-field{display:flex;flex-direction:column;gap:8px;min-width:0;font:400 11px/1.5 Arial,Helvetica,sans-serif;letter-spacing:.02em}
+.ai2-field>span{font-weight:700}
+.ai2-field input{background:transparent;color:inherit;border:1px solid currentColor;border-radius:0;min-height:43px;padding:10px 12px;min-width:0;width:100%;font:400 13px Arial,Helvetica,sans-serif}
+.ai2-panel input[type=file]{font-size:11px;word-break:break-all}
+.ai2-panel input[type=file]::file-selector-button{font:600 11px Arial,Helvetica,sans-serif;padding:8px 10px;margin-right:9px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer}
+.ai2-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ai2-action{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;background:#191919;color:#fff;border:1px solid #191919;padding:11px 14px;text-align:left;font:600 11px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.03em}
+.ai2-action:hover{background:#333}
+.ai2-action:disabled,.ai2-panel button:disabled{opacity:.45;cursor:not-allowed}
+.ai2-panel :is(button,input,a):focus-visible,.ai2-switch button:focus-visible{outline:2px solid var(--red,#ff2b20);outline-offset:3px}
+.ai2-status{font:400 12px/1.55 Arial,Helvetica,sans-serif;border-top:1px solid currentColor;padding-top:12px;margin:10px 0 0;min-height:40px;overflow-wrap:anywhere}
+.ai2-status[data-error=true]{font-weight:700;color:var(--red,#ff2b20)}
+.ai2-note{font:400 11px/1.55 Arial,Helvetica,sans-serif;opacity:.68;margin:0}
+.ai2-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ai2-metrics>div{border:1px solid currentColor;padding:12px;font:600 10px/1.5 Arial,Helvetica,sans-serif;letter-spacing:.08em}
+.ai2-metrics strong{font:400 clamp(19px,2vw,32px)/1.25 Arial,Helvetica,sans-serif;display:block;margin-top:8px;letter-spacing:-.04em}
+.ai2-switch{min-width:0}.ai2-switch-buttons{display:flex;flex-wrap:wrap;gap:5px;padding:0 0 15px;border-bottom:1px solid currentColor;margin-bottom:17px}
+.ai2-switch-buttons button{min-height:37px;background:transparent;color:inherit;border:1px solid #999;padding:8px 10px;font:600 10px Arial,Helvetica,sans-serif}
+.ai2-switch-buttons button[aria-pressed=true]{background:#191919;border-color:#191919;color:white}
+.ai2-switch-body{min-width:0}.ai2-switch-body>section{min-width:0}
+.ai2-import{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ai2-import button,.ai2-import label{padding:12px 11px;border:1px solid currentColor;background:transparent;color:inherit;font:600 10px/1.5 Arial,Helvetica,sans-serif;cursor:pointer}
+.ai2-import input[type=file]{display:block;margin-top:5px;max-width:280px}
+.ai2-tracks{display:grid;gap:12px;max-height:470px;overflow:auto}
+.ai2-track{border:1px solid currentColor;padding:12px;min-width:0}.ai2-track-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ai2-track-head strong{overflow-wrap:anywhere;font-size:12px}.ai2-track-head button{border:1px solid currentColor;background:transparent;color:inherit;padding:5px 7px;font-size:10px}
+.ai2-track .ai2-note{padding-top:8px}
+.ai2-stem-results{display:grid;gap:8px}.ai2-stem-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;border:1px solid currentColor;padding:12px;font-size:11px}
+.ai2-stem-row a,.ai2-stem-row button{color:inherit;background:transparent;border:1px solid currentColor;padding:7px 9px;font-size:10px}
+@media(max-width:600px){.ai2-fields,.ai2-actions,.ai2-metrics{grid-template-columns:1fr}.ai2-panel h3{font-size:32px}.ai2-switch-buttons button{flex:1}}
+@media(prefers-reduced-motion:reduce){.ai2-panel *, .ai2-switch *{transition:none!important}}

@@ -45,10 +45,13 @@ test('red tool surface includes AI, mastering, editor, and focused song analyzer
  assert.match(css,/background:var\(--pulse-ink\);/);
  assert.match(css,/color:var\(--pulse-white\);/);
 });
-test('upper original Song Analyzer is left out of toolkit design scope',()=>{
+test('only Producer Toolkits Song Analyzer renders and uses shared RED design scope',()=>{
  assert.doesNotMatch(css,/#analyzer\s*[.{]/);
- assert.ok(html.includes('id="analyzer"'));
- assert.ok(read('song/song-analyzer.css').includes('#analyzer.pulse-song-analyzer'));
+ assert.ok(html.includes('id="analyzer"')); // retained fragment alias for old links
+ assert.ok(html.includes('id="toolkit"'));
+ assert.doesNotMatch(html,/class="pulse-song-analyzer"/);
+ assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
+ assert.match(css,/\.focus-song-v3/);
 });
 test('five categories and all eight AI Studio tools remain registered unchanged',()=>{
  assert.deepEqual([...new Set(visibleToolModules.map(x=>x.category))],['analyze','edit','export','ai','visuals']);

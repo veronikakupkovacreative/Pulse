@@ -9,6 +9,7 @@ on:
       - feature/pulse-musicgpt-lyrics-generator-20261112
       - fix/pulse-new-tools-color-system-20261112
       - feature/pulse-musicgpt-mastering-20261112
+      - deploy/pulse-netlify-preview-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +28,11 @@ jobs:
         run: npm test
       - name: Build web app
         run: npm run build
+      - name: Confirm Netlify API adapter and configuration
+        run: |
+          test -f netlify/functions/pulse-api.mjs
+          test -f netlify.toml
+          node --test tests/netlify-api-adapter.test.mjs
       - name: Confirm Music Tagger build assets
         run: |
           test -f public/modules/music-tagger.mjs

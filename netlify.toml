@@ -1,0 +1,22 @@
+# PULSE Studio — Netlify sandbox deployment.
+# No secrets in this file. Configure credentials as Netlify site environment vars.
+[build]
+  command = "npm run build"
+  publish = "public"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Modern Netlify Function custom path: /api/:endpoint
+# The one allowlisted server function serves all seven existing PULSE APIs.
+# No SPA rewrite is needed: PULSE uses / and the #toolkit fragment.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

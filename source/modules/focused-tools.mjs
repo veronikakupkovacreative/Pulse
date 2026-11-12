@@ -8,6 +8,7 @@ import {advancedEqualizerModule} from './eq-advanced.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
 import {analyzeHarmonyInWorker} from './harmony-client.mjs';
 import {buildAnalyzerBeatGrid} from './beat-detector.mjs';
+import {analyzeEssentiaInWorker,pickEssentiaWindow} from './essentia-client.mjs';
 
 const section=(num,name,detail)=>'<div class="tool-view-header"><span>'+num+' / '+name+'</span><span>LOCAL AUDIO PROCESSING</span></div><h3>'+name+'.<br><span>'+detail+'.</span></h3>';
 const setText=(host,key,text)=>{const el=host.querySelector('[data-focus="'+key+'"]');if(el)el.textContent=String(text);};
@@ -17,17 +18,19 @@ const button=(id,title)=>'<button type="button" class="focus-action" data-focus-
 
 function mountSongAnalyzer({host}){
  host.innerHTML='<section class="tool-view focus-module focus-song focus-song-v3">'+
-  '<div class="tool-view-header"><span>01 / SONG ANALYZER</span><span>LOCAL ANALYSIS / V3</span></div>'+
+  '<div class="tool-view-header"><span>01 / SONG ANALYZER</span><span>LOCAL ANALYSIS / ESSENTIA WASM</span></div>'+
   '<h3>Know your<br><span>track.</span></h3>'+
-  '<p class="tool-description">Measure rhythm and harmony together. Tempo candidates are estimates, not guaranteed answers. The beat grid can be corrected manually and chord labels should always be checked by ear.</p>'+
+  '<p class="tool-description">Measure BPM, musical key, Camelot and beat-aligned chords. Essentia.js runs locally in separate WebAssembly Workers. Results remain estimates; always verify by ear.</p>'+
+  '<div class="focus-song-engine" role="group" aria-label="Analysis engine"><button type="button" data-focus-engine="essentia" aria-pressed="true">ESSENTIA WASM · EXPERIMENTAL</button><button type="button" data-focus-engine="legacy" aria-pressed="false">CLASSIC · CURRENT</button></div>'+
   '<div class="focus-song-summary">'+
   '<div class="focus-song-main"><span class="focus-song-kicker">DETECTED TEMPO</span><strong data-focus="bpm">—</strong><span class="focus-song-unit">BEATS PER MINUTE</span><span class="focus-song-confidence" data-focus="rhythm-confidence">NO ANALYSIS</span></div>'+
   '<div class="focus-song-tonality"><div><span>KEY / ESTIMATE</span><strong data-focus="key">—</strong></div><div><span>CAMELOT</span><strong data-focus="camelot">—</strong></div><div><span>TONAL CONFIDENCE</span><strong data-focus="key-confidence">—</strong></div></div></div>'+
+  '<div class="focus-song-alt-keys"><span>ALTERNATIVE KEYS / ENGINE COMPARISON</span><p data-focus-alt-keys>Alternatives will appear after analysis if the models disagree.</p></div>'+
   '<div class="focus-song-panel"><div class="focus-song-panel-top"><span>01 / TEMPO INTERPRETATIONS</span><span data-focus="stability">—</span></div>'+
   '<p>Choose a suggested BPM or use half/double time. This rebuilds the shared waveform grid; it does not change the audio.</p>'+
   '<div class="focus-song-candidates" data-focus-candidates><p class="focus-song-muted">Candidates appear after analysis.</p></div>'+
   '<div class="focus-song-tools"><button type="button" data-focus-tempo="half" disabled>÷ 2</button><button type="button" data-focus-tempo="double" disabled>× 2</button><button type="button" data-focus-tempo="reset" disabled>RESET</button></div>'+
-  '<div class="focus-song-grid"><span>BEAT GRID</span><strong data-focus="beats">—</strong><small>MEASURED BEAT POSITIONS FOR PRIMARY BPM · CORRECTED TEMPOS USE ESTIMATED GRID</small></div></div>'+
+  '<div class="focus-song-grid"><span>BEAT GRID</span><strong data-focus="beats">—</strong><small data-focus="coverage">Essentia uses measured ticks inside the analyzed window only. Half/double positions are adjusted using those ticks.</small></div></div>'+
   '<div class="focus-song-panel focus-song-chord-panel"><div class="focus-song-panel-top"><span>02 / CHORD TIMELINE</span><span>APPROXIMATE MAJ / MIN</span></div>'+
   '<p>Short harmonic snapshots, not a transcription. Uncertain chords are deliberately hidden.</p>'+
   '<div class="focus-chords" data-focus-chords><p class="focus-song-muted">Analyze a musical track to view potential chords.</p></div></div>'+
@@ -35,12 +38,20 @@ function mountSongAnalyzer({host}){
   '<button type="button" class="focus-song-link" data-focus-action="copy" disabled>COPY DETECTED BPM <span aria-hidden="true">↗</span></button></div>'+
   '<p class="focus-status" data-focus-status role="status" aria-live="polite">Load audio into SOURCE AUDIO, then analyze. For BPM use at least 6 seconds of clear rhythm.</p>'+
   '</section>';
- let disposed=false,busy=false,controller=null,current=null,selectionBpm=null;
+ let disposed=false,busy=false,controller=null,current=null,selectionBpm=null,engine='essentia';
  const analyzeButton=host.querySelector('[data-focus-action="analyze"]');
  const candidatesHost=host.querySelector('[data-focus-candidates]');
  const controls=[...host.querySelectorAll('[data-focus-tempo]')];
  const status=(message,error=false)=>report(host,message,error);
  const copyButton=host.querySelector('[data-focus-action="copy"]');
+ const engineButtons=[...host.querySelectorAll('[data-focus-engine]')];
+ engineButtons.forEach(el=>el.onclick=()=>{
+  if(busy)return;
+  engine=el.dataset.focusEngine;
+  engineButtons.forEach(b=>b.setAttribute('aria-pressed',String(b===el)));
+  clear();
+  status(engine==='essentia'?'Essentia.js selected: local WASM workers, measured beat ticks, and beat-aligned chords.':'Classic analyzer selected: existing local rhythm/harmony engine.');
+ });
  copyButton.onclick=async()=>{
   if(!Number.isFinite(selectionBpm)||selectionBpm<=0)return status('Analyze audio before copying BPM.',true);
   try{
@@ -59,6 +70,14 @@ function mountSongAnalyzer({host}){
   w.setMarkers(beats);
   setText(host,'bpm',bpm.toFixed(1));
   setText(host,'beats',beats.length.toLocaleString('en-US')+' MARKERS');
+  if(current?.measuredBeatTimes){
+   const duration=current.analysisWindow?.duration||0,offset=current.analysisWindow?.offset||0;
+   const ratio=bpm/current.bpm;
+   const interpretation=Math.abs(ratio-1)<.02?'MEASURED BEAT TICKS':
+    Math.abs(ratio-.5)<.025?'ALTERNATE HALF-TIME · MEASURED TICKS':
+    Math.abs(ratio-2)<.05?'DOUBLE-TIME · INTERPOLATED OFFBEATS':'ALTERNATIVE BPM · GRID NOT AVAILABLE';
+   setText(host,'coverage',interpretation+' · '+offset.toFixed(1)+'–'+(offset+duration).toFixed(1)+'S ANALYZED');
+  }else setText(host,'coverage','Classic rhythm grid, approximate timing.');
   copyButton.disabled=false;
   controls.forEach(b=>b.disabled=b.dataset.focusTempo==='half'?bpm/2<40:
    b.dataset.focusTempo==='double'?bpm*2>240:Math.abs(bpm-current.bpm)<.015);
@@ -84,6 +103,8 @@ function mountSongAnalyzer({host}){
  function clear(){
   current=null;selectionBpm=null;
   for(const k of ['bpm','key','camelot','beats','key-confidence','stability'])setText(host,k,'—');
+  setText(host,'coverage','Measured beat ticks appear inside the analyzed selection.');
+  const alternatives=host.querySelector('[data-focus-alt-keys]');if(alternatives)alternatives.textContent='Alternatives will appear after analysis if the models disagree.';
   setText(host,'rhythm-confidence','NO ANALYSIS');
   candidatesHost.replaceChildren();
   candidatesHost.textContent='Candidates appear after analysis.';
@@ -99,10 +120,29 @@ function mountSongAnalyzer({host}){
   try{
    const source=w.ensureAudio();
    status('Measuring BPM and harmonic content in background workers…');
-   const [rhythm,harmony]=await Promise.allSettled([
-    analyzeRhythmInWorker(source,{signal:ctrl.signal,onProgress:p=>status('RHYTHM ANALYSIS '+p+'%')}),
-    analyzeHarmonyInWorker(source,{signal:ctrl.signal})
-   ]);
+   let rhythm,harmony;
+   if(engine==='essentia'){
+    const region=pickEssentiaWindow(source,{selection:w.selection,maxSeconds:90});
+    status('ESSENTIA WASM / Loading rhythm engine. Analyzing '+region.duration.toFixed(1)+'s of audio…');
+    const tempo=await Promise.allSettled([
+     analyzeEssentiaInWorker(source,{mode:'rhythm',region,signal:ctrl.signal,
+      onProgress:p=>status('ESSENTIA / RHYTHM '+p+'%')})
+    ]);
+    rhythm=tempo[0];
+    if(disposed||ctrl.signal.aborted||w.buffer!==source)return;
+    status('ESSENTIA WASM / Estimating musical key and beat-aligned chords…');
+    const tonal=await Promise.allSettled([
+     analyzeEssentiaInWorker(source,{mode:'harmony',region,signal:ctrl.signal,
+      beatTimes:rhythm.status==='fulfilled'?rhythm.value.beatTimes:[],
+      onProgress:p=>status('ESSENTIA / HARMONY '+p+'%')})
+    ]);
+    harmony=tonal[0];
+   }else{
+    [rhythm,harmony]=await Promise.allSettled([
+     analyzeRhythmInWorker(source,{signal:ctrl.signal,onProgress:p=>status('RHYTHM ANALYSIS '+p+'%')}),
+     analyzeHarmonyInWorker(source,{signal:ctrl.signal})
+    ]);
+   }
    if(disposed||ctrl.signal.aborted||w.buffer!==source)return;
    if(rhythm.status==='fulfilled'&&Number.isFinite(rhythm.value.bpm)){
     const result=rhythm.value;current=result;selectionBpm=result.bpm;
@@ -134,6 +174,10 @@ function mountSongAnalyzer({host}){
      setText(host,'key',result.key.name);
      setText(host,'camelot',result.key.camelot);
      setText(host,'key-confidence',result.key.confidence.toUpperCase());
+     const alt=host.querySelector('[data-focus-alt-keys]');
+     if(alt)alt.textContent=(result.key.alternatives||[]).length?
+      result.key.alternatives.map(x=>x.name+' · '+(x.camelot||'—')).join('   /   '):
+      'Other tonal profiles agree or do not provide a distinct alternative.';
     }else{
      setText(host,'key','UNDETERMINED');
      setText(host,'camelot','—');
@@ -145,7 +189,7 @@ function mountSongAnalyzer({host}){
       const time=document.createElement('span');
       time.textContent=Math.floor(chord.time/60)+':'+String(Math.floor(chord.time%60)).padStart(2,'0');
       const name=document.createElement('strong');name.textContent=chord.label;
-      const note=document.createElement('span');note.textContent='ESTIMATE';
+      const note=document.createElement('span');note.textContent=Number.isFinite(chord.confidence)?'STRENGTH '+chord.confidence+'%':'ESTIMATE';
       row.append(time,name,note);chordBox.append(row);
      }
     }else chordBox.textContent='No stable major/minor triads detected. The mix may be too percussive or harmonically complex.';
@@ -155,7 +199,7 @@ function mountSongAnalyzer({host}){
    }
    const rhythmOK=Boolean(current),harmonyOK=harmony.status==='fulfilled'&&Boolean(harmony.value.key);
    status(rhythmOK||harmonyOK
-    ?'Analysis complete. Tempo and chord estimates may be ambiguous; check the beat grid by listening.'
+    ?(engine==='essentia'?'Essentia WASM analysis complete. Only the measured section has true beat markers; verify chords and BPM by ear.':'Classic analysis complete. Check estimates and beat grid by listening.')
     :'No dependable rhythm or harmony detected. Try a different musical section.',!rhythmOK&&!harmonyOK);
   }catch(error){if(!disposed&&error?.name!=='AbortError')status(error.message||'Song analysis failed.',true);}
   finally{busy=false;if(!disposed)analyzeButton.disabled=false;if(controller===ctrl)controller=null;}

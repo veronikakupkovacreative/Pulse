@@ -162,49 +162,87 @@ function mountMusicTagger({host}){
   active.onerror=(e)=>{finish();if(!dead&&revision===at)status('Local audio Worker failed: '+(e.message||'Unknown error'),true);};
   active.postMessage({type:'analyze',id,channels:buffers,sampleRate:source.sampleRate},buffers);
  }
- async function send(action){
-  if(busy||dead)return;
-  const at=revision;
-  const consent=$('[data-tag-consent]').checked,token=$('[data-tag-token]').value;
-  if(!consent)return cloudStatus('Please confirm explicit Audial upload consent.',true);
-  if(!token)return cloudStatus('Enter owner access token.',true);
-  const payload={action,consent:true};
-  if(action==='start'){
-   const file=$('[data-tag-file]').files?.[0];
-   try{
-    if(file){
-     if(file.size>2500000)throw Error('Optional cloud input exceeds 2.5 MB. Choose a shorter file.');
-     const bytes=new Uint8Array(await file.arrayBuffer());
+ const gateway=async(action,payload,token,signal)=>{
+  const response=await fetch('/api/pulse-tags',{
+   method:'POST',headers:{'Content-Type':'application/json','x-pulse-owner-token':token},
+   body:JSON.stringify({action,...payload}),signal
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){
+   const code=String(data.error||'AUDIAL_PROVIDER_ERROR');
+   const message={
+    OWNER_AUTH_REQUIRED:'Incorrect PULSE owner access token.',
+    AUDIAL_NOT_CONFIGURED:'AI tagging is not configured on this PULSE deployment.',
+    SUBSCRIPTION_REQUIRED:'Audial requires an active subscription or trial access.',
+    AUDIAL_AUTH_FAILED:'Audial rejected the configured server-side API key.',
+    FILE_TOO_LARGE:'Selected audio exceeds the cloud upload limit.',
+    RATE_LIMITED:'The Audial service is temporarily rate limiting requests.',
+    STEMS_NOT_READY:'Audial is still preparing stems.',
+    AUDIAL_TIMEOUT:'Audial request timed out. You can retry.',
+    AUDIAL_CONNECTION_ERROR:'Unable to reach the Audial service.'
+   }[code]||'AI tagging failed: '+code;
+   const error=new Error(message);error.code=code;throw error;
+  }
+  return data;
+ };
+ async function runCloud(){
+  if(dead||cloudBusy)return;
+  if(!$('[data-tag-consent]').checked)return cloudStatus('Confirm consent to send the short audio excerpt to Audial.',true);
+  const token=$('[data-tag-token]').value.trim();
+  if(!token)return cloudStatus('Enter your private PULSE owner access token.',true);
+  const at=revision,controller=new AbortController();
+  cloudController=controller;cloudBusy=true;
+  const runButton=$('[data-tag-action="cloud-run"]'),cancelButton=$('[data-tag-action="cloud-cancel"]');
+  runButton.disabled=true;cancelButton.hidden=false;
+  let file=null;
+  try{
+   if(!cloudResume){
+    const optional=$('[data-tag-file]').files?.[0];
+    if(optional){
+     if(optional.size>2500000)throw Error('Optional audio file is over the 2.5 MB limit.');
+     const bytes=new Uint8Array(await optional.arrayBuffer());
      let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-     payload.file={name:file.name,base64:btoa(binary)};
-     cloudOrigin={kind:'optional-file',name:file.name};
+     file={name:optional.name,base64:btoa(binary)};
+     cloudOrigin={kind:'optional-file',name:optional.name};
     }else{
      const source=w.ensureAudio(),excerpt=makeCloudTaggingExcerpt(source,{selection:w.selection});
-     payload.file=excerpt.file;
-     cloudOrigin={kind:'source-excerpt',start:excerpt.window.start,end:excerpt.window.end};
+     file=excerpt.file;cloudOrigin={kind:'source-excerpt',start:excerpt.window.start,end:excerpt.window.end};
     }
-   }catch(error){return cloudStatus(error.message||'Cannot prepare cloud excerpt.',true);}
-   if(dead||revision!==at)return;
-  }else{if(!analysisId)return cloudStatus('Request segmentation before fetching tags.',true);payload.analysisExeId=analysisId;}
-  busy=true;
-  for(const b of host.querySelectorAll('[data-tag-action]'))if(b.dataset.tagAction.startsWith('cloud-'))b.disabled=true;
-  cloudStatus(action==='start'?'Uploading the selected short file…':action==='tag'?'Requesting model-generated tags…':'Checking the Audial analysis result…');
-  try{
-   const response=await fetch('/api/pulse-tags',{method:'POST',headers:{'Content-Type':'application/json','x-pulse-owner-token':token},body:JSON.stringify(payload)});
-   const data=await response.json();if(!response.ok)throw Error(data.error||'Provider request failed.');
-   if(dead||revision!==at)return;
-   analysisId=data.analysisExeId||analysisId;
-   if(action==='start'){remote=null;cloudStatus('Audial accepted the track. Select GENERATE TAGS. It may take time for stems to become ready.');}
-   else if(action==='tag')cloudStatus('Tag request accepted. Select FETCH RESULTS. If still processing, repeat the action later.');
-   else if(data.status==='complete'&&data.tags){remote={...data.tags,provider:'Audial',audioInput:cloudOrigin};renderRemote(remote);refreshDownload();cloudStatus('Audial tags received. Genres, moods and instruments are model estimates.');}
-   else cloudStatus('Audial is still processing. Select FETCH RESULTS again later.');
-  }catch(error){if(!dead&&revision===at)cloudStatus(error.message||'Cloud tagging failed.',true);}
-  finally{if(revision===at){busy=false;if(!dead){$('[data-tag-action="cloud-start"]').disabled=false;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=!analysisId;}}}
+   }
+   if(dead||revision!==at||controller.signal.aborted)return;
+   const result=await runAudialMusicTags({
+    file,resume:cloudResume,signal:controller.signal,
+    send:(action,payload,signal)=>gateway(action,payload,token,signal),
+    onProgress:info=>{
+     if(dead||revision!==at||controller.signal.aborted)return;
+     if(info.analysisExeId)cloudResume={analysisExeId:info.analysisExeId,tagsRequested:info.tagsRequested};
+     $('[data-cloud-stage]').textContent=info.stage.replace(/-/g,' ').toUpperCase();
+     cloudStatus(info.description);
+    }
+   });
+   if(dead||revision!==at||controller.signal.aborted)return;
+   cloudResume={analysisExeId:result.analysisExeId,tagsRequested:true};
+   remote={...result.tags,provider:'Audial',audioInput:cloudOrigin};
+   renderRemote(remote);refreshDownload();
+   $('[data-cloud-stage]').textContent='COMPLETE';
+   cloudStatus('AI tags ready. Everything is displayed in PULSE. Export JSON to save them.');
+  }catch(error){
+   if(!dead&&revision===at&&!isAbort(error)){
+    $('[data-cloud-stage]').textContent='ACTION REQUIRED';
+    cloudStatus(error.message||'Unable to complete AI music tagging.',true);
+   }
+  }finally{
+   if(cloudController===controller){
+    cloudController=null;cloudBusy=false;runButton.disabled=false;cancelButton.hidden=true;
+   }
+  }
  }
  $('[data-tag-action="local"]').onclick=()=>{const at=revision;void analyze().catch(e=>{if(dead||revision!==at)return;busy=false;$('[data-tag-action="local"]').disabled=false;status(e.message,true);});};
  download.onclick=()=>saveJson(w.name||'pulse-audio',{track:w.displayName||w.name,createdAt:new Date().toISOString(),acoustic:local,ai:remote});
- for(const a of ['start','tag','result'])$('[data-tag-action="cloud-'+a+'"]').onclick=()=>{void send(a);};
+ $('[data-tag-action="cloud-run"]').onclick=()=>{void runCloud();};
+ $('[data-tag-action="cloud-cancel"]').onclick=()=>{cancelCloud();$('[data-cloud-stage]').textContent='PAUSED';cloudStatus('Stopped waiting. Audial may continue processing; click GENERATE AI TAGS to resume without re-uploading.');};
+ $('[data-tag-file]').onchange=()=>{cloudResume=null;remote=null;cloudOrigin=null;refreshDownload();$('[data-cloud-results]').hidden=true;cloudStatus('Audio source changed. Ready for new AI tags.');};
  const unsubscribe=w.subscribe((snap,reason)=>{if(['load','clear','commit','undo','redo'].includes(reason)){clear();status('Source changed. Run analysis again.');}});
- return()=>{dead=true;unsubscribe();abort();};
+ return()=>{dead=true;unsubscribe();abort();cancelCloud();};
 }
 export const musicTaggerModule=Object.freeze({id:'music-tagger',category:'analyze',label:'Music Tagger',mount:mountMusicTagger});

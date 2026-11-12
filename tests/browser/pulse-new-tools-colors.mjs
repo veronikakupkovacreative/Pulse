@@ -111,6 +111,26 @@ async function tagger(page,label){
   await checkText(page,sel);
  if(label==='desktop')await page.locator('.pulse-tagger').screenshot({path:'test-results/pulse-colors-tagger-desktop.png'});
 }
+async function mastering(page,label){
+ await page.locator('[data-category="ai"]').click();
+ await page.locator('[data-tool="ai2-mastering"]').click();
+ await page.locator('[data-master-engine="cloud"]').click();
+ await page.locator('.pulse-mg-master').waitFor();
+ for(const selector of [
+  '.pulse-mg-intro','.pulse-mg-intro strong','.pulse-mg-warning',
+  '.pulse-mg-field','.pulse-mg-field select','.pulse-mg-field input[data-master-cloud-token]',
+  '.pulse-mg-consent','.pulse-mg-status strong','.pulse-mg-status p'
+ ])await checkText(page,selector);
+ await checkSurface(page,'.pulse-master-cloud');
+ const grid=await page.locator('.pulse-mg-grid').evaluate(el=>({
+   columns:getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/),
+   width:el.getBoundingClientRect().width,scroll:el.scrollWidth
+ }));
+ assert.equal(grid.columns.length,1,'Mastering controls must stack inside narrow inspector: '+JSON.stringify(grid));
+ assert.ok(grid.scroll<=grid.width+3,'Mastering form overflows narrow inspector: '+JSON.stringify(grid));
+ if(label==='desktop')await page.locator('.pulse-master-cloud').screenshot({path:'test-results/pulse-colors-mastering-desktop.png'});
+}
+
 async function main(){
  await mkdir('test-results',{recursive:true});
  await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
@@ -127,6 +147,7 @@ async function main(){
     await lyrics(page,name);
     await voice(page,name);
     await tagger(page,name);
+    await mastering(page,name);
    }
    if(name==='mobile'){
     await lyrics(page,'mobile');
@@ -140,7 +161,7 @@ async function main(){
    assert.ok(!errors.some(e=>/lyrics|musicgpt|music.tag|CSS|stylesheet/i.test(e)),
     'Browser runtime errors: '+errors.join('; '));
    await page.close();
-   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, all three modules, light and dark, responsive lyrics grid.');
+   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / MusicGPT Mastering in light and dark.');
   }
  }finally{await browser?.close();await new Promise(ok=>server.close(ok));}
 }

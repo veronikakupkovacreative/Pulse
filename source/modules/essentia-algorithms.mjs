@@ -7,7 +7,7 @@ export const ESSENTIA_VERSION='0.1.3';
 const CAM_MAJOR=['8B','3B','10B','5B','12B','7B','2B','9B','4B','11B','6B','1B'];
 const CAM_MINOR=['5A','12A','7A','2A','9A','4A','11A','6A','1A','8A','3A','10A'];
 const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const ENHARMONIC={Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#',Cb:'B',Fb:'E',E#:'F',B#:'C'};
+const ENHARMONIC={Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#',Cb:'B',Fb:'E','E#':'F','B#':'C'};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const r2=n=>Math.round(n*100)/100;
 const finite=n=>typeof n==='number'&&Number.isFinite(n);

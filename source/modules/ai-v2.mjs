@@ -10,6 +10,7 @@ import {mountStereoLab,mountVocalDoubler} from './stereo-lab-ui.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
 import {processVocal} from './vocal-v2-dsp.mjs';
 import {mountMusicGPTVoiceChanger} from './musicgpt-voicechanger.mjs';
+import {mountLyricsGenerator} from './musicgpt-lyrics.mjs';
 import {suggestGainDb,renderMultitrack} from './mix-v2-dsp.mjs';
 
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -227,5 +228,6 @@ export const aiV2Modules=Object.freeze([
  {id:'ai2-mix',category:'ai',label:'Mix Assistant',mount:mountMultitrack},
  {id:'ai2-repair',category:'ai',label:'Audio Repair',mount:noiseRemoverModule.mount},
  {id:'ai2-pitch',category:'ai',label:'Pitch & Time',mount:mountPitchTime},
- {id:'ai2-fx',category:'ai',label:'Smart FX',mount:mountSmartFx}
+ {id:'ai2-fx',category:'ai',label:'Smart FX',mount:mountSmartFx},
+ {id:'ai2-lyrics',category:'ai',label:'Lyrics Generator',mount:mountLyricsGenerator}
 ]);

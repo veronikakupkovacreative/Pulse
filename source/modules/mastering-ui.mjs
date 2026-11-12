@@ -29,7 +29,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const isMix=mode==='mix',first=isMix?'balanced':'streaming';
   const label=isMix?'AI MIX & MASTER':'AI MASTERING';
   const presetList=['trap','hiphop','edm','pop','streaming','balanced','warm','punch','glue','wide'];
-  const presetButtons=presetList.map((id,i)=>`<button type="button" data-master-preset="${id}" aria-pressed="${i===0}">${safe(MASTER_PRESETS[id].name)}</button>`).join('');
+  const presetButtons=presetList.map((id,i)=>`<button type="button" data-master-preset="${id}" aria-pressed="${id===first}">${safe(MASTER_PRESETS[id].name)}</button>`).join('');
   const fieldRows=rows.map(([id,name,min,max,step,unit])=>
     `<label class="pulse-master-field"><span>${name}</span><input data-param="${id}" data-unit="${unit}" type="number" min="${min}" max="${max}" step="${step}" value="${MASTER_PRESETS[first][id]??0}" aria-label="${name}"></label>`).join('');
   host.innerHTML=`<section class="tool-view pulse-master-work" data-master-mode="${mode}">
@@ -301,11 +301,14 @@ export function mountMasteringTool({host,mode='mix'}={}){
       if(disposed)return;
       if(audio.duration>1200||audio.length*audio.numberOfChannels*4>240*1024*1024)
         throw Error('Reference exceeds 20 minutes or 240 MB decoded audio.');
-      referenceAudio=audio;referenceFile=file;referenceStats=null;
+      message('Measuring reference loudness and spectral balance in the background…');
+      const analyzed=await runMasteringWorker('analyze',audio,{preset:activePreset});
+      if(disposed)return;
+      referenceAudio=audio;referenceFile=file;referenceStats=analyzed.before;
+      setDashboard({reference:analyzed.before,spectrumReference:analyzed.spectrum?.input??null});
       refName.textContent=file.name;
       clearRefButton.disabled=false;matchButton.disabled=false;refAB.disabled=false;
-      setDashboard({reference:null,spectrumReference:null});
-      invalidate();message('Reference loaded locally. Click MATCH REFERENCE to measure and adapt your master.');
+      invalidate();message('Reference analyzed locally. Click MATCH REFERENCE to adapt settings, or compare C / REFERENCE against the analyzed mix.');
     }catch(error){if(!disposed){refFile.value='';message(error.message||'Reference could not be decoded.',true);}}
     finally{if(!disposed)setBusy(false);}
   });

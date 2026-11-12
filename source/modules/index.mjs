@@ -14,6 +14,8 @@ if(typeof document!=='undefined'){
   const producerStyle=document.createElement('link');producerStyle.rel='stylesheet';producerStyle.href='/modules/producer-tools.css';document.head.append(producerStyle);
   const noiseStyle=document.createElement('link');noiseStyle.rel='stylesheet';noiseStyle.href='/modules/noise-tool.css';document.head.append(noiseStyle);
   const aiV2Style=document.createElement('link');aiV2Style.rel='stylesheet';aiV2Style.href='/modules/ai-v2.css';document.head.append(aiV2Style);
+  // Canonical last-loaded layer: keeps every red toolkit consistent with Beat Lab.
+  const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
   set('.hero-description','Analyze, edit, master and export music in one focused browser workspace. Five sections, one shared waveform and eight AI Studio tools.');

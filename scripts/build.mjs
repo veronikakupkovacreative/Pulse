@@ -18,6 +18,12 @@ await bundle({
  target:'es2020',minify:true,legalComments:'inline'
 });
 await copyFile(join(root,'node_modules','web-audio-beat-detector','LICENSE'),join(output,'vendor','beat-detector','LICENSE.txt'));
+// Experimental Essentia.js 0.1.3: local AGPL-3.0 WASM (never fetched from a CDN).
+await mkdir(join(output,'vendor','essentia'),{recursive:true});
+for(const file of ['essentia-wasm.web.js','essentia-wasm.web.wasm','essentia.js-core.umd.js']){
+ await copyFile(join(root,'node_modules','essentia.js','dist',file),join(output,'vendor','essentia',file));
+}
+await copyFile(join(root,'node_modules','essentia.js','LICENSE'),join(output,'vendor','essentia','LICENSE.txt'));
 console.log('Built PULSE Studio with browser audio modules.');
 
 // Ship pinned codec binaries and ESM worker from node_modules; no runtime CDN dependency.

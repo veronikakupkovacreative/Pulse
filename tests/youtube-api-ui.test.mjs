@@ -124,3 +124,48 @@ test('actual Video to Audio screen can create and complete a YouTube download wi
   globalThis.fetch=beforeFetch;
  }
 });
+
+
+test('YouTube verification failure exposes local-file fallback instead of raw technical output',async()=>{
+ const {window,document}=parseHTML('<html><body><div id="host"></div></body></html>');
+ const prevDoc=globalThis.document,prevFetch=globalThis.fetch;
+ globalThis.document=document;
+ globalThis.fetch=async(_,opts={})=>{
+  if(!opts.method||opts.method==='GET')
+   return {ok:true,json:async()=>({configured:true,ownerOnly:true})};
+  const body=JSON.parse(opts.body);
+  if(body.action==='create')
+   return {ok:true,json:async()=>({id:JOB,status:'queued',percent:0})};
+  if(body.action==='status')
+   return {ok:true,json:async()=>({id:JOB,status:'failed',percent:2,
+    errorCode:'YOUTUBE_VERIFICATION_REQUIRED',retryable:false,
+    error:'YouTube is requesting account verification from the download server.'})};
+  return {ok:true,json:async()=>({id:JOB,status:'cancelled'})};
+ };
+ try{
+  const host=document.getElementById('host'),cleanup=mountVideoToAudio({host});
+  await new Promise(resolve=>setTimeout(resolve,5));
+  const link=host.querySelector('[data-video-url]');
+  link.value='https://youtu.be/'+ID;link.dispatchEvent(new window.Event('input'));
+  const code=host.querySelector('[data-yt-access]');
+  code.value=ACCESS;code.dispatchEvent(new window.Event('input'));
+  const rights=host.querySelector('[data-yt-rights]');
+  rights.checked=true;rights.dispatchEvent(new window.Event('change'));
+  let picked=false;
+  const chooser=host.querySelector('[data-video-file]');
+  chooser.click=()=>{picked=true;};
+  host.querySelector('[data-yt-start]').click();
+  await new Promise(resolve=>setTimeout(resolve,15));
+  const fallback=host.querySelector('[data-yt-fallback]');
+  assert.equal(fallback.hidden,false);
+  assert.ok(fallback.querySelector('a[href="https://studio.youtube.com/"]'));
+  assert.match(host.querySelector('[data-yt-status]').textContent,/YouTube is requesting account verification/);
+  assert.doesNotMatch(host.textContent,/cookies-from-browser|yt-dlp, code 1/);
+  fallback.querySelector('[data-yt-choose-file]').click();
+  assert.equal(picked,true);
+  cleanup();
+ }finally{
+  if(prevDoc===undefined)delete globalThis.document;else globalThis.document=prevDoc;
+  globalThis.fetch=prevFetch;
+ }
+});

@@ -339,9 +339,11 @@ export function mountMasteringTool({host,mode='mix'}={}){
     host:cloudPane,workspace:w,
     getReference:()=>({buffer:referenceAudio,file:referenceFile}),
     onMessage:message,
-    onResult:async(audioUrl,signal)=>{
+    onResult:async(audioUrl,signal,{sourceMethod}={})=>{
       const input=w.buffer;
-      if(!input)return false;
+      // Never A/B a six-second preview against a full song or assume
+      // URL input represents the currently loaded workspace source.
+      if(!input||sourceMethod!=='preview'||input.duration>6.01)return false;
       try{
         // Some provider output servers disallow cross-origin downloads.
         // PULSE always presents the external player/link as a fallback.

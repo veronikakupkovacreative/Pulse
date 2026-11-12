@@ -57,22 +57,23 @@ test('all nine AI Studio modules mount without throwing',async()=>{
  }
 });
 
-test('AI Mastering exposes all controls and has a valid cloud-status selector',()=>{
+test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  const code=read('modules/mastering-ui.mjs');
- assert.ok(code.includes("mountMusicGPTMasteringCloud"));
- assert.ok(!/AUDIAL CLOUD|pulse-audial/i.test(code));
+ assert.doesNotMatch(code,/MusicGPT|pulse-mastering|data-master-cloud|data-master-engine|cloudController/i);
  for(const marker of [
-  'data-master-engine="local"',
-  'data-master-engine="cloud"',
-  'data-master-cloud',
   'data-master-reference',
+  'data-master-preset',
+  'data-master-auto',
+  'data-master-action="analyze"',
   'data-master-action="render"',
   'data-master-action="assist"',
   'data-master-action="match"',
-  'data-master-ab="c"'
- ])assert.ok(code.includes(marker),'Missing control: '+marker);
+  'data-master-action="apply"',
+  'data-master-action="export"',
+  'data-master-ab="c"',
+  "runMasteringWorker('render'"
+ ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
-
 
 test('full application routes to all nine AI Studio tabs without a module initialization error',async()=>{
  const html=read('index.html');

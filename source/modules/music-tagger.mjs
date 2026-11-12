@@ -39,13 +39,13 @@ function mountMusicTagger({host}){
  '<button type="button" data-tag-action="cloud-result" disabled>3 / FETCH RESULTS</button></div>'+
  '<p class="focus-status" data-cloud-status role="status" aria-live="polite">Cloud mode is optional and disabled until you authorize it.</p>'+
  '<div data-cloud-results hidden></div></details></section>';
- let dead=false,worker=null,local=null,remote=null,busy=false,analysisId=null;
+ let dead=false,worker=null,local=null,remote=null,busy=false,analysisId=null,revision=0;
  const $=(q)=>host.querySelector(q),status=(text,error=false)=>{const el=$('[data-tag-status]');el.textContent=text;el.dataset.error=String(error);};
  const cloudStatus=(text,error=false)=>{const el=$('[data-cloud-status]');el.textContent=text;el.dataset.error=String(error);};
  const download=$('[data-tag-action="download"]');
  const abort=()=>{worker?.terminate();worker=null;};
  const refreshDownload=()=>{download.disabled=!local&&!remote;};
- const clear=()=>{abort();local=null;remote=null;analysisId=null;refreshDownload();$('[data-tag-results]').hidden=true;$('[data-cloud-results]').hidden=true;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=true;};
+ const clear=()=>{revision++;abort();busy=false;$('[data-tag-action="local"]').disabled=false;$('[data-tag-action="cloud-start"]').disabled=false;local=null;remote=null;analysisId=null;refreshDownload();$('[data-tag-results]').hidden=true;$('[data-cloud-results]').hidden=true;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=true;};
  function renderLocal(result){
   const out=$('[data-tag-results]');out.replaceChildren();out.hidden=false;
   if(result.silent){out.textContent='No audible signal detected in this section.';return;}
@@ -83,26 +83,27 @@ function mountMusicTagger({host}){
  }
  async function analyze(){
   if(dead||busy)return;
-  const source=w.ensureAudio(),selection=w.selection,win=chooseTaggingWindow(source.duration,selection);
+  const source=w.ensureAudio(),selection=w.selection,win=chooseTaggingWindow(source.duration,selection),at=revision;
   busy=true;$('[data-tag-action="local"]').disabled=true;
   status('Measuring the selected '+(win.end-win.start).toFixed(1)+' seconds in an offline Web Worker…');
   const id=Math.random().toString(36).slice(2),buffers=transfer(source,win);
   abort();
   worker=new Worker('/modules/music-tagger-worker.mjs',{type:'module'});
   const active=worker;
-  const finish=()=>{if(worker===active)worker=null;active.terminate();busy=false;if(!dead)$('[data-tag-action="local"]').disabled=false;};
+  const finish=()=>{const current=worker===active;if(current)worker=null;active.terminate();if(current){busy=false;if(!dead)$('[data-tag-action="local"]').disabled=false;}};
   active.onmessage=({data})=>{
    if(data?.id!==id)return;
-   finish();if(dead||w.buffer!==source)return;
+   finish();if(dead||revision!==at||w.buffer!==source)return;
    if(data.type==='error'){status(data.error||'Measurement failed.',true);return;}
    local={...data.result,analysisWindow:win,method:'PULSE local FFT DSP'};
    renderLocal(local);refreshDownload();status('Local analysis complete. No audio has been uploaded.');
   };
-  active.onerror=(e)=>{finish();if(!dead)status('Local audio Worker failed: '+(e.message||'Unknown error'),true);};
+  active.onerror=(e)=>{finish();if(!dead&&revision===at)status('Local audio Worker failed: '+(e.message||'Unknown error'),true);};
   active.postMessage({type:'analyze',id,channels:buffers,sampleRate:source.sampleRate},buffers);
  }
  async function send(action){
   if(busy||dead)return;
+  const at=revision;
   const consent=$('[data-tag-consent]').checked,token=$('[data-tag-token]').value;
   if(!consent)return cloudStatus('Please confirm explicit Audial upload consent.',true);
   if(!token)return cloudStatus('Enter owner access token.',true);
@@ -113,6 +114,7 @@ function mountMusicTagger({host}){
    const bytes=new Uint8Array(await file.arrayBuffer());
    let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
    payload.file={name:file.name,base64:btoa(binary)};
+   if(dead||revision!==at)return;
   }else{if(!analysisId)return cloudStatus('Request segmentation before fetching tags.',true);payload.analysisExeId=analysisId;}
   busy=true;
   for(const b of host.querySelectorAll('[data-tag-action]'))if(b.dataset.tagAction.startsWith('cloud-'))b.disabled=true;
@@ -120,16 +122,16 @@ function mountMusicTagger({host}){
   try{
    const response=await fetch('/api/pulse-tags',{method:'POST',headers:{'Content-Type':'application/json','x-pulse-owner-token':token},body:JSON.stringify(payload)});
    const data=await response.json();if(!response.ok)throw Error(data.error||'Provider request failed.');
-   if(dead)return;
+   if(dead||revision!==at)return;
    analysisId=data.analysisExeId||analysisId;
    if(action==='start'){remote=null;cloudStatus('Audial accepted the track. Select GENERATE TAGS. It may take time for stems to become ready.');}
    else if(action==='tag')cloudStatus('Tag request accepted. Select FETCH RESULTS. If still processing, repeat the action later.');
    else if(data.status==='complete'&&data.tags){remote={...data.tags,provider:'Audial'};renderRemote(remote);refreshDownload();cloudStatus('Audial tags received. Genres, moods and instruments are model estimates.');}
    else cloudStatus('Audial is still processing. Select FETCH RESULTS again later.');
-  }catch(error){if(!dead)cloudStatus(error.message||'Cloud tagging failed.',true);}
-  finally{busy=false;if(!dead){$('[data-tag-action="cloud-start"]').disabled=false;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=!analysisId;}}
+  }catch(error){if(!dead&&revision===at)cloudStatus(error.message||'Cloud tagging failed.',true);}
+  finally{if(revision===at){busy=false;if(!dead){$('[data-tag-action="cloud-start"]').disabled=false;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=!analysisId;}}}
  }
- $('[data-tag-action="local"]').onclick=()=>{void analyze().catch(e=>{busy=false;$('[data-tag-action="local"]').disabled=false;status(e.message,true);});};
+ $('[data-tag-action="local"]').onclick=()=>{const at=revision;void analyze().catch(e=>{if(dead||revision!==at)return;busy=false;$('[data-tag-action="local"]').disabled=false;status(e.message,true);});};
  download.onclick=()=>saveJson(w.name||'pulse-audio',{track:w.displayName||w.name,createdAt:new Date().toISOString(),acoustic:local,ai:remote});
  for(const a of ['start','tag','result'])$('[data-tag-action="cloud-'+a+'"]').onclick=()=>{void send(a);};
  const unsubscribe=w.subscribe((snap,reason)=>{if(['load','clear','commit','undo','redo'].includes(reason)){clear();status('Source changed. Run analysis again.');}});

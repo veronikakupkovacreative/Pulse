@@ -2,13 +2,15 @@
 import {fromChannels} from './dsp.mjs';
 let requestId=0;
 
-export function runMasteringWorker(action,audio,{settings,preset,signal,timeoutMs=180000}={}){
- if(!['analyze','render'].includes(action))return Promise.reject(new Error('Unsupported mastering worker action.'));
+export function runMasteringWorker(action,audio,{settings,preset,reference,signal,timeoutMs=180000}={}){
+ if(!['analyze','render','reference'].includes(action))return Promise.reject(new Error('Unsupported mastering worker action.'));
  if(signal?.aborted)return Promise.reject(signal.reason||new DOMException('Cancelled','AbortError'));
  if(typeof Worker==='undefined')return Promise.reject(new Error('Web Workers are unavailable. Try a modern browser.'));
  if(!audio||!Number.isFinite(audio.sampleRate)||!Number.isInteger(audio.numberOfChannels)||!audio.length)
   return Promise.reject(new Error('Load valid audio first.'));
+ if(action==='reference'&&(!reference||reference.numberOfChannels<1||!reference.length))return Promise.reject(new Error('Load a reference track first.'));
  const frames=Array.from({length:audio.numberOfChannels},(_,i)=>audio.getChannelData(i).slice());
+ const refFrames=action==='reference'?Array.from({length:reference.numberOfChannels},(_,i)=>reference.getChannelData(i).slice()):[];
  return new Promise((resolve,reject)=>{
   const worker=new Worker(new URL('./mastering-worker.mjs',import.meta.url),{type:'module'});
   const id=++requestId;let finished=false;
@@ -30,7 +32,8 @@ export function runMasteringWorker(action,audio,{settings,preset,signal,timeoutM
   };
   worker.onerror=()=>finish(reject,new Error('Mastering worker crashed.'));
   try{worker.postMessage({
-   id,action,sampleRate:audio.sampleRate,channels:frames.map(c=>c.buffer),settings,preset
-  },frames.map(c=>c.buffer));}catch(error){finish(reject,error);}
+   id,action,sampleRate:audio.sampleRate,channels:frames.map(c=>c.buffer),settings,preset,
+   referenceSampleRate:reference?.sampleRate,referenceChannels:refFrames.map(c=>c.buffer)
+  },[...frames,...refFrames].map(c=>c.buffer));}catch(error){finish(reject,error);}
  });
 }

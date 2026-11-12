@@ -44,7 +44,7 @@ test('CORS-enabled direct media imports are streamed locally and preserve file n
 test('reject oversized streams and non-media pages, with no arbitrary cloud fetch',async()=>{
  const source='https://media.example.org/clip.mp4';
  await assert.rejects(()=>fetchAuthorizedMedia(source,{fetchImpl:async()=>new Response('no',{headers:{'Content-Type':'text/html'}})}),/not a media file/);
- await assert.rejects(()=>fetchAuthorizedMedia(source,{fetchImpl:async()=>new Response('video',{headers:{'Content-Length':String(105000000)}})}),/100 MB/);
+ await assert.rejects(()=>fetchAuthorizedMedia(source,{fetchImpl:async()=>new Response('video',{headers:{'Content-Type':'video/mp4','Content-Length':String(105000000)}})}),/100 MB/);
  await assert.rejects(()=>fetchAuthorizedMedia(source,{fetchImpl:async()=>{throw TypeError('CORS blocked');}}),/CORS/);
  const ctrl=new AbortController();ctrl.abort();
  await assert.rejects(()=>fetchAuthorizedMedia(source,{signal:ctrl.signal,fetchImpl:async()=>{throw Error('should not fetch');}}),/cancel|abort/i);

@@ -9,6 +9,7 @@ on:
       - feature/pulse-musicgpt-lyrics-generator-20261112
       - fix/pulse-new-tools-color-system-20261112
       - feature/pulse-musicgpt-mastering-20261112
+      - fix/remove-musicgpt-mastering-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -74,6 +75,7 @@ jobs:
           path: |
             test-results/music-tagger-*.png
             test-results/musicgpt-*.png
+            test-results/pulse-mastering-local-*.png
             test-results/pulse-colors-*.png
           if-no-files-found: ignore
 

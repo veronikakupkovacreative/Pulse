@@ -1098,5 +1098,5 @@ html[data-theme="dark"] .tool-settings{
 .tool-settings .tool-module-host .pulse-mg-result a:hover{opacity:.85}
 .tool-settings .tool-module-host .pulse-master-cloud [hidden]{display:none!important}
 @container pulse-mg-master (max-width:600px){
-  .pulse-mg-grid{grid-template-columns:minmax(0,1fr)}
+  .tool-settings .tool-module-host .pulse-mg-grid{grid-template-columns:minmax(0,1fr)}
 }

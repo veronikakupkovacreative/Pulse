@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {
  canonicalYouTubeUrl,validateJobRequest,metadataArgs,downloadArgs,
- audioEncodeArgs,parseProgress,checkMetadata,processYouTubeJob
+ audioEncodeArgs,parseProgress,checkMetadata,processYouTubeJob,classifyProcessingFailure
 } from '../services/youtube-worker/job-core.mjs';
 import {createApp} from '../services/youtube-worker/server.mjs';
 
@@ -128,4 +128,48 @@ test('real HTTP worker enforces auth, owner confirmation, tickets and download c
   assert.equal(await result.text(),'media-file-bytes');
   assert.equal((await fetch(base+'/v1/jobs/'+createdBody.id+'/cancel',{method:'POST',headers})).status,409);
  }finally{await app.close();await rm(root,{recursive:true,force:true});}
+});
+
+
+test('yt-dlp account verification is a safe non-retryable error, not an FFmpeg failure',()=>{
+ const actual=classifyProcessingFailure('yt-dlp',
+  "ERROR: [youtube] Rw3ekit855g: Sign in to confirm you’re not a bot. Use --cookies-from-browser",1);
+ assert.equal(actual.code,'YOUTUBE_VERIFICATION_REQUIRED');
+ assert.equal(actual.retryable,false);
+ assert.match(actual.message,/YouTube is requesting account verification/);
+ assert.match(actual.message,/YouTube Studio/);
+ assert.doesNotMatch(actual.message,/cookies-from-browser|yt-dlp, code 1|Rw3ekit855g/);
+ assert.equal(classifyProcessingFailure('yt-dlp','ERROR: private video',1).code,'YOUTUBE_ACCESS_RESTRICTED');
+ assert.equal(classifyProcessingFailure('yt-dlp','ERROR: video unavailable',1).code,'YOUTUBE_VIDEO_UNAVAILABLE');
+ const generic=classifyProcessingFailure('yt-dlp','ERROR: Some internal debugging details that must not leak',1);
+ assert.equal(generic.code,'YOUTUBE_DOWNLOAD_FAILED');
+ assert.doesNotMatch(generic.message,/internal debugging/);
+ assert.equal(classifyProcessingFailure('ffmpeg','Failed transcoding',1).code,'MEDIA_CONVERSION_FAILED');
+});
+
+test('real HTTP job state reports a structured verification error without raw yt-dlp output',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'pulse-youtube-denied-'));
+ const app=createApp({serviceToken:TOKEN,publicBaseUrl:'http://127.0.0.1:8787',
+  storageRoot:directory,runner:async()=>{throw classifyProcessingFailure('yt-dlp',"ERROR: [youtube] Rw3ekit855g: Sign in to confirm you're not a bot. --cookies-from-browser",1);}
+ });
+ await new Promise(resolve=>app.server.listen(0,'127.0.0.1',resolve));
+ const base='http://127.0.0.1:'+app.server.address().port;
+ const headers={Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'};
+ try{
+  const created=await fetch(base+'/v1/jobs',{method:'POST',headers,
+   body:JSON.stringify({url:URL,format:'mp3',rightsConfirmed:true})});
+  assert.equal(created.status,202);
+  const id=(await created.json()).id;
+  let result;
+  for(let attempt=0;attempt<25;attempt++){
+   result=await(await fetch(base+'/v1/jobs/'+id,{headers})).json();
+   if(result.status==='failed')break;
+   await new Promise(resolve=>setTimeout(resolve,10));
+  }
+  assert.equal(result.status,'failed');
+  assert.equal(result.errorCode,'YOUTUBE_VERIFICATION_REQUIRED');
+  assert.equal(result.retryable,false);
+  assert.match(result.error,/YouTube Studio/);
+  assert.doesNotMatch(JSON.stringify(result),/cookies-from-browser|Rw3ekit855g/);
+ }finally{await app.close();await rm(directory,{recursive:true,force:true});}
 });

@@ -1,0 +1,156 @@
+/* Music AI V2 — inherits the PULSE red inspector; avoid independent dark tiles. */
+.tool-settings .tool-module-host .pulse-musicai{
+  --mai-ink:var(--pulse-ink,#191919);
+  --mai-white:var(--pulse-white,#fff);
+  container-name:pulse-musicai;
+  container-type:inline-size;
+  display:grid;
+  gap:16px;
+  min-width:0;
+  max-width:100%;
+  padding:0;
+  color:var(--mai-ink);
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+  color-scheme:light;
+}
+.tool-settings .tool-module-host .pulse-musicai [hidden]{display:none!important}
+.tool-settings .tool-module-host .pulse-musicai :is(.tool-view-header,h3,h3 span,.tool-description){
+  color:var(--mai-ink);
+}
+.tool-settings .tool-module-host .pulse-musicai h3 span{opacity:.72}
+.tool-settings .tool-module-host .pulse-musicai .tool-view-header{
+  padding-bottom:13px;
+  border-bottom:1px solid var(--mai-ink);
+}
+.tool-settings .tool-module-host .pulse-mai-modes{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+}
+.tool-settings .tool-module-host .pulse-mai-modes button{
+  padding:12px 9px;min-height:44px;
+  border:1px solid var(--mai-ink);background:transparent;color:var(--mai-ink);
+  font:700 10px/1.3 Arial,Helvetica,sans-serif;letter-spacing:.04em;
+  cursor:pointer;
+}
+.tool-settings .tool-module-host .pulse-mai-modes button[aria-pressed="true"]{
+  background:var(--mai-ink);color:var(--mai-white);
+}
+.tool-settings .tool-module-host .pulse-mai-form,
+.tool-settings .tool-module-host .pulse-mai-status-panel,
+.tool-settings .tool-module-host .pulse-mai-results{
+  display:grid;gap:13px;
+  padding:15px;
+  border:1px solid var(--mai-ink);background:transparent;color:var(--mai-ink);
+  min-width:0;
+}
+.tool-settings .tool-module-host .pulse-mai-fields{display:grid;grid-template-columns:1fr;gap:11px;min-width:0}
+.tool-settings .tool-module-host .pulse-mai-field{
+  display:grid;gap:7px;min-width:0;color:var(--mai-ink);
+  font:700 10px/1.48 Arial,Helvetica,sans-serif;letter-spacing:.06em;
+}
+.tool-settings .tool-module-host .pulse-mai-field :is(input,select,textarea){
+  display:block;box-sizing:border-box;
+  width:100%;max-width:100%;min-width:0;
+  min-height:44px;padding:11px;
+  border:1px solid var(--mai-ink);border-radius:0;
+  background:transparent;color:var(--mai-ink);color-scheme:light;
+  font:400 13px/1.45 Arial,Helvetica,sans-serif;
+  letter-spacing:normal;
+}
+.tool-settings .tool-module-host .pulse-mai-field textarea{resize:vertical;min-height:118px}
+.tool-settings .tool-module-host .pulse-mai-field[data-mai-lyrics-group] textarea{min-height:210px}
+.tool-settings .tool-module-host .pulse-mai-field :is(input,textarea)::placeholder{color:var(--mai-ink);opacity:.67}
+.tool-settings .tool-module-host .pulse-mai-check{
+  display:flex;align-items:flex-start;gap:10px;
+  color:var(--mai-ink);font:400 11px/1.55 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-mai-check input{
+  appearance:auto;width:18px;height:18px;flex:0 0 18px;
+  margin:1px 0 0;accent-color:var(--mai-ink);
+}
+.tool-settings .tool-module-host .pulse-mai-consent{
+  border:1px solid var(--mai-ink);padding:12px;
+}
+.tool-settings .tool-module-host .pulse-mai-hint{
+  margin:0;color:var(--mai-ink);font:400 11px/1.57 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-musicai .pulse-mai-generate{
+  background:var(--mai-ink)!important;
+  color:var(--mai-white)!important;
+  border:1px solid var(--mai-ink)!important;
+  font:700 11px/1.3 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-musicai .pulse-mai-generate:disabled{opacity:.55!important;cursor:not-allowed}
+.tool-settings .tool-module-host .pulse-mai-status-heading,
+.tool-settings .tool-module-host .pulse-mai-result-head,
+.tool-settings .tool-module-host .pulse-mai-track-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  color:var(--mai-ink);border-bottom:1px solid var(--mai-ink);padding-bottom:10px;
+}
+.tool-settings .tool-module-host .pulse-mai-status-heading strong,
+.tool-settings .tool-module-host .pulse-mai-result-head strong,
+.tool-settings .tool-module-host .pulse-mai-track-head h4{
+  font:700 10px/1.45 Arial,Helvetica,sans-serif;letter-spacing:.06em;color:var(--mai-ink);
+  margin:0;
+}
+.tool-settings .tool-module-host .pulse-mai-status-heading span,
+.tool-settings .tool-module-host .pulse-mai-result-head span,
+.tool-settings .tool-module-host .pulse-mai-track-head span{
+  color:var(--mai-ink);font:600 10px/1.45 Arial,Helvetica,sans-serif;text-align:right;
+}
+.tool-settings .tool-module-host .pulse-mai-status{
+  margin:0;color:var(--mai-ink);overflow-wrap:anywhere;font:400 12px/1.56 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-mai-status[data-error="true"]{
+  font-weight:700;text-decoration:underline;text-underline-offset:3px;
+}
+.tool-settings .tool-module-host .pulse-mai-job-actions{
+  display:flex;align-items:stretch;flex-wrap:wrap;gap:8px;
+}
+.tool-settings .tool-module-host .pulse-mai-job-actions button{
+  min-height:42px;flex:1 1 130px;
+  border:1px solid var(--mai-ink);background:transparent;color:var(--mai-ink);
+  padding:10px 11px;text-align:left;font:700 10px/1.35 Arial,Helvetica,sans-serif;cursor:pointer;
+}
+.tool-settings .tool-module-host .pulse-mai-job-actions button:hover{
+  background:var(--mai-ink);color:var(--mai-white);
+}
+.tool-settings .tool-module-host .pulse-mai-track{
+  display:grid;gap:11px;border:1px solid var(--mai-ink);padding:13px;
+  color:var(--mai-ink);background:transparent;min-width:0;
+}
+.tool-settings .tool-module-host .pulse-mai-track[data-complete="true"]{
+  border-width:2px;
+}
+.tool-settings .tool-module-host .pulse-mai-track [data-mai-track-body]{
+  display:grid;gap:11px;min-width:0;color:var(--mai-ink);
+}
+.tool-settings .tool-module-host .pulse-mai-track [data-mai-track-body] :is(p,strong){
+  margin:0;color:var(--mai-ink);font:400 12px/1.5 Arial,Helvetica,sans-serif;overflow-wrap:anywhere;
+}
+.tool-settings .tool-module-host .pulse-mai-track [data-mai-track-body] strong{font-weight:700}
+.tool-settings .tool-module-host .pulse-mai-track audio{display:block;width:100%;max-width:100%;min-width:0}
+.tool-settings .tool-module-host .pulse-mai-downloads{
+  display:grid;grid-template-columns:1fr;gap:8px;
+}
+.tool-settings .tool-module-host .pulse-mai-downloads a{
+  display:block;background:var(--mai-ink);color:var(--mai-white);
+  border:1px solid var(--mai-ink);padding:12px;
+  font:700 10px/1.35 Arial,Helvetica,sans-serif;text-decoration:none;
+  overflow-wrap:anywhere;
+}
+.tool-settings .tool-module-host .pulse-mai-downloads a:hover{opacity:.88}
+.tool-settings .tool-module-host .pulse-musicai :is(button,input,select,textarea,a):focus-visible{
+  outline:2px solid var(--mai-ink);outline-offset:3px;
+}
+@container pulse-musicai (min-width:510px){
+ .tool-settings .tool-module-host .pulse-mai-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tool-settings .tool-module-host .pulse-mai-downloads{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:420px){
+ .tool-settings .tool-module-host .pulse-mai-modes{grid-template-columns:1fr}
+ .tool-settings .tool-module-host :is(.pulse-mai-form,.pulse-mai-status-panel,.pulse-mai-results){padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tool-settings .tool-module-host .pulse-musicai *{transition:none!important;animation:none!important}
+}

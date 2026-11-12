@@ -12,8 +12,8 @@ const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8')
 /** Mount actual production module functions into a DOM.
  * This catches invalid selectors and runtime initialization exceptions that a build misses.
  */
-test('AI Studio registry has nine valid editorial routes and safe backup copy',()=>{
- assert.equal(aiV2Modules.length,9);
+test('AI Studio registry has ten valid editorial routes and safe backup copy',()=>{
+ assert.equal(aiV2Modules.length,10);
  for(const tool of aiV2Modules){
   assert.equal(isAiV2(tool),true,tool.id+' missing dedicated AI Studio copy');
  }
@@ -24,7 +24,7 @@ test('AI Studio registry has nine valid editorial routes and safe backup copy',(
  assert.equal(TOOL_BENEFITS[lyrics.id].length,3);
 });
 
-test('all nine AI Studio modules mount without throwing',async()=>{
+test('all ten AI Studio modules mount without throwing',async()=>{
  const {window,document}=parseHTML('<html><body><div id="audio-meta"></div><div id="source-status"></div><main id="host"></main></body></html>');
  const props=['window','document','navigator','fetch'];
  const before=Object.fromEntries(props.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
@@ -35,7 +35,7 @@ test('all nine AI Studio modules mount without throwing',async()=>{
  const host=document.getElementById('host');
  const mounted=[];
  try{
-  assert.equal(aiV2Modules.length,9);
+  assert.equal(aiV2Modules.length,10);
   for(const module of aiV2Modules){
    host.replaceChildren();
    const cleanup=module.mount({host,category:'ai'});
@@ -47,7 +47,7 @@ test('all nine AI Studio modules mount without throwing',async()=>{
   }
   assert.deepEqual(mounted,[
    'ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat',
-   'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics'
+   'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai'
   ]);
  }finally{
   for(const key of props) {
@@ -57,22 +57,23 @@ test('all nine AI Studio modules mount without throwing',async()=>{
  }
 });
 
-test('AI Mastering exposes all controls and has a valid cloud-status selector',()=>{
+test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  const code=read('modules/mastering-ui.mjs');
- assert.ok(code.includes("mountMusicGPTMasteringCloud"));
- assert.ok(!/AUDIAL CLOUD|pulse-audial/i.test(code));
+ assert.doesNotMatch(code,/MusicGPT|pulse-mastering|data-master-cloud|data-master-engine|cloudController/i);
  for(const marker of [
-  'data-master-engine="local"',
-  'data-master-engine="cloud"',
-  'data-master-cloud',
   'data-master-reference',
+  'data-master-preset',
+  'data-master-auto',
+  'data-master-action="analyze"',
   'data-master-action="render"',
   'data-master-action="assist"',
   'data-master-action="match"',
-  'data-master-ab="c"'
- ])assert.ok(code.includes(marker),'Missing control: '+marker);
+  'data-master-action="apply"',
+  'data-master-action="export"',
+  'data-master-ab="c"',
+  "runMasteringWorker('render'"
+ ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
-
 
 test('full application routes to all nine AI Studio tabs without a module initialization error',async()=>{
  const html=read('index.html');

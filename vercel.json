@@ -19,7 +19,7 @@
     "api/pulse-lyrics.js": {
       "maxDuration": 60
     },
-    "api/pulse-mastering.js": {
+    "api/pulse-musicai-v2.js": {
       "maxDuration": 60
     }
   }

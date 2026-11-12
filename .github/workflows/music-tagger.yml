@@ -1,8 +1,9 @@
-name: Music Tagger validation
+name: PULSE Analysis and Vocal Studio validation
 on:
   push:
     branches:
       - feature/pulse-analysis-music-tagger-20261112
+      - feature/pulse-musicgpt-voice-changer-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,6 +27,8 @@ jobs:
           test -f public/modules/music-tagger.mjs
           test -f public/modules/music-tagger-worker.mjs
           test -f public/modules/music-tagger.css
+          test -f public/modules/musicgpt-voicechanger.mjs
+          test -f public/modules/musicgpt-voicechanger.css
           grep -q 'music-tagger' public/modules/index.mjs
 
   browser-smoke:
@@ -50,6 +53,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: music-tagger-browser-qa
-          path: test-results/music-tagger-*.png
+          name: pulse-analysis-vocals-browser-qa
+          path: |
+            test-results/music-tagger-*.png
+            test-results/musicgpt-*.png
           if-no-files-found: ignore

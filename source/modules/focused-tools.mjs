@@ -102,6 +102,7 @@ function mountSongAnalyzer({host}){
  });
  function clear(){
   current=null;selectionBpm=null;
+  if(w.markers?.length)w.setMarkers([]);
   for(const k of ['bpm','key','camelot','beats','key-confidence','stability'])setText(host,k,'—');
   setText(host,'coverage','Measured beat ticks appear inside the analyzed selection.');
   const alternatives=host.querySelector('[data-focus-alt-keys]');if(alternatives)alternatives.textContent='Alternatives will appear after analysis if the models disagree.';
@@ -117,6 +118,7 @@ function mountSongAnalyzer({host}){
   if(busy||disposed)return;
   const ctrl=new AbortController();controller=ctrl;
   busy=true;analyzeButton.disabled=true;
+  engineButtons.forEach(button=>button.disabled=true);
   try{
    const source=w.ensureAudio();
    status('Measuring BPM and harmonic content in background workers…');
@@ -202,7 +204,7 @@ function mountSongAnalyzer({host}){
     ?(engine==='essentia'?'Essentia WASM analysis complete. Only the measured section has true beat markers; verify chords and BPM by ear.':'Classic analysis complete. Check estimates and beat grid by listening.')
     :'No dependable rhythm or harmony detected. Try a different musical section.',!rhythmOK&&!harmonyOK);
   }catch(error){if(!disposed&&error?.name!=='AbortError')status(error.message||'Song analysis failed.',true);}
-  finally{busy=false;if(!disposed)analyzeButton.disabled=false;if(controller===ctrl)controller=null;}
+  finally{busy=false;if(!disposed){analyzeButton.disabled=false;engineButtons.forEach(button=>button.disabled=false);}if(controller===ctrl)controller=null;}
  };
  const unsub=w.subscribe((snapshot,reason)=>{
   if(!['load','clear','commit','undo','redo'].includes(reason))return;

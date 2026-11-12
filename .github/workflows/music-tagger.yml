@@ -7,6 +7,7 @@ on:
       - feature/pulse-local-clap-tagger-20261112
       - fix/pulse-musicgpt-voice-qa-20261112
       - feature/pulse-musicgpt-lyrics-generator-20261112
+      - fix/pulse-new-tools-color-system-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -58,6 +59,8 @@ jobs:
         run: npm run build
       - name: Run real Chromium Music Tagger tests
         run: node tests/browser/music-tagger-smoke.mjs
+      - name: Verify all new tool colors and contrast in Chromium
+        run: node tests/browser/pulse-new-tools-colors.mjs
       - name: Upload QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,6 +69,7 @@ jobs:
           path: |
             test-results/music-tagger-*.png
             test-results/musicgpt-*.png
+            test-results/pulse-colors-*.png
           if-no-files-found: ignore
 
 

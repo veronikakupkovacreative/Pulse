@@ -792,3 +792,225 @@ html[data-theme="dark"] .tool-settings{
   }
   .tool-settings .tool-module-host .pulse-yt-formats{gap:5px}
 }
+
+
+/* G. NEW TOOL PANELS / INHERIT CANONICAL PULSE RED + BLACK.
+ * The three newer modules originally shipped independent black/white skins.
+ * Those skins mixed with the global red inspector and made labels, readouts,
+ * form fields, and results unreadable. Keep the same red canvas as Beat Lab;
+ * white is reserved for deliberately black primary actions.
+ * These rules intentionally live in the LAST-loaded design-system stylesheet.
+ */
+.tool-settings .tool-module-host :is(.pulse-lyrics,.pulse-voice-ai,.pulse-tagger){
+  --pulse-tool-surface:var(--pulse-red);
+  --pulse-tool-content:var(--pulse-ink);
+  background:transparent;
+  color:var(--pulse-ink);
+  color-scheme:light;
+  padding:0;
+  min-width:0;
+  max-width:100%;
+}
+.tool-settings .tool-module-host :is(.pulse-lyrics,.pulse-voice-ai,.pulse-tagger)
+  :is(.tool-view-header,.tool-description,h3,h4,h5,label,small,strong){
+  color:var(--pulse-ink);
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(.pulse-lyrics,.pulse-voice-ai,.pulse-tagger)
+  :is(h3,h4) span{
+  color:var(--pulse-ink);
+  opacity:.68;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-form,.pulse-lyrics-result,.pulse-lyrics-empty,
+  .pulse-voice-output,.pulse-voice-fields .pulse-voice-check,.pulse-voice-consent,
+  .pulse-tagger-cloud,.pulse-tagger-local-ai,.pulse-tagger-stem,
+  .pulse-tagger-metrics,.pulse-tagger-metrics>div,.pulse-tagger-chip
+){
+  background:transparent;
+  color:var(--pulse-ink);
+  border-color:var(--pulse-ink);
+  box-shadow:none;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-result-head,.pulse-lyrics-empty,
+  .pulse-voice-progress,.pulse-tagger-progress,
+  .pulse-tagger-prediction,.pulse-tagger-stem,
+  .pulse-tagger-bands>div,.pulse-tagger-cloud,.pulse-tagger-metrics
+){
+  border-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-form label,.pulse-lyrics-editor,
+  .pulse-voice-fields label,.pulse-voice-consent,
+  .pulse-tagger-cloud label,.pulse-tagger-stem h5,
+  .pulse-tagger-tag-section h5
+){
+  color:var(--pulse-ink);
+  font-size:11px;
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-empty,.pulse-lyrics-empty span,.pulse-lyrics-empty p,
+  .pulse-lyrics-status,.pulse-lyrics-note,.pulse-lyrics-result-head span,
+  .pulse-voice-progress,.pulse-voice-progress p,.pulse-voice-progress strong,
+  .pulse-voice-output h4,.pulse-voice-output a,
+  .pulse-tagger-warning,.pulse-tagger-cloud>p,.pulse-tagger-model-credit,
+  .pulse-tagger-cloud-label,.pulse-tagger-kicker,.pulse-tagger-empty,
+  .pulse-tagger-prediction span,.pulse-tagger-stem>p,
+  .pulse-tagger-metrics small,.pulse-tagger-metrics strong,
+  .pulse-tagger-progress strong,.pulse-tagger-ai-description
+){
+  color:var(--pulse-ink);
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-status,.pulse-lyrics-note,.pulse-voice-progress p,
+  .pulse-tagger-warning,.pulse-tagger-model-credit
+){
+  font-size:12px;
+  line-height:1.55;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-status[data-error="true"],.pulse-voice-progress p[data-error="true"]
+){
+  color:var(--pulse-ink);
+  font-weight:700;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-form input:not([type="checkbox"]),
+  .pulse-lyrics-form textarea,.pulse-lyrics-form select,
+  .pulse-lyrics-editor textarea,.pulse-voice-fields input:not([type="checkbox"]),
+  .pulse-voice-fields select,.pulse-tagger-cloud input:not([type="checkbox"])
+){
+  background:transparent;
+  border:1px solid var(--pulse-ink);
+  color:var(--pulse-ink);
+  color-scheme:light;
+  min-width:0;
+  width:100%;
+  font-size:13px;
+}
+.tool-settings .tool-module-host :is(.pulse-lyrics,.pulse-voice-ai,.pulse-tagger)
+  :is(input,textarea)::placeholder{
+  color:var(--pulse-ink);
+  opacity:.67;
+}
+.tool-settings .tool-module-host :is(
+ .pulse-lyrics-consent input,.pulse-voice-consent input,
+ .pulse-voice-check input,.pulse-tagger-cloud input[type="checkbox"],
+ .pulse-tagger-bands meter
+){
+  accent-color:var(--pulse-ink);
+}
+/* Primary action: black/white; avoid red-on-red invisible call-to-action. */
+.tool-settings .tool-module-host .pulse-lyrics .pulse-lyrics-generate{
+  background:var(--pulse-ink)!important;
+  color:var(--pulse-white)!important;
+  border:1px solid var(--pulse-ink)!important;
+}
+.tool-settings .tool-module-host .pulse-lyrics .pulse-lyrics-generate:hover:not(:disabled){
+  opacity:.86;
+}
+.tool-settings .tool-module-host .pulse-lyrics .pulse-lyrics-generate:disabled{
+  opacity:.68!important;
+}
+.tool-settings .tool-module-host .pulse-voice-ai .ai2-action,
+.tool-settings .tool-module-host .pulse-tagger .focus-action,
+.tool-settings .tool-module-host .pulse-tagger-cloud-buttons [data-tag-action="ai-run"]{
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+  border:1px solid var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-output-actions button,.pulse-voice-secondary,
+  .pulse-tagger-secondary,.pulse-tagger-cloud-buttons button[data-tag-action="ai-stop"]
+){
+  background:transparent;
+  color:var(--pulse-ink);
+  border:1px solid var(--pulse-ink);
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-output-actions button,.pulse-voice-secondary,
+  .pulse-tagger-secondary,.pulse-tagger-cloud-buttons button[data-tag-action="ai-stop"]
+):hover:not(:disabled){
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host :is(
+  .pulse-lyrics-output-actions button,.pulse-voice-secondary,
+  .pulse-tagger-secondary
+):disabled{
+  opacity:.64;
+  cursor:not-allowed;
+}
+.tool-settings .tool-module-host .pulse-voice-output a{
+  background:transparent;
+  color:var(--pulse-ink);
+  border:0;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.tool-settings .tool-module-host .pulse-tagger-metrics{
+  border:1px solid var(--pulse-ink);
+  gap:0;
+}
+.tool-settings .tool-module-host .pulse-tagger-metrics>div{
+  border-right:1px solid var(--pulse-ink);
+  border-bottom:1px solid var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-tagger-prediction span:last-child{
+  font-weight:700;
+}
+.tool-settings .tool-module-host .pulse-tagger-cloud-label{
+  overflow-wrap:anywhere;
+}
+
+/* The inspector is a narrow COLUMN even on a wide desktop.
+ * Breakpoints must respond to the TOOL width, not the browser width.
+ * In a 400px inspector, forcing two lyric columns destroys readability.
+ */
+.tool-settings .tool-module-host .pulse-lyrics{
+  container-type:inline-size;
+  container-name:pulse-lyrics-panel;
+}
+.tool-settings .tool-module-host .pulse-lyrics-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--pulse-space-2);
+  min-width:0;
+}
+.tool-settings .tool-module-host :is(.pulse-lyrics-form,.pulse-lyrics-result){
+  padding:var(--pulse-space-3);
+  min-width:0;
+  border:1px solid var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-lyrics-form label{
+  line-height:1.5;
+}
+.tool-settings .tool-module-host .pulse-lyrics-empty{
+  min-height:150px;
+  padding:var(--pulse-space-3) 0;
+}
+.tool-settings .tool-module-host .pulse-lyrics-editor textarea{
+  min-height:360px;
+  font-size:14px;
+  line-height:1.55;
+}
+@container pulse-lyrics-panel (max-width:760px){
+  .tool-settings .tool-module-host .pulse-lyrics-grid{grid-template-columns:minmax(0,1fr)}
+  .tool-settings .tool-module-host .pulse-lyrics-empty{min-height:155px}
+  .tool-settings .tool-module-host .pulse-lyrics-editor textarea{min-height:280px}
+}
+@container pulse-lyrics-panel (max-width:470px){
+  .tool-settings .tool-module-host .pulse-lyrics-options{grid-template-columns:minmax(0,1fr)}
+  .tool-settings .tool-module-host .pulse-lyrics-output-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tool-settings .tool-module-host :is(.pulse-lyrics-form,.pulse-lyrics-result){padding:12px}
+}
+@media(max-width:700px){
+  .tool-settings .tool-module-host :is(.pulse-lyrics,.pulse-voice-ai,.pulse-tagger){padding:0}
+  .tool-settings .tool-module-host .pulse-voice-fields{grid-template-columns:minmax(0,1fr)}
+  .tool-settings .tool-module-host .pulse-tagger-ai-grid{grid-template-columns:minmax(0,1fr)}
+}

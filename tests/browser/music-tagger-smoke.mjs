@@ -259,6 +259,36 @@ async function main(){
   await musicAIMobile.close();
   console.log('PASS: Music AI V2 consents before one paid request, exposes two playable/downloadable versions, fits 375px and never recharges on results.');
 
+  // Sound Generator runs one paid request only after consent. Mock provider / no charges.
+  const sfxCalls=[];
+  await page.route('**/api/pulse-sound-generator',route=>{
+    if(route.request().method()==='GET')return route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({configured:true,provider:'MusicGPT'})});
+    const data=route.request().postDataJSON();sfxCalls.push(data);
+    if(data.action==='generate')return route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({conversionId:'5b82ca4f-64ae-49ab-a825-8523e6049d25',status:'submitted',creditEstimate:2})});
+    if(data.action==='result')return route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({conversionId:data.conversionId,status:'complete',audioUrl:'https://cdn.example.com/test-sound.mp3'})});
+    return route.fulfill({status:400,body:'{"error":"UNKNOWN_ACTION"}'});
+  });
+  await page.locator('[data-category="ai"]').click();
+  await page.locator('[data-tool="ai2-soundgen"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-sfx-config]')?.textContent?.includes('READY'),{timeout:10000});
+  await page.locator('[data-sfx-prompt]').fill('An underwater cinematic ambience with distant whale calls');
+  await page.locator('[data-sfx-token]').fill('test-owner-token');
+  await page.locator('[data-sfx-generate]').click();
+  assert.equal(sfxCalls.length,0,'Paid Sound Generator must not submit without consent');
+  await page.locator('[data-sfx-consent]').check();
+  await page.locator('[data-sfx-generate]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-sfx-output]')?.hidden===false,{timeout:10000});
+  assert.deepEqual(sfxCalls.map(x=>x.action),['generate','result']);
+  assert.equal(sfxCalls[0].audioLength,30);
+  assert.equal(sfxCalls[0].consent,true);
+  assert.match(await page.locator('[data-sfx-player]').getAttribute('src'),/^https:\/\//);
+  assert.equal(await page.locator('[data-sfx-generate]').isDisabled(),true);
+  await page.screenshot({path:'test-results/musicgpt-soundgen-desktop.png',fullPage:true});
+  console.log('PASS: Sound Generator consent, secure single request, job result and embedded audio playback.');
+
   // Local AI Mastering remains available; no MusicGPT Mastering UI or API.
   const masteringCalls=[];
   await page.route('**/api/pulse-mastering',route=>{

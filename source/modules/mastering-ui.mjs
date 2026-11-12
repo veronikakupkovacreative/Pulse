@@ -108,6 +108,44 @@ export function mountMasteringTool({host,mode='mix'}={}){
   let referenceAudio=null,referenceFile=null,referenceStats=null,cloudAvailable=false,engine='local';
   let dashboard={original:null,master:null,reference:null,spectrumOriginal:null,spectrumMaster:null,spectrumReference:null};
   function message(text,error=false){status.textContent=text;status.dataset.error=String(error);}
+  function dashboardView(){
+    for(const key of ['integratedLufs','truePeakEstimateDb','crestDb','stereoCorrelation']){
+      const row=$('[data-master-table="'+key+'"]');
+      const metrics=['original','master','reference'];
+      for(const type of metrics){
+        const value=dashboard[type]?.[key],field=row.querySelector('[data-master-data="'+type+'"]');
+        field.textContent=value===null&&key==='stereoCorrelation'?'MONO':
+          Number.isFinite(value)?value.toFixed(key==='stereoCorrelation'?2:1):'—';
+      }
+    }
+    const root=$('[data-master-spectrum]');root.replaceChildren();
+    const spectra=[dashboard.spectrumOriginal,dashboard.spectrumMaster,dashboard.spectrumReference];
+    if(!spectra.some(x=>Array.isArray(x)&&x.length===8)){
+      root.textContent='Load and analyze a mix to display the frequency profile.';return;
+    }
+    for(let i=0;i<MASTER_BANDS.length;i++){
+      const group=document.createElement('div');group.className='pulse-master-band-group';
+      const bars=document.createElement('div');bars.className='pulse-master-band-bars';
+      for(const [index,profile] of spectra.entries()){
+        const bar=document.createElement('span');
+        bar.className='pulse-master-band pulse-master-band-'+['original','master','reference'][index];
+        const energy=Array.isArray(profile)?profile[i]:0;
+        bar.style.height=(Number.isFinite(energy)?Math.max(3,Math.min(90,12+22*Math.log10(1+energy*400))):3)+'px';
+        bar.title=['Original','Master','Reference'][index]+': '+(energy>0?(energy*100).toFixed(2)+'% spectrum share':'unavailable');
+        bars.append(bar);
+      }
+      const freq=document.createElement('small');freq.textContent=MASTER_BANDS[i];
+      group.append(bars,freq);root.append(group);
+    }
+  }
+  function setDashboard(part){
+    dashboard={...dashboard,...part};dashboardView();
+  }
+  function setSettings(inputs){
+    updating=true;
+    try{for(const control of all('[data-param]'))control.value=String(inputs[control.dataset.param]);}
+    finally{updating=false;}
+  }
   function stopPreview(reset=false){
     if(previewNode){
       if(!reset&&w.context)previewPosition=Math.max(0,w.context.currentTime-startedAt);
@@ -118,6 +156,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   }
   function invalidate(){
     prepared=null;sourceRef=null;stopPreview(true);
+    setDashboard({master:null,spectrumMaster:null});
     applyButton.disabled=true;exportButton.disabled=true;
     for(const key of ['after-lufs','after-tp','compression','limiter'])setText(key,'--');
   }
@@ -138,11 +177,14 @@ export function mountMasteringTool({host,mode='mix'}={}){
   }
   const setBusy=value=>{
     busy=value;renderButton.disabled=value;analysisButton.disabled=value;
-    all('[data-param], [data-master-preset], [data-master-auto]').forEach(el=>el.disabled=value);
+    all('[data-param], [data-master-preset], [data-master-auto], [data-master-engine], [data-master-reference], [data-master-instruction], [data-master-action="assist"], [data-master-suggest]').forEach(el=>el.disabled=value);
+    matchButton.disabled=value||!referenceAudio;
+    clearRefButton.disabled=value||!referenceAudio;
     applyButton.disabled=value||!prepared;exportButton.disabled=value||!prepared;
   };
   let updating=false;
   const auto=$('[data-master-auto]');
+  const refAB=$('[data-master-ab="c"]');
   auto.addEventListener('change',()=>{
     invalidate();
     message(auto.checked?'Automatic analysis enabled. Render to adapt the mastering chain.':'Manual settings kept. Render with current controls.');
@@ -165,16 +207,45 @@ export function mountMasteringTool({host,mode='mix'}={}){
   async function recommend(input){
     const result=await runMasteringWorker('analyze',input,{preset:activePreset,signal:jobController.signal});
     if(disposed||jobController.signal.aborted||w.buffer!==input)throw Error('Audio changed. Retry analysis.');
-    updating=true;
-    for(const control of all('[data-param]'))control.value=String(result.settings[control.dataset.param]);
-    updating=false;
+    setSettings(result.settings);
     setText('before-lufs',fmt(result.before.integratedLufs,'LUFS'));
+    setDashboard({original:result.before,spectrumOriginal:result.spectrum?.input??null});
     setText('correlation',result.before.stereoCorrelation===null?'MONO':fmt(result.before.stereoCorrelation,'',2));
     const a=result.analysis;
     $('[data-master-analysis]').textContent='ANALYSIS · Crest '+a.crestDb.toFixed(1)+' dB / Stereo '+(a.stereoCorrelation===null?'MONO':a.stereoCorrelation.toFixed(2))+
       ' / EQ: Bass '+a.spectralCorrectionDb.bass.toFixed(1)+' dB, Mid '+a.spectralCorrectionDb.mid.toFixed(1)+' dB, Treble '+a.spectralCorrectionDb.treble.toFixed(1)+' dB.';
     return result;
   }
+  async function matchReference(input){
+    if(!referenceAudio)throw Error('Load a reference track first.');
+    const referenceSnapshot=referenceAudio;
+    const result=await runMasteringWorker('reference',input,{
+      settings:currentSettings(),reference:referenceSnapshot,signal:jobController.signal
+    });
+    if(disposed||jobController.signal.aborted||w.buffer!==input||referenceSnapshot!==referenceAudio)
+      throw Error('Source or reference audio changed. Retry.');
+    setSettings(result.settings);
+    referenceStats=result.reference;
+    setDashboard({original:result.before,reference:result.reference,
+      spectrumOriginal:result.spectrum.input,spectrumReference:result.spectrum.reference});
+    setText('before-lufs',fmt(result.before.integratedLufs,'LUFS'));
+    setText('correlation',result.before.stereoCorrelation===null?'MONO':fmt(result.before.stereoCorrelation,'',2));
+    $('[data-master-analysis]').textContent='REFERENCE MATCH · Estimated target '+result.settings.target.toFixed(1)+' LUFS / EQ Bass '+result.settings.bassEq.toFixed(1)+
+      ' dB, Mid '+result.settings.midEq.toFixed(1)+' dB, Treble '+result.settings.trebleEq.toFixed(1)+' dB. This is a conservative tonal/dynamic target, not an identical master.';
+    return result;
+  }
+  const match=async()=>{
+    if(busy)return;
+    jobController?.abort();jobController=new AbortController();
+    try{
+      const input=w.ensureAudio();
+      setBusy(true);invalidate();
+      message('Comparing spectrum, LUFS, crest factor and stereo against the reference…');
+      await matchReference(input);
+      if(!disposed){auto.checked=false;message('Reference comparison complete. Render with the suggested controls or edit them manually.');}
+    }catch(error){if(!disposed&&error?.name!=='AbortError')message(error.message||'Reference analysis failed.',true);}
+    finally{if(!disposed)setBusy(false);}
+  };
   const analyze=async()=>{
     if(busy)return;
     let input;
@@ -196,8 +267,9 @@ export function mountMasteringTool({host,mode='mix'}={}){
     try{
       input=w.ensureAudio();setBusy(true);stopPreview(true);
       if(auto.checked){
-        message('Analyzing and adapting mastering settings…');
-        await recommend(input);
+        message(referenceAudio?'Matching to reference…':'Analyzing and adapting mastering settings…');
+        if(referenceAudio)await matchReference(input);
+        else await recommend(input);
       }
       if(disposed||jobController.signal.aborted||w.buffer!==input)return;
       const settings=currentSettings();
@@ -207,6 +279,9 @@ export function mountMasteringTool({host,mode='mix'}={}){
       if(w.buffer!==input)throw Error('SOURCE AUDIO changed while rendering. Render again.');
       prepared=output;sourceRef=input;selected='b';previewPosition=0;
       display(output.before,output.after,output.processing);
+      setDashboard({original:output.before,master:output.after,
+        spectrumOriginal:output.spectrum?.input??dashboard.spectrumOriginal,
+        spectrumMaster:output.spectrum?.master??null});
       all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb==='b')));
       message('Master ready. Target '+settings.target.toFixed(1)+' LUFS; reached '+fmt(output.after.integratedLufs,'LUFS')+
         (output.processing.targetReached?'.':' (limited by dynamics and peak ceiling).')+

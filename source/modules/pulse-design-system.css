@@ -819,3 +819,109 @@ html[data-theme="dark"] .tool-settings{
   .tool-settings .tool-module-host .pulse-voice-fields{grid-template-columns:minmax(0,1fr)}
   .tool-settings .tool-module-host .pulse-tagger-ai-grid{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* I. INSPECTOR POLISH / CLARITY. One concise description per red panel.
+ * The selected tool title and category already appear above the inspector.
+ * Redundant uppercase headings and intro marketing are not repeated inside.
+ */
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.focus-module,.module-work,.pulse-master-work) > .tool-view-header,
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.focus-module,.module-work,.pulse-master-work) > h3{
+ display:none!important;
+}
+.tool-settings .tool-module-host :is(.tool-description,.module-description){
+ color:var(--pulse-ink)!important;
+ font:400 13px/1.6 var(--pulse-font);
+ opacity:1!important;
+ margin:0 0 var(--pulse-space-3);
+}
+
+/* Lyrics Generator: solid BLACK rules, not legacy charcoal-gray outlines. */
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ .pulse-lyrics-grid,.pulse-lyrics-form,.pulse-lyrics-result,
+ .pulse-lyrics-empty,.pulse-lyrics-result-head,.pulse-lyrics-consent,
+ .pulse-lyrics-editor,.pulse-lyrics-output-actions button
+){
+ border-color:var(--pulse-ink)!important;
+ box-shadow:none!important;
+}
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ .pulse-lyrics-form,.pulse-lyrics-result,.pulse-lyrics-empty,
+ .pulse-lyrics-editor,.pulse-lyrics-consent
+){background:transparent!important;color:var(--pulse-ink)!important;}
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ input:not([type="checkbox"]),select,textarea
+){
+ border:1px solid var(--pulse-ink)!important;
+ background:transparent!important;
+ color:var(--pulse-ink)!important;
+}
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ .pulse-lyrics-result-head h4,.pulse-lyrics-empty p,
+ .pulse-lyrics-empty span,.pulse-lyrics-status,.pulse-lyrics-note
+){color:var(--pulse-ink)!important;opacity:1!important;}
+
+/* Voice Changer: all outlines BLACK; status and metadata remain readable. */
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-fields label,.pulse-voice-consent,
+ .pulse-voice-fields .pulse-voice-check,.pulse-voice-picker,
+ .pulse-voice-output,.pulse-voice-secondary,.pulse-voice-progress
+){
+ color:var(--pulse-ink)!important;
+ border-color:var(--pulse-ink)!important;
+}
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-fields label>input,.pulse-voice-fields select,
+ .pulse-voice-fields input[type="file"],.pulse-voice-secondary
+){
+ background:transparent!important;
+ color:var(--pulse-ink)!important;
+ border:1px solid var(--pulse-ink)!important;
+ color-scheme:light;
+}
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-output,.pulse-voice-consent,
+ .pulse-voice-fields .pulse-voice-check
+){background:transparent!important;border:1px solid var(--pulse-ink)!important;}
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-progress strong,.pulse-voice-progress p,
+ .pulse-voice-output h4,.pulse-voice-output a
+){color:var(--pulse-ink)!important;}
+.tool-settings .tool-module-host .pulse-voice-ai .ai2-action{
+ background:var(--pulse-ink)!important;
+ border:1px solid var(--pulse-ink)!important;
+ color:var(--pulse-white)!important;
+}
+.tool-settings .tool-module-host .pulse-voice-ai .pulse-voice-secondary:hover:not(:disabled){
+ background:var(--pulse-ink)!important;color:var(--pulse-white)!important;
+}
+
+/* SONG ANALYZER: remove white labels inherited from legacy light-on-dark. */
+.tool-settings .tool-module-host .focus-song-v3,
+.tool-settings .tool-module-host .focus-song-v3 :is(
+ .tool-description,.focus-song-kicker,.focus-song-unit,.focus-song-confidence,
+ .focus-song-main>strong,.focus-song-grid,.focus-song-grid>span,
+ .focus-song-grid>strong,.focus-song-grid>small,.focus-song-muted,
+ .focus-song-panel>p,.focus-song-panel-top,.focus-song-panel-top>span,
+ .focus-song-tonality span,.focus-song-tonality strong,
+ .focus-song-v3 .focus-chord-row span,.focus-song-v3 .focus-chord-row strong,
+ .focus-status,.focus-song-link
+ ){
+ color:var(--pulse-ink)!important;
+ opacity:1!important;
+}
+.tool-settings .tool-module-host .focus-song-v3 :is(
+ .focus-song-main,.focus-song-tonality>div,.focus-song-panel,
+ .focus-song-grid,.focus-song-candidates button,.focus-song-tools button
+ ){
+ border-color:var(--pulse-ink)!important;
+ background:transparent;
+}
+.tool-settings .tool-module-host .focus-song-v3 :is(
+ .focus-song-candidates button,.focus-song-tools button
+ ){color:var(--pulse-ink);}
+.tool-settings .tool-module-host .focus-song-v3 .focus-action{
+ background:var(--pulse-ink)!important;
+ color:var(--pulse-white)!important;
+ border-color:var(--pulse-ink)!important;
+}

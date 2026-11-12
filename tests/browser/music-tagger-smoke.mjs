@@ -196,6 +196,48 @@ async function main(){
   await mobileLyrics.screenshot({path:'test-results/musicgpt-lyrics-mobile.png',fullPage:true});
   console.log('PASS: MusicGPT lyrics requires consent, returns editable lyrics, exports TXT without recharging, and fits mobile.');
 
+  // MusicGPT reference mastering — no provider charges; use mocked owner API only.
+  const masteringCalls=[];
+  await page.route('**/api/pulse-mastering',route=>{
+   const method=route.request().method();
+   if(method==='GET')return route.fulfill({status:200,contentType:'application/json',
+     body:JSON.stringify({configured:true,provider:'MusicGPT',referenceRequired:true})});
+   const data=route.request().postDataJSON();masteringCalls.push(data);
+   const reply=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
+   if(data.action==='submit')return reply({status:'submitted',conversionId:'ab12cd34',creditEstimate:10,eta:25});
+   if(data.action==='result')return reply({status:'complete',conversionId:'ab12cd34',
+      audioUrl:'https://musicgpt.s3.amazonaws.com/mastered-qa.mp3'});
+   return route.fulfill({status:400,body:'{"error":"UNKNOWN_ACTION"}'});
+  });
+  await page.locator('[data-category="ai"]').click();
+  await page.locator('[data-tool="ai2-mastering"]').click();
+  await page.locator('[data-master-engine="cloud"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-master-cloud-availability]')?.textContent?.includes('MUSICGPT READY'),{timeout:15000});
+  assert.equal(await page.locator('[data-master-engine="cloud"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('[data-master-action="render"]').innerText(),'RUN MUSICGPT MASTERING ↗');
+  await page.locator('[data-mg-source-method]').selectOption('url');
+  await page.locator('[data-mg-ref-method]').selectOption('url');
+  await page.locator('[data-mg-original-url]').fill('https://cdn.example.com/song.wav');
+  await page.locator('[data-mg-reference-url]').fill('https://cdn.example.com/reference.wav');
+  await page.locator('[data-master-cloud-token]').fill('qa-owner');
+  await page.locator('[data-master-action="render"]').click();
+  assert.equal(masteringCalls.length,0,'Cloud master must never submit without consent');
+  assert.match(await page.locator('[data-mg-status]').innerText(),/authorization and explicit consent/i);
+  await page.locator('[data-master-cloud-consent]').check();
+  await page.locator('[data-master-action="render"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-mg-status]')?.textContent?.includes('ready to play or download'),{timeout:15000});
+  assert.equal(masteringCalls.length,2);
+  assert.deepEqual(masteringCalls.map(c=>c.action),['submit','result']);
+  assert.equal(masteringCalls[0].original.url,'https://cdn.example.com/song.wav');
+  assert.equal(masteringCalls[0].reference.url,'https://cdn.example.com/reference.wav');
+  assert.equal(masteringCalls[0].consent,true);
+  assert.equal(masteringCalls[0].outputExtension,'wav');
+  assert.equal(await page.locator('[data-master-cloud-results] audio').count(),1);
+  assert.match(await page.locator('[data-master-cloud-results] a').getAttribute('href'),/^https:\/\//);
+  assert.deepEqual(audialCalls,[],'Audial traffic must remain zero across all tools');
+  await page.screenshot({path:'test-results/musicgpt-mastering-desktop.png',fullPage:true});
+  console.log('PASS: MusicGPT reference mastering uses explicit consent and two HTTPS URLs, polls result and never calls Audial.');
+
   assert.ok(!errors.some(e=>/music.tagger|musicgpt|Worker|Module not found/i.test(e)),errors.join('; '));
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 }

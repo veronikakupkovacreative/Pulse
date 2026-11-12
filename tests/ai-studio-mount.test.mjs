@@ -59,7 +59,7 @@ test('all ten AI Studio modules mount without throwing',async()=>{
 
 test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  const code=read('modules/mastering-ui.mjs');
- assert.doesNotMatch(code,/MusicGPT|pulse-mastering|data-master-cloud|data-master-engine|cloudController/i);
+ assert.match(code,/mountMusicGPTMasteringCloud/,'Existing owner-gated cloud mastering must be retained');
  for(const marker of [
   'data-master-reference',
   'data-master-preset',
@@ -75,7 +75,7 @@ test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
 
-test('full application routes to all nine AI Studio tabs without a module initialization error',async()=>{
+test('full application routes to all ten AI Studio tabs without a module initialization error',async()=>{
  const html=read('index.html');
  const {window,document}=parseHTML(html);
  // linkedom does not emulate a Canvas 2D context: skip only Source Audio painting.

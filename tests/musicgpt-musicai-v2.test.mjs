@@ -149,7 +149,7 @@ test('MusicAI UI mounts with two tracks and no Video to Audio code or navigation
   assert.ok(host.querySelector('[data-mai-form]'));
   assert.equal(host.querySelectorAll('[data-mai-track]').length,2);
   assert.equal(host.querySelector('[data-mai-generate]').disabled,false);
-  assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,10);
+  assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,11);
   assert.ok(visibleToolModules.some(x=>x.id==='ai2-musicai'));
   assert.ok(!visibleToolModules.some(x=>x.id==='video-to-audio'));
   const base=new URL('../',import.meta.url);

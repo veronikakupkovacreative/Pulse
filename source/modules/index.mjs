@@ -1,7 +1,13 @@
 import {toolModules as existingToolModules} from './features.mjs';
 import {aiV2Modules} from './ai-v2.mjs';
 import {workspace} from './workspace.mjs';
+import {songAnalyzerModule,audioEditorModule} from './focused-tools.mjs';
+import {mountAdvancedVisualizer} from './pulse-ai-master.mjs';
 export const toolModules=Object.freeze([...existingToolModules.filter(module=>module.category!=='ai'),...aiV2Modules]);
+const converter=toolModules.find(m=>m.id==='wav');
+if(!converter)throw Error('PULSE converter module missing.');
+const visualizer=Object.freeze({id:'visualizer',category:'visuals',label:'Audio Visualizer',mount:({host})=>mountAdvancedVisualizer({host})});
+export const visibleToolModules=Object.freeze([songAnalyzerModule,audioEditorModule,converter,...aiV2Modules,visualizer]);
 if(typeof document!=='undefined'){
   const link=document.createElement('link');link.rel='stylesheet';link.href='/modules/ui.css';document.head.append(link);
   const eqStyle=document.createElement('link');eqStyle.rel='stylesheet';eqStyle.href='/modules/eq-ui.css';document.head.append(eqStyle);
@@ -10,9 +16,9 @@ if(typeof document!=='undefined'){
   const aiV2Style=document.createElement('link');aiV2Style.rel='stylesheet';aiV2Style.href='/modules/ai-v2.css';document.head.append(aiV2Style);
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
-  set('.hero-description','Analyze, edit, enhance and export audio directly in your browser. Upload a track, work with its waveform and choose a tool from the four categories.');
+  set('.hero-description','Analyze, edit, master and export music in one focused browser workspace. Five sections, one shared waveform and eight AI Studio tools.');
   set('.state-line','LOCAL AUDIO PROCESSING / MODULES ACTIVE');
-  set('.toolkit-intro p','Explore local audio tools for analysis, editing, export and DSP-assisted mastering. All uploaded files remain in browser memory.');
+  set('.toolkit-intro p','Analyze rhythm and harmony, edit audio, convert formats or open a focused AI Studio tool. Your main SOURCE AUDIO stays in the shared workspace.');
   set('.toolkit-intro .intro-accent','Local tools require no account. Cloud AI needs protected access.');
   set('.toolkit-note','+ Local DSP stays in your browser. Neural voice operations use an explicitly authorized cloud service and require separate access.');
   set('.footer-brand p','A focused audio workspace for producers. Analyze, edit, process and export without installing software.');

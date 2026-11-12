@@ -8,7 +8,7 @@ import {fromChannels} from '../source/modules/dsp.mjs';
 test('focused toolkit exposes one tool per core area and eight AI Studio tools',()=>{
  const names=visibleToolModules.map(m=>m.id);
  assert.deepEqual(names,[
-  'song-analyzer','editor','wav','video-to-audio',
+  'song-analyzer','music-tagger','editor','wav','video-to-audio',
   'ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat',
   'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','visualizer'
  ]);

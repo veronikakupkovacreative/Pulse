@@ -42,7 +42,7 @@ function extractId(value){
  return candidates.find(validExeId)||null;
 }
 function normalize(data){
- const obj=data?.analysis||data?.data?.analysis||data?.data||data?.result||data||{};
+ const obj=data?.song_analysis||data?.analysis?.song_analysis||data?.analysis||data?.data?.song_analysis||data?.data?.analysis||data?.data||data?.result?.song_analysis||data?.result||data||{};
  const tags=obj.song_tags||obj.songTags||{};
  const out={genre:Array.isArray(obj.genre)?obj.genre:typeof obj.genre==='string'?[obj.genre]:[],
   description:typeof obj.description==='string'?obj.description.slice(0,1500):'',

@@ -1,12 +1,12 @@
-/** PULSE AI STUDIO V2 — eight real modules, existing shared workspace.
- * Local DSP is described truthfully. Neural four-stem separation uses a protected server API.
+/** PULSE AI STUDIO — eight production modules using the shared audio workspace.
+ * Stereo Lab and Vocal Doubler are local DSP; neither performs neural separation.
  */
 import {workspace as w} from './workspace.mjs';
 import {fromChannels, encodeWav} from './dsp.mjs';
 import {mountMasteringTool} from './mastering-ui.mjs';
 import {noiseRemoverModule} from './noise-tool.mjs';
 import {advancedModules} from './advanced-features.mjs';
-import {pulseAiModules} from './pulse-ai-master.mjs';
+import {mountStereoLab,mountVocalDoubler} from './stereo-lab-ui.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
 import {processVocal} from './vocal-v2-dsp.mjs';
 import {suggestGainDb,renderMultitrack} from './mix-v2-dsp.mjs';
@@ -65,16 +65,15 @@ function mountVocalEnhance({host}){
 }
 
 function mountVocals(args){
- const cleaner=pulseAiModules.find(m=>m.id==='ai-voice-cleaner');
  return switcher(args,[
   {id:'enhance',label:'VOCAL ENHANCE',mount:mountVocalEnhance},
-  {id:'isolate',label:'NEURAL VOICE ISOLATOR',mount:cleaner.mount}
+  {id:'doubler',label:'VOCAL DOUBLER',mount:mountVocalDoubler}
  ]);
 }
 
 function mountBeatLab({host}){
  panel(host,heading('BEAT LAB','Detect the beat.<br><span>Cut the loop.</span>',
-  'Estimate tempo and beat positions in a Web Worker. Create a 4-bar selection and export it as WAV. Drum/instrument isolation is handled by Stem Separator.','BEAT ANALYSIS / WORKER')+
+  'Estimate tempo and beat positions in a Web Worker. Create a 4-bar selection and export it as WAV. This tool analyzes beats and exports loops without cloud processing.','BEAT ANALYSIS / WORKER')+
   '<div class="ai2-metrics"><div>BPM<strong data-bpm>—</strong></div><div>CONFIDENCE<strong data-confidence>—</strong></div><div>MARKERS<strong data-markers>—</strong></div></div>'+
   '<div class="ai2-actions">'+button('analyze','ANALYZE RHYTHM')+button('loop','SELECT 4 BARS')+button('export','EXPORT SELECTED LOOP')+'</div>'+
   '<p class="ai2-note">Half-time/double-time interpretation remains possible. Check the beat grid against the music.</p>');
@@ -217,89 +216,10 @@ function mountSmartFx(args){
  ]);
 }
 
-function mountStems({host}){
- panel(host,heading('STEM SEPARATOR','Split the track.<br><span>Isolate the layers.</span>',
-  'Neural Demucs separates vocals, drums, bass and other instruments. Requires a configured, owner-protected Replicate cloud backend. Audio is sent to the provider.','CLOUD NEURAL MODEL')+
-  '<label class="ai2-field">PUBLIC DIRECT HTTPS AUDIO FILE URL (RECOMMENDED FOR FULL TRACKS)<input type="url" data-stems-url placeholder="https://…/track.mp3"></label>'+
-  '<label class="ai2-field">OR SHORT MP3 FILE · MAX 1.8 MB<input type="file" data-stems-file accept=".mp3,audio/mpeg"></label>'+
-  '<label class="ai2-field">OWNER CLOUD ACCESS TOKEN<input type="password" data-stems-token autocomplete="off" placeholder="Access token configured on Vercel"></label>'+
-  '<div class="ai2-actions">'+button('create','SEPARATE 4 STEMS')+button('cancel','CANCEL JOB')+'</div>'+
-  '<div class="ai2-stem-results" data-stem-results></div>'+
-  '<p class="ai2-note">Only authorized, owned audio should be submitted. Provider processing is paid and not local. Files returned by the provider may be temporary.</p>');
- const create=host.querySelector('[data-ai2-action="create"]'),cancel=host.querySelector('[data-ai2-action="cancel"]');
- let disposed=false,controller=null,jobId=null,finished=false;
- cancel.disabled=true;
- const setBusy=value=>{create.disabled=value;cancel.disabled=!value;};
- async function api(action,fields={},signal){
-  const key=host.querySelector('[data-stems-token]').value;
-  if(!key)throw Error('Enter the owner cloud access token.');
-  const res=await fetch('/api/pulse-stems',{method:'POST',headers:{'Content-Type':'application/json','x-pulse-access':key},
-   body:JSON.stringify({action,...fields}),signal});
-  const data=await res.json().catch(()=>({error:'Cloud API returned an invalid response.'}));
-  if(!res.ok)throw Error(data.error||'Cloud API error '+res.status);
-  return data;
- }
- function showOutput(output){
-  const box=host.querySelector('[data-stem-results]');box.replaceChildren();
-  for(const key of ['vocals','drums','bass','other']){
-   const link=output[key];if(typeof link!=='string')continue;
-   const row=document.createElement('div');row.className='ai2-stem-row';
-   const title=document.createElement('strong');title.textContent=key.toUpperCase();
-   const a=document.createElement('a');a.href=link;a.target='_blank';a.rel='noopener noreferrer';
-   a.textContent='OPEN / DOWNLOAD ↗';
-   const use=document.createElement('button');use.type='button';use.textContent='USE IN WORKSPACE';
-   use.onclick=async()=>{
-    use.disabled=true;try{
-     const r=await fetch(link);if(!r.ok)throw Error('Could not download stem. Open it and upload to SOURCE AUDIO instead.');
-     const blob=await r.blob();if(blob.size>100*1024*1024)throw Error('Stem exceeds workspace upload limit.');
-     const file=new File([blob],`${key}-stem.mp3`,{type:blob.type||'audio/mpeg'});
-     await w.load(file);status(host,`${key.toUpperCase()} imported to SOURCE AUDIO.`);
-    }catch(e){status(host,e.message+' The provider may block cross-origin import.',true)}finally{if(!disposed)use.disabled=false}
-   };
-   row.append(title,a,use);box.append(row);
-  }
- }
- create.onclick=async()=>{
-  controller?.abort();controller=new AbortController();finished=false;jobId=null;setBusy(true);
-  try{
-   const url=host.querySelector('[data-stems-url]').value.trim();let audioBase64;
-   if(!url){const f=host.querySelector('[data-stems-file]').files?.[0]||w.originalFile;
-    if(!f)throw Error('Choose an MP3 or enter a public audio URL.');
-    if(f.size>1_800_000)throw Error('For full tracks use a direct public HTTPS audio file URL. Direct upload is limited to 1.8 MB.');
-    if(!/\.(mp3)$/i.test(f.name))throw Error('Direct upload currently supports MP3.');
-    const bytes=new Uint8Array(await f.arrayBuffer());let binary='';
-    for(let i=0;i<bytes.length;i+=0x4000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x4000));
-    audioBase64=btoa(binary);
-   }
-   status(host,'Starting neural Demucs separation…');
-   const created=await api('create',url?{audioUrl:url}:{audioBase64},controller.signal);
-   jobId=created.id;status(host,'Processing with Replicate. Job '+jobId+' · status '+created.status);
-   for(let i=0;i<120&&!disposed&&!controller.signal.aborted;i++){
-    await new Promise(resolve=>setTimeout(resolve,3000));
-    if(disposed||controller.signal.aborted)return;
-    const result=await api('status',{id:jobId},controller.signal);
-    if(result.status==='succeeded'){
-     finished=true;showOutput(result.output||{});
-     status(host,'Separation complete. Preview or download each stem before its URL expires.');return;
-    }
-    if(['failed','canceled'].includes(result.status))throw Error(result.error||'Prediction '+result.status);
-    status(host,'Neural separation · '+result.status.toUpperCase()+' · elapsed ~'+(i+1)*3+' s');
-   }
-   throw Error('Separation is still processing. Check the provider dashboard for the job status.');
-  }catch(e){if(!disposed&&e.name!=='AbortError')status(host,e.message,true)}
-  finally{if(!disposed)setBusy(false)}
- };
- cancel.onclick=async()=>{
-  controller?.abort();if(jobId&&!finished){try{await api('cancel',{id:jobId});status(host,'Cloud job cancellation requested.');}
-   catch(e){status(host,'Unable to cancel: '+e.message,true)}}else status(host,'No active job.');
-  setBusy(false);
- };
- return()=>{disposed=true;controller?.abort();if(jobId&&!finished)void api('cancel',{id:jobId}).catch(()=>{});};
-}
 
 export const aiV2Modules=Object.freeze([
  {id:'ai2-mastering',category:'ai',label:'AI Mastering',mount:({host})=>mountMasteringTool({host,mode:'smart'})},
- {id:'ai2-stems',category:'ai',label:'Stem Separator',mount:mountStems},
+ {id:'ai2-stereo',category:'ai',label:'Stereo Lab',mount:mountStereoLab},
  {id:'ai2-vocals',category:'ai',label:'Vocal Studio',mount:mountVocals},
  {id:'ai2-beat',category:'ai',label:'Beat Lab',mount:mountBeatLab},
  {id:'ai2-mix',category:'ai',label:'Mix Assistant',mount:mountMultitrack},

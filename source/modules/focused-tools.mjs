@@ -7,7 +7,7 @@ import {fadeBuffer,resampleBuffer} from './legacy-dsp.mjs';
 import {advancedEqualizerModule} from './eq-advanced.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
 import {analyzeHarmonyInWorker} from './harmony-client.mjs';
-import {buildBeatGrid} from './beat-detector.mjs';
+import {buildAnalyzerBeatGrid} from './beat-detector.mjs';
 
 const section=(num,name,detail)=>'<div class="tool-view-header"><span>'+num+' / '+name+'</span><span>LOCAL AUDIO PROCESSING</span></div><h3>'+name+'.<br><span>'+detail+'.</span></h3>';
 const setText=(host,key,text)=>{const el=host.querySelector('[data-focus="'+key+'"]');if(el)el.textContent=String(text);};
@@ -27,7 +27,7 @@ function mountSongAnalyzer({host}){
   '<p>Choose a suggested BPM or use half/double time. This rebuilds the shared waveform grid; it does not change the audio.</p>'+
   '<div class="focus-song-candidates" data-focus-candidates><p class="focus-song-muted">Candidates appear after analysis.</p></div>'+
   '<div class="focus-song-tools"><button type="button" data-focus-tempo="half" disabled>÷ 2</button><button type="button" data-focus-tempo="double" disabled>× 2</button><button type="button" data-focus-tempo="reset" disabled>RESET</button></div>'+
-  '<div class="focus-song-grid"><span>BEAT GRID</span><strong data-focus="beats">—</strong><small>ESTIMATED QUARTER NOTES · SYNCED TO SOURCE AUDIO</small></div></div>'+
+  '<div class="focus-song-grid"><span>BEAT GRID</span><strong data-focus="beats">—</strong><small>MEASURED BEAT POSITIONS FOR PRIMARY BPM · CORRECTED TEMPOS USE ESTIMATED GRID</small></div></div>'+
   '<div class="focus-song-panel focus-song-chord-panel"><div class="focus-song-panel-top"><span>02 / CHORD TIMELINE</span><span>APPROXIMATE MAJ / MIN</span></div>'+
   '<p>Short harmonic snapshots, not a transcription. Uncertain chords are deliberately hidden.</p>'+
   '<div class="focus-chords" data-focus-chords><p class="focus-song-muted">Analyze a musical track to view potential chords.</p></div></div>'+
@@ -55,7 +55,7 @@ function mountSongAnalyzer({host}){
   const source=w.buffer;
   if(!source||!current||!Number.isFinite(bpm))return;
   selectionBpm=bpm;
-  const beats=buildBeatGrid(bpm,current.offset??0,source.duration);
+  const beats=buildAnalyzerBeatGrid(current,bpm,source.duration);
   w.setMarkers(beats);
   setText(host,'bpm',bpm.toFixed(1));
   setText(host,'beats',beats.length.toLocaleString('en-US')+' MARKERS');

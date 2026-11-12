@@ -14,7 +14,7 @@
 <meta name="description" content="PULSE Studio — analyze BPM, edit sound, master and export locally in your browser.">
 <title>PULSE Studio — Audio Workspace</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/modules/theme.css"><link rel="stylesheet" href="/modules/focused-tools.css"><link rel="stylesheet" href="/song/song-analyzer.css"><script type="module" src="/app.mjs"></script><script type="module" src="/song/song-ui.mjs"></script>
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/modules/theme.css"><link rel="stylesheet" href="/modules/focused-tools.css"><script type="module" src="/app.mjs"></script>
 </head>
 <body>
 <div class="shell">
@@ -24,7 +24,7 @@
     <svg class="pulse-theme-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 15.1A8.7 8.7 0 0 1 8.9 3.6a8.8 8.8 0 1 0 11.5 11.5Z"/></svg>
     <svg class="pulse-theme-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
   </button>
-  <nav aria-label="Main navigation" class="header-nav"><a href="#analyzer" class="nav-bpm">SONG ANALYZER</a>
+  <nav aria-label="Main navigation" class="header-nav"><a href="#toolkit" class="nav-bpm" data-open-tool="song-analyzer">SONG ANALYZER</a>
     <a href="#toolkit" data-category-link="analyze">ANALYSIS</a>
     <a href="#toolkit" data-category-link="edit">EDIT</a>
     <a href="#toolkit" data-category-link="export">EXPORT</a>
@@ -46,69 +46,8 @@
       <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
     </section>
 
-<section id="analyzer" class="pulse-song-analyzer" aria-label="Song Analyzer">
-<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
-  <symbol id="arrow-up" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
-  <symbol id="arrow-ne" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14"/></symbol>
-  <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></symbol>
-  <symbol id="play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></symbol>
-  <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
-  <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
-  <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M16 8V3H3v13h5"/></symbol>
-  <symbol id="music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></symbol>
-</defs></svg>
-      <div class="section-label"><h2>01 / SONG ANALYZER</h2></div>
-      <div class="workspace">
-        <div class="upload-panel" id="drop-zone">
-          <input type="file" id="file-input" accept=".wav,.mp3,.mp4,audio/wav,audio/x-wav,audio/mpeg,video/mp4,audio/mp4" aria-label="Select WAV, MP3 or MP4" hidden>
-          <div class="upload-empty" id="upload-empty">
-            <span class="upload-icon"><svg><use href="#arrow-up"/></svg></span>
-            <h3>Drop your track.</h3>
-            <button class="button button-light" id="choose-file">Choose file <svg><use href="#arrow-ne"/></svg></button>
-            <span class="file-limit">WAV, MP3 or MP4 <span>·</span> max. 100 MB / 20 min</span>
-          </div>
-          <div class="processing" id="processing" hidden><div class="loader" aria-hidden="true"><i></i><i></i><i></i></div><h3 id="progress-title">Analyzing your song.</h3><p id="progress-detail">Loading audio…</p><div class="progress-line"></div><button class="text-button" id="cancel-analysis">Cancel analysis</button></div>
-          <div class="track-content" id="track-content" hidden>
-            <div class="track-top"><span class="track-type" id="track-type">WAV</span><button class="icon-button" id="remove-file" aria-label="Remove file"><svg><use href="#close"/></svg></button></div>
-            <h3 id="track-name"></h3><p class="track-meta" id="track-meta"></p>
-            <div class="waveform-wrap" id="analyzer-waveform"><canvas id="waveform" aria-hidden="true"></canvas><input type="range" id="seek" min="0" max="100" value="0" step="0.1" aria-label="Playback position"></div>
-            <div class="selection-tools" id="selection-tools" hidden>
-              <div class="selection-heading"><span>ANALYSIS RANGE</span><button type="button" id="select-range" aria-pressed="false">DRAG TO SELECT</button></div>
-              <div class="selection-inputs">
-                <label>FROM <output id="selection-start-label">0:00</output><input id="selection-start" type="range" min="0" max="100" step="0.1" value="0" aria-label="Analysis selection start"></label>
-                <label>TO <output id="selection-end-label">0:00</output><input id="selection-end" type="range" min="0" max="100" step="0.1" value="100" aria-label="Analysis selection end"></label>
-              </div>
-              <div class="selection-actions"><button id="analyze-selection" type="button">ANALYZE SELECTION ↗</button><button id="analyze-full" type="button">FULL TRACK ↺</button></div>
-              <p class="selection-hint" id="selection-status" role="status">Select at least 6 seconds. The waveform remains the full track.</p>
-            </div>
-            <div class="player"><button class="play-button" id="play-track" aria-label="Play track"><svg><use href="#play"/></svg></button><span class="player-time"><span id="current-time">0:00</span><span class="time-separator">/</span><span id="total-time">0:00</span></span><button class="text-button replace" id="replace-file">Replace file <span aria-hidden="true">↗</span></button></div>
-          </div>
-          <p class="privacy-note"><svg><use href="#lock"/></svg> Audio stays on your device.</p>
-          <div class="drag-overlay" aria-hidden="true"><span>DROP IT HERE.</span><svg><use href="#arrow-up"/></svg></div>
-        </div>
-        <div class="result-panel" id="result-panel">
-          <div class="result-top"><h3>SONG ANALYSIS <small id="analysis-scope" hidden>FULL TRACK</small></h3><span id="result-status">AWAITING TRACK <i></i></span></div>
-          <div class="tempo-circle" id="tempo-circle"><span class="bpm-number" id="bpm-number">—</span><span class="bpm-label">ESTIMATED BPM</span><i class="orbit-dot"></i></div>
-          <div class="result-empty" id="result-empty"><span>Upload a track to analyze.</span><span aria-hidden="true">↗</span></div>
-          <div class="result-controls" id="result-controls" hidden><div class="tempo-actions"><div class="tempo-multipliers" aria-label="Tempo controls"><button id="half-tempo" title="Half tempo">÷ 2</button><button id="double-tempo" title="Double tempo">× 2</button><button id="reset-tempo" title="Original tempo" hidden>↺</button></div><button class="copy-button" id="copy-bpm" aria-label="Copy BPM"><svg><use href="#copy"/></svg><span>Copy</span></button></div><div class="metronome-row"><button id="metronome" aria-pressed="false"><span class="switch"><i></i></span>Hear tempo</button><span class="beat-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div>
-          <div class="song-results" id="song-results" hidden>
-            <div class="song-result-grid">
-              <div class="song-result-card"><span>MUSICAL KEY</span><strong id="song-key">—</strong></div>
-              <div class="song-result-card"><span>CAMELOT</span><strong id="song-camelot">—</strong></div>
-              <div class="song-result-card"><span>REFERENCE TUNING</span><strong id="song-tuning">—</strong></div>
-              <div class="song-result-card"><span>KEY CONFIDENCE</span><strong id="song-key-confidence">—</strong></div>
-            </div>
-            <p id="song-analysis-note" class="song-analysis-note">Estimates depend on the audio content.</p>
-            <button id="song-export-json" class="song-export-json" type="button">EXPORT ANALYSIS / JSON ↗</button>
-          </div>
-        </div>
-      </div>
-      <div class="message error-message" id="error" role="alert" hidden></div>
-      <p class="result-note" id="result-note" hidden></p>
-      <div class="demo-line song-dialog-launch"><button id="try-demo" type="button">Try demo <span aria-hidden="true">↗</span></button><button id="open-tap" type="button">Tap Tempo ↗</button></div>
-    <dialog id="tap-dialog" aria-labelledby="tap-title"><button class="dialog-close icon-button" data-close aria-label="Close"><svg><use href="#close"/></svg></button><p class="eyebrow">FEEL THE BEAT.</p><h2 id="tap-title">Your hands.<br>Your tempo.</h2><button class="tap-pad" id="tap-pad"><span id="tap-value">TAP</span><span id="tap-hint">Tap the beat</span></button><p class="tap-instruction">Tap four times or press Space.</p><div class="tap-bottom"><span id="tap-count" aria-live="polite">0 taps</span><button id="tap-reset">Reset ↺</button><button id="tap-copy" hidden>Copy BPM ↗</button></div></dialog>
-<div class="song-status" id="live-status" aria-live="polite"></div><div id="toast" class="toast" role="status" hidden></div>
-</section>
+<!-- Backward-compatible anchor: #analyzer opens the single Song Analyzer in Producer Toolkits. -->
+<span id="analyzer" aria-hidden="true"></span>
 
 <section class="toolkit" id="toolkit" aria-labelledby="toolkit-title">
     <div class="section-label"><h2>02 / PRODUCER TOOLKITS</h2><span>LOCAL PRODUCER WORKSPACE</span></div>
@@ -205,7 +144,7 @@
   <aside class="pulse-directory-note"><strong>{ AUDIO PROCESSING }</strong><p>Local DSP runs in browser memory. Neural separation and voice isolation require an explicitly authorized cloud service.</p></aside>
  </div>
 </div></section>
-<footer class="pulse-footer" aria-label="PULSE Studio footer"><div class="pulse-footer-top"><div class="pulse-footer-brand"><a class="pulse-footer-logo" href="#top"><i aria-hidden="true"></i>Pulse<sup>STUDIO</sup></a><p>Focused audio tools for producers. Analyze, edit and export your sound in one browser workspace.</p><a class="pulse-privacy-link" href="#analyzer">Privacy ↗</a></div><div class="pulse-footer-links">
+<footer class="pulse-footer" aria-label="PULSE Studio footer"><div class="pulse-footer-top"><div class="pulse-footer-brand"><a class="pulse-footer-logo" href="#top"><i aria-hidden="true"></i>Pulse<sup>STUDIO</sup></a><p>Focused audio tools for producers. Analyze, edit and export your sound in one browser workspace.</p><a class="pulse-privacy-link" href="#toolkit">Audio tools ↗</a></div><div class="pulse-footer-links">
 <div class="pulse-footer-col"><h2>ANALYSIS</h2><ul><li><button type="button" data-open-tool="song-analyzer">Song Analyzer</button></li></ul></div>
 <div class="pulse-footer-col"><h2>EDIT</h2><ul><li><button type="button" data-open-tool="editor">Audio Editor</button></li></ul></div>
 <div class="pulse-footer-col"><h2>EXPORT</h2><ul><li><button type="button" data-open-tool="wav">Audio Converter</button></li></ul></div>

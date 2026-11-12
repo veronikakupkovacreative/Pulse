@@ -15,6 +15,9 @@
     },
     "api/pulse-youtube.js": {
       "maxDuration": 30
+    },
+    "api/pulse-tags.js": {
+      "maxDuration": 60
     }
   }
 }

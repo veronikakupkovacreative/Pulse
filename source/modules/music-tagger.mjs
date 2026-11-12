@@ -1,4 +1,5 @@
 import {workspace as w} from './workspace.mjs';
+import {runAudialMusicTags,isAbort} from './music-tagger-ai.mjs';
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=(value,suffix='')=>value==null?'—':String(value)+suffix;
 const transfer=(source,window)=>{
@@ -65,17 +66,18 @@ function mountMusicTagger({host}){
  '<button type="button" class="pulse-tagger-secondary" data-tag-action="download" disabled>EXPORT JSON ↗</button></div>'+
  '<p class="focus-status" role="status" aria-live="polite" data-tag-status>Load an audio track in SOURCE AUDIO. Shift-drag the waveform to analyze a selected passage (up to 60 seconds).</p>'+
  '<div data-tag-results aria-label="Measured acoustic descriptors" hidden></div>'+
- '<details class="pulse-tagger-cloud"><summary>OPTIONAL / AI GENRE, MOOD & INSTRUMENT TAGGING</summary>'+
- '<p>Audial runs an external cloud model for genres, moods and instruments. After explicit consent, PULSE can send a maximum 20-second mono WAV excerpt from your loaded SOURCE AUDIO (not the entire file). You can optionally select a different short file below. Audial subscription and owner credentials are required.</p>'+
- '<label>OWNER ACCESS TOKEN <input type="password" data-tag-token autocomplete="off" placeholder="Token configured on your Vercel server"></label>'+
- '<label>OPTIONAL / DIFFERENT SHORT AUDIO FILE <input type="file" accept=".mp3,.wav,.m4a,.aac,.flac,.ogg,audio/*" data-tag-file></label>'+
- '<label class="pulse-tagger-consent"><input type="checkbox" data-tag-consent> I consent to send an audio excerpt (or the optional selected file) to Audial servers for music tagging.</label>'+
- '<div class="pulse-tagger-cloud-buttons"><button type="button" data-tag-action="cloud-start">1 / SEND TO AUDIAL</button>'+
- '<button type="button" data-tag-action="cloud-tag" disabled>2 / GENERATE TAGS</button>'+
- '<button type="button" data-tag-action="cloud-result" disabled>3 / FETCH RESULTS</button></div>'+
- '<p class="focus-status" data-cloud-status role="status" aria-live="polite">Cloud mode is optional and disabled until you authorize it.</p>'+
- '<div data-cloud-results hidden></div></details></section>';
- let dead=false,worker=null,local=null,remote=null,busy=false,analysisId=null,revision=0,cloudOrigin=null;
+ '<section class="pulse-tagger-cloud" aria-label="AI genre mood and instrument tagging">'+
+ '<div class="pulse-tagger-ai-head"><div><span class="pulse-tagger-kicker">AI MUSIC TAGGING</span><h4>Genre. Mood.<br><span>Instruments.</span></h4></div><span class="pulse-tagger-cloud-label">AUDIAL API / CLOUD MODEL</span></div>'+
+ '<p>Identify genres, moods and instruments for the whole mix, drums, bass, melody and vocals. Everything appears here in PULSE, without visiting the Audial website. One action runs the full workflow.</p>'+
+ '<p class="pulse-tagger-warning">Unlike local acoustic measurements, AI tagging sends a short audio excerpt (up to 20 seconds) to Audial servers. Explicit consent is required. You may choose an optional short file instead.</p>'+
+ '<div class="pulse-tagger-cloud-fields"><label>PULSE OWNER ACCESS TOKEN<input type="password" data-tag-token autocomplete="off" placeholder="Private PULSE access token"></label>'+
+ '<label>OPTIONAL / DIFFERENT SHORT AUDIO FILE<input type="file" accept=".mp3,.wav,.m4a,.aac,.flac,.ogg,audio/*" data-tag-file></label></div>'+
+ '<label class="pulse-tagger-consent"><input type="checkbox" data-tag-consent> I authorize PULSE to send a short audio excerpt to Audial for AI tagging.</label>'+
+ '<div class="pulse-tagger-cloud-buttons"><button type="button" class="focus-action" data-tag-action="cloud-run">GENERATE AI TAGS <span aria-hidden="true">↗</span></button>'+
+ '<button type="button" class="pulse-tagger-secondary" data-tag-action="cloud-cancel" hidden>STOP WAITING</button></div>'+
+ '<div class="pulse-tagger-progress"><span data-cloud-stage>READY</span><p class="focus-status" data-cloud-status role="status" aria-live="polite">Load a track, confirm cloud consent and start AI tagging.</p></div>'+
+ '<div data-cloud-results aria-label="AI genre mood and instrument results" hidden></div></section></section>';
+ let dead=false,worker=null,local=null,remote=null,busy=false,revision=0,cloudOrigin=null,cloudBusy=false,cloudController=null,cloudResume=null;
  const $=(q)=>host.querySelector(q),status=(text,error=false)=>{const el=$('[data-tag-status]');el.textContent=text;el.dataset.error=String(error);};
  const cloudStatus=(text,error=false)=>{const el=$('[data-cloud-status]');el.textContent=text;el.dataset.error=String(error);};
  const download=$('[data-tag-action="download"]');

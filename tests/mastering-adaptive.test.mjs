@@ -54,7 +54,7 @@ test('mastering uses worker, supports level-matched A/B and manual controls',()=
  const worker=readFileSync(new URL('../source/modules/mastering-worker.mjs',import.meta.url),'utf8');
  assert.match(ui,/data-master-auto/);
  assert.match(ui,/data-master-match/);
- assert.match(ui,/Math.pow\(10,\(quieter-level\)\/20\)/);
+ assert.match(ui,/Math.pow\(10,\(Math.min\(\.\.\.levels\)-current\)\/20\)/);
  assert.match(ui,/runMasteringWorker\('render'/);
  assert.match(worker,/renderMasteringAudio\(audio,settings\)/);
 });

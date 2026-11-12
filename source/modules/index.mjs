@@ -23,7 +23,7 @@ if(typeof document!=='undefined'){
   set('.state-line','LOCAL AUDIO PROCESSING / MODULES ACTIVE');
   set('.toolkit-intro p','Analyze rhythm and harmony, edit audio, convert formats or open a focused AI Studio tool. Your main SOURCE AUDIO stays in the shared workspace.');
   set('.toolkit-intro .intro-accent','Stereo, vocal, repair and beat tools process audio locally. Cloud mastering is optional.');
-  set('.toolkit-note','+ Stereo Lab and Vocal Doubler work entirely in your browser. Optional Audial mastering is separate and requires explicit consent.');
+  set('.toolkit-note','+ Stereo Lab and Vocal Doubler run locally. Optional YouTube downloads use an owner-authorized external worker.');
   set('.footer-brand p','A focused audio workspace for producers. Analyze, edit, process and export without installing software.');
   const status=document.querySelector('.tiny-status');if(status)status.textContent='READY FOR AUDIO';
   const source=document.querySelector('.tool-source');if(source)source.setAttribute('aria-label','Audio upload, waveform and transport');

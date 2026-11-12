@@ -718,3 +718,77 @@ html[data-theme="dark"] .tool-settings{
  .tool-settings .tool-module-host .pulse-video-upload strong{text-align:left}
  .tool-settings .tool-module-host .pulse-video-section{font-size:9px}
 }
+
+
+/* YOUTUBE DOWNLOADER — canonical red/black style, nested in Video to Audio. */
+.tool-settings .tool-module-host .pulse-yt-controls{
+  display:grid;gap:13px;padding:17px 0 0;border-top:1px solid var(--pulse-ink);
+  color:var(--pulse-ink);font-family:var(--pulse-font);
+}
+.tool-settings .tool-module-host .pulse-yt-divider{
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  color:var(--pulse-ink);font:700 11px/1.4 var(--pulse-font);
+  letter-spacing:.07em;text-transform:uppercase;
+}
+.tool-settings .tool-module-host .pulse-yt-divider span:last-child{
+  font-weight:400;text-align:right;
+}
+.tool-settings .tool-module-host .pulse-yt-formats{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+}
+.tool-settings .tool-module-host .pulse-yt-formats button{
+  min-height:45px;min-width:0;padding:11px 12px;border-radius:0;
+  border:1px solid var(--pulse-ink);background:transparent;color:var(--pulse-ink);
+  font:700 11px/1.3 var(--pulse-font);text-transform:uppercase;
+}
+.tool-settings .tool-module-host .pulse-yt-formats button[aria-pressed="true"],
+.tool-settings .tool-module-host .pulse-yt-formats button:hover:not(:disabled){
+  border-color:var(--pulse-ink);background:var(--pulse-ink);color:var(--pulse-white);
+}
+.tool-settings .tool-module-host .pulse-yt-controls .pulse-video-setting input{
+  background:transparent;color:var(--pulse-ink);
+  border:1px solid var(--pulse-ink);border-radius:0;
+  min-height:43px;padding:9px 12px;min-width:0;width:100%;
+  font:400 13px/1.5 var(--pulse-font);
+}
+.tool-settings .tool-module-host .pulse-yt-actions{
+  display:grid;grid-template-columns:minmax(0,2fr) minmax(100px,1fr);gap:9px;
+}
+.tool-settings .tool-module-host .pulse-yt-actions button,
+.tool-settings .tool-module-host .pulse-yt-result{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  min-height:48px;padding:11px 14px;cursor:pointer;
+  border:1px solid var(--pulse-ink);border-radius:0;
+  background:var(--pulse-ink);color:var(--pulse-white);
+  font:700 11px/1.4 var(--pulse-font);letter-spacing:.035em;
+  text-align:left;text-decoration:none;text-transform:uppercase;
+}
+.tool-settings .tool-module-host .pulse-yt-actions button[data-yt-cancel]{
+  background:transparent;color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-yt-actions button:disabled{
+  opacity:.65;cursor:not-allowed;
+}
+.tool-settings .tool-module-host .pulse-yt-actions button:not(:disabled):hover,
+.tool-settings .tool-module-host .pulse-yt-result:hover{
+  filter:brightness(.85);
+}
+.tool-settings .tool-module-host .pulse-yt-result[hidden],
+.tool-settings .tool-module-host .pulse-yt-controls .pulse-video-setting[hidden]{
+  display:none!important;
+}
+.tool-settings .tool-module-host .pulse-yt-controls [data-yt-status]{
+  color:var(--pulse-ink);opacity:1;overflow-wrap:anywhere;
+}
+.tool-settings .tool-module-host .pulse-yt-controls [data-yt-status][data-error="true"]{
+  font-weight:700;
+}
+.tool-settings .tool-module-host .pulse-yt-controls :is(button,input,select,a):focus-visible{
+  outline:2px solid var(--pulse-ink);outline-offset:3px;
+}
+@media(max-width:560px){
+  .tool-settings .tool-module-host .pulse-yt-actions{
+    grid-template-columns:1fr;
+  }
+  .tool-settings .tool-module-host .pulse-yt-formats{gap:5px}
+}

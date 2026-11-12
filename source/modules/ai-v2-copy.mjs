@@ -2,9 +2,9 @@
 const data=Object.freeze({
  'ai2-mastering':{
   title:['Master the track','Finish the sound'],
-  summary:'Automatically recommend gentle 3-band EQ, linked compression and stereo width using spectral balance, crest factor and correlation. Choose Trap, Hip-Hop, EDM, Pop or Streaming. Local DSP, with LUFS estimates, limiter, level-matched A/B and WAV export.',
-  steps:['Load audio into SOURCE AUDIO.','Choose Trap, Hip-Hop, EDM, Pop or Streaming. Keep Auto Analyze enabled for track-dependent settings, or adjust manually.','Render in a Web Worker, compare level-matched A/B, then apply or export the mastered WAV.'],
-  benefits:[['ADAPTIVE LOCAL DSP','Track-dependent 3-band EQ recommendations, linked compression and stereo controls.'],['GENRE PRESETS','Trap, Hip-Hop, EDM, Pop and Streaming with measured loudness and peak estimates.'],['FAIR A/B + EXPORT','Level-matched audition before committing, plus 24-bit WAV export.']]},
+  summary:'Choose local adaptive mastering (EQ, compression, limiter, A/B and WAV export) or MusicGPT cloud reference mastering. MusicGPT requires both a source and reference, explicit consent and account credits.',
+  steps:['Load audio in SOURCE AUDIO and an optional reference file.','Choose LOCAL DSP for presets and in-browser rendering, or MUSICGPT MASTERING with a required reference and an owner token.','For MusicGPT, upload only a 6-second preview or use two full-length HTTPS links. Confirm consent, run and download the result. Local DSP supports A/B and Undo.'],
+  benefits:[['LOCAL OR CLOUD','Use private local DSP or MusicGPT reference mastering via a protected API.'],['REFERENCE REQUIRED','Cloud mode matches a source to a supplied reference and may charge credits.'],['PREVIEW VS FULL TRACK','6-second stereo file previews or full-length HTTPS URLs. Play or download completed cloud output.']]},
  'ai2-stereo':{
   title:['Shape the stereo','Keep the bass solid'],
   summary:'Control stereo width, Mid/Side balance, low-frequency mono, panning and output gain. Fully local DSP in a Web Worker; no neural isolation or stem splitting.',

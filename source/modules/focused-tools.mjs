@@ -6,8 +6,8 @@ import {editRegion,reverseBuffer,gainBuffer,fromChannels} from './dsp.mjs';
 import {fadeBuffer,resampleBuffer} from './legacy-dsp.mjs';
 import {advancedEqualizerModule} from './eq-advanced.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
-import {analyzeKeyInWorker} from './key-client.mjs';
-import {detectKeyAndChords} from './producer-dsp.mjs';
+import {analyzeHarmonyInWorker} from './harmony-client.mjs';
+import {buildBeatGrid} from './beat-detector.mjs';
 
 const section=(num,name,detail)=>'<div class="tool-view-header"><span>'+num+' / '+name+'</span><span>LOCAL AUDIO PROCESSING</span></div><h3>'+name+'.<br><span>'+detail+'.</span></h3>';
 const setText=(host,key,text)=>{const el=host.querySelector('[data-focus="'+key+'"]');if(el)el.textContent=String(text);};
@@ -16,66 +16,141 @@ const num=(host,id,min,max)=>{const el=host.querySelector('[data-focus-input="'+
 const button=(id,title)=>'<button type="button" class="focus-action" data-focus-action="'+id+'">'+title+' <span aria-hidden="true">↗</span></button>';
 
 function mountSongAnalyzer({host}){
- host.innerHTML='<section class="tool-view focus-module focus-song">'+
-  section('01','Song Analyzer','Understand the track')+
-  '<p class="tool-description">One place for BPM, musical key, Camelot, approximate chords and beat grid markers. Analysis runs locally. For detailed waveform inspection, use the full Song Analyzer above.</p>'+
-  '<div class="focus-analysis-metrics" aria-label="Song analysis results">'+
-  '<div><small>BPM</small><strong data-focus="bpm">—</strong></div>'+
-  '<div><small>KEY</small><strong data-focus="key">—</strong></div>'+
-  '<div><small>CAMELOT</small><strong data-focus="camelot">—</strong></div>'+
-  '<div><small>BEAT MARKERS</small><strong data-focus="beats">—</strong></div></div>'+
-  '<div class="focus-chords"><p class="pulse-detail-label">CHORD TIMELINE / APPROXIMATE</p><div data-focus-chords><p>Run analysis to view estimated major/minor chords.</p></div></div>'+
-  '<div class="focus-actions">'+button('analyze','ANALYZE CURRENT TRACK')+button('full','OPEN FULL SONG ANALYZER')+'</div>'+
-  '<p class="focus-status" data-focus-status role="status" aria-live="polite">Load audio into SOURCE AUDIO, then analyze.</p></section>';
- let disposed=false,busy=false,controller=null;
+ host.innerHTML='<section class="tool-view focus-module focus-song focus-song-v3">'+
+  '<div class="tool-view-header"><span>01 / SONG ANALYZER</span><span>LOCAL ANALYSIS / V3</span></div>'+
+  '<h3>Know your<br><span>track.</span></h3>'+
+  '<p class="tool-description">Measure rhythm and harmony together. Tempo candidates are estimates, not guaranteed answers. The beat grid can be corrected manually and chord labels should always be checked by ear.</p>'+
+  '<div class="focus-song-summary">'+
+  '<div class="focus-song-main"><span class="focus-song-kicker">DETECTED TEMPO</span><strong data-focus="bpm">—</strong><span class="focus-song-unit">BEATS PER MINUTE</span><span class="focus-song-confidence" data-focus="rhythm-confidence">NO ANALYSIS</span></div>'+
+  '<div class="focus-song-tonality"><div><span>KEY / ESTIMATE</span><strong data-focus="key">—</strong></div><div><span>CAMELOT</span><strong data-focus="camelot">—</strong></div><div><span>TONAL CONFIDENCE</span><strong data-focus="key-confidence">—</strong></div></div></div>'+
+  '<div class="focus-song-panel"><div class="focus-song-panel-top"><span>01 / TEMPO INTERPRETATIONS</span><span data-focus="stability">—</span></div>'+
+  '<p>Choose a suggested BPM or use half/double time. This rebuilds the shared waveform grid; it does not change the audio.</p>'+
+  '<div class="focus-song-candidates" data-focus-candidates><p class="focus-song-muted">Candidates appear after analysis.</p></div>'+
+  '<div class="focus-song-tools"><button type="button" data-focus-tempo="half" disabled>÷ 2</button><button type="button" data-focus-tempo="double" disabled>× 2</button><button type="button" data-focus-tempo="reset" disabled>RESET</button></div>'+
+  '<div class="focus-song-grid"><span>BEAT GRID</span><strong data-focus="beats">—</strong><small>ESTIMATED QUARTER NOTES · SYNCED TO SOURCE AUDIO</small></div></div>'+
+  '<div class="focus-song-panel focus-song-chord-panel"><div class="focus-song-panel-top"><span>02 / CHORD TIMELINE</span><span>APPROXIMATE MAJ / MIN</span></div>'+
+  '<p>Short harmonic snapshots, not a transcription. Uncertain chords are deliberately hidden.</p>'+
+  '<div class="focus-chords" data-focus-chords><p class="focus-song-muted">Analyze a musical track to view potential chords.</p></div></div>'+
+  '<div class="focus-song-actions">'+button('analyze','ANALYZE TRACK')+
+  '<button type="button" class="focus-song-link" data-focus-action="full">OPEN DETAILED ANALYZER <span aria-hidden="true">↗</span></button></div>'+
+  '<p class="focus-status" data-focus-status role="status" aria-live="polite">Load audio into SOURCE AUDIO, then analyze. For BPM use at least 6 seconds of clear rhythm.</p>'+
+  '</section>';
+ let disposed=false,busy=false,controller=null,current=null,selectionBpm=null;
  const analyzeButton=host.querySelector('[data-focus-action="analyze"]');
+ const candidatesHost=host.querySelector('[data-focus-candidates]');
+ const controls=[...host.querySelectorAll('[data-focus-tempo]')];
+ const status=(message,error=false)=>report(host,message,error);
  host.querySelector('[data-focus-action="full"]').onclick=()=>document.getElementById('analyzer')?.scrollIntoView({behavior:'smooth',block:'start'});
+ function renderGrid(bpm){
+  const source=w.buffer;
+  if(!source||!current||!Number.isFinite(bpm))return;
+  selectionBpm=bpm;
+  const beats=buildBeatGrid(bpm,current.offset??0,source.duration);
+  w.setMarkers(beats);
+  setText(host,'bpm',bpm.toFixed(1));
+  setText(host,'beats',beats.length.toLocaleString('en-US')+' MARKERS');
+  controls.forEach(b=>b.disabled=b.dataset.focusTempo==='half'?bpm/2<40:
+   b.dataset.focusTempo==='double'?bpm*2>240:Math.abs(bpm-current.bpm)<.015);
+  for(const b of candidatesHost.querySelectorAll('[data-candidate]'))b.setAttribute('aria-pressed',
+   String(Math.abs(Number(b.dataset.candidate)-bpm)<.015));
+ }
+ function addCandidate(label,value){
+  if(!Number.isFinite(value)||value<40||value>240)return;
+  const button=document.createElement('button');
+  button.type='button';button.dataset.candidate=value.toFixed(2);
+  button.textContent=label+' / '+value.toFixed(1)+' BPM';
+  button.setAttribute('aria-pressed',String(Math.abs(value-selectionBpm)<.015));
+  button.onclick=()=>{renderGrid(value);status('Beat grid set to '+value.toFixed(1)+' BPM. Confirm by listening to the source.');};
+  candidatesHost.append(button);
+ }
+ controls.forEach(button=>button.onclick=()=>{
+  if(!current||!selectionBpm)return;
+  const action=button.dataset.focusTempo;
+  const next=action==='half'?selectionBpm/2:action==='double'?selectionBpm*2:current.bpm;
+  renderGrid(next);
+  status('Beat grid updated. This is a metrical interpretation, not an audio time stretch.');
+ });
+ function clear(){
+  current=null;selectionBpm=null;
+  for(const k of ['bpm','key','camelot','beats','key-confidence','stability'])setText(host,k,'—');
+  setText(host,'rhythm-confidence','NO ANALYSIS');
+  candidatesHost.replaceChildren();
+  candidatesHost.textContent='Candidates appear after analysis.';
+  const chords=host.querySelector('[data-focus-chords]');
+  chords.replaceChildren();chords.textContent='Run analysis to see possible chords.';
+  controls.forEach(b=>b.disabled=true);
+ }
  analyzeButton.onclick=async()=>{
   if(busy||disposed)return;
-  const ctrl=new AbortController();controller=ctrl;busy=true;analyzeButton.disabled=true;
+  const ctrl=new AbortController();controller=ctrl;
+  busy=true;analyzeButton.disabled=true;
   try{
-   const source=w.ensureAudio();report(host,'Analyzing rhythm and tonality…');
-   const [rhythm,key]=await Promise.allSettled([
-    analyzeRhythmInWorker(source,{signal:ctrl.signal,onProgress:p=>report(host,'ANALYZING RHYTHM '+p+'%')}),
-    analyzeKeyInWorker(source,{signal:ctrl.signal})
+   const source=w.ensureAudio();
+   status('Measuring BPM and harmonic content in background workers…');
+   const [rhythm,harmony]=await Promise.allSettled([
+    analyzeRhythmInWorker(source,{signal:ctrl.signal,onProgress:p=>status('RHYTHM ANALYSIS '+p+'%')}),
+    analyzeHarmonyInWorker(source,{signal:ctrl.signal})
    ]);
    if(disposed||ctrl.signal.aborted||w.buffer!==source)return;
-   let answered=false;
    if(rhythm.status==='fulfilled'&&Number.isFinite(rhythm.value.bpm)){
-    const result=rhythm.value;
-    setText(host,'bpm',result.bpm.toFixed(1));
-    setText(host,'beats',result.beatTimes?.length??0);
-    w.setMarkers(result.beatTimes||[]);answered=true;
-   }else{setText(host,'bpm','—');setText(host,'beats','—');}
-   if(key.status==='fulfilled'){
-    setText(host,'key',key.value.key??'—');
-    setText(host,'camelot',key.value.camelot??'—');answered=true;
-   }else{setText(host,'key','—');setText(host,'camelot','—');}
-   report(host,'Estimating chord timeline…');
-   await new Promise(resolve=>setTimeout(resolve,0));
-   if(disposed||ctrl.signal.aborted||w.buffer!==source)return;
-   const box=host.querySelector('[data-focus-chords]');box.replaceChildren();
-   try{
-    const harmony=detectKeyAndChords(source);
-    for(const chord of harmony.chords.slice(0,60)){
-     const line=document.createElement('div');line.className='focus-chord-row';
-     const time=document.createElement('span');time.textContent=Number(chord.time).toFixed(1)+' s';
-     const name=document.createElement('strong');name.textContent=chord.label;
-     const quality=document.createElement('span');quality.textContent=chord.confidence+'% est.';
-     line.append(time,name,quality);box.append(line);
+    const result=rhythm.value;current=result;selectionBpm=result.bpm;
+    setText(host,'rhythm-confidence',(result.confidence??'low').toUpperCase()+' CONFIDENCE');
+    setText(host,'stability',result.tempoStability==null?'STABILITY UNKNOWN':'STABILITY '+result.tempoStability+'% EST.');
+    candidatesHost.replaceChildren();
+    addCandidate('PRIMARY',result.bpm);
+    const seen=[result.bpm];
+    for(const item of result.alternatives||[]){
+     if(!Number.isFinite(item.bpm)||seen.some(x=>Math.abs(x-item.bpm)<1))continue;
+     seen.push(item.bpm);addCandidate('ALTERNATIVE',item.bpm);
     }
-    if(!box.children.length)box.textContent='No stable major/minor chords detected.';
-    answered=answered||harmony.chords.length>0;
-   }catch(e){box.textContent='Chord estimate unavailable: '+e.message;}
-   report(host,answered?'Analysis complete. Beat markers are visible on the shared waveform. Verify chords by ear.':'No reliable musical estimate. Try a clearer section.',!answered);
-  }catch(error){if(!disposed&&error?.name!=='AbortError')report(host,error.message||'Analysis failed.',true)}
-  finally{if(!disposed){busy=false;analyzeButton.disabled=false;}if(controller===ctrl)controller=null;}
+    addCandidate('HALF-TIME',result.bpm/2);
+    addCandidate('DOUBLE-TIME',result.bpm*2);
+    renderGrid(result.bpm);
+   }else{
+    current=null;selectionBpm=null;
+    setText(host,'bpm','—');setText(host,'beats','—');
+    setText(host,'rhythm-confidence','UNRELIABLE');
+    candidatesHost.textContent='No reliable tempo found. Try a section with a distinct drum pattern.';
+    controls.forEach(b=>b.disabled=true);
+   }
+   const chordBox=host.querySelector('[data-focus-chords]');
+   chordBox.replaceChildren();
+   if(harmony.status==='fulfilled'){
+    const result=harmony.value;
+    if(result.key){
+     setText(host,'key',result.key.name);
+     setText(host,'camelot',result.key.camelot);
+     setText(host,'key-confidence',result.key.confidence.toUpperCase());
+    }else{
+     setText(host,'key','UNDETERMINED');
+     setText(host,'camelot','—');
+     setText(host,'key-confidence','LOW');
+    }
+    if(result.chords.length){
+     for(const chord of result.chords){
+      const row=document.createElement('div');row.className='focus-chord-row';
+      const time=document.createElement('span');
+      time.textContent=Math.floor(chord.time/60)+':'+String(Math.floor(chord.time%60)).padStart(2,'0');
+      const name=document.createElement('strong');name.textContent=chord.label;
+      const note=document.createElement('span');note.textContent='ESTIMATE';
+      row.append(time,name,note);chordBox.append(row);
+     }
+    }else chordBox.textContent='No stable major/minor triads detected. The mix may be too percussive or harmonically complex.';
+   }else{
+    setText(host,'key','—');setText(host,'camelot','—');setText(host,'key-confidence','—');
+    chordBox.textContent='Harmonic analysis unavailable: '+(harmony.reason?.message||'processing error');
+   }
+   const rhythmOK=Boolean(current),harmonyOK=harmony.status==='fulfilled'&&Boolean(harmony.value.key);
+   status(rhythmOK||harmonyOK
+    ?'Analysis complete. Tempo and chord estimates may be ambiguous; check the beat grid by listening.'
+    :'No dependable rhythm or harmony detected. Try a different musical section.',!rhythmOK&&!harmonyOK);
+  }catch(error){if(!disposed&&error?.name!=='AbortError')status(error.message||'Song analysis failed.',true);}
+  finally{busy=false;if(!disposed)analyzeButton.disabled=false;if(controller===ctrl)controller=null;}
  };
  const unsub=w.subscribe((snapshot,reason)=>{
-  if(reason!=='load'&&reason!=='clear'&&reason!=='commit'&&reason!=='undo'&&reason!=='redo')return;
+  if(!['load','clear','commit','undo','redo'].includes(reason))return;
   if(busy)controller?.abort();
-  for(const k of ['bpm','key','camelot','beats'])setText(host,k,'—');
-  const c=host.querySelector('[data-focus-chords]');if(c)c.textContent='Run analysis to view estimated chords.';
+  clear();
  });
  return()=>{disposed=true;controller?.abort();unsub();};
 }

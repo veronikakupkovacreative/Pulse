@@ -16,9 +16,6 @@
     "api/pulse-youtube.js": {
       "maxDuration": 30
     },
-    "api/pulse-tags.js": {
-      "maxDuration": 60
-    },
     "api/pulse-musicgpt.js": {
       "maxDuration": 60
     }

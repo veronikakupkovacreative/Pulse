@@ -4,7 +4,6 @@ import {validateDirectMediaUrl,fetchAuthorizedMedia} from '../source/modules/med
 import mediaHandler from '../api/pulse-media-source.js';
 import {readFileSync} from 'node:fs';
 import {parseHTML} from 'linkedom';
-import {mountVideoToAudio} from '../source/modules/video-audio-tool.mjs';
 
 test('only public direct HTTPS media files pass the URL validator',()=>{
  const ok=validateDirectMediaUrl('https://files.example.net/recording.mp4?expires=123&token=secret');
@@ -70,21 +69,6 @@ test('provider gateway is allowlisted metadata only, not an SSRF/open proxy',asy
   assert.equal(res.code,200);assert.equal(res.data.transport,'browser-cors');
   assert.ok(res.data.downloadUrl.startsWith('https://cdn.example.org/x.wav'));
  }finally{if(prior===undefined)delete process.env.PULSE_MEDIA_ALLOWED_HOSTS;else process.env.PULSE_MEDIA_ALLOWED_HOSTS=prior;}
-});
-test('Video to Audio mounts direct URL import separate from YouTube preview',()=>{
- const {document}=parseHTML('<html><body><div id="host"></div></body></html>');
- const original=globalThis.document;globalThis.document=document;
- try{
-  const host=document.getElementById('host'),cleanup=mountVideoToAudio({host});
-  assert.ok(host.querySelector('[data-video-preview]'));
-  assert.ok(host.querySelector('[data-video-direct-url]'));
-  assert.ok(host.querySelector('[data-video-import-url]'));
-  assert.ok(host.querySelector('[data-video-rights]'));
-  host.querySelector('[data-video-direct-url]').value='https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-  host.querySelector('[data-video-import-url]').click();
-  assert.ok(host.querySelector('[data-video-direct-status]').textContent.includes('Confirm permission'));
-  cleanup();
- }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });
 test('source architecture does not include an arbitrary media proxy',()=>{
  const fn=readFileSync(new URL('../api/pulse-media-source.js',import.meta.url),'utf8');

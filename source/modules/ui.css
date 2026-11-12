@@ -524,3 +524,44 @@
  .pulse-master-spectrum-legend{gap:10px;font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){.pulse-master-band{transition:none}}
+
+
+/* SOURCE AUDIO / high-resolution two-lane signal display. */
+.audio-source-area.pulse-source-original.has-audio #audio-wave{
+  display:block;
+  height:238px;min-height:238px;
+  width:100%;
+  margin:0;
+  background:#101010;
+  border:1px solid #343434;
+  border-radius:0;
+  box-sizing:border-box;
+  cursor:crosshair;
+}
+.pulse-source-original.has-audio .pulse-source-ruler{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:12px 0 0;
+  padding:9px 5px 8px;
+  background:#101010;
+  border:1px solid #343434;
+  border-bottom:0;
+  color:#bdbdbd;
+  font:400 10px/1.2 Arial,Helvetica,sans-serif;
+}
+.pulse-source-original.has-audio .pulse-wave-toolbar{
+  margin-top:20px;
+  margin-bottom:3px;
+}
+.pulse-source-original.has-audio .pulse-source-help{
+  padding:4px 0 0;
+  font:400 11px/1.5 Arial,Helvetica,sans-serif;
+  color:#bdbdbd;
+}
+@media(max-width:600px){
+  .audio-source-area.pulse-source-original.has-audio #audio-wave{
+    height:200px;min-height:200px;
+  }
+  .pulse-source-original.has-audio .pulse-source-ruler{font-size:9px}
+}

@@ -62,6 +62,25 @@ async function checkSurface(page,selector){
  assert.ok(row.bg==='rgba(0, 0, 0, 0)'||row.bg==='rgb(255, 43, 32)',
   selector+' still has a dark tile on red canvas: '+row.bg);
 }
+async function checkBlackRule(page,selector){
+ const color=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).borderTopColor);
+ assert.equal(color,'rgb(25, 25, 25)',selector+' must have a true black stroke');
+}
+async function songAnalyzer(page,label){
+ await page.locator('[data-category="analyze"]').click();
+ await page.locator('[data-tool="song-analyzer"]').click();
+ await page.locator('.focus-song-v3').waitFor();
+ await checkCanvas(page,'.focus-song-v3');
+ for(const selector of [
+  '.focus-song-v3 .tool-description','.focus-song-main>strong',
+  '.focus-song-main .focus-song-kicker','.focus-song-main .focus-song-unit',
+  '.focus-song-tonality strong','.focus-song-panel>p','.focus-song-panel-top',
+  '.focus-song-v3 .focus-status'
+ ])await checkText(page,selector);
+ await checkBlackRule(page,'.focus-song-main');
+ if(label==='desktop')await page.locator('.focus-song-v3').screenshot({path:'test-results/pulse-colors-song-analyzer-desktop.png'});
+}
+
 async function lyrics(page,label){
  await page.locator('[data-category="ai"]').click();
  await page.locator('[data-tool="ai2-lyrics"]').click();
@@ -69,6 +88,8 @@ async function lyrics(page,label){
  await checkCanvas(page,'.pulse-lyrics');
  await checkSurface(page,'.pulse-lyrics-form');
  await checkSurface(page,'.pulse-lyrics-result');
+  await checkBlackRule(page,'.pulse-lyrics-form');
+  await checkBlackRule(page,'.pulse-lyrics-result');
  for(const sel of [
   '.pulse-lyrics .tool-view-header','.pulse-lyrics h3','.pulse-lyrics .tool-description',
   '.pulse-lyrics-form label','.pulse-lyrics-form [data-lyrics-theme]',
@@ -92,6 +113,8 @@ async function voice(page,label){
  await page.locator('[data-view="ai-voice-changer"]').click();
  await page.locator('.pulse-voice-ai').waitFor();
  await checkCanvas(page,'.pulse-voice-ai');
+  await checkBlackRule(page,'.pulse-voice-consent');
+  await checkBlackRule(page,'.pulse-voice-output');
  for(const sel of ['.pulse-voice-ai h3','.pulse-voice-ai .tool-description',
    '.pulse-voice-fields label','.pulse-voice-fields [data-voice-token]',
    '.pulse-voice-ai .pulse-voice-consent','.pulse-voice-progress p'])await checkText(page,sel);
@@ -125,6 +148,55 @@ async function mastering(page,label){
  if(label==='desktop')await page.locator('.pulse-master-work').screenshot({path:'test-results/pulse-colors-mastering-desktop.png'});
 }
 
+async function musicAI(page,label){
+ await page.locator('[data-category="ai"]').click();
+ await page.locator('[data-tool="ai2-musicai"]').click();
+ await page.locator('.pulse-musicai').waitFor();
+ await checkCanvas(page,'.pulse-musicai');
+ await checkSurface(page,'.pulse-mai-form');
+ await checkSurface(page,'.pulse-mai-status-panel');
+ for(const selector of [
+  '.pulse-musicai .tool-view-header','.pulse-musicai h3','.pulse-musicai .tool-description',
+  '.pulse-mai-field','.pulse-mai-field input[data-mai-token]',
+  '.pulse-mai-field textarea','.pulse-mai-consent','.pulse-mai-hint',
+  '.pulse-mai-status-heading strong','.pulse-mai-status',
+  '.pulse-mai-result-head strong','.pulse-mai-track-head h4'
+ ])await checkText(page,selector);
+ const button=await sample(page,'.pulse-mai-generate');
+ assert.equal(button.bg,'rgb(25, 25, 25)','Music AI CTA must be black');
+ assert.equal(button.text,'rgb(255, 255, 255)','Music AI CTA text must be white');
+ const bounds=await page.locator('.pulse-musicai').evaluate(el=>{
+  const rect=el.getBoundingClientRect();return {width:rect.width,scrollWidth:el.scrollWidth,left:rect.left,right:rect.right,viewport:innerWidth};
+ });
+ assert.ok(bounds.scrollWidth<=bounds.width+3,'Music AI form overflow: '+JSON.stringify(bounds));
+ assert.ok(bounds.left>=-4&&bounds.right<=bounds.viewport+4,'Music AI viewport overflow: '+JSON.stringify(bounds));
+ if(label==='desktop')await page.locator('.pulse-musicai').screenshot({path:'test-results/pulse-colors-musicai-desktop.png'});
+}
+
+async function soundGen(page,label){
+ await page.locator('[data-category="ai"]').click();
+ await page.locator('[data-tool="ai2-soundgen"]').click();
+ await page.locator('.pulse-soundgen').waitFor();
+ await checkCanvas(page,'.pulse-soundgen');
+ await checkSurface(page,'.pulse-sfx-form');
+ await checkSurface(page,'.pulse-sfx-status');
+ for(const selector of [
+  '.pulse-soundgen .tool-description','.pulse-sfx-field',
+  '.pulse-sfx-field textarea','.pulse-sfx-field input[data-sfx-token]',
+  '.pulse-sfx-consent','.pulse-sfx-status-head strong','.pulse-sfx-status p',
+  '.pulse-sfx-output>strong'
+ ])await checkText(page,selector);
+ const btn=await sample(page,'.pulse-sfx-generate');
+ assert.equal(btn.bg,'rgb(25, 25, 25)','Sound Generator CTA must be black');
+ assert.equal(btn.text,'rgb(255, 255, 255)','Sound Generator CTA must be white');
+ const bounds=await page.locator('.pulse-soundgen').evaluate(el=>{
+  const r=el.getBoundingClientRect();return {width:r.width,scrollWidth:el.scrollWidth,left:r.left,right:r.right,viewport:innerWidth};
+ });
+ assert.ok(bounds.scrollWidth<=bounds.width+3,'Sound Generator form overflow: '+JSON.stringify(bounds));
+ assert.ok(bounds.left>=-4&&bounds.right<=bounds.viewport+4,'Sound Generator viewport overflow: '+JSON.stringify(bounds));
+ if(label==='desktop')await page.locator('.pulse-soundgen').screenshot({path:'test-results/pulse-colors-soundgen-desktop.png'});
+}
+
 async function main(){
  await mkdir('test-results',{recursive:true});
  await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
@@ -138,10 +210,13 @@ async function main(){
    await page.goto(url,{waitUntil:'domcontentloaded'});
    for(const mode of ['light','dark']){
     await page.evaluate(mode=>document.documentElement.setAttribute('data-theme',mode),mode);
+    await songAnalyzer(page,name);
     await lyrics(page,name);
     await voice(page,name);
     await tagger(page,name);
     await mastering(page,name);
+    await musicAI(page,name);
+    await soundGen(page,name);
    }
    if(name==='mobile'){
     await lyrics(page,'mobile');
@@ -155,7 +230,7 @@ async function main(){
    assert.ok(!errors.some(e=>/lyrics|musicgpt|music.tag|CSS|stylesheet/i.test(e)),
     'Browser runtime errors: '+errors.join('; '));
    await page.close();
-   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / local Mastering in light and dark.');
+   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / local Mastering / Music AI V2 / Sound Generator in light and dark.');
   }
  }finally{await browser?.close();await new Promise(ok=>server.close(ok));}
 }

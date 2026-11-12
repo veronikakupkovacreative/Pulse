@@ -599,201 +599,6 @@ html[data-theme="dark"] .tool-settings{
 }
 
 
-/* VIDEO TO AUDIO — inherits the same RED / BLACK language as 04 / BEAT LAB. */
-.tool-settings .tool-module-host .pulse-video-audio{
-  display:flex;flex-direction:column;gap:22px;color:var(--pulse-ink);background:transparent;
-}
-.tool-settings .tool-module-host .pulse-video-audio h3 span{
-  color:var(--pulse-ink);opacity:.72;
-}
-.tool-settings .tool-module-host .pulse-video-block{
-  display:flex;flex-direction:column;gap:14px;
-  padding:20px;border:1px solid var(--pulse-ink);background:transparent;color:var(--pulse-ink);
-  min-width:0;
-}
-.tool-settings .tool-module-host .pulse-video-section{
-  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
-  border-bottom:1px solid var(--pulse-ink);padding-bottom:11px;
-  font:700 11px/1.4 var(--pulse-font);letter-spacing:.07em;
-}
-.tool-settings .tool-module-host .pulse-video-section span:last-child{font-weight:400;text-align:right}
-.tool-settings .tool-module-host :is(.pulse-video-label,.pulse-video-setting,.pulse-video-fileinfo){
-  color:var(--pulse-ink);
-  font:700 10px/1.5 var(--pulse-font);
-  letter-spacing:.055em;
-}
-.tool-settings .tool-module-host .pulse-video-linkrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}
-.tool-settings .tool-module-host .pulse-video-linkrow input{
-  min-width:0;min-height:48px;padding:10px 13px;
-  background:transparent;border:1px solid var(--pulse-ink);color:var(--pulse-ink);
-  font:400 13px/1.4 var(--pulse-font);border-radius:0;
-}
-.tool-settings .tool-module-host :is(.pulse-video-linkrow button,.pulse-video-convert){
-  min-height:48px;padding:12px 18px;border:1px solid var(--pulse-ink);
-  background:var(--pulse-ink);color:var(--pulse-white);
-  font:700 11px/1.4 var(--pulse-font);letter-spacing:.045em;
-  border-radius:0;text-align:left;text-transform:uppercase;
-}
-.tool-settings .tool-module-host :is(.pulse-video-linkrow button,.pulse-video-convert):hover:not(:disabled){opacity:.84}
-.tool-settings .tool-module-host .pulse-video-convert{
-  display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;
-}
-.tool-settings .tool-module-host .pulse-video-convert:disabled{
-  opacity:.55;cursor:not-allowed;
-}
-.tool-settings .tool-module-host :is(.pulse-video-note,.pulse-video-status,.pulse-video-privacy){
-  margin:0;color:var(--pulse-ink);
-  font:400 12px/1.65 var(--pulse-font);
-  opacity:1;
-}
-.tool-settings .tool-module-host .pulse-video-status[data-error="true"]{font-weight:700}
-.tool-settings .tool-module-host .pulse-video-note a{
-  color:var(--pulse-ink);font-weight:700;
-  text-underline-offset:3px;text-decoration:underline;
-}
-.tool-settings .tool-module-host .pulse-video-preview{
-  aspect-ratio:16/9;background:var(--pulse-ink);border:1px solid var(--pulse-ink);max-width:720px;width:100%;
-}
-.tool-settings .tool-module-host .pulse-video-preview[hidden]{display:none!important}
-.tool-settings .tool-module-host .pulse-video-preview iframe{width:100%;height:100%;border:0;display:block}
-.tool-settings .tool-module-host .pulse-video-upload{
-  display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;
-  min-height:62px;padding:16px;border:1px dashed var(--pulse-ink);
-  color:var(--pulse-ink);background:transparent;
-  font:700 12px/1.35 var(--pulse-font);letter-spacing:.05em;
-}
-.tool-settings .tool-module-host .pulse-video-upload:hover{background:var(--pulse-ink);color:var(--pulse-white)}
-.tool-settings .tool-module-host .pulse-video-upload strong{font:400 10px/1.5 var(--pulse-font);letter-spacing:.025em;text-align:right}
-.tool-settings .tool-module-host .pulse-video-file-input{
-  position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;
-  clip-path:inset(50%);pointer-events:none;
-}
-.tool-settings .tool-module-host .pulse-video-upload:has(+ .pulse-video-file-input:focus-visible){
-  outline:2px solid var(--pulse-ink);outline-offset:3px;
-}
-.tool-settings .tool-module-host .pulse-video-formats{
-  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;
-}
-.tool-settings .tool-module-host .pulse-video-formats button{
-  min-height:48px;padding:10px 8px;border:1px solid var(--pulse-ink);
-  background:transparent;color:var(--pulse-ink);
-  font:700 11px/1.4 var(--pulse-font);text-transform:uppercase;letter-spacing:.05em;
-}
-.tool-settings .tool-module-host .pulse-video-formats button[aria-pressed="true"],
-.tool-settings .tool-module-host .pulse-video-formats button:hover:not(:disabled){
-  background:var(--pulse-ink);color:var(--pulse-white);
-}
-.tool-settings .tool-module-host .pulse-video-settings{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
-}
-.tool-settings .tool-module-host .pulse-video-setting{display:flex;flex-direction:column;gap:7px}
-.tool-settings .tool-module-host .pulse-video-setting[hidden]{display:none!important}
-.tool-settings .tool-module-host .pulse-video-setting select{
-  width:100%;min-height:43px;padding:8px 10px;
-  background:transparent;color:var(--pulse-ink);border:1px solid var(--pulse-ink);
-  font:400 12px/1.4 var(--pulse-font);border-radius:0;
-}
-.tool-settings .tool-module-host .pulse-video-rights{
-  display:flex;align-items:flex-start;gap:10px;
-  color:var(--pulse-ink);font:400 12px/1.5 var(--pulse-font);cursor:pointer;
-}
-.tool-settings .tool-module-host .pulse-video-rights input{
-  accent-color:var(--pulse-ink);margin:2px 0 0;width:16px;height:16px;flex:none;
-}
-.tool-settings .tool-module-host .pulse-video-progress{
-  height:5px;background:transparent;border:1px solid var(--pulse-ink);overflow:hidden;
-}
-.tool-settings .tool-module-host .pulse-video-progress i{display:block;height:100%;width:0;background:var(--pulse-ink)}
-.tool-settings .tool-module-host .pulse-video-privacy{
-  font-size:10px;font-weight:700;letter-spacing:.05em;line-height:1.5;
-}
-@media(max-width:720px){
- .tool-settings .tool-module-host .pulse-video-formats{grid-template-columns:repeat(3,minmax(0,1fr))}
- .tool-settings .tool-module-host .pulse-video-linkrow{grid-template-columns:1fr}
-}
-@media(max-width:440px){
- .tool-settings .tool-module-host .pulse-video-block{padding:14px}
- .tool-settings .tool-module-host .pulse-video-settings{grid-template-columns:1fr}
- .tool-settings .tool-module-host .pulse-video-upload{flex-direction:column;align-items:flex-start}
- .tool-settings .tool-module-host .pulse-video-upload strong{text-align:left}
- .tool-settings .tool-module-host .pulse-video-section{font-size:9px}
-}
-
-
-/* YOUTUBE DOWNLOADER — canonical red/black style, nested in Video to Audio. */
-.tool-settings .tool-module-host .pulse-yt-controls{
-  display:grid;gap:13px;padding:17px 0 0;border-top:1px solid var(--pulse-ink);
-  color:var(--pulse-ink);font-family:var(--pulse-font);
-}
-.tool-settings .tool-module-host .pulse-yt-divider{
-  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
-  color:var(--pulse-ink);font:700 11px/1.4 var(--pulse-font);
-  letter-spacing:.07em;text-transform:uppercase;
-}
-.tool-settings .tool-module-host .pulse-yt-divider span:last-child{
-  font-weight:400;text-align:right;
-}
-.tool-settings .tool-module-host .pulse-yt-formats{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
-}
-.tool-settings .tool-module-host .pulse-yt-formats button{
-  min-height:45px;min-width:0;padding:11px 12px;border-radius:0;
-  border:1px solid var(--pulse-ink);background:transparent;color:var(--pulse-ink);
-  font:700 11px/1.3 var(--pulse-font);text-transform:uppercase;
-}
-.tool-settings .tool-module-host .pulse-yt-formats button[aria-pressed="true"],
-.tool-settings .tool-module-host .pulse-yt-formats button:hover:not(:disabled){
-  border-color:var(--pulse-ink);background:var(--pulse-ink);color:var(--pulse-white);
-}
-.tool-settings .tool-module-host .pulse-yt-controls .pulse-video-setting input{
-  background:transparent;color:var(--pulse-ink);
-  border:1px solid var(--pulse-ink);border-radius:0;
-  min-height:43px;padding:9px 12px;min-width:0;width:100%;
-  font:400 13px/1.5 var(--pulse-font);
-}
-.tool-settings .tool-module-host .pulse-yt-actions{
-  display:grid;grid-template-columns:minmax(0,2fr) minmax(100px,1fr);gap:9px;
-}
-.tool-settings .tool-module-host .pulse-yt-actions button,
-.tool-settings .tool-module-host .pulse-yt-result{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  min-height:48px;padding:11px 14px;cursor:pointer;
-  border:1px solid var(--pulse-ink);border-radius:0;
-  background:var(--pulse-ink);color:var(--pulse-white);
-  font:700 11px/1.4 var(--pulse-font);letter-spacing:.035em;
-  text-align:left;text-decoration:none;text-transform:uppercase;
-}
-.tool-settings .tool-module-host .pulse-yt-actions button[data-yt-cancel]{
-  background:transparent;color:var(--pulse-ink);
-}
-.tool-settings .tool-module-host .pulse-yt-actions button:disabled{
-  opacity:.65;cursor:not-allowed;
-}
-.tool-settings .tool-module-host .pulse-yt-actions button:not(:disabled):hover,
-.tool-settings .tool-module-host .pulse-yt-result:hover{
-  filter:brightness(.85);
-}
-.tool-settings .tool-module-host .pulse-yt-result[hidden],
-.tool-settings .tool-module-host .pulse-yt-controls .pulse-video-setting[hidden]{
-  display:none!important;
-}
-.tool-settings .tool-module-host .pulse-yt-controls [data-yt-status]{
-  color:var(--pulse-ink);opacity:1;overflow-wrap:anywhere;
-}
-.tool-settings .tool-module-host .pulse-yt-controls [data-yt-status][data-error="true"]{
-  font-weight:700;
-}
-.tool-settings .tool-module-host .pulse-yt-controls :is(button,input,select,a):focus-visible{
-  outline:2px solid var(--pulse-ink);outline-offset:3px;
-}
-@media(max-width:560px){
-  .tool-settings .tool-module-host .pulse-yt-actions{
-    grid-template-columns:1fr;
-  }
-  .tool-settings .tool-module-host .pulse-yt-formats{gap:5px}
-}
-
-
 /* G. NEW TOOL PANELS / INHERIT CANONICAL PULSE RED + BLACK.
  * The three newer modules originally shipped independent black/white skins.
  * Those skins mixed with the global red inspector and made labels, readouts,
@@ -1013,4 +818,110 @@ html[data-theme="dark"] .tool-settings{
   .tool-settings .tool-module-host :is(.pulse-lyrics,.pulse-voice-ai,.pulse-tagger){padding:0}
   .tool-settings .tool-module-host .pulse-voice-fields{grid-template-columns:minmax(0,1fr)}
   .tool-settings .tool-module-host .pulse-tagger-ai-grid{grid-template-columns:minmax(0,1fr)}
+}
+
+
+/* I. INSPECTOR POLISH / CLARITY. One concise description per red panel.
+ * The selected tool title and category already appear above the inspector.
+ * Redundant uppercase headings and intro marketing are not repeated inside.
+ */
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.focus-module,.module-work,.pulse-master-work) > .tool-view-header,
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.focus-module,.module-work,.pulse-master-work) > h3{
+ display:none!important;
+}
+.tool-settings .tool-module-host :is(.tool-description,.module-description){
+ color:var(--pulse-ink)!important;
+ font:400 13px/1.6 var(--pulse-font);
+ opacity:1!important;
+ margin:0 0 var(--pulse-space-3);
+}
+
+/* Lyrics Generator: solid BLACK rules, not legacy charcoal-gray outlines. */
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ .pulse-lyrics-grid,.pulse-lyrics-form,.pulse-lyrics-result,
+ .pulse-lyrics-empty,.pulse-lyrics-result-head,.pulse-lyrics-consent,
+ .pulse-lyrics-editor,.pulse-lyrics-output-actions button
+){
+ border-color:var(--pulse-ink)!important;
+ box-shadow:none!important;
+}
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ .pulse-lyrics-form,.pulse-lyrics-result,.pulse-lyrics-empty,
+ .pulse-lyrics-editor,.pulse-lyrics-consent
+){background:transparent!important;color:var(--pulse-ink)!important;}
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ input:not([type="checkbox"]),select,textarea
+){
+ border:1px solid var(--pulse-ink)!important;
+ background:transparent!important;
+ color:var(--pulse-ink)!important;
+}
+.tool-settings .tool-module-host .pulse-lyrics :is(
+ .pulse-lyrics-result-head h4,.pulse-lyrics-empty p,
+ .pulse-lyrics-empty span,.pulse-lyrics-status,.pulse-lyrics-note
+){color:var(--pulse-ink)!important;opacity:1!important;}
+
+/* Voice Changer: all outlines BLACK; status and metadata remain readable. */
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-fields label,.pulse-voice-consent,
+ .pulse-voice-fields .pulse-voice-check,.pulse-voice-picker,
+ .pulse-voice-output,.pulse-voice-secondary,.pulse-voice-progress
+){
+ color:var(--pulse-ink)!important;
+ border-color:var(--pulse-ink)!important;
+}
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-fields label>input,.pulse-voice-fields select,
+ .pulse-voice-fields input[type="file"],.pulse-voice-secondary
+){
+ background:transparent!important;
+ color:var(--pulse-ink)!important;
+ border:1px solid var(--pulse-ink)!important;
+ color-scheme:light;
+}
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-output,.pulse-voice-consent,
+ .pulse-voice-fields .pulse-voice-check
+){background:transparent!important;border:1px solid var(--pulse-ink)!important;}
+.tool-settings .tool-module-host .pulse-voice-ai :is(
+ .pulse-voice-progress strong,.pulse-voice-progress p,
+ .pulse-voice-output h4,.pulse-voice-output a
+){color:var(--pulse-ink)!important;}
+.tool-settings .tool-module-host .pulse-voice-ai .ai2-action{
+ background:var(--pulse-ink)!important;
+ border:1px solid var(--pulse-ink)!important;
+ color:var(--pulse-white)!important;
+}
+.tool-settings .tool-module-host .pulse-voice-ai .pulse-voice-secondary:hover:not(:disabled){
+ background:var(--pulse-ink)!important;color:var(--pulse-white)!important;
+}
+
+/* SONG ANALYZER: remove white labels inherited from legacy light-on-dark. */
+.tool-settings .tool-module-host .focus-song-v3,
+.tool-settings .tool-module-host .focus-song-v3 :is(
+ .tool-description,.focus-song-kicker,.focus-song-unit,.focus-song-confidence,
+ .focus-song-main>strong,.focus-song-grid,.focus-song-grid>span,
+ .focus-song-grid>strong,.focus-song-grid>small,.focus-song-muted,
+ .focus-song-panel>p,.focus-song-panel-top,.focus-song-panel-top>span,
+ .focus-song-tonality span,.focus-song-tonality strong,
+ .focus-song-v3 .focus-chord-row span,.focus-song-v3 .focus-chord-row strong,
+ .focus-status,.focus-song-link
+ ){
+ color:var(--pulse-ink)!important;
+ opacity:1!important;
+}
+.tool-settings .tool-module-host .focus-song-v3 :is(
+ .focus-song-main,.focus-song-tonality>div,.focus-song-panel,
+ .focus-song-grid,.focus-song-candidates button,.focus-song-tools button
+ ){
+ border-color:var(--pulse-ink)!important;
+ background:transparent;
+}
+.tool-settings .tool-module-host .focus-song-v3 :is(
+ .focus-song-candidates button,.focus-song-tools button
+ ){color:var(--pulse-ink);}
+.tool-settings .tool-module-host .focus-song-v3 .focus-action{
+ background:var(--pulse-ink)!important;
+ color:var(--pulse-white)!important;
+ border-color:var(--pulse-ink)!important;
 }

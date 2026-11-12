@@ -72,8 +72,8 @@ test('Stereo Lab and Vocal Doubler controls mount and remain local',()=>{
   dispose();
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });
-test('visible AI Studio contains nine modules and no active neural isolation/stems',()=>{
- assert.equal(aiV2Modules.length,9);
+test('visible AI Studio contains eleven modules and no active neural isolation/stems',()=>{
+ assert.equal(aiV2Modules.length,11);
  assert.ok(aiV2Modules.some(m=>m.id==='ai2-stereo'));
  assert.ok(!aiV2Modules.some(m=>m.id==='ai2-stems'));
  const code=readFileSync(new URL('../source/modules/ai-v2.mjs',import.meta.url),'utf8');

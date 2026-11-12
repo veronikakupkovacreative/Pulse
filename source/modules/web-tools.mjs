@@ -72,17 +72,4 @@ export const webModules=Object.freeze([
    output(host,b.duration.toFixed(1)+' s · '+kbps+' kbps ≈ '+size.megabytes+' compressed (estimated); 16-bit WAV ≈ '+(wavBytes/1048576).toFixed(2)+' MB.');
   });
  }},
- {id:'video-audio',category:'export',label:'Extract Audio from Video',mount({host}){
-  host.innerHTML='<div class="tool-view module-work pulse-web-tool">'+header('03','EXPORT','Video in.<br><span>Audio out.</span>','Extract the first audio track from an MP4 or MOV video and download it as 16-bit PCM WAV. Processing happens locally; unsupported codecs may not decode.')+
-   '<div class="pulse-fx-controls"><label class="pulse-fx-file-label">CHOOSE MP4 OR MOV VIDEO<input type="file" class="pulse-web-video" accept="video/mp4,video/quicktime,.mp4,.mov"></label></div>'+
-   action('Extract WAV audio')+status('Choose a video with a compatible audio track (max. 100 MB / 20 minutes).')+'</div>';
-  runAsync(host,async()=>{
-   const file=host.querySelector('.pulse-web-video').files?.[0];
-   if(!file)throw Error('Choose an MP4 or MOV file.');
-   const engine=new Web(w.context),buffer=await engine.extractAudioFromVideo(file);
-   const wav=await engine.exportWavBlob(buffer);
-   downloadConversion(wav,file.name.replace(/\.[^.]+$/,''),'wav');
-   output(host,'Audio extracted. WAV download started.');
-  });
- }}
-]);
+ ]);

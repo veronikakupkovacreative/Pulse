@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseHTML} from 'linkedom';
 import handler from '../api/pulse-youtube.js';
-import {mountVideoToAudio} from '../source/modules/video-audio-tool.mjs';
 import {youtubeJobRequest,waitForYoutubeJob} from '../source/modules/youtube-client.mjs';
 
 const ID='dQw4w9WgXcQ',JOB='ce4b5d54-c0b5-47fb-a933-c56b1c571814';
@@ -81,46 +79,4 @@ test('client polling yields signed download URL and fails on worker errors',asyn
  await assert.rejects(()=>youtubeJobRequest('',{action:'create'},{fetchImpl}),/access code/);
  const badWorker=async()=>({ok:true,json:async()=>({id,status:'ready',downloadUrl:'javascript:alert(1)'})});
  await assert.rejects(()=>waitForYoutubeJob(id,owner,{fetchImpl:badWorker}),/Unsafe download URL/);
-});
-test('actual Video to Audio screen can create and complete a YouTube download without affecting local mode',async()=>{
- const {window,document}=parseHTML('<html><body><div id="host"></div></body></html>');
- const beforeDocument=globalThis.document,beforeFetch=globalThis.fetch;
- const events=[];
- globalThis.document=document;
- globalThis.fetch=async(_,opts={})=>{
-  if(opts.method==='GET'||!opts.method)return {ok:true,json:async()=>({configured:true,ownerOnly:true})};
-  const body=JSON.parse(opts.body);events.push(body.action);
-  if(body.action==='create')return {ok:true,json:async()=>({id:JOB,status:'queued',percent:0})};
-  if(body.action==='status')return {ok:true,json:async()=>({
-   id:JOB,status:'ready',percent:100,bytes:2940,
-   downloadUrl:worker+'/v1/jobs/'+JOB+'/download?ticket=safe-token'
-  })};
-  return {ok:true,json:async()=>({id:JOB,status:'cancelled'})};
- };
- try{
-  const host=document.getElementById('host');
-  const cleanup=mountVideoToAudio({host});
-  await new Promise(resolve=>setTimeout(resolve,5));
-  assert.ok(host.querySelector('[data-yt-format="mp4"]'));
-  assert.ok(host.querySelector('[data-video-convert]').disabled,'Local file conversion remains separately gated');
-  const link=host.querySelector('[data-video-url]');
-  link.value='https://youtu.be/'+ID;
-  link.dispatchEvent(new window.Event('input'));
-  const code=host.querySelector('[data-yt-access]');
-  code.value=ACCESS;code.dispatchEvent(new window.Event('input'));
-  const rights=host.querySelector('[data-yt-rights]');
-  rights.checked=true;rights.dispatchEvent(new window.Event('change'));
-  assert.equal(host.querySelector('[data-yt-start]').disabled,false);
-  host.querySelector('[data-yt-start]').click();
-  await new Promise(resolve=>setTimeout(resolve,10));
-  assert.deepEqual(events.slice(0,2),['create','status']);
-  const download=host.querySelector('[data-yt-result]');
-  assert.equal(download.hidden,false);
-  assert.match(download.href,/ticket=safe-token/);
-  assert.equal(host.querySelector('[data-video-convert]').disabled,true);
-  cleanup();
- }finally{
-  if(beforeDocument===undefined)delete globalThis.document;else globalThis.document=beforeDocument;
-  globalThis.fetch=beforeFetch;
- }
 });

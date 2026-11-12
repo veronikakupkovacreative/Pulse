@@ -3,6 +3,7 @@ import {workspace as w} from './workspace.mjs';
 import {encodeWav} from './dsp.mjs';
 import {MASTER_PRESETS,masteringSettings} from './mastering-engine.mjs';
 import {runMasteringWorker} from './mastering-client.mjs';
+import {interpretMasteringRequest,MASTER_ASSISTANT_EXAMPLES,MASTER_BANDS} from './mastering-advanced.mjs';
 
 const rows=[
   ['target','TARGET LOUDNESS',-20,-8,.5,'LUFS'],
@@ -35,13 +36,50 @@ export function mountMasteringTool({host,mode='mix'}={}){
     <div class="tool-view-header"><span>04 / ${label}</span><span>ADAPTIVE DSP / WORKER</span></div>
     <h3>${isMix?'Mix character.<br><span>Master control.</span>':'Master your track.<br><span>Keep its character.</span>'}</h3>
     <p class="tool-description">Analyze spectral balance, dynamics, loudness and stereo correlation. Automatically adapt gentle EQ, compression and output limiting. Local DSP, not a trained neural AI model.</p>
+    <div class="pulse-master-engines" role="group" aria-label="Mastering processing engine">
+      <button type="button" data-master-engine="local" aria-pressed="true">01 / LOCAL DSP</button>
+      <button type="button" data-master-engine="cloud" aria-pressed="false">02 / AUDIAL CLOUD</button>
+    </div>
+    <div class="pulse-master-cloud" data-master-cloud hidden>
+      <p><strong>AUDIAL CLOUD · OWNER PREVIEW</strong> Sends the mix to Audial only after clicking Run and explicitly consenting. Requires Audial credentials in Vercel and owner access token. Short clips only (max 2.7 MB total) until direct upload is available.</p>
+      <label class="pulse-master-field">OWNER ACCESS TOKEN<input data-master-cloud-token type="password" autocomplete="off" placeholder="Owner token — not stored"></label>
+      <label class="pulse-master-consent"><input type="checkbox" data-master-cloud-consent> I AGREE TO SEND MY MIX AND OPTIONAL REFERENCE TO AUDIAL FOR PROCESSING</label>
+      <p data-master-cloud-availability role="status">Checking Audial configuration…</p>
+      <div data-master-cloud-results aria-live="polite"></div>
+    </div>
     <p class="pulse-detail-label">${isMix?'MIX CHARACTER':'MASTER CHARACTER'}</p>
     <div class="pulse-master-presets" role="group" aria-label="Mastering character presets">${presetButtons}</div>
+    <div class="pulse-master-reference">
+      <div class="pulse-master-section-head"><strong>REFERENCE MASTERING</strong><span>OPTIONAL / LOCAL ANALYSIS</span></div>
+      <p>Import a reference to guide loudness, dynamics and spectral EQ. The reference is never mixed into the track.</p>
+      <label class="pulse-master-file"><span>CHOOSE REFERENCE AUDIO</span><input type="file" data-master-reference accept="audio/*,.wav,.mp3,.m4a,.flac,.aac,.ogg,.aiff"></label>
+      <div class="pulse-master-reference-foot"><span data-master-reference-name>NO REFERENCE LOADED</span><button type="button" data-master-action="match" disabled>MATCH REFERENCE ↗</button><button type="button" data-master-action="clear-reference" disabled>REMOVE</button></div>
+    </div>
+    <div class="pulse-master-assistant">
+      <div class="pulse-master-section-head"><strong>SMART MASTERING ASSISTANT</strong><span>TEXT → DSP CONTROLS</span></div>
+      <p>Describe the sound you want. Instructions map to EQ, compression and stereo settings. Transparent rule-based assistant, not a neural chat model.</p>
+      <div class="pulse-master-assistant-examples">${MASTER_ASSISTANT_EXAMPLES.map((phrase)=>'<button type="button" data-master-suggest="'+safe(phrase)+'">'+safe(phrase)+'</button>').join('')}</div>
+      <div class="pulse-master-assistant-entry"><label for="pulse-master-instruction">MASTERING INSTRUCTION</label><input type="text" id="pulse-master-instruction" data-master-instruction maxlength="240" placeholder="More punch, warmer bass, less harsh highs…"><button type="button" data-master-action="assist">APPLY SETTINGS ↗</button></div>
+      <p data-master-assistant-feedback aria-live="polite">Changes are reversible until you apply the master.</p>
+    </div>
     <label class="pulse-master-auto"><input type="checkbox" data-master-auto checked><span>AUTO ANALYZE &amp; ADAPT</span><small>Adapt EQ, compression and stereo width to the track before rendering. Disable for manual settings.</small></label>
     <div class="pulse-master-control-head"><span>PROCESSING CONTROLS</span><span>NON-DESTRUCTIVE UNTIL APPLY</span></div>
     <div class="pulse-master-fields">${fieldRows}</div>
     <p class="pulse-master-analysis" data-master-analysis aria-live="polite">Automatic recommendations appear after analysis.</p>
     <div class="pulse-master-actions"><button type="button" data-master-action="analyze">ANALYZE TRACK</button><button type="button" data-master-action="render">RENDER MASTER <span aria-hidden="true">↗</span></button></div>
+    <div class="pulse-master-section-head pulse-master-dashboard-head"><strong>MASTERING ANALYSIS DASHBOARD</strong><span>INPUT / MASTER / REFERENCE</span></div>
+    <div class="pulse-master-dashboard" aria-label="Audio analysis dashboard">
+      <div class="pulse-master-table-head"><span>METRIC</span><span>ORIGINAL</span><span>MASTER</span><span>REFERENCE</span></div>
+      ${[
+        ['integratedLufs','LUFS-I','LUFS',1],
+        ['truePeakEstimateDb','TRUE PEAK · EST.','dBTP',1],
+        ['crestDb','CREST / DYNAMICS','dB',1],
+        ['stereoCorrelation','STEREO CORR.','',2]
+      ].map(([key,label,unit,digits])=>'<div class="pulse-master-table-row" data-master-table="'+key+'"><span>'+label+'</span><strong data-master-data="original">—</strong><strong data-master-data="master">—</strong><strong data-master-data="reference">—</strong></div>').join('')}
+      <div class="pulse-master-spectrum-head"><strong>SPECTRAL BALANCE</strong><span>8 BANDS · RELATIVE ENERGY</span></div>
+      <div class="pulse-master-spectrum" data-master-spectrum><p>Analyze a mix to display the frequency profile.</p></div>
+      <div class="pulse-master-spectrum-legend"><span>ORIGINAL</span><span>MASTER</span><span>REFERENCE</span></div>
+    </div>
     <div class="pulse-master-reports" aria-label="Before and after audio measurements">
       <div><span>INPUT LOUDNESS</span><strong data-master-metric="before-lufs">--</strong></div>
       <div><span>OUTPUT LOUDNESS</span><strong data-master-metric="after-lufs">--</strong></div>
@@ -50,7 +88,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
       <div><span>MAX COMP. REDUCTION</span><strong data-master-metric="compression">--</strong></div>
       <div><span>MAX LIMITER REDUCTION</span><strong data-master-metric="limiter">--</strong></div>
     </div>
-    <div class="pulse-master-audition"><div role="group" aria-label="Preview original or mastered audio"><button type="button" data-master-ab="a" aria-pressed="true">A / ORIGINAL</button><button type="button" data-master-ab="b" aria-pressed="false">B / MASTER</button></div><button type="button" data-master-action="listen">PLAY PREVIEW</button></div>
+    <div class="pulse-master-audition"><div role="group" aria-label="Preview original, mastered or reference audio"><button type="button" data-master-ab="a" aria-pressed="true">A / ORIGINAL</button><button type="button" data-master-ab="b" aria-pressed="false">B / MASTER</button><button type="button" data-master-ab="c" aria-pressed="false" disabled>C / REFERENCE</button></div><button type="button" data-master-action="listen">PLAY PREVIEW</button></div>
     <label class="pulse-master-match"><input type="checkbox" data-master-match checked> LEVEL-MATCH A/B FOR FAIR COMPARISON</label>
     <div class="pulse-master-output"><button type="button" data-master-action="apply" disabled>APPLY MASTER TO WORKSPACE <span aria-hidden="true">↗</span></button><button type="button" data-master-action="export" disabled>EXPORT 24-BIT WAV <span aria-hidden="true">↗</span></button></div>
     <p class="pulse-master-status" role="status" aria-live="polite">Load audio into SOURCE AUDIO, then analyze or render. Undo is available after applying.</p>
@@ -60,9 +98,15 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const all=selector=>[...host.querySelectorAll(selector)];
   const setText=(key,value)=>{const el=$('[data-master-metric="'+key+'"]');if(el)el.textContent=value;};
   const status=$('.pulse-master-status'),play=$('[data-master-action="listen"]');
+  const refFile=$('[data-master-reference]'),matchButton=$('[data-master-action="match"]'),
+   clearRefButton=$('[data-master-action="clear-reference"]'),refName=$('[data-master-reference-name]'),
+   cloudPane=$('[data-master-cloud]'),cloudAvailability=$('[data-master-cloud-availability"]'),
+   cloudResults=$('[data-master-cloud-results]');
   const renderButton=$('[data-master-action="render"]'),analysisButton=$('[data-master-action="analyze"]');
   const applyButton=$('[data-master-action="apply"]'),exportButton=$('[data-master-action="export"]');
   let activePreset=first,prepared=null,sourceRef=null,disposed=false,busy=false,selected='a',previewNode=null,previewGain=null,previewPosition=0,startedAt=0,jobController=null;
+  let referenceAudio=null,referenceFile=null,referenceStats=null,cloudAvailable=false,engine='local';
+  let dashboard={original:null,master:null,reference:null,spectrumOriginal:null,spectrumMaster:null,spectrumReference:null};
   function message(text,error=false){status.textContent=text;status.dataset.error=String(error);}
   function stopPreview(reset=false){
     if(previewNode){

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
  BEAT_DETECTOR_VERSION,BEAT_DETECTOR_URL,selectBeatWindow,
- measureBeatDetector,mergeRhythmResults,buildBeatGrid,getBeatDetector,waitForAnalysis
+ measureBeatDetector,mergeRhythmResults,buildBeatGrid,buildAnalyzerBeatGrid,getBeatDetector,waitForAnalysis
 } from '../source/modules/beat-detector.mjs';
 
 test('pinned local beat detector, no runtime CDN',()=>{
@@ -61,4 +61,18 @@ test('aborts library operations cleanly',async()=>{
  const ac=new AbortController();const pending=new Promise(()=>{});
  const task=waitForAnalysis(pending,{signal:ac.signal,timeoutMs:1000});ac.abort();
  await assert.rejects(task,{name:'AbortError'});
+});
+
+
+test('active Song Analyzer uses measured onset-snap timing, not an invented uniform grid',()=>{
+ const beats=[0.14,0.642,1.148,1.65,2.145];
+ const result={bpm:120,offset:0.14,beatTimes:beats};
+ assert.deepEqual(buildAnalyzerBeatGrid(result,120,3),beats);
+ const half=buildAnalyzerBeatGrid(result,60,3);
+ assert.ok(half.length>=3);
+ assert.equal(half[0],.14);
+ assert.notDeepEqual(half,beats);
+ const clipped=buildAnalyzerBeatGrid({...result,beatTimes:[-1,.14,.642,.642,6]},120,3);
+ assert.deepEqual(clipped,buildBeatGrid(120,.14,3));
+ assert.deepEqual(buildAnalyzerBeatGrid(result,NaN,3),[]);
 });

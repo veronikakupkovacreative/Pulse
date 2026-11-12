@@ -105,7 +105,7 @@ export function mountVideoToAudio({host}={}){
  '<div class="pulse-video-progress" role="progressbar" aria-label="Video audio extraction progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>'+
  '<p class="pulse-video-status" data-video-status role="status" aria-live="polite">Choose a video file and output format to begin.</p>'+
  '</div>'+
- '<p class="pulse-video-privacy">LOCAL PROCESSING / AUDIO ONLY · VIDEO FRAMES ARE DISCARDED · NO UPLOAD TO PULSE SERVERS</p>'+
+ '<p class="pulse-video-privacy">LOCAL FILE CONVERSION STAYS IN YOUR BROWSER · YOUTUBE DOWNLOADS USE AN OPTIONAL SERVER WORKER</p>'+
  '</section>';
  const cleanupYoutube=mountYouTubeControls({host,parseYouTubeLink});
  let disposed=false,busy=false,sourceFile=null,format='mp3',remoteController=null;

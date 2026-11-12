@@ -1,0 +1,106 @@
+/* MusicGPT Sound Generator / PULSE red inspector, black rule system */
+.tool-settings .tool-module-host .pulse-soundgen{
+  --sfx-ink:var(--pulse-ink,#191919);
+  --sfx-white:var(--pulse-white,#fff);
+  display:grid;gap:16px;min-width:0;max-width:100%;padding:0;
+  background:transparent;color:var(--sfx-ink);
+  font:400 13px/1.5 Arial,Helvetica,sans-serif;
+  color-scheme:light;container-type:inline-size;container-name:pulse-soundgen;
+}
+.tool-settings .tool-module-host .pulse-soundgen [hidden]{display:none!important}
+.tool-settings .tool-module-host .pulse-soundgen .tool-description{
+  margin:0;color:var(--sfx-ink);font-size:13px;line-height:1.55;
+}
+.tool-settings .tool-module-host :is(.pulse-sfx-form,.pulse-sfx-status,.pulse-sfx-output){
+  display:grid;gap:14px;min-width:0;padding:15px;
+  color:var(--sfx-ink);background:transparent;
+  border:1px solid var(--sfx-ink);border-radius:0;box-shadow:none;
+}
+.tool-settings .tool-module-host .pulse-sfx-field{
+  display:grid;gap:8px;min-width:0;color:var(--sfx-ink);
+  font:700 10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.06em;
+}
+.tool-settings .tool-module-host .pulse-sfx-field :is(input,textarea,select){
+  display:block;box-sizing:border-box;min-width:0;width:100%;max-width:100%;
+  min-height:44px;padding:11px;
+  border:1px solid var(--sfx-ink);border-radius:0;
+  color:var(--sfx-ink);background:transparent;
+  font:400 13px/1.5 Arial,Helvetica,sans-serif;color-scheme:light;
+}
+.tool-settings .tool-module-host .pulse-sfx-field textarea{
+  min-height:150px;resize:vertical;
+}
+.tool-settings .tool-module-host .pulse-sfx-field :is(input,textarea)::placeholder{
+  color:var(--sfx-ink);opacity:.67;
+}
+.tool-settings .tool-module-host .pulse-sfx-grid{
+  display:grid;gap:10px;grid-template-columns:1fr;min-width:0;
+}
+.tool-settings .tool-module-host :is(.pulse-sfx-check,.pulse-sfx-consent){
+  display:flex;align-items:flex-start;gap:10px;
+  color:var(--sfx-ink);font:400 11px/1.55 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-sfx-check{
+  padding:11px;border:1px solid var(--sfx-ink);
+}
+.tool-settings .tool-module-host .pulse-sfx-consent{
+  padding:13px;border:1px solid var(--sfx-ink);
+}
+.tool-settings .tool-module-host :is(.pulse-sfx-check,.pulse-sfx-consent) input{
+  margin:1px 0 0;width:18px;height:18px;flex:0 0 18px;accent-color:var(--sfx-ink);
+}
+.tool-settings .tool-module-host .pulse-soundgen .pulse-sfx-generate{
+  background:var(--sfx-ink)!important;color:var(--sfx-white)!important;
+  border:1px solid var(--sfx-ink)!important;min-height:49px;
+  font:700 11px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.06em;
+}
+.tool-settings .tool-module-host .pulse-sfx-generate:disabled{
+  opacity:.6!important;cursor:not-allowed;
+}
+.tool-settings .tool-module-host .pulse-sfx-status-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--sfx-ink);padding-bottom:12px;
+}
+.tool-settings .tool-module-host .pulse-sfx-status-head :is(strong,span){
+  color:var(--sfx-ink);font:700 10px/1.45 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-sfx-status p{
+  color:var(--sfx-ink);font:400 12px/1.56 Arial,Helvetica,sans-serif;
+  overflow-wrap:anywhere;margin:0;
+}
+.tool-settings .tool-module-host .pulse-sfx-status p[data-error="true"]{
+  font-weight:700;text-decoration:underline;text-underline-offset:3px;
+}
+.tool-settings .tool-module-host .pulse-sfx-actions{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.tool-settings .tool-module-host .pulse-sfx-actions button{
+  min-height:44px;flex:1 1 145px;background:transparent;color:var(--sfx-ink);
+  border:1px solid var(--sfx-ink);padding:11px;
+  font:700 10px/1.4 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-sfx-actions button:hover:not(:disabled){
+  background:var(--sfx-ink);color:var(--sfx-white);
+}
+.tool-settings .tool-module-host .pulse-sfx-output>strong{
+  color:var(--sfx-ink);font:700 11px/1.4 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-sfx-output audio{
+  display:block;width:100%;min-width:0;max-width:100%;
+}
+.tool-settings .tool-module-host .pulse-sfx-output a{
+  background:var(--sfx-ink);color:var(--sfx-white);
+  padding:13px;text-decoration:none;font:700 11px/1.4 Arial,Helvetica,sans-serif;
+}
+.tool-settings .tool-module-host .pulse-soundgen :is(button,textarea,input,select,a):focus-visible{
+  outline:2px solid var(--sfx-ink);outline-offset:3px;
+}
+@container pulse-soundgen (min-width:520px){
+  .tool-settings .tool-module-host .pulse-sfx-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:450px){
+  .tool-settings .tool-module-host :is(.pulse-sfx-form,.pulse-sfx-status,.pulse-sfx-output){padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tool-settings .tool-module-host .pulse-soundgen *{transition:none!important;animation:none!important}
+}

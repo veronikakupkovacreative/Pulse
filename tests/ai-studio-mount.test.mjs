@@ -31,7 +31,7 @@ test('all eight AI Studio modules mount without throwing',async()=>{
    if(typeof cleanup==='function')cleanup();
   }
   assert.deepEqual(mounted,[
-   'ai2-mastering','ai2-stems','ai2-vocals','ai2-beat',
+   'ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat',
    'ai2-mix','ai2-repair','ai2-pitch','ai2-fx'
   ]);
  }finally{

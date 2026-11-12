@@ -87,24 +87,27 @@ export function execBinary(command,args,{timeoutMs=300000,signal,onOutput=()=>{}
   if(signal?.aborted)return reject(Error('Job cancelled.'));
   const child=spawn(command,args,{shell:false,stdio:['ignore','pipe','pipe'],
    env:{...process.env,NO_COLOR:'1'}});
-  let settled=false,logs='';
-  const append=(bytes)=>{
-   const value=String(bytes);logs=(logs+value).slice(-6000);
+  let settled=false,stdout='',stderr='';
+  const append=(stream,bytes)=>{
+   const value=String(bytes);
+   if(stream==='stdout')stdout=(stdout+value).slice(-1048576);
+   else stderr=(stderr+value).slice(-6000);
    for(const line of value.split(/\r?\n/))if(line.trim())onOutput(line.trim());
   };
-  child.stdout.on('data',append);child.stderr.on('data',append);
+  child.stdout.on('data',bytes=>append('stdout',bytes));
+  child.stderr.on('data',bytes=>append('stderr',bytes));
   const stop=()=>child.kill('SIGKILL');
   const timer=setTimeout(stop,timeoutMs);
   signal?.addEventListener('abort',stop,{once:true});
   const finish=(error)=>{
    if(settled)return;settled=true;clearTimeout(timer);
    signal?.removeEventListener('abort',stop);
-   error?reject(error):resolve(logs);
+   error?reject(error):resolve(stdout);
   };
   child.once('error',finish);
   child.once('close',code=>{
    if(signal?.aborted)return finish(Error('Job cancelled.'));
-   if(code!==0)return finish(Error('Media processing failed ('+command+', code '+code+'): '+logs.slice(-450)));
+   if(code!==0)return finish(Error('Media processing failed ('+command+', code '+code+'): '+(stderr||stdout).slice(-450)));
    finish(null);
   });
  });

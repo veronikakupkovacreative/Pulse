@@ -2,9 +2,9 @@
 const data=Object.freeze({
  'ai2-mastering':{
   title:['Master the track','Finish the sound'],
-  summary:'Choose local adaptive mastering (EQ, compression, limiter, A/B and WAV export) or MusicGPT cloud reference mastering. MusicGPT requires both a source and reference, explicit consent and account credits.',
-  steps:['Load audio in SOURCE AUDIO and an optional reference file.','Choose LOCAL DSP for presets and in-browser rendering, or MUSICGPT MASTERING with a required reference and an owner token.','For MusicGPT, upload only a 6-second preview or use two full-length HTTPS links. Confirm consent, run and download the result. Local DSP supports A/B and Undo.'],
-  benefits:[['LOCAL OR CLOUD','Use private local DSP or MusicGPT reference mastering via a protected API.'],['REFERENCE REQUIRED','Cloud mode matches a source to a supplied reference and may charge credits.'],['PREVIEW VS FULL TRACK','6-second stereo file previews or full-length HTTPS URLs. Play or download completed cloud output.']]},
+  summary:'Process your mix entirely in PULSE using adaptive EQ, compression, saturation and output limiting. Analyze loudness and stereo image, optionally match a reference locally, then compare A/B and export 24-bit WAV. No cloud upload, API token or paid credits.',
+  steps:['Load your mix into SOURCE AUDIO. Optionally choose a reference track to compare loudness and spectral balance locally.','Select a mastering preset, use AUTO ANALYZE or adjust the EQ, compressor and limiter controls yourself.','Render MASTER on-device, compare original, master and reference, then apply with Undo or export a 24-bit WAV.'],
+  benefits:[['100% LOCAL MASTERING','All processing happens in your browser with no cloud transfer or API credits.'],['REFERENCE MATCH','Analyze a reference track locally to guide loudness, tonal balance and dynamics.'],['A/B AND 24-BIT WAV','Audition the result before applying; preserve Undo and export a 24-bit mastered WAV.']]},
  'ai2-stereo':{
   title:['Shape the stereo','Keep the bass solid'],
   summary:'Control stereo width, Mid/Side balance, low-frequency mono, panning and output gain. Fully local DSP in a Web Worker; no neural isolation or stem splitting.',

@@ -114,21 +114,15 @@ async function tagger(page,label){
 async function mastering(page,label){
  await page.locator('[data-category="ai"]').click();
  await page.locator('[data-tool="ai2-mastering"]').click();
- await page.locator('[data-master-engine="cloud"]').click();
- await page.locator('.pulse-mg-master').waitFor();
- for(const selector of [
-  '.pulse-mg-intro','.pulse-mg-intro strong','.pulse-mg-warning',
-  '.pulse-mg-field','.pulse-mg-field select','.pulse-mg-field input[data-master-cloud-token]',
-  '.pulse-mg-consent','.pulse-mg-status strong','.pulse-mg-status p'
- ])await checkText(page,selector);
- await checkSurface(page,'.pulse-master-cloud');
- const grid=await page.locator('.pulse-mg-grid').evaluate(el=>({
-   columns:getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/),
-   width:el.getBoundingClientRect().width,scroll:el.scrollWidth
- }));
- assert.equal(grid.columns.length,1,'Mastering controls must stack inside narrow inspector: '+JSON.stringify(grid));
- assert.ok(grid.scroll<=grid.width+3,'Mastering form overflows narrow inspector: '+JSON.stringify(grid));
- if(label==='desktop')await page.locator('.pulse-master-cloud').screenshot({path:'test-results/pulse-colors-mastering-desktop.png'});
+ await page.locator('.pulse-master-work').waitFor();
+ assert.equal(await page.locator('[data-master-engine="cloud"]').count(),0);
+ assert.equal(await page.locator('[data-master-cloud]').count(),0);
+ await checkText(page,'.pulse-master-work .tool-description');
+ await checkText(page,'.pulse-master-work .pulse-master-status');
+ await checkText(page,'.pulse-master-work .pulse-master-section-head strong');
+ assert.equal(await page.locator('[data-master-action="render"]').count(),1);
+ assert.equal(await page.locator('[data-master-action="match"]').count(),1);
+ if(label==='desktop')await page.locator('.pulse-master-work').screenshot({path:'test-results/pulse-colors-mastering-desktop.png'});
 }
 
 async function main(){
@@ -161,7 +155,7 @@ async function main(){
    assert.ok(!errors.some(e=>/lyrics|musicgpt|music.tag|CSS|stylesheet/i.test(e)),
     'Browser runtime errors: '+errors.join('; '));
    await page.close();
-   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / MusicGPT Mastering in light and dark.');
+   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / local Mastering in light and dark.');
   }
  }finally{await browser?.close();await new Promise(ok=>server.close(ok));}
 }

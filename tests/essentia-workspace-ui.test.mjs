@@ -6,7 +6,7 @@ import {workspace} from '../source/modules/workspace.mjs';
 import {fromChannels} from '../source/modules/dsp.mjs';
 
 test('Essentia UI feeds real tick timestamps into the single shared waveform without changing its audio',async()=>{
- const prevWorker=globalThis.Worker,prevDocument=globalThis.document;
+ const prevWorker=globalThis.Worker,prevDocument=globalThis.document,prevCustomEvent=globalThis.CustomEvent;
  const previous={buffer:workspace.buffer,markers:workspace.markers,selection:workspace.selection};
  const {document}=parseHTML('<html><body><main id="host"></main></body></html>');
  const realTimes=[1.09,1.518,1.948,2.373,2.804,3.233];
@@ -28,6 +28,8 @@ test('Essentia UI feeds real tick timestamps into the single shared waveform wit
   terminate(){}
  }
  globalThis.document=document;globalThis.Worker=FakeWorker;
+ // Node 24 CustomEvent is not compatible with linkedom's dispatchEvent implementation.
+ globalThis.CustomEvent=undefined;
  const original=fromChannels([new Float32Array(12*44100)],44100);
  workspace.buffer=original;workspace.markers=[];workspace.selection=null;
  let cleanup;
@@ -56,5 +58,6 @@ test('Essentia UI feeds real tick timestamps into the single shared waveform wit
   workspace.buffer=previous.buffer;workspace.markers=previous.markers;workspace.selection=previous.selection;
   if(prevWorker===undefined)delete globalThis.Worker;else globalThis.Worker=prevWorker;
   if(prevDocument===undefined)delete globalThis.document;else globalThis.document=prevDocument;
+  if(prevCustomEvent===undefined)delete globalThis.CustomEvent;else globalThis.CustomEvent=prevCustomEvent;
  }
 });

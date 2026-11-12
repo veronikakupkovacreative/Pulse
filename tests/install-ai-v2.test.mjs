@@ -21,8 +21,8 @@ test('installer registers AI v2 without deleting existing app or duplicating imp
   const d=JSON.parse(await readFile(join(root,'vercel.json'),'utf8'));
   assert.match(a,/aiV2Modules/);assert.match(a,/workspace\.mountSource/);
   assert.match(b,/renderAiV2Copy/);assert.match(b,/renderToolBenefits/);
-  assert.match(c,/Original page stays intact/);assert.match(c,/ai2-stems/);
-  assert.equal(d.functions['api/pulse-stems.js'].maxDuration,60);
+  assert.match(c,/Original page stays intact/);assert.match(c,/ai2-stereo/);
+  assert.equal(d.functions['api/pulse-stems.js'],undefined);
   execFileSync(process.execPath,[installer],{cwd:root});
   assert.equal((await readFile(join(root,'source/modules/index.mjs'),'utf8')).split('ai-v2.mjs').length-1,1);
  }finally{await rm(root,{recursive:true,force:true});}

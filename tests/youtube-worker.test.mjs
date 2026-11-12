@@ -120,7 +120,7 @@ test('real HTTP worker enforces auth, owner confirmation, tickets and download c
   }
   assert.equal(job.status,'ready');
   assert.ok(job.downloadUrl.includes('ticket='));
-  const downloadURL=new URL(job.downloadUrl);
+  const downloadURL=new globalThis.URL(job.downloadUrl);
   const path=base+downloadURL.pathname+downloadURL.search;
   assert.equal((await fetch(base+downloadURL.pathname)).status,404);
   const result=await fetch(path);

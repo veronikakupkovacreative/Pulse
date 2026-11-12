@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 # JavaScript support is required by newer YouTube extraction.
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
-    "yt-dlp[default]>=2025.12.0,<2027.0" yt-dlp-ejs
+    "yt-dlp[default]==2026.10.26" "yt-dlp-ejs==0.8.0"
 WORKDIR /srv
 COPY --chown=node:node services/youtube-worker/ ./services/youtube-worker/
 USER node

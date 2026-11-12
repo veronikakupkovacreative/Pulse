@@ -37,15 +37,15 @@ if(!app.includes("from './modules/ai-v2-copy.mjs'")){
  app=app.replace(rendering,
   "  if(isAiV2(definition))renderAiV2Copy(definition);\n  else {renderToolEditorial(definition);renderToolBenefits(definition);}");
  app=app.replace("description:'This category is ready for new AI audio modules.'",
-  "description:'Eight focused audio tools for mixing, mastering, separation, repair and sound design.'");
+  "description:'Eight focused audio tools for mixing, mastering, stereo, vocals, repair and sound design.'");
 }
 updates.set(appPath,app);
 let html=await load(htmlPath);
-if(!html.includes('data-open-tool="ai2-stems"')){
+if(!html.includes('data-open-tool="ai2-stereo"')){
  const footer=/<div class="pulse-footer-col"><h2>AI STUDIO<\/h2><ul>[\s\S]*?<\/ul><\/div>/g;
  const matches=[...html.matchAll(footer)];
  if(matches.length!==1)throw Error('AI Studio footer structure not found. No files were modified.');
- const entries=[['ai2-mastering','AI Mastering'],['ai2-stems','Stem Separator'],['ai2-vocals','Vocal Studio'],['ai2-beat','Beat Lab'],['ai2-mix','Mix Assistant'],['ai2-repair','Audio Repair'],['ai2-pitch','Pitch & Time'],['ai2-fx','Smart FX']];
+ const entries=[['ai2-mastering','AI Mastering'],['ai2-stereo','Stereo Lab'],['ai2-vocals','Vocal Studio'],['ai2-beat','Beat Lab'],['ai2-mix','Mix Assistant'],['ai2-repair','Audio Repair'],['ai2-pitch','Pitch & Time'],['ai2-fx','Smart FX']];
  const list=entries.map(([id,title])=>`<li><button type="button" data-open-tool="${id}">${title}</button></li>`).join('');
  html=html.replace(footer,`<div class="pulse-footer-col"><h2>AI STUDIO</h2><ul>${list}</ul></div>`);
  html=html.replace('data-open-tool="master">Open tool','data-open-tool="ai2-mastering">Open tool');
@@ -55,7 +55,7 @@ updates.set(htmlPath,html);
 let vercel=await load(vercelPath);
 const parsed=JSON.parse(vercel);
 parsed.functions??={};
-if(!parsed.functions['api/pulse-stems.js'])parsed.functions['api/pulse-stems.js']={maxDuration:60};
+// The local Stereo Lab and Vocal Doubler require no cloud function.
 updates.set(vercelPath,JSON.stringify(parsed,null,2)+'\n');
 for(const [file,content] of updates)await writeFile(resolve(root,file),content,'utf8');
 console.log('PULSE AI Studio V2 installed in four existing files. Review git diff, then run npm test && npm run build.');

@@ -12,7 +12,7 @@ const html=read('index.html');
 test('phase 4 includes all original 5 toolkit areas and 8 AI tools',()=>{
  assert.deepEqual([...new Set(visibleToolModules.map(m=>m.category))],['analyze','edit','export','ai','visuals']);
  assert.equal(visibleToolModules.filter(m=>m.category==='ai').length,8);
- assert.equal(visibleToolModules.length,12);
+ assert.equal(visibleToolModules.length,13);
  for(const id of ['song-analyzer','editor','wav','visualizer'])assert.ok(visibleToolModules.some(m=>m.id===id));
 });
 test('phase 4 introduces primary and secondary color tokens for dark and red surfaces',()=>{

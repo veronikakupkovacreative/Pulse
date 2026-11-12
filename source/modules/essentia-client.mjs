@@ -27,7 +27,7 @@ export function analyzeEssentiaInWorker(audio,{mode,region,beatTimes=[],signal,o
  const start=Math.floor(window.offset*audio.sampleRate);
  const end=Math.min(audio.length,Math.ceil((window.offset+window.duration)*audio.sampleRate));
  const channels=Array.from({length:audio.numberOfChannels},(_,i)=>audio.getChannelData(i).slice(start,end));
- const worker=new Worker(new URL('./essentia-worker.mjs',import.meta.url)),id=nowId();
+ const worker=new Worker('/vendor/essentia/essentia-worker.mjs'),id=nowId();
  return new Promise((resolve,reject)=>{
   let settled=false;
   const cleanup=()=>{clearTimeout(timer);worker.terminate();signal?.removeEventListener('abort',abort);};

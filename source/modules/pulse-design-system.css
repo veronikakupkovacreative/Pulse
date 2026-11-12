@@ -792,3 +792,39 @@ html[data-theme="dark"] .tool-settings{
   }
   .tool-settings .tool-module-host .pulse-yt-formats{gap:5px}
 }
+
+
+/* Explicit fallback when YouTube requires a verified browser session. */
+.tool-settings .tool-module-host .pulse-yt-fallback{
+  display:flex;flex-direction:column;gap:12px;padding:16px;
+  border:1px solid var(--pulse-ink);background:transparent;color:var(--pulse-ink);
+  font-family:var(--pulse-font);
+}
+.tool-settings .tool-module-host .pulse-yt-fallback[hidden]{display:none!important}
+.tool-settings .tool-module-host .pulse-yt-fallback strong{
+  color:var(--pulse-ink);font:700 12px/1.4 var(--pulse-font);letter-spacing:.04em;
+}
+.tool-settings .tool-module-host .pulse-yt-fallback p{
+  color:var(--pulse-ink);font:400 12px/1.6 var(--pulse-font);margin:0;
+}
+.tool-settings .tool-module-host .pulse-yt-fallback-actions{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;
+}
+.tool-settings .tool-module-host .pulse-yt-fallback-actions :is(a,button){
+  display:inline-flex;align-items:center;justify-content:flex-start;
+  min-height:44px;padding:10px 13px;border:1px solid var(--pulse-ink);
+  color:var(--pulse-white);background:var(--pulse-ink);
+  font:700 11px/1.4 var(--pulse-font);letter-spacing:.035em;text-decoration:none;
+  text-transform:uppercase;border-radius:0;cursor:pointer;
+}
+.tool-settings .tool-module-host .pulse-yt-fallback-actions button{
+  background:transparent;color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-yt-fallback-actions :is(a,button):focus-visible{
+  outline:2px solid var(--pulse-ink);outline-offset:3px;
+}
+@media(max-width:480px){
+ .tool-settings .tool-module-host .pulse-yt-fallback-actions{
+  flex-direction:column;align-items:stretch;
+ }
+}

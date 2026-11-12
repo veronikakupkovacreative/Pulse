@@ -83,7 +83,18 @@ function mountMusicTagger({host}){
  const download=$('[data-tag-action="download"]');
  const abort=()=>{worker?.terminate();worker=null;};
  const refreshDownload=()=>{download.disabled=!local&&!remote;};
- const clear=()=>{revision++;abort();busy=false;$('[data-tag-action="local"]').disabled=false;$('[data-tag-action="cloud-start"]').disabled=false;local=null;remote=null;analysisId=null;cloudOrigin=null;refreshDownload();$('[data-tag-results]').hidden=true;$('[data-cloud-results]').hidden=true;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=true;};
+ const cancelCloud=()=>{
+  cloudController?.abort();cloudController=null;cloudBusy=false;
+  $('[data-tag-action="cloud-run"]').disabled=false;
+  $('[data-tag-action="cloud-cancel"]').hidden=true;
+ };
+ const clear=()=>{
+  revision++;abort();cancelCloud();busy=false;
+  $('[data-tag-action="local"]').disabled=false;
+  local=null;remote=null;cloudResume=null;cloudOrigin=null;refreshDownload();
+  $('[data-tag-results]').hidden=true;$('[data-cloud-results]').hidden=true;
+  $('[data-cloud-stage]').textContent='READY';
+ };
  function renderLocal(result){
   const out=$('[data-tag-results]');out.replaceChildren();out.hidden=false;
   if(result.silent){out.textContent='No audible signal detected in this section.';return;}
@@ -108,16 +119,28 @@ function mountMusicTagger({host}){
  }
  function renderRemote(tags){
   const out=$('[data-cloud-results]');out.hidden=false;out.replaceChildren();
-  const description=document.createElement('p');description.textContent=tags.description||'No description provided.';
-  const genre=document.createElement('p');genre.textContent='GENRES / '+(tags.genre.length?tags.genre.join(' · '):'Not detected');
-  out.append(genre,description);
-  for(const [part,details] of Object.entries(tags.song_tags)){
-   const row=document.createElement('div');row.className='pulse-tagger-part';
-   const title=document.createElement('strong');title.textContent=part.toUpperCase();
-   const info=document.createElement('span');info.textContent=details.silent?'Silent':
-    'MOODS: '+(details.moods.join(', ')||'—')+' / INSTRUMENTS: '+(details.instruments.join(', ')||'—');
-   row.append(title,info);out.append(row);
+  const section=(heading,values)=>{
+   const el=document.createElement('section');el.className='pulse-tagger-tag-section';
+   const label=document.createElement('h5');label.textContent=heading;el.append(label);
+   const chips=document.createElement('div');chips.className='pulse-tagger-tag-chips';
+   const safe=Array.isArray(values)?values.filter(v=>typeof v==='string'&&v.trim()).slice(0,30):[];
+   for(const value of safe){const chip=document.createElement('span');chip.className='pulse-tagger-chip';chip.textContent=value;chips.append(chip);}
+   if(!safe.length){const empty=document.createElement('span');empty.textContent='Not detected';empty.className='pulse-tagger-empty';chips.append(empty);}
+   el.append(chips);return el;
+  };
+  out.append(section('GENRES',tags.genre));
+  const description=document.createElement('p');description.className='pulse-tagger-ai-description';
+  description.textContent=tags.description||'No descriptive summary available.';out.append(description);
+  const grid=document.createElement('div');grid.className='pulse-tagger-stem-grid';
+  for(const name of ['full','drums','bass','melody','vocals']){
+   const details=tags.song_tags?.[name]||{moods:[],instruments:[]};
+   const card=document.createElement('article');card.className='pulse-tagger-stem';
+   const title=document.createElement('h5');title.textContent=name==='full'?'FULL MIX':name.toUpperCase();card.append(title);
+   if(details.silent){const empty=document.createElement('p');empty.textContent='No audible '+name+' detected.';card.append(empty);}
+   else{card.append(section('MOODS',details.moods),section('INSTRUMENTS',details.instruments));}
+   grid.append(card);
   }
+  out.append(grid);
  }
  async function analyze(){
   if(dead||busy)return;

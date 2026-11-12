@@ -1,0 +1,29 @@
+name: Music Tagger validation
+on:
+  push:
+    branches:
+      - feature/pulse-analysis-music-tagger-20261112
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Test local worker and toolkit
+        run: npm test
+      - name: Build web app
+        run: npm run build
+      - name: Confirm Music Tagger build assets
+        run: |
+          test -f public/modules/music-tagger.mjs
+          test -f public/modules/music-tagger-worker.mjs
+          test -f public/modules/music-tagger.css
+          grep -q 'music-tagger' public/modules/index.mjs

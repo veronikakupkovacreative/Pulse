@@ -30,7 +30,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const presetList=['trap','hiphop','edm','pop','streaming','balanced','warm','punch','glue','wide'];
   const presetButtons=presetList.map((id,i)=>`<button type="button" data-master-preset="${id}" aria-pressed="${i===0}">${safe(MASTER_PRESETS[id].name)}</button>`).join('');
   const fieldRows=rows.map(([id,name,min,max,step,unit])=>
-    `<label class="pulse-master-field"><span>${name}</span><input data-param="${id}" data-unit="${unit}" type="number" min="${min}" max="${max}" step="${step}" value="${MASTER_PRESETS[first][id]}" aria-label="${name}"></label>`).join('');
+    `<label class="pulse-master-field"><span>${name}</span><input data-param="${id}" data-unit="${unit}" type="number" min="${min}" max="${max}" step="${step}" value="${MASTER_PRESETS[first][id]??0}" aria-label="${name}"></label>`).join('');
   host.innerHTML=`<section class="tool-view pulse-master-work" data-master-mode="${mode}">
     <div class="tool-view-header"><span>04 / ${label}</span><span>ADAPTIVE DSP / WORKER</span></div>
     <h3>${isMix?'Mix character.<br><span>Master control.</span>':'Master your track.<br><span>Keep its character.</span>'}</h3>
@@ -99,6 +99,10 @@ export function mountMasteringTool({host,mode='mix'}={}){
   };
   let updating=false;
   const auto=$('[data-master-auto]');
+  auto.addEventListener('change',()=>{
+    invalidate();
+    message(auto.checked?'Automatic analysis enabled. Render to adapt the mastering chain.':'Manual settings kept. Render with current controls.');
+  });
   all('[data-param]').forEach(input=>input.addEventListener('input',()=>{
     if(updating)return;
     auto.checked=false;invalidate();

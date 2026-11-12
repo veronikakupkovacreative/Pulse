@@ -26,3 +26,12 @@ await mkdir(join(output,'vendor','ffmpeg-core'),{recursive:true});
 await cp(join(root,'node_modules','@ffmpeg','ffmpeg','dist','esm'),join(output,'vendor','ffmpeg'),{recursive:true});
 await copyFile(join(root,'node_modules','@ffmpeg','core','dist','umd','ffmpeg-core.js'),join(output,'vendor','ffmpeg-core','ffmpeg-core.js'));
 await copyFile(join(root,'node_modules','@ffmpeg','core','dist','umd','ffmpeg-core.wasm'),join(output,'vendor','ffmpeg-core','ffmpeg-core.wasm'));
+
+// Self-host Transformers.js and ONNX Runtime WASM so audio inference code never needs a third-party script.
+const clap=join(root,'node_modules','@xenova','transformers');
+await mkdir(join(output,'vendor','clap'),{recursive:true});
+for(const file of ['transformers.min.js','ort-wasm.wasm','ort-wasm-simd.wasm','ort-wasm-threaded.wasm','ort-wasm-simd-threaded.wasm']){
+ await copyFile(join(clap,'dist',file),join(output,'vendor','clap',file));
+}
+try{await copyFile(join(clap,'LICENSE'),join(output,'vendor','clap','LICENSE.txt'));}catch{}
+console.log('Bundled pinned Transformers.js CLAP runtime. Model weights download on first use to browser cache.');

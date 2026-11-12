@@ -79,6 +79,7 @@ export function mountMusicGPTVoiceChanger({host}){
   const pitch=Number($('[data-voice-pitch]').value);
   if(!Number.isInteger(pitch)||pitch<-12||pitch>12)return status('Pitch must be an integer from -12 to +12.',true);
   const at=rev,active=new AbortController();controller=active;setBusy(true);
+  let done=false;
   try{
    if(!conversionId){
     let file;
@@ -97,7 +98,6 @@ export function mountMusicGPTVoiceChanger({host}){
     if(active.signal.aborted||dead||rev!==at)return;
     conversionId=submitted.conversionId;
    }
-   let done=false;
    for(let attempt=0;attempt<24;attempt++){
     if(active.signal.aborted||dead||rev!==at)return;
     setStage('PROCESSING');status('MusicGPT is converting the voice ('+(attempt+1)+'/24). You can stop waiting and resume.');

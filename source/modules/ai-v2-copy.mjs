@@ -5,16 +5,16 @@ const data=Object.freeze({
   summary:'Automatically recommend gentle 3-band EQ, linked compression and stereo width using spectral balance, crest factor and correlation. Choose Trap, Hip-Hop, EDM, Pop or Streaming. Local DSP, with LUFS estimates, limiter, level-matched A/B and WAV export.',
   steps:['Load audio into SOURCE AUDIO.','Choose Trap, Hip-Hop, EDM, Pop or Streaming. Keep Auto Analyze enabled for track-dependent settings, or adjust manually.','Render in a Web Worker, compare level-matched A/B, then apply or export the mastered WAV.'],
   benefits:[['ADAPTIVE LOCAL DSP','Track-dependent 3-band EQ recommendations, linked compression and stereo controls.'],['GENRE PRESETS','Trap, Hip-Hop, EDM, Pop and Streaming with measured loudness and peak estimates.'],['FAIR A/B + EXPORT','Level-matched audition before committing, plus 24-bit WAV export.']]},
- 'ai2-stems':{
-  title:['Separate the mix','Work with stems'],
-  summary:'Use a real neural Demucs model to separate vocals, drums, bass and remaining instruments. Requires a protected paid cloud inference connection.',
-  steps:['Provide a direct public HTTPS audio URL or a short MP3.','Authorize the cloud model using the owner access token.','Start separation, then download the returned stem files.'],
-  benefits:[['4 SOURCE STEMS','Individual vocals, drums, bass and other tracks.'],['NEURAL INFERENCE','Demucs runs on a separate cloud GPU, not browser DSP.'],['HONEST PRIVACY','Audio is sent to the provider only after explicit submission.']]},
+ 'ai2-stereo':{
+  title:['Shape the stereo','Keep the bass solid'],
+  summary:'Control stereo width, Mid/Side balance, low-frequency mono, panning and output gain. Fully local DSP in a Web Worker; no neural isolation or stem splitting.',
+  steps:['Load your stereo track in SOURCE AUDIO.','Choose Natural, Wide Mix or Mono Low and refine width, bass crossover and pan.','Analyze phase correlation, apply the result and use Undo to compare.'],
+  benefits:[['MID/SIDE CONTROL','Control stereo width while monitoring correlation and mono compatibility.'],['BASS MONO','Centre low frequencies below an adjustable crossover.'],['REAL LOCAL DSP','Offline audio processing in a Worker with peak protection.']]},
  'ai2-vocals':{
-  title:['Refine the voice','Keep the emotion'],
-  summary:'Shape a vocal recording with local EQ and dynamics or use protected ElevenLabs neural voice isolation. Automatic pitch correction is not available yet.',
-  steps:['Load an isolated vocal or recording into SOURCE AUDIO.','Choose local vocal enhancement or neural voice isolation.','Process, check the result and apply it to the shared workspace.'],
-  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and compression.'],['OPTIONAL NEURAL ISOLATION','Protected cloud voice isolation through ElevenLabs.'],['REVERSIBLE CHANGES','Undo preserves your original audio in the session.']]},
+  title:['Refine the voice','Create natural doubles'],
+  summary:'Choose local Vocal Enhance (EQ, de-essing and compression) or Vocal Doubler (modulated stereo micro-delays). Neither mode uploads audio or claims neural voice isolation.',
+  steps:['Load a vocal recording in SOURCE AUDIO.','Choose VOCAL ENHANCE or VOCAL DOUBLER and adjust the settings.','Render locally, listen to the stereo result and use Undo if needed.'],
+  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['PRIVATE BY DEFAULT','All vocal processing stays in your browser.'] ]},
  'ai2-beat':{
   title:['Read the rhythm','Find the groove'],
   summary:'Estimate tempo and beat markers without freezing the UI, create a four-bar region and export a ready-to-use loop.',

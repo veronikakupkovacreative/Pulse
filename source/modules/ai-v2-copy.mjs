@@ -1,4 +1,4 @@
-/** Independent editorial copy for the nine AI Studio V2 modules. */
+/** Independent editorial copy for the AI Studio modules. */
 const data=Object.freeze({
  'ai2-mastering':{
   title:['Master the track','Finish the sound'],
@@ -45,6 +45,11 @@ const data=Object.freeze({
   summary:'Create two original tracks with MusicGPT MusicAI from a description or your lyrics. Source audio stays on your device.',
   steps:['Describe your music or enter original lyrics.','Choose the output, enter your private PULSE token and approve credit usage.','Check progress and download either completed version.'],
   benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['PRIVATE ACCESS','Server authorization and consent protect your credits.']]},
+ 'ai2-watermark':{
+  title:['Inspect provenance','Keep the audio'],
+  summary:'Inspect and remove supported metadata from WAV, MP3 and FLAC without audio re-encoding. A separate text tab removes selected invisible characters. Embedded acoustic AI watermarks are not detected or removed.',
+  steps:['Choose your own WAV, MP3 or FLAC file, or switch to Text Markers.','Inspect locally and review supported metadata or Unicode findings.','Download a cleaned copy while preserving the original audio frames.'],
+  benefits:[['LOCAL INSPECTION','Audio and text remain on your device.'],['LOSSLESS AUDIO','Only selected container metadata is removed; encoded sound remains unchanged.'],['CLEAR LIMITS','No false promises about embedded acoustic watermarks.']]},
  'ai2-lyrics':{
   title:['Generate lyrics','Shape the story'],
   summary:'Create original song lyrics in PULSE from a theme, genre, mood, language and song structure. MusicGPT processes a text prompt on its servers using owner-authorized credits. Your audio is never uploaded.',

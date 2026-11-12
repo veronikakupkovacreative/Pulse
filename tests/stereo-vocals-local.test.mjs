@@ -57,7 +57,7 @@ test('Stereo Lab and Vocal Doubler controls mount and remain local',()=>{
   assert.ok(root.querySelector('[data-stereo-param="bassMonoHz"]'));
   assert.ok(root.querySelector('[data-stereo-preset="mono-bass"]'));
   assert.ok(root.querySelector('[data-stereo-action="render"]'));
-  assert.ok(!root.textContent.includes('Stem Separator'));
+  assert.ok(!root.textConelevent.includes('Stem Separator'));
   clean();
   root.replaceChildren();
   const close=mountVocalDoubler({host:root});
@@ -67,13 +67,13 @@ test('Stereo Lab and Vocal Doubler controls mount and remain local',()=>{
   const v=document.createElement('div');
   const vocals=aiV2Modules.find(m=>m.id==='ai2-vocals');
   const dispose=vocals.mount({host:v});
-  assert.ok(v.textContent.includes('VOCAL DOUBLER'));
-  assert.ok(!v.textContent.includes('NEURAL VOICE ISOLATOR'));
+  assert.ok(v.textConelevent.includes('VOCAL DOUBLER'));
+  assert.ok(!v.textConelevent.includes('NEURAL VOICE ISOLATOR'));
   dispose();
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });
-test('visible AI Studio contains ten modules and no active neural isolation/stems',()=>{
- assert.equal(aiV2Modules.length,10);
+test('visible AI Studio contains eleven modules and no active neural isolation/stems',()=>{
+ assert.equal(aiV2Modules.length,11);
  assert.ok(aiV2Modules.some(m=>m.id==='ai2-stereo'));
  assert.ok(!aiV2Modules.some(m=>m.id==='ai2-stems'));
  const code=readFileSync(new URL('../source/modules/ai-v2.mjs',import.meta.url),'utf8');

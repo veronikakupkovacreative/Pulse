@@ -33,7 +33,7 @@ async function withProvider(run){
  }
 }
 test('Lyrics Generator is registered as a separate AI Studio tool',()=>{
- assert.equal(aiV2Modules.length,10);
+ assert.equal(aiV2Modules.length,11);
  const item=aiV2Modules.find(x=>x.id==='ai2-lyrics');
  assert.ok(item);assert.equal(item.category,'ai');
  assert.equal(typeof item.mount,'function');assert.equal(item.mount,mountLyricsGenerator);

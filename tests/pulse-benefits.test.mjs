@@ -20,6 +20,7 @@ test('all registered tools have three individual and truthful benefits',()=>{
  assert.ok(Object.keys(TOOL_BENEFITS).length>=toolModules.length);
  assert.equal(TOOL_BENEFITS['ai2-lyrics'].length,3);
  assert.equal(TOOL_BENEFITS['ai2-musicai'].length,3);
+ assert.equal(TOOL_BENEFITS['ai2-soundgen'].length,3);
  assert.equal(TOOL_BENEFITS['video-to-audio'],undefined);
  assert.equal(TOOL_BENEFITS['video-audio'],undefined);
  assert.equal(TOOL_BENEFITS['song-analyzer'].length,3);

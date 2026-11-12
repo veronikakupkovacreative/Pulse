@@ -67,7 +67,7 @@ async function provider(url,options){
 }
 function buildGeneration(input){
  const mode=input.mode==='custom'?'custom':input.mode==='prompt'?'prompt':null;
- const prompt=text(input.prompt,1000,{required:mode==='prompt'});
+ const prompt=text(input.prompt,280,{required:mode==='prompt'});
  const musicStyle=text(input.musicStyle,140,{required:mode==='custom'});
  const lyrics=text(input.lyrics,9000,{required:mode==='custom'});
  const title=text(input.title,120);
@@ -95,7 +95,7 @@ export default async function handler(req,res){
  res.setHeader('X-Content-Type-Options','nosniff');
  if(req.method==='GET')return res.status(200).json({
   configured:ready(),provider:'MusicGPT',versions:2,
-  apiVersion:'v1',promptMaxLength:1000,creditsRequired:true,consentRequired:true
+  apiVersion:'v1',promptMaxLength:280,creditsRequired:true,consentRequired:true
  });
  if(req.method!=='POST')return errorResponse(res,405,'METHOD_NOT_ALLOWED');
  if(!ready())return errorResponse(res,503,'MUSICGPT_MUSICAI_NOT_CONFIGURED');

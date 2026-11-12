@@ -38,7 +38,7 @@ test('MusicAI v1 supports two-variation discovery without exposing private keys'
   assert.equal(res.data.configured,true);
   assert.equal(res.data.versions,2);
   assert.equal(res.data.apiVersion,'v1');
-   assert.equal(res.data.promptMaxLength,1000);
+   assert.equal(res.data.promptMaxLength,280);
   assert.doesNotMatch(JSON.stringify(res.data),/fake-musicai-key|owner-only-test/);
   assert.equal(res.headers['cache-control'],'private, no-store, max-age=0');
  });
@@ -49,7 +49,7 @@ test('owner, same-origin and explicit credit consent gate paid MusicGPT requests
   let r=await call(prompt,'incorrect');assert.equal(r.code,403);assert.equal(r.data.error,'OWNER_AUTH_REQUIRED');
   r=await call(prompt,OWNER,'POST','https://evil.example');assert.equal(r.code,403);assert.equal(r.data.error,'CROSS_ORIGIN_BLOCKED');
   r=await call({...prompt,consent:false});assert.equal(r.code,400);assert.equal(r.data.error,'CREDIT_CONSENT_REQUIRED');
-  r=await call({...prompt,prompt:'z'.repeat(1001)});assert.equal(r.code,400);
+  r=await call({...prompt,prompt:'z'.repeat(281)});assert.equal(r.code,400);
   r=await call({...prompt,gender:'unknown'});assert.equal(r.code,400);
   r=await call({...prompt,output:'full;rm'});assert.equal(r.code,400);
   r=await call({...prompt,mode:'custom',lyrics:'',musicStyle:''});assert.equal(r.code,400);
@@ -150,7 +150,7 @@ test('MusicAI UI mounts with two tracks and no Video to Audio code or navigation
   assert.ok(host.querySelector('[data-mai-form]'));
   assert.equal(host.querySelectorAll('[data-mai-track]').length,2);
    assert.equal(host.querySelector('[data-mai-model]'),null);
-   assert.equal(host.querySelector('[data-mai-prompt]').getAttribute('maxlength'),'1000');
+   assert.equal(host.querySelector('[data-mai-prompt]').getAttribute('maxlength'),'280');
   assert.equal(host.querySelector('[data-mai-generate]').disabled,false);
   assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,11);
   assert.ok(visibleToolModules.some(x=>x.id==='ai2-musicai'));

@@ -32,7 +32,7 @@ export function mountMusicAIV2({host}={}){
  '<p class="tool-description">Create complete original music from a prompt or your own lyrics. Choose your sound. MusicGPT generates TWO variations on its servers using paid API credits. SOURCE AUDIO is not uploaded.</p>'+
  '<div class="pulse-mai-modes" role="group" aria-label="Song generation input mode"><button type="button" data-mai-mode="prompt" aria-pressed="true">PROMPT TO SONG</button><button type="button" data-mai-mode="custom" aria-pressed="false">CUSTOM LYRICS</button></div>'+
  '<form class="pulse-mai-form" data-mai-form novalidate>'+
- '<label class="pulse-mai-field" data-mai-prompt-group>SONG DESCRIPTION / MAX 1000 CHARACTERS<textarea data-mai-prompt rows="4" maxlength="1000" placeholder="Dark cinematic trap, punchy 808s, sparse haunting piano, 145 BPM, expressive hook..." required></textarea></label>'+
+ '<label class="pulse-mai-field" data-mai-prompt-group>SONG DESCRIPTION / MAX 280 CHARACTERS<textarea data-mai-prompt rows="4" maxlength="280" placeholder="Dark cinematic trap, punchy 808s, sparse haunting piano, 145 BPM, expressive hook..." required></textarea></label>'+
  '<label class="pulse-mai-field" data-mai-lyrics-group hidden>YOUR ORIGINAL LYRICS<textarea data-mai-lyrics rows="10" maxlength="9000" placeholder="[Verse 1]&#10;...&#10;&#10;[Chorus]&#10;..."></textarea></label>'+
  '<div class="pulse-mai-fields">'+
  '<label class="pulse-mai-field">MUSIC STYLE / GENRE<input data-mai-style maxlength="140" placeholder="Trap, Hip-Hop, R&B, House, Lo-fi..."></label>'+
@@ -44,7 +44,7 @@ export function mountMusicAIV2({host}={}){
  '<label class="pulse-mai-check"><input type="checkbox" data-mai-cover> GENERATE ALBUM COVER WITH THE TRACK</label>'+
  '<label class="pulse-mai-field">PRIVATE PULSE ACCESS TOKEN<input type="password" data-mai-token autocomplete="off" placeholder="Owner token, not your MusicGPT API key" required></label>'+
  '<label class="pulse-mai-check pulse-mai-consent"><input type="checkbox" data-mai-consent required> I have the rights to the lyrics and any voice model. I agree to send the provided text to MusicGPT and use paid credits for TWO generated versions.</label>'+
- '<p class="pulse-mai-hint">The prompt supports up to 1,000 characters. MusicGPT determines the actual credit cost and generation time. This interface provides completed-track playback and downloads.</p>'+
+ '<p class="pulse-mai-hint">For reliable results, keep the prompt within 280 characters. MusicGPT determines the actual credit cost and generation time. This interface provides completed-track playback and downloads.</p>'+
  '<button type="submit" class="ai2-action pulse-mai-generate" data-mai-generate>GENERATE 2 VERSIONS <span aria-hidden="true">↗</span></button>'+
  '</form>'+
  '<div class="pulse-mai-status-panel"><div class="pulse-mai-status-heading"><strong data-mai-config>CHECKING MUSICGPT</strong><span data-mai-job-label>NO JOB</span></div><p class="pulse-mai-status" role="status" aria-live="polite" data-mai-status>Choose a mode, describe your track and authorize the generation.</p>'+
@@ -188,7 +188,7 @@ export function mountMusicAIV2({host}={}){
   const prompt=get('[data-mai-prompt]').value.trim();
   const lyrics=get('[data-mai-lyrics]').value.trim();
   const musicStyle=get('[data-mai-style]').value.trim();
-  if(mode==='prompt'&&(!prompt||prompt.length>1000))throw Error('Enter a song description of up to 1,000 characters.');
+  if(mode==='prompt'&&(!prompt||prompt.length>280))throw Error('Enter a song description of up to 280 characters.');
   if(mode==='custom'&&(!lyrics||!musicStyle))throw Error('CUSTOM LYRICS requires both lyrics and music style.');
   return {mode,prompt:mode==='prompt'?prompt:'',lyrics:mode==='custom'?lyrics:'',musicStyle,
    output:get('[data-mai-output]').value,

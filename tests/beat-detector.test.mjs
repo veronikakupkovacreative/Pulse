@@ -73,6 +73,6 @@ test('active Song Analyzer uses measured onset-snap timing, not an invented unif
  assert.equal(half[0],.14);
  assert.notDeepEqual(half,beats);
  const clipped=buildAnalyzerBeatGrid({...result,beatTimes:[-1,.14,.642,.642,6]},120,3);
- assert.deepEqual(clipped,buildBeatGrid(120,.14,3));
+ assert.deepEqual(clipped,[.14,.642]);
  assert.deepEqual(buildAnalyzerBeatGrid(result,NaN,3),[]);
 });

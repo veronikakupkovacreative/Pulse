@@ -4,7 +4,7 @@
 const ENDPOINT='/api/pulse-youtube';
 const readResponse=async response=>{
  const data=await response.json().catch(()=>({error:'Unexpected response from downloader.'}));
- if(!response.ok)throw Error(data.error||'Downloader returned HTTP '+response.status);
+ if(!response.ok){const error=new Error(data.error||'Downloader returned HTTP '+response.status);error.code=data.errorCode||null;error.retryable=data.retryable===true;throw error;}
  return data;
 };
 export async function youtubeCapabilities({fetchImpl=globalThis.fetch,signal}={}){
@@ -44,8 +44,12 @@ export async function waitForYoutubeJob(id,owner,{
     throw Error('Unexpected worker download URL.');
    return state;
   }
-  if(['failed','cancelled','expired'].includes(state.status))
-   throw Error(state.error||'Download '+state.status+'.');
+  if(['failed','cancelled','expired'].includes(state.status)){
+   const error=new Error(state.error||'Download '+state.status+'.');
+   error.code=state.errorCode||null;
+   error.retryable=state.retryable===true;
+   throw error;
+  }
   await pause(2000,signal);
  }
  throw Error('Download is taking too long. Try again later.');

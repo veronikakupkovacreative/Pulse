@@ -1,9 +1,10 @@
-name: PULSE Analysis and Vocal Studio validation
+name: PULSE on-device CLAP and Vocal Studio validation
 on:
   push:
     branches:
       - feature/pulse-analysis-music-tagger-20261112
       - feature/pulse-musicgpt-voice-changer-20261112
+      - feature/pulse-local-clap-tagger-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +28,10 @@ jobs:
           test -f public/modules/music-tagger.mjs
           test -f public/modules/music-tagger-worker.mjs
           test -f public/modules/music-tagger.css
+          test -f public/modules/music-tagger-clap-worker.mjs
+          test -f public/vendor/clap/transformers.min.js
+          test -f public/vendor/clap/ort-wasm-simd.wasm
+          test -f public/vendor/clap/ort-wasm-simd-threaded.wasm
           test -f public/modules/musicgpt-voicechanger.mjs
           test -f public/modules/musicgpt-voicechanger.css
           grep -q 'music-tagger' public/modules/index.mjs

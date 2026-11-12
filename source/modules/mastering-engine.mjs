@@ -4,6 +4,7 @@
  * Measurements use BS.1770-inspired K-weighted 400 ms gated blocks and 4x cubic peak estimates.
  */
 import {fromChannels} from './dsp.mjs';
+import {analyzeSpectra} from './producer-dsp.mjs';
 
 const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
 const dbGain=db=>Math.pow(10,db/20);
@@ -14,6 +15,10 @@ const get= (o,key,min,max,def)=>{
   return value;
 };
 export const MASTER_PRESETS=Object.freeze({
+  trap:Object.freeze({name:'TRAP',target:-10.5,ceiling:-.9,threshold:-20,ratio:2.9,attack:24,release:170,tone:0,width:1.03,drive:12,bassEq:1.1,midEq:-.2,trebleEq:.2}),
+  hiphop:Object.freeze({name:'HIP-HOP',target:-12,ceiling:-1,threshold:-19,ratio:2.4,attack:26,release:190,tone:0,width:1,drive:10,bassEq:.8,midEq:0,trebleEq:0}),
+  edm:Object.freeze({name:'EDM',target:-10,ceiling:-.9,threshold:-21,ratio:3.1,attack:17,release:135,tone:0,width:1.06,drive:9,bassEq:.8,midEq:-.2,trebleEq:.7}),
+  pop:Object.freeze({name:'POP',target:-12,ceiling:-1,threshold:-18,ratio:2.2,attack:24,release:220,tone:0,width:1.04,drive:6,bassEq:.3,midEq:.3,trebleEq:.6}),
   balanced:Object.freeze({name:'BALANCED',target:-14,ceiling:-1,threshold:-18,ratio:2.2,attack:20,release:180,tone:0,width:1,drive:8}),
   warm:Object.freeze({name:'WARM ANALOG',target:-14,ceiling:-1.2,threshold:-19,ratio:2,attack:28,release:230,tone:-1.6,width:.98,drive:22}),
   punch:Object.freeze({name:'PUNCHY CLUB',target:-10,ceiling:-.9,threshold:-21,ratio:3.2,attack:13,release:135,tone:.5,width:1.07,drive:15}),
@@ -31,16 +36,28 @@ export function masteringSettings(input={}){
     release:get(input,'release',60,800,180),
     tone:get(input,'tone',-4,4,0),
     width:get(input,'width',.65,1.35,1),
-    drive:get(input,'drive',0,35,8)
+    drive:get(input,'drive',0,35,8),
+    bassEq:get(input,'bassEq',-3,3,0),
+    midEq:get(input,'midEq',-3,3,0),
+    trebleEq:get(input,'trebleEq',-3,3,0)
   });
 }
 function biquad(type,sr,hz,db=0,q=.707){
+  if(db===0&&(type==='lowshelf'||type==='peaking'||type==='highshelf'))return x=>x;
+  hz=Math.min(hz,sr*.43);
   const w=2*Math.PI*hz/sr,c=Math.cos(w),s=Math.sin(w),alpha=s/(2*q),A=Math.pow(10,db/40);
   let b0,b1,b2,a0,a1,a2;
   if(type==='highshelf'){
     const t=2*Math.sqrt(A)*alpha;
     b0=A*((A+1)+(A-1)*c+t);b1=-2*A*((A-1)+(A+1)*c);b2=A*((A+1)+(A-1)*c-t);
     a0=(A+1)-(A-1)*c+t;a1=2*((A-1)-(A+1)*c);a2=(A+1)-(A-1)*c-t;
+  }else if(type==='lowshelf'){
+    const t=2*Math.sqrt(A)*alpha;
+    b0=A*((A+1)-(A-1)*c+t);b1=2*A*((A-1)-(A+1)*c);b2=A*((A+1)-(A-1)*c-t);
+    a0=(A+1)+(A-1)*c+t;a1=-2*((A-1)+(A+1)*c);a2=(A+1)+(A-1)*c-t;
+  }else if(type==='peaking'){
+    b0=1+alpha*A;b1=-2*c;b2=1-alpha*A;
+    a0=1+alpha/A;a1=-2*c;a2=1-alpha/A;
   }else if(type==='highpass'){
     b0=(1+c)/2;b1=-(1+c);b2=b0;
     a0=1+alpha;a1=-2*c;a2=1-alpha;
@@ -107,6 +124,48 @@ export function measureMasteringAudio(audio,{truePeak=true}={}){
     stereoCorrelation:corr,channels:count,duration:b.length/sr
   });
 }
+/** Conservative, explainable spectral/dynamic starting point. No neural model. */
+export function recommendMasteringSettings(audio,presetId='streaming'){
+  const b=checkBuffer(audio);
+  const preset=MASTER_PRESETS[presetId];
+  if(!preset)throw Error('Unknown mastering preset: '+presetId);
+  const before=measureMasteringAudio(b,{truePeak:false});
+  if(!Number.isFinite(before.integratedLufs))throw Error('Audio is silent or too quiet for mastering.');
+  const frames=analyzeSpectra(b,{maxFrames:26});
+  const bands=[0,0,0],counts=[0,0,0];
+  for(const {re,im} of frames){
+    const frameBands=[0,0,0],frameCounts=[0,0,0];
+    for(let k=2;k<re.length/2;k++){
+      const hz=k*b.sampleRate/re.length;if(hz<35||hz>Math.min(16000,b.sampleRate*.45))continue;
+      const band=hz<180?0:hz<3500?1:2;
+      const mag=re[k]*re[k]+im[k]*im[k];
+      frameBands[band]+=mag;frameCounts[band]++;
+    }
+    for(let i=0;i<3;i++)if(frameCounts[i]){bands[i]+=frameBands[i]/frameCounts[i];counts[i]++;}
+  }
+  const avg=i=>bands[i]/Math.max(1,counts[i]);
+  const lowVsMid=10*Math.log10((avg(0)+1e-10)/(avg(1)+1e-10));
+  const highVsMid=10*Math.log10((avg(2)+1e-10)/(avg(1)+1e-10));
+  const lowTargets={trap:12,hiphop:11,edm:10,pop:9,streaming:10};
+  const highTargets={trap:-9,hiphop:-10,edm:-7,pop:-7,streaming:-9};
+  const targetLow=lowTargets[presetId]??10,targetHigh=highTargets[presetId]??-9;
+  const correction=(target,actual)=>Math.abs(target-actual)<3?0:clamp((target-actual)*.105,-1.6,1.6);
+  // Keep adjustments subtle: without a reference track the ideal spectrum is unknowable.
+  const bassEq=clamp((preset.bassEq??0)+correction(targetLow,lowVsMid),-3,3);
+  const trebleEq=clamp((preset.trebleEq??0)+correction(targetHigh,highVsMid),-3,3);
+  const crest=before.crestDb;
+  const ratio=clamp(preset.ratio+(crest>14?.2:crest<7?-.3:0),1,8);
+  const threshold=clamp(preset.threshold+(crest<7?2:crest>14?-1:0),-36,-6);
+  // Very low correlation signals can be unstable if widened.
+  const width=before.stereoCorrelation!==null&&before.stereoCorrelation<.12?Math.min(preset.width,.98):preset.width;
+  const settings=masteringSettings({...preset,bassEq,trebleEq,ratio,threshold,width});
+  return {settings,before,analysis:Object.freeze({
+    bassVsMidDb:lowVsMid,trebleVsMidDb:highVsMid,crestDb:crest,
+    stereoCorrelation:before.stereoCorrelation,
+    spectralCorrectionDb:Object.freeze({bass:settings.bassEq,mid:settings.midEq,treble:settings.trebleEq}),
+    reason:'Conservative band balance and crest-factor analysis; verify by ear.'
+  })};
+}
 function colorAndCompress(b,settings){
   const input=Array.from({length:b.numberOfChannels},(_,c)=>b.getChannelData(c));
   const out=input.map(()=>new Float32Array(b.length));
@@ -114,6 +173,11 @@ function colorAndCompress(b,settings){
   const colorMix=drive*.55,driveGain=1+drive*2.1;
   const lpAlpha=Math.exp(-2*Math.PI*150/sr),toneAlpha=Math.exp(-2*Math.PI*1200/sr);
   const tiltLP=new Float64Array(input.length);let lowSide=0;
+  const eq=input.map(()=>[
+    biquad('lowshelf',sr,115,settings.bassEq),
+    biquad('peaking',sr,1250,settings.midEq,.84),
+    biquad('highshelf',sr,6500,settings.trebleEq)
+  ]);
   const attackCoef=Math.exp(-1/(sr*settings.attack*.001));
   const releaseCoef=Math.exp(-1/(sr*settings.release*.001));
   const threshold=settings.threshold,knee=6,ratio=settings.ratio;
@@ -121,7 +185,8 @@ function colorAndCompress(b,settings){
   const values=new Float64Array(input.length);
   for(let i=0;i<b.length;i++){
     for(let c=0;c<input.length;c++){
-      const x=input[c][i],low=tiltLP[c]=toneAlpha*tiltLP[c]+(1-toneAlpha)*x;
+      const filter=eq[c];
+      const x=filter[2](filter[1](filter[0](input[c][i]))),low=tiltLP[c]=toneAlpha*tiltLP[c]+(1-toneAlpha)*x;
       let y=low*(1-tone)+(x-low)*(1+tone);
       if(drive>0){const saturated=Math.tanh(y*driveGain)/driveGain;y=y*(1-colorMix)+saturated*colorMix;}
       values[c]=y;
@@ -130,7 +195,8 @@ function colorAndCompress(b,settings){
       const mid=(values[0]+values[1])*.5,side=(values[0]-values[1])*.5;
       lowSide=lpAlpha*lowSide+(1-lpAlpha)*side;
       const highSide=side-lowSide;
-      const coloredSide=lowSide*.65+highSide*width;
+      // Width=1 must leave the stereo field unchanged; bass width changes are gentler.
+      const coloredSide=lowSide*(1+(width-1)*.35)+highSide*width;
       values[0]=mid+coloredSide;values[1]=mid-coloredSide;
     }
     let level=0;for(let c=0;c<values.length;c++)level=Math.max(level,Math.abs(values[c]));

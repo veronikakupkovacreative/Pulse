@@ -11,7 +11,7 @@ async function getRuntime(){
  const module=await self.EssentiaWASM;
  const Core=self.Essentia;
  if(!module?.EssentiaJS||typeof Core!=='function')throw Error('Essentia WebAssembly failed to initialize.');
- const algorithms=await import('./essentia-algorithms.mjs');
+ const algorithms=await import('/modules/essentia-algorithms.mjs');
  runtime={module,Essentia:new Core(module),algorithms};
  return runtime;
 }

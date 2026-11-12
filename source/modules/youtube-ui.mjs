@@ -28,6 +28,13 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
  '<div class="pulse-video-progress" role="progressbar" aria-label="YouTube download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-yt-progress><i></i></div>'+
  '<p class="pulse-video-status" data-yt-status role="status" aria-live="polite">Checking downloader availability…</p>'+
  '<a class="pulse-yt-result" data-yt-result hidden rel="noopener noreferrer" target="_blank">DOWNLOAD RESULT ↗</a>'+
+ '<div class="pulse-yt-fallback" data-yt-fallback hidden role="group" aria-label="Alternative media import">'+
+ '<strong>YOUTUBE REQUIRES VERIFICATION</strong>'+
+ '<p>YouTube blocked access from the PULSE server. Changing your PULSE access code will not fix this. If you own the upload, download it from YouTube Studio and convert the MP4 locally in PULSE. You can also use a permitted direct HTTPS media file.</p>'+
+ '<div class="pulse-yt-fallback-actions">'+
+ '<a href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">OPEN YOUTUBE STUDIO ↗</a>'+
+ '<button type="button" data-yt-choose-file>CHOOSE MY VIDEO FILE ↗</button>'+
+ '</div></div>'+
  '<p class="pulse-video-note">Owner-authorized beta · Single videos up to 10 minutes, 100 MB original, 150 MB output. Downloads may be unavailable due to the video’s restrictions or platform rules. No DRM/account bypass.</p>';
  note.parentNode.insertBefore(section,note);
  const $=selector=>section.querySelector(selector);
@@ -36,7 +43,8 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
  const start=$('[data-yt-start]'),cancel=$('[data-yt-cancel]'),
   code=$('[data-yt-access]'),rights=$('[data-yt-rights]'),
   video=host.querySelector('[data-video-url]'),progress=$('[data-yt-progress]'),
-  download=$('[data-yt-result]');
+  download=$('[data-yt-result]'),fallback=$('[data-yt-fallback]');
+ $('[data-yt-choose-file]').onclick=()=>host.querySelector('[data-video-file]')?.click();
  const status=(message,error=false)=>{
   if(disposed)return;
   const e=$('[data-yt-status]');e.textContent=String(message);e.dataset.error=String(error);
@@ -89,7 +97,7 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
    if(!configured)throw Error('Download worker is not configured.');
    if(!rights.checked)throw Error('Confirm permission to download this video.');
    const parsed=parseYouTubeLink(video.value.trim());
-   busy=true;update();jobId=null;finished=false;ownerCode=access;download.hidden=true;download.removeAttribute('href');
+   busy=true;update();jobId=null;finished=false;ownerCode=access;download.hidden=true;download.removeAttribute('href');fallback.hidden=true;
    setPercent(0);status('Submitting YouTube download…');
    const active=new AbortController();controller=active;
    const created=await youtubeJobRequest(access,{
@@ -110,7 +118,12 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
    setPercent(100);
    status('Your '+format.toUpperCase()+' is ready. The download link expires after about 15 minutes.');
   }catch(error){
-   if(!disposed)status(error.message||'YouTube download failed.',true);
+   if(!disposed){
+    const blocked=error?.code==='YOUTUBE_VERIFICATION_REQUIRED';
+    if(blocked)fallback.hidden=false;
+    status(blocked?'YouTube is requesting account verification from the server. Please use an authorized local video file below.':
+      (error.message||'YouTube download failed.'),true);
+   }
   }finally{if(!disposed){busy=false;update();}controller=null;}
  };
  cancel.onclick=async()=>{

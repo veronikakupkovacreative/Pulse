@@ -289,21 +289,157 @@ export function mountMasteringTool({host,mode='mix'}={}){
     }catch(e){invalidate();if(!disposed&&e?.name!=='AbortError')message(e.message||'Mastering failed.',true);}
     finally{if(!disposed)setBusy(false)}
   };
+
+  refFile.addEventListener('change',async()=>{
+    const file=refFile.files?.[0];if(!file)return;
+    if(busy)return;
+    try{
+      if(file.size>100*1024*1024)throw Error('Reference exceeds the 100 MB local input limit.');
+      setBusy(true);message('Decoding reference audio locally…');
+      const ctx=await w.ensureContext();
+      const audio=await ctx.decodeAudioData(await file.arrayBuffer());
+      if(disposed)return;
+      if(audio.duration>1200||audio.length*audio.numberOfChannels*4>240*1024*1024)
+        throw Error('Reference exceeds 20 minutes or 240 MB decoded audio.');
+      referenceAudio=audio;referenceFile=file;referenceStats=null;
+      refName.textContent=file.name;
+      clearRefButton.disabled=false;matchButton.disabled=false;refAB.disabled=false;
+      setDashboard({reference:null,spectrumReference:null});
+      invalidate();message('Reference loaded locally. Click MATCH REFERENCE to measure and adapt your master.');
+    }catch(error){if(!disposed){refFile.value='';message(error.message||'Reference could not be decoded.',true);}}
+    finally{if(!disposed)setBusy(false);}
+  });
+  clearRefButton.onclick=()=>{
+    if(busy)return;
+    stopPreview(true);referenceAudio=null;referenceFile=null;referenceStats=null;
+    refFile.value='';refName.textContent='NO REFERENCE LOADED';refAB.disabled=true;
+    if(selected==='c')selected='a';
+    all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb===selected)));
+    matchButton.disabled=true;clearRefButton.disabled=true;
+    setDashboard({reference:null,spectrumReference:null});
+    invalidate();message('Reference cleared. Local mastering remains available.');
+  };
+  matchButton.onclick=match;
+  function performAssistant(text){
+    try{
+      if(busy)return;
+      const result=interpretMasteringRequest(text,currentSettings());
+      invalidate();setSettings(result.settings);auto.checked=false;
+      all('[data-master-preset]').forEach(b=>b.setAttribute('aria-pressed','false'));
+      $('[data-master-assistant-feedback]').textContent=result.changes.join(' · ')+'. Render to hear the result.';
+      message('Mastering settings updated from your instruction. No audio processed yet.');
+    }catch(error){message(error.message||'Instruction not recognized.',true);}
+  }
+  all('[data-master-suggest]').forEach(b=>b.addEventListener('click',()=>{
+    $('[data-master-instruction]').value=b.dataset.masterSuggest;
+    performAssistant(b.dataset.masterSuggest);
+  }));
+  $('[data-master-action="assist"]').onclick=()=>performAssistant($('[data-master-instruction]').value);
+  $('[data-master-instruction]').addEventListener('keydown',event=>{
+    if(event.key==='Enter'){event.preventDefault();performAssistant(event.currentTarget.value);}
+  });
+  async function asCloudFile(buffer,name){
+    const file=encodeWav(buffer,16);
+    if(file.size>2_700_000)throw Error('Audial cloud preview accepts up to 2.7 MB total. For a full song, use Local DSP until direct cloud uploading is implemented.');
+    const raw=new Uint8Array(await file.arrayBuffer());
+    let base64='';
+    for(let i=0;i<raw.length;i+=24000)base64+=btoa(String.fromCharCode(...raw.subarray(i,i+24000)));
+    return {name,type:'audio/wav',base64};
+  }
+  async function runCloud(){
+    if(busy)return;
+    if(!cloudAvailable)return message('Audial is not configured in Vercel. Set AUDIAL_API_KEY, AUDIAL_USER_ID and PULSE_AUDIAL_OWNER_TOKEN.',true);
+    if(!$('[data-master-cloud-consent]').checked)return message('Confirm permission to upload audio to Audial before starting.',true);
+    const token=$('[data-master-cloud-token]').value.trim();
+    if(!token)return message('Enter the owner token. It is not stored in the browser.',true);
+    jobController?.abort();jobController=new AbortController();
+    try{
+      const input=w.ensureAudio(),reference=referenceAudio;
+      setBusy(true);cloudResults.replaceChildren();
+      message('Preparing short WAV file for explicit Audial cloud upload…');
+      const original=await asCloudFile(input,'pulse-mix.wav');
+      const referenceData=reference?await asCloudFile(reference,'pulse-reference.wav'):null;
+      if(original.base64.length+(referenceData?.base64.length||0)>3_700_000)
+        throw Error('Mix and reference together exceed the 2.7 MB cloud transport limit.');
+      if(jobController.signal.aborted||disposed||w.buffer!==input)return;
+      message('Uploading to Audial. Audio is leaving this device now…');
+      const response=await fetch('/api/pulse-audial',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Pulse-Owner-Token':token},
+        body:JSON.stringify({consent:true,original,reference:referenceData}),
+        signal:jobController.signal
+      });
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||'Audial refused the request. Check subscription and server settings.');
+      if(disposed||w.buffer!==input)return;
+      if(result.audio?.base64){
+        const bytes=Uint8Array.from(atob(result.audio.base64),ch=>ch.charCodeAt(0));
+        const ctx=await w.ensureContext();
+        const decoded=await ctx.decodeAudioData(bytes.buffer);
+        const [before,after]=await Promise.all([
+          runMasteringWorker('analyze',input,{preset:activePreset,signal:jobController.signal}),
+          runMasteringWorker('analyze',decoded,{preset:activePreset,signal:jobController.signal})
+        ]);
+        if(disposed||w.buffer!==input)return;
+        prepared={buffer:decoded,before:before.before,after:after.before,
+          processing:{maxCompressionDb:0,maxLimiterDb:0,targetReached:false}};
+        sourceRef=input;selected='b';
+        display(prepared.before,prepared.after,prepared.processing);
+        setDashboard({original:before.before,master:after.before,
+          spectrumOriginal:before.spectrum?.input,spectrumMaster:after.spectrum?.input});
+        applyButton.disabled=false;exportButton.disabled=false;
+        all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb==='b')));
+        message('Audial returned playable audio. Compare A/B before applying or exporting.');
+      }else{
+        for(const link of result.links||[]){
+          try{
+            const url=new URL(link.url);
+            if(url.protocol!=='https:')continue;
+            const a=document.createElement('a');a.href=url.toString();a.target='_blank';a.rel='noopener noreferrer';
+            a.textContent='OPEN AUDIAL OUTPUT · '+link.label;
+            cloudResults.append(a);
+          }catch{}
+        }
+        message((result.message||'Audial accepted the request.')+
+          (cloudResults.childElementCount?' Open the output link above.':' See your Audial account for processing status. No playable file was returned to PULSE.'));
+      }
+    }catch(error){if(!disposed&&error?.name!=='AbortError')message(error.message||'Cloud mastering failed.',true);}
+    finally{if(!disposed)setBusy(false);}
+  }
+  all('[data-master-engine]').forEach(button=>button.onclick=()=>{
+    if(busy)return;engine=button.dataset.masterEngine;
+    all('[data-master-engine]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+    cloudPane.hidden=engine!=='cloud';
+    renderButton.textContent=engine==='cloud'?'RUN AUDIAL CLOUD ↗':'RENDER MASTER ↗';
+    message(engine==='cloud'?'Audial cloud mode needs your credentials and consent. Local presets do not control Audial processing.':'Local DSP selected. Processing stays in this browser.');
+  });
+  void fetch('/api/pulse-audial',{cache:'no-store'})
+    .then(r=>r.ok?r.json():Promise.reject(Error('Cloud status unavailable')))
+    .then(info=>{
+      if(disposed)return;
+      cloudAvailable=Boolean(info.configured);
+      cloudAvailability.textContent=cloudAvailable?'AUDIAL READY · OWNER TOKEN REQUIRED':'AUDIAL NOT CONFIGURED · LOCAL DSP AVAILABLE';
+    }).catch(()=>{if(!disposed)cloudAvailability.textContent='AUDIAL STATUS UNAVAILABLE · LOCAL DSP AVAILABLE';});
+
   const audition=async()=>{
     if(busy)return;
     try{
       if(previewNode){stopPreview();return;}
-      const buffer=selected==='b'?prepared?.buffer:w.ensureAudio();
-      if(!buffer)throw Error('Render the master before selecting B.');
+      const buffer=selected==='b'?prepared?.buffer:selected==='c'?referenceAudio:w.ensureAudio();
+      if(!buffer)throw Error('Load the requested audio before previewing.');
       if(selected==='b'&&sourceRef!==w.buffer)throw Error('SOURCE AUDIO changed. Render the master again.');
       w.stop();const ctx=await w.ensureContext();if(disposed)return;
       if(previewPosition>=buffer.duration)previewPosition=0;
       const node=ctx.createBufferSource();node.buffer=w.toNative(buffer);
       const gain=ctx.createGain();
-      if($('[data-master-match]').checked&&prepared&&sourceRef===w.buffer){
-        const quieter=Math.min(prepared.before.integratedLufs,prepared.after.integratedLufs);
-        const level=selected==='a'?prepared.before.integratedLufs:prepared.after.integratedLufs;
-        gain.gain.value=Math.pow(10,(quieter-level)/20); // Monitor-only attenuation.
+      if($('[data-master-match]').checked){
+        const levels=[dashboard.original?.integratedLufs,dashboard.master?.integratedLufs,
+         dashboard.reference?.integratedLufs].filter(Number.isFinite);
+        const current=selected==='a'?dashboard.original?.integratedLufs:
+         selected==='b'?dashboard.master?.integratedLufs:dashboard.reference?.integratedLufs;
+        if(Number.isFinite(current)&&levels.length>=2){
+          gain.gain.value=Math.pow(10,(Math.min(...levels)-current)/20); // Monitor-only attenuation; export is unaffected.
+        }
       }
       node.connect(gain);gain.connect(ctx.destination);previewGain=gain;
       previewNode=node;startedAt=ctx.currentTime-previewPosition;
@@ -314,7 +450,9 @@ export function mountMasteringTool({host,mode='mix'}={}){
   };
   all('[data-master-ab]').forEach(button=>button.addEventListener('click',()=>{
     if(busy)return;
-    const next=button.dataset.masterAb;if(next==='b'&&(!prepared||w.buffer!==sourceRef)){
+    const next=button.dataset.masterAb;
+    if(next==='c'&&!referenceAudio){message('Load a reference audio file first.',true);return;}
+    if(next==='b'&&(!prepared||w.buffer!==sourceRef)){
       message('Render a master to enable B comparison.',true);return;
     }
     const hadPreview=Boolean(previewNode);stopPreview(!hadPreview);
@@ -322,7 +460,12 @@ export function mountMasteringTool({host,mode='mix'}={}){
     all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
     if(hadPreview)void audition();
   }));
-  analysisButton.onclick=analyze;renderButton.onclick=render;play.onclick=audition;
+  analysisButton.onclick=analyze;renderButton.onclick=()=>engine==='cloud'?runCloud():render();play.onclick=audition;
+  const unsubscribe=w.subscribe((snapshot,reason)=>{
+    if(!['load','clear','commit','undo','redo'].includes(reason))return;
+    jobController?.abort();invalidate();setDashboard({original:null,spectrumOriginal:null});
+    selected='a';all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb==='a')));
+  });
   applyButton.onclick=()=>{
     try{
       if(!prepared||w.buffer!==sourceRef)throw Error('Render a fresh master before applying.');
@@ -340,5 +483,5 @@ export function mountMasteringTool({host,mode='mix'}={}){
       message('Exported 24-bit mastered WAV. The current workspace was not changed.');
     }catch(e){message(e.message||'Export failed.',true)}
   };
-  return ()=>{disposed=true;jobController?.abort();stopPreview(true);prepared=null;sourceRef=null};
+  return ()=>{disposed=true;jobController?.abort();unsubscribe();stopPreview(true);prepared=null;sourceRef=null;referenceAudio=null;referenceFile=null};
 }

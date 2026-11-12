@@ -324,8 +324,11 @@ html[data-theme="dark"] .tool-settings{
   color:var(--pulse-white);
 }
 .tool-settings .tool-module-host :is(
- .pulse-master-auto,.pulse-master-table-head,.pulse-master-band,.pulse-master-spectrum-legend span::before
+ .pulse-master-auto,.pulse-master-table-head,.pulse-master-band
 ){border-color:var(--pulse-ink)}
+.tool-settings .tool-module-host .pulse-master-spectrum-legend span::before{
+  border-color:var(--pulse-ink);
+}
 .tool-settings .tool-module-host :is(
  .pulse-master-auto,.pulse-master-table-head
 ){background:var(--pulse-ink);color:var(--pulse-white)}

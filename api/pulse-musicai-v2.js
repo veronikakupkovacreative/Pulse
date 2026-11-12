@@ -1,13 +1,13 @@
 /**
- * PULSE / MusicGPT Music AI V2: owner-gated, server-only song generator.
- * POST /v2/MusicAI creates TWO paid versions. GET /v1/byId is read-only.
+ * PULSE / MusicGPT Music AI (v1): owner-gated, server-only song generator.
+ * POST /v1/MusicAI creates TWO paid versions. GET /v1/byId is read-only.
  * Do not retry paid submissions automatically; a timed-out job may still run.
  */
 import {timingSafeEqual} from 'node:crypto';
 
-const CREATE_URL='https://api.musicgpt.com/api/public/v2/MusicAI';
+const CREATE_URL='https://api.musicgpt.com/api/public/v1/MusicAI';
 const LOOKUP_URL='https://api.musicgpt.com/api/public/v1/byId';
-const MODEL_NAMES=new Set(['v6','v6-pro','v7','v7-pro']);
+// Keep the existing MUSICGPT_MUSICAI_V2_API_KEY environment variable for compatibility.
 const GENDERS=new Set(['','male','female','neutral']);
 const ID=/^[A-Za-z0-9_-]{8,120}$/;
 const errorResponse=(res,code,error)=>res.status(code).json({error});
@@ -67,23 +67,23 @@ async function provider(url,options){
 }
 function buildGeneration(input){
  const mode=input.mode==='custom'?'custom':input.mode==='prompt'?'prompt':null;
- const prompt=text(input.prompt,280,{required:mode==='prompt'});
+ const prompt=text(input.prompt,1000,{required:mode==='prompt'});
  const musicStyle=text(input.musicStyle,140,{required:mode==='custom'});
  const lyrics=text(input.lyrics,9000,{required:mode==='custom'});
  const title=text(input.title,120);
  const voiceId=text(input.voiceId,120);
- const model=input.model??'v7';
+ 
  const gender=input.gender??'';
  const output=input.output??'full';
  if(!mode||prompt===null||musicStyle===null||lyrics===null||title===null||voiceId===null||
-  !MODEL_NAMES.has(model)||!GENDERS.has(gender)||!['full','instrumental','vocals'].includes(output)||
+  !GENDERS.has(gender)||!['full','instrumental','vocals'].includes(output)||
   (voiceId&&!/^[a-zA-Z0-9_. -]+$/.test(voiceId))||
   typeof input.generateAlbumCover!=='boolean')return null;
  const data={
   prompt, music_style:musicStyle,lyrics,
   make_instrumental:output==='instrumental',
   vocal_only:output==='vocals',
-  model,generate_album_cover:input.generateAlbumCover
+  generate_album_cover:input.generateAlbumCover
  };
  if(title)data.title=title;
  if(gender)data.gender=gender;
@@ -95,7 +95,7 @@ export default async function handler(req,res){
  res.setHeader('X-Content-Type-Options','nosniff');
  if(req.method==='GET')return res.status(200).json({
   configured:ready(),provider:'MusicGPT',versions:2,
-  models:[...MODEL_NAMES],promptMaxLength:280,creditsRequired:true,consentRequired:true
+  apiVersion:'v1',promptMaxLength:1000,creditsRequired:true,consentRequired:true
  });
  if(req.method!=='POST')return errorResponse(res,405,'METHOD_NOT_ALLOWED');
  if(!ready())return errorResponse(res,503,'MUSICGPT_MUSICAI_NOT_CONFIGURED');
@@ -118,7 +118,7 @@ export default async function handler(req,res){
   if(!ID.test(response.conversion_id_1||'')||!ID.test(response.conversion_id_2||''))
    return errorResponse(res,502,'MISSING_CONVERSION_IDS');
   return res.status(200).json({
-   status:'submitted',provider:'MusicGPT',model:data.model,
+   status:'submitted',provider:'MusicGPT',
    taskId:ID.test(response.task_id||'')?response.task_id:null,
    versions:[{id:response.conversion_id_1},{id:response.conversion_id_2}],
    eta:Number.isFinite(response.eta)?response.eta:null,

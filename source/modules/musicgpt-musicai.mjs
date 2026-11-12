@@ -1,4 +1,4 @@
-/** PULSE AI Studio / MusicGPT Music AI V2.
+/** PULSE AI Studio / MusicGPT Music AI.
  * Generates two independent tracks from text. No source audio is uploaded.
  * Only conversion IDs are kept in session storage; owner tokens never persist.
  * "Stop checking" stops GET polling, not the provider's paid generation job.
@@ -7,9 +7,9 @@ const SESSION_KEY='pulse-musicai-v2-last-job';
 const ID=/^[A-Za-z0-9_-]{8,120}$/;
 const ERROR_COPY={
  OWNER_AUTH_REQUIRED:'Incorrect private PULSE access token.',
- MUSICGPT_MUSICAI_NOT_CONFIGURED:'Music AI V2 is not configured for this deployment.',
+ MUSICGPT_MUSICAI_NOT_CONFIGURED:'Music AI is not configured for this deployment.',
  CREDIT_CONSENT_REQUIRED:'You must confirm paid MusicGPT generation.',
- INVALID_GENERATION_PARAMETERS:'Check the prompt, music style, lyrics, model and output settings.',
+ INVALID_GENERATION_PARAMETERS:'Check the prompt, music style, lyrics and output settings.',
  INSUFFICIENT_CREDITS:'Not enough MusicGPT credits to generate two tracks.',
  MUSICGPT_AUTH_FAILED:'MusicGPT rejected the server-side API key.',
  INVALID_PROVIDER_REQUEST:'MusicGPT rejected these generation parameters.',
@@ -25,18 +25,17 @@ const allowedLink=value=>{
  try{const url=new URL(value);return url.protocol==='https:'?url.href:null;}catch{return null;}
 };
 export function mountMusicAIV2({host}={}){
- if(!host)throw Error('Music AI V2 needs a host element.');
+ if(!host)throw Error('Music AI needs a host element.');
  host.innerHTML='<section class="tool-view ai2-panel pulse-musicai" aria-label="AI Music Generator">'+
- '<div class="tool-view-header"><span>04 / AI STUDIO / MUSIC GENERATOR</span><span>MUSICGPT / MUSIC AI V2</span></div>'+
+ '<div class="tool-view-header"><span>04 / AI STUDIO / MUSIC GENERATOR</span><span>MUSICGPT / MUSIC AI</span></div>'+
  '<h3>Generate a track.<br><span>Choose your version.</span></h3>'+
- '<p class="tool-description">Create complete original music from a prompt or your own lyrics. Choose your sound and model. MusicGPT generates TWO variations on its servers using paid API credits. SOURCE AUDIO is not uploaded.</p>'+
+ '<p class="tool-description">Create complete original music from a prompt or your own lyrics. Choose your sound. MusicGPT generates TWO variations on its servers using paid API credits. SOURCE AUDIO is not uploaded.</p>'+
  '<div class="pulse-mai-modes" role="group" aria-label="Song generation input mode"><button type="button" data-mai-mode="prompt" aria-pressed="true">PROMPT TO SONG</button><button type="button" data-mai-mode="custom" aria-pressed="false">CUSTOM LYRICS</button></div>'+
  '<form class="pulse-mai-form" data-mai-form novalidate>'+
- '<label class="pulse-mai-field" data-mai-prompt-group>SONG DESCRIPTION / MAX 280 CHARACTERS<textarea data-mai-prompt rows="4" maxlength="280" placeholder="Dark cinematic trap, punchy 808s, sparse haunting piano, 145 BPM, expressive hook..." required></textarea></label>'+
+ '<label class="pulse-mai-field" data-mai-prompt-group>SONG DESCRIPTION / MAX 1000 CHARACTERS<textarea data-mai-prompt rows="4" maxlength="1000" placeholder="Dark cinematic trap, punchy 808s, sparse haunting piano, 145 BPM, expressive hook..." required></textarea></label>'+
  '<label class="pulse-mai-field" data-mai-lyrics-group hidden>YOUR ORIGINAL LYRICS<textarea data-mai-lyrics rows="10" maxlength="9000" placeholder="[Verse 1]&#10;...&#10;&#10;[Chorus]&#10;..."></textarea></label>'+
  '<div class="pulse-mai-fields">'+
  '<label class="pulse-mai-field">MUSIC STYLE / GENRE<input data-mai-style maxlength="140" placeholder="Trap, Hip-Hop, R&B, House, Lo-fi..."></label>'+
- '<label class="pulse-mai-field">MODEL<select data-mai-model><option value="v7">V7 / HIGHEST QUALITY</option><option value="v7-pro">V7 PRO / STREAMING-CAPABLE</option><option value="v6">V6 / FAST</option><option value="v6-pro">V6 PRO / STREAMING-CAPABLE</option></select></label>'+
  '<label class="pulse-mai-field">OUTPUT TYPE<select data-mai-output><option value="full">FULL SONG / VOCALS + INSTRUMENTS</option><option value="instrumental">INSTRUMENTAL ONLY</option><option value="vocals">VOCALS ONLY</option></select></label>'+
  '<label class="pulse-mai-field">VOCAL CHARACTER<select data-mai-gender><option value="">AUTO</option><option value="female">FEMALE</option><option value="male">MALE</option><option value="neutral">NEUTRAL</option></select></label>'+
  '</div>'+
@@ -45,7 +44,7 @@ export function mountMusicAIV2({host}={}){
  '<label class="pulse-mai-check"><input type="checkbox" data-mai-cover> GENERATE ALBUM COVER WITH THE TRACK</label>'+
  '<label class="pulse-mai-field">PRIVATE PULSE ACCESS TOKEN<input type="password" data-mai-token autocomplete="off" placeholder="Owner token, not your MusicGPT API key" required></label>'+
  '<label class="pulse-mai-check pulse-mai-consent"><input type="checkbox" data-mai-consent required> I have the rights to the lyrics and any voice model. I agree to send the provided text to MusicGPT and use paid credits for TWO generated versions.</label>'+
- '<p class="pulse-mai-hint">The prompt is limited to 280 characters for reliable provider results. MusicGPT, not PULSE, determines the actual credit cost and generation time. Pro models support streaming, but this interface provides completed-track playback and downloads.</p>'+
+ '<p class="pulse-mai-hint">The prompt supports up to 1,000 characters. MusicGPT determines the actual credit cost and generation time. This interface provides completed-track playback and downloads.</p>'+
  '<button type="submit" class="ai2-action pulse-mai-generate" data-mai-generate>GENERATE 2 VERSIONS <span aria-hidden="true">↗</span></button>'+
  '</form>'+
  '<div class="pulse-mai-status-panel"><div class="pulse-mai-status-heading"><strong data-mai-config>CHECKING MUSICGPT</strong><span data-mai-job-label>NO JOB</span></div><p class="pulse-mai-status" role="status" aria-live="polite" data-mai-status>Choose a mode, describe your track and authorize the generation.</p>'+
@@ -66,7 +65,7 @@ export function mountMusicAIV2({host}={}){
  const persist=()=>{
   try{
    if(!job){session()?.removeItem(SESSION_KEY);return;}
-   session()?.setItem(SESSION_KEY,JSON.stringify({ids:job.ids,taskId:job.taskId,created:job.created,model:job.model}));
+   session()?.setItem(SESSION_KEY,JSON.stringify({ids:job.ids,taskId:job.taskId,created:job.created}));
   }catch{}
  };
  function showJob(){
@@ -183,16 +182,16 @@ export function mountMusicAIV2({host}={}){
   }
  }
  const readValues=()=>{
-  if(!configured)throw Error('MusicGPT Music AI V2 is not configured on this deployment.');
+  if(!configured)throw Error('MusicGPT Music AI is not configured on this deployment.');
   token();
   if(!get('[data-mai-consent]').checked)throw Error('Confirm authorization and credit usage for both generated versions.');
   const prompt=get('[data-mai-prompt]').value.trim();
   const lyrics=get('[data-mai-lyrics]').value.trim();
   const musicStyle=get('[data-mai-style]').value.trim();
-  if(mode==='prompt'&&(!prompt||prompt.length>280))throw Error('Enter a song description under 280 characters.');
+  if(mode==='prompt'&&(!prompt||prompt.length>1000))throw Error('Enter a song description of up to 1,000 characters.');
   if(mode==='custom'&&(!lyrics||!musicStyle))throw Error('CUSTOM LYRICS requires both lyrics and music style.');
   return {mode,prompt:mode==='prompt'?prompt:'',lyrics:mode==='custom'?lyrics:'',musicStyle,
-   model:get('[data-mai-model]').value,output:get('[data-mai-output]').value,
+   output:get('[data-mai-output]').value,
    gender:get('[data-mai-gender]').value,title:get('[data-mai-title]').value.trim(),
    voiceId:get('[data-mai-voice]').value.trim(),generateAlbumCover:get('[data-mai-cover]').checked,
    consent:true};
@@ -202,12 +201,12 @@ export function mountMusicAIV2({host}={}){
   if(disposed||submitting||polling||job)return;
   let values;try{values=readValues();}catch(error){status(error.message,true);return;}
   const ac=new AbortController();controller=ac;submitting=true;showJob();
-  status('Submitting paid MusicGPT Music AI V2 generation for TWO tracks. Do not submit again if the connection times out.');
+  status('Submitting paid MusicGPT Music AI generation for TWO tracks. Do not submit again if the connection times out.');
   try{
    const result=await request('generate',values,ac.signal);
    if(disposed||ac.signal.aborted)return;
    if(result.versions?.length!==2||!result.versions.every(v=>ID.test(v.id||'')))throw Error('MusicGPT returned an invalid job. Check your account before retrying.');
-   job={ids:result.versions.map(v=>v.id),model:result.model,taskId:result.taskId,created:Date.now()};
+   job={ids:result.versions.map(v=>v.id),taskId:result.taskId,created:Date.now()};
    persist();resetCards();
    get('[data-mai-results]').hidden=false;
    status('Two versions submitted'+(result.creditEstimate!==null?' · estimated '+result.creditEstimate+' credits':'')+
@@ -234,7 +233,7 @@ export function mountMusicAIV2({host}={}){
   const raw=session()?.getItem(SESSION_KEY),saved=raw?JSON.parse(raw):null;
   if(saved&&Array.isArray(saved.ids)&&saved.ids.length===2&&saved.ids.every(id=>ID.test(id))&&
    Number.isFinite(saved.created)&&Date.now()-saved.created<7*86400_000){
-   job={ids:saved.ids,model:saved.model,taskId:saved.taskId,created:saved.created};
+   job={ids:saved.ids,taskId:saved.taskId,created:saved.created};
    resetCards();showJob();status('Saved generation found. Enter your owner token and select CHECK / RESUME JOB to retrieve both versions without another charge.');
   }
  }catch{}
@@ -245,8 +244,8 @@ export function mountMusicAIV2({host}={}){
    const info=await res.json();
    if(disposed)return;
    configured=res.ok&&info.configured===true;
-   get('[data-mai-config]').textContent=configured?'MUSICGPT MUSIC AI V2 / READY':'MUSICGPT MUSIC AI V2 / NOT CONFIGURED';
-   if(!configured)status('Music AI V2 is not configured in this deployment. The API key must be set in the server environment.',true);
+   get('[data-mai-config]').textContent=configured?'MUSICGPT MUSIC AI / READY':'MUSICGPT MUSIC AI / NOT CONFIGURED';
+   if(!configured)status('Music AI is not configured in this deployment. The API key must be set in the server environment.',true);
   }catch{if(!disposed){get('[data-mai-config]').textContent='CONFIGURATION STATUS UNAVAILABLE';}}
  })();
  return()=>{

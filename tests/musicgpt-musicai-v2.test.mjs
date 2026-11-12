@@ -29,15 +29,16 @@ const mock=async(action)=>{
  }
 };
 const prompt={action:'generate',consent:true,mode:'prompt',prompt:'Cinematic trap with a 145 BPM rhythm',musicStyle:'Trap',
- model:'v7',title:'Night Drive',lyrics:'',output:'full',gender:'female',voiceId:'',generateAlbumCover:false};
+ title:'Night Drive',lyrics:'',output:'full',gender:'female',voiceId:'',generateAlbumCover:false};
 
-test('MusicAI V2 supports two-variation discovery without exposing private keys',async()=>{
+test('MusicAI v1 supports two-variation discovery without exposing private keys',async()=>{
  await mock(async()=>{
   const res=await call(null,'','GET');
   assert.equal(res.code,200);
   assert.equal(res.data.configured,true);
   assert.equal(res.data.versions,2);
-  assert.deepEqual(res.data.models,['v6','v6-pro','v7','v7-pro']);
+  assert.equal(res.data.apiVersion,'v1');
+   assert.equal(res.data.promptMaxLength,1000);
   assert.doesNotMatch(JSON.stringify(res.data),/fake-musicai-key|owner-only-test/);
   assert.equal(res.headers['cache-control'],'private, no-store, max-age=0');
  });
@@ -48,15 +49,15 @@ test('owner, same-origin and explicit credit consent gate paid MusicGPT requests
   let r=await call(prompt,'incorrect');assert.equal(r.code,403);assert.equal(r.data.error,'OWNER_AUTH_REQUIRED');
   r=await call(prompt,OWNER,'POST','https://evil.example');assert.equal(r.code,403);assert.equal(r.data.error,'CROSS_ORIGIN_BLOCKED');
   r=await call({...prompt,consent:false});assert.equal(r.code,400);assert.equal(r.data.error,'CREDIT_CONSENT_REQUIRED');
-  r=await call({...prompt,prompt:'z'.repeat(281)});assert.equal(r.code,400);
-  r=await call({...prompt,model:'unknown'});assert.equal(r.code,400);
+  r=await call({...prompt,prompt:'z'.repeat(1001)});assert.equal(r.code,400);
+  r=await call({...prompt,gender:'unknown'});assert.equal(r.code,400);
   r=await call({...prompt,output:'full;rm'});assert.equal(r.code,400);
   r=await call({...prompt,mode:'custom',lyrics:'',musicStyle:''});assert.equal(r.code,400);
   r=await call({...prompt,voiceId:'"javascript:alert(1)'});assert.equal(r.code,400);
   assert.equal(count,0);
  });
 });
-test('POST /v2/MusicAI creates exactly two IDs from a validated prompt and model',async()=>{
+test('POST /v1/MusicAI creates exactly two IDs from a validated prompt',async()=>{
  await mock(async()=>{
   const calls=[];
   global.fetch=async(url,options)=>{
@@ -70,10 +71,10 @@ test('POST /v2/MusicAI creates exactly two IDs from a validated prompt and model
   assert.equal(r.data.status,'submitted');
   assert.equal(r.data.creditEstimate,1.25);
   assert.equal(calls.length,1,'paid generate should send exactly one upstream POST');
-  assert.equal(calls[0].url,'https://api.musicgpt.com/api/public/v2/MusicAI');
+  assert.equal(calls[0].url,'https://api.musicgpt.com/api/public/v1/MusicAI');
   assert.equal(calls[0].method,'POST');
   assert.equal(calls[0].headers.Authorization,API);
-  assert.equal(calls[0].body.model,'v7');
+  assert.equal('model' in calls[0].body,false);
   assert.equal(calls[0].body.prompt,prompt.prompt);
   assert.equal(calls[0].body.make_instrumental,false);
   assert.equal(calls[0].body.vocal_only,false);
@@ -84,7 +85,7 @@ test('POST /v2/MusicAI creates exactly two IDs from a validated prompt and model
   assert.doesNotMatch(JSON.stringify(r.data),/fake-musicai-key/);
  });
 });
-test('CUSTOM LYRICS supports own lyrics, style, pro model and instrumental generation',async()=>{
+test('CUSTOM LYRICS supports own lyrics, style and instrumental generation',async()=>{
  await mock(async()=>{
   let body;
   global.fetch=async(_url,options)=>{
@@ -92,7 +93,7 @@ test('CUSTOM LYRICS supports own lyrics, style, pro model and instrumental gener
    return new Response(JSON.stringify({success:true,conversion_id_1:idA,conversion_id_2:idB}),{status:200});
   };
   const r=await call({...prompt,mode:'custom',prompt:'',musicStyle:'Dark House',lyrics:'[Verse] My original song',
-   output:'instrumental',model:'v7-pro',gender:'neutral',generateAlbumCover:true,voiceId:'licensed-voice'});
+   output:'instrumental',gender:'neutral',generateAlbumCover:true,voiceId:'licensed-voice'});
   assert.equal(r.code,200);
   assert.equal(body.prompt,'');
   assert.equal(body.music_style,'Dark House');
@@ -100,7 +101,7 @@ test('CUSTOM LYRICS supports own lyrics, style, pro model and instrumental gener
   assert.equal(body.make_instrumental,true);
   assert.equal(body.vocal_only,false);
   assert.equal(body.voice_id,'licensed-voice');
-  assert.equal(body.model,'v7-pro');
+  assert.equal('model' in body,false);
   assert.equal(body.generate_album_cover,true);
  });
 });
@@ -148,6 +149,8 @@ test('MusicAI UI mounts with two tracks and no Video to Audio code or navigation
   const cleanup=mountMusicAIV2({host});
   assert.ok(host.querySelector('[data-mai-form]'));
   assert.equal(host.querySelectorAll('[data-mai-track]').length,2);
+   assert.equal(host.querySelector('[data-mai-model]'),null);
+   assert.equal(host.querySelector('[data-mai-prompt]').getAttribute('maxlength'),'1000');
   assert.equal(host.querySelector('[data-mai-generate]').disabled,false);
   assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,11);
   assert.ok(visibleToolModules.some(x=>x.id==='ai2-musicai'));

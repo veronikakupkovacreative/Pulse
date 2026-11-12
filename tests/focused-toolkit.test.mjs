@@ -5,16 +5,16 @@ import {visibleToolModules} from '../source/modules/index.mjs';
 import {mergePreparedAudio} from '../source/modules/focused-tools.mjs';
 import {fromChannels} from '../source/modules/dsp.mjs';
 
-test('focused toolkit exposes one tool per core area and ten AI Studio tools',()=>{
+test('focused toolkit exposes one tool per core area and eleven AI Studio tools',()=>{
  const names=visibleToolModules.map(m=>m.id);
  assert.deepEqual(names,[
   'song-analyzer','music-tagger','editor','wav',
   'ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat',
-  'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai','visualizer'
+  'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai','ai2-soundgen','visualizer'
  ]);
  assert.deepEqual([...new Set(visibleToolModules.map(m=>m.category))],
   ['analyze','edit','export','ai','visuals']);
- assert.equal(visibleToolModules.filter(m=>m.category==='ai').length,10);
+ assert.equal(visibleToolModules.filter(m=>m.category==='ai').length,11);
  for(const tool of visibleToolModules)assert.equal(typeof tool.mount,'function',tool.id);
 });
 

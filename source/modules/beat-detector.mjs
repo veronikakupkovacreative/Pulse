@@ -69,6 +69,22 @@ export function buildBeatGrid(bpm,phase,duration){
   return grid;
 }
 
+/** Keep the measured onset-aligned beat positions for the detected BPM.
+ * Half/double-time corrections re-grid uniformly because onset events cannot
+ * be relabeled as different subdivisions without a new rhythm analysis.
+ */
+export function buildAnalyzerBeatGrid(result,selectedBpm,duration){
+  if(!validTempo(selectedBpm)||!Number.isFinite(duration)||duration<=0)return [];
+  const primary=Number(result?.bpm);
+  const original=Array.isArray(result?.beatTimes)?result.beatTimes:[];
+  if(Number.isFinite(primary)&&Math.abs(selectedBpm-primary)<0.015&&original.length>=2){
+    const measured=original.filter(t=>Number.isFinite(t)&&t>=0&&t<=duration).sort((a,b)=>a-b);
+    const unique=measured.filter((t,i)=>i===0||t-measured[i-1]>0.035);
+    if(unique.length>=2)return unique;
+  }
+  return buildBeatGrid(selectedBpm,Number(result?.offset)||0,duration);
+}
+
 // User-facing BPM comes from web-audio-beat-detector when supported by the onset model.
 // When strong independent onset evidence conflicts, avoid presenting a known-wrong value.
 export function mergeRhythmResults(vendor,onsets,duration){

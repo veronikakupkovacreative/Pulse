@@ -1,0 +1,424 @@
+/*
+ * PULSE / UNIFIED DESIGN SYSTEM (2026-11)
+ *
+ * Canonical reference: 04 / BEAT LAB.
+ * RED surface: #FF2B20, BLACK text/lines: #191919, WHITE only on black CTAs.
+ * The full-width #analyzer above the toolkit is intentionally NOT restyled.
+ * This file is loaded LAST after legacy module styles. Keep overrides here.
+ */
+:root{
+  --pulse-red:#ff2b20;
+  --pulse-ink:#191919;
+  --pulse-white:#fff;
+  --pulse-paper:#f5f4f0;
+  --pulse-space-1:8px;
+  --pulse-space-2:12px;
+  --pulse-space-3:16px;
+  --pulse-space-4:24px;
+  --pulse-space-5:32px;
+  --pulse-space-6:48px;
+  --pulse-font:Arial,Helvetica,sans-serif;
+  --red:var(--pulse-red);
+  --ink:var(--pulse-ink);
+  --paper:var(--pulse-paper);
+}
+
+/* A. RED CANVAS — all five toolkit categories inherit the Beat Lab surface.
+ * Dark theme is intentionally red here too. Never invert the inspector.
+ */
+.tool-settings,
+html[data-theme="dark"] .tool-settings{
+  --pulse-tool-bg:var(--pulse-red);
+  --pulse-tool-fg:var(--pulse-ink);
+  --pulse-tool-line:var(--pulse-ink);
+  color-scheme:light;
+  background:var(--pulse-red);
+  color:var(--pulse-ink);
+  font-family:var(--pulse-font);
+}
+.tool-settings #tool-panel,
+.tool-settings .tool-module-host,
+.tool-settings .tool-module-host :is(
+ .tool-view,.module-work,.ai2-panel,.ai2-switch,.ai2-switch-body,
+ .pulse-master-work,.pulse-legacy,.pulse-web-tool,.pulse-fx-panel,
+ .pulse-noise-module,.pulse-normalizer,.pulse-eq-advanced,.pulse-creative,
+ .focus-module,.focus-song-v3,.focus-editor,.pulse-workspace-actions
+){
+  color:var(--pulse-ink);
+  background:transparent;
+}
+.tool-settings .tool-module-host,
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.pulse-master-work,.focus-module){
+  min-width:0;
+}
+.tool-settings :is(.tool-view-header,.pulse-detail-label,.module-kicker,
+ .pulse-master-section-head,.pulse-master-control-head,
+ .pulse-master-table-head,.pulse-master-spectrum-head,
+ .pulse-workspace-actions-heading,.focus-song-panel-top,
+ .focus-song-kicker,.focus-song-unit,.pulse-fx-result>span){
+  color:var(--pulse-ink);
+  text-transform:uppercase;
+  font-family:var(--pulse-font);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  line-height:1.45;
+}
+.tool-settings .tool-view-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.tool-settings .tool-view-header>span:last-child{font-size:10px;font-weight:400;letter-spacing:.05em;text-align:right}
+.tool-settings #category-number,
+.tool-settings .pulse-detail-label,
+.tool-settings .pulse-master-section-head>strong{
+  color:var(--pulse-ink);
+}
+
+/* B. TYPE — headings keep sentence case, metadata and controls use uppercase. */
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.pulse-master-work,.module-work,
+ .pulse-fx-panel,.focus-module,.pulse-legacy,.pulse-web-tool) h3{
+  color:var(--pulse-ink);
+  font-family:var(--pulse-font);
+  font-size:clamp(32px,3.3vw,52px);
+  font-weight:400;
+  letter-spacing:-.05em;
+  line-height:1.06;
+  text-transform:none;
+}
+.tool-settings .tool-module-host :is(.tool-view,.ai2-panel,.pulse-master-work,.module-work,
+ .pulse-fx-panel,.focus-module,.pulse-legacy,.pulse-web-tool) h3 span{
+  color:var(--pulse-ink);
+  opacity:.72;
+}
+.tool-settings .tool-module-host :is(
+ .tool-description,.module-description,.ai2-note,.ai2-status,
+ .pulse-master-disclaimer,.pulse-master-analysis,.pulse-master-reference>p,
+ .pulse-master-assistant>p,.pulse-master-assistant-entry~p,
+ .pulse-noise-status,.pulse-noise-profile p,.pulse-noise-notice,
+ .pulse-fx-result,.pulse-legacy-status,.pulse-web-status,
+ .focus-song-v3 .tool-description,.focus-song-panel>p,.focus-song-muted,
+ .focus-status,.pulse-workspace-actions-status
+){
+  color:var(--pulse-ink);
+  text-transform:none;
+  opacity:1;
+  font-family:var(--pulse-font);
+  line-height:1.6;
+}
+.tool-settings .tool-module-host :is(.tool-description,.module-description){
+  font-size:13px;
+}
+.tool-settings .tool-module-host :is(.ai2-note,.ai2-status,.pulse-master-disclaimer,
+ .pulse-noise-status,.focus-status,.pulse-workspace-actions-status){
+  font-size:12px;
+}
+.tool-settings .tool-module-host :is(
+ .ai2-field>span,.pulse-master-field>span,.pulse-noise-field>span,
+ .pulse-master-file>span,.focus-input,.ai2-metrics>div,
+ .pulse-master-reports span,.pulse-noise-report span,
+ .focus-song-tonality span,.focus-song-grid>span,.focus-song-grid small
+){
+  color:var(--pulse-ink);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.tool-settings .tool-module-host :is(.ai2-note,.pulse-master-assistant>p,
+ .pulse-master-reference>p,.pulse-noise-profile p,.pulse-noise-notice){
+  color:var(--pulse-ink);
+  opacity:1;
+}
+.tool-settings .tool-module-host .pulse-master-auto small{
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host .pulse-master-cloud>p,
+.tool-settings .tool-module-host .pulse-master-cloud>p strong,
+.tool-settings .tool-module-host .pulse-master-assistant-entry~p{
+  color:var(--pulse-ink);
+}
+
+/* C. RED-ON-RED METRICS — no beige/gray tiles; black square outlines.
+ * Includes the Song Analyzer that is mounted inside PRODUCER TOOLKITS.
+ */
+.tool-settings .tool-module-host :is(
+ .ai2-metrics,.focus-analysis-metrics,.focus-song-summary,
+ .pulse-master-reports,.pulse-noise-report
+){background:transparent;gap:var(--pulse-space-2);border:0}
+.tool-settings .tool-module-host :is(
+ .ai2-metrics>div,.focus-analysis-metrics>div,
+ .focus-song-main,.focus-song-tonality>div,.pulse-master-reports>div,
+ .pulse-noise-report>div,.pulse-slider-card,.ai2-stem-row,
+ .pulse-master-dashboard,.pulse-master-reference,.pulse-master-assistant,
+ .pulse-master-cloud,.focus-song-panel,.focus-edit-view
+){
+  background:transparent;
+  color:var(--pulse-ink);
+  border-color:var(--pulse-ink);
+  border-radius:0;
+  box-shadow:none;
+}
+.tool-settings .tool-module-host :is(
+ .ai2-metrics>div,.focus-analysis-metrics>div,.focus-song-main,
+ .focus-song-tonality>div
+){
+  border:1px solid var(--pulse-ink);
+  min-width:0;
+  padding:var(--pulse-space-3);
+}
+.tool-settings .tool-module-host :is(
+ .ai2-metrics strong,.focus-analysis-metrics strong,
+ .focus-song-main>strong,.focus-song-tonality strong,
+ .pulse-master-reports strong,.pulse-noise-report strong,
+ .pulse-master-table-row strong,.focus-song-grid strong
+){
+  color:var(--pulse-ink);
+  font-variant-numeric:tabular-nums;
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(
+ .ai2-metrics>div,.focus-analysis-metrics>div,.focus-song-kicker,
+ .focus-song-unit,.focus-song-confidence,.focus-song-panel-top,
+ .focus-song-panel-top>span:last-child,.focus-song-muted,
+ .focus-song-v3 .focus-chord-row span,.focus-song-v3 .focus-chord-row strong,
+ .focus-song-tonality span,.focus-song-grid small,.pulse-master-table-row>span
+){color:var(--pulse-ink)}
+.tool-settings .tool-module-host .focus-song-main{min-height:190px}
+.tool-settings .tool-module-host .focus-song-tonality{background:transparent;gap:var(--pulse-space-2)}
+.tool-settings .tool-module-host .focus-song-panel{display:flex;flex-direction:column;gap:var(--pulse-space-2);border:1px solid var(--pulse-ink)}
+.tool-settings .tool-module-host .focus-song-panel-top{border-bottom-color:var(--pulse-ink)}
+.tool-settings .tool-module-host .focus-song-grid,
+.tool-settings .tool-module-host .focus-song-v3 .focus-chord-row{border-color:var(--pulse-ink)}
+.tool-settings .tool-module-host .focus-song-v3 .focus-chords{border:0}
+.tool-settings .tool-module-host .focus-song-v3 .focus-chord-row{border-bottom:1px solid var(--pulse-ink)}
+.tool-settings .tool-module-host :is(.pulse-master-spectrum-head,.pulse-master-spectrum-legend,
+ .pulse-master-table-row,.pulse-master-table-head,.pulse-master-section-head,
+ .pulse-master-control-head,.pulse-master-dashboard){
+  border-color:var(--pulse-ink);
+}
+
+/* D. INPUTS — red/black only, consistent focus/disabled treatment. */
+.tool-settings .tool-module-host :is(
+ input[type="text"],input[type="number"],input[type="url"],input[type="password"],
+ input[type="search"],input[type="email"],select,textarea
+){
+  background:transparent;
+  color:var(--pulse-ink);
+  border:1px solid var(--pulse-ink);
+  border-radius:0;
+  min-height:42px;
+  font-family:var(--pulse-font);
+  font-size:13px;
+  accent-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(input,textarea)::placeholder{
+  color:var(--pulse-ink);
+  opacity:.75;
+}
+.tool-settings .tool-module-host select option{background:var(--pulse-red);color:var(--pulse-ink)}
+.tool-settings .tool-module-host :is(input[type="checkbox"],input[type="radio"],input[type="range"]){
+  accent-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host input[type="file"]{
+  background:transparent;
+  color:var(--pulse-ink);
+  border-color:var(--pulse-ink);
+  font:400 12px/1.4 var(--pulse-font);
+  max-width:100%;
+}
+.tool-settings .tool-module-host input[type="file"]::file-selector-button{
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+  border:1px solid var(--pulse-ink);
+  border-radius:0;
+  padding:9px 12px;
+  font:700 10px/1.4 var(--pulse-font);
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.tool-settings .tool-module-host :is(button,a,input,select,textarea):focus-visible{
+  outline:2px solid var(--pulse-ink);
+  outline-offset:3px;
+}
+.tool-settings .tool-module-host :is(button,input,select):disabled{
+  opacity:.48;
+  cursor:not-allowed;
+}
+
+/* E. BUTTONS — one consistent Beat Lab style system. CTA = black/white.
+ * Outline = transparent/black. Selected = black/white.
+ */
+.tool-settings .tool-module-host button{
+  font-family:var(--pulse-font);
+  border-radius:0;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.tool-settings .tool-module-host :is(
+ .ai2-action,.module-button,.module-action.tool-action-dark,.pulse-fx-apply,
+ .pulse-master-actions button[data-master-action="render"],
+ .pulse-master-output button:first-child,.pulse-master-reference-foot button:not(:last-child),
+ .pulse-master-assistant-entry button,.pulse-workspace-actions-buttons button[data-workspace-export],
+ .pulse-noise-actions button,.pulse-noise-output button[data-noise-action="apply"],
+ .focus-song-actions .focus-action,.focus-action
+){
+  background:var(--pulse-ink);
+  border:1px solid var(--pulse-ink);
+  color:var(--pulse-white);
+  min-height:48px;
+  padding:12px 14px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.055em;
+  text-align:left;
+}
+.tool-settings .tool-module-host :is(
+ .ai2-action,.module-button,.pulse-fx-apply,
+ .pulse-master-actions button[data-master-action="render"],
+ .pulse-master-assistant-entry button,.pulse-workspace-actions-buttons button[data-workspace-export],
+ .focus-song-actions .focus-action,.focus-action
+):hover:not(:disabled){
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+  opacity:.84;
+}
+.tool-settings .tool-module-host :is(
+ .pulse-master-presets button,.pulse-master-engines button,.pulse-master-audition button,
+ .pulse-master-reference-foot button:last-child,.pulse-master-assistant-examples button,
+ .ai2-switch-buttons button,.ai2-import button,.focus-editor-modes button,
+ .focus-song-candidates button,.focus-song-tools button,.focus-song-link,
+ .pulse-fx-preset,.pulse-fx-secondary,.pulse-noise-presets button,
+ .pulse-noise-ab button,.pulse-noise-profile-actions button,.eq-preset-pills button,
+ .eq-genre-presets button,.ai2-stem-results button,.pulse-master-actions button[data-master-action="analyze"],
+ .pulse-workspace-actions-buttons button[data-workspace-preview]
+){
+  border:1px solid var(--pulse-ink);
+  background:transparent;
+  color:var(--pulse-ink);
+  min-height:40px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.045em;
+}
+.tool-settings .tool-module-host :is(
+ .pulse-master-presets button,.pulse-master-engines button,.pulse-master-audition button,
+ .pulse-master-assistant-examples button,.ai2-switch-buttons button,.focus-editor-modes button,
+ .focus-song-candidates button,.focus-song-tools button,.pulse-fx-preset,
+ .pulse-noise-presets button,.pulse-noise-ab button,.eq-preset-pills button,
+ .eq-genre-presets button
+)[aria-pressed="true"],
+.tool-settings .tool-module-host :is(
+ .ai2-switch-buttons button,.focus-editor-modes button,.pulse-master-presets button
+).selected{
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+  border-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(
+ .pulse-master-presets button,.pulse-master-engines button,.pulse-master-audition button,
+ .pulse-master-assistant-examples button,.ai2-switch-buttons button,.focus-editor-modes button,
+ .focus-song-candidates button,.focus-song-tools button,.pulse-fx-preset,
+ .pulse-noise-presets button,.pulse-noise-ab button,.eq-preset-pills button,
+ .eq-genre-presets button
+):hover:not(:disabled):not([aria-pressed="true"]){
+  background:var(--pulse-ink);
+  border-color:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host :is(
+ .pulse-master-auto,.pulse-master-table-head,.pulse-master-band,.pulse-master-spectrum-legend span::before
+){border-color:var(--pulse-ink)}
+.tool-settings .tool-module-host :is(
+ .pulse-master-auto,.pulse-master-table-head
+){background:var(--pulse-ink);color:var(--pulse-white)}
+.tool-settings .tool-module-host :is(.pulse-master-auto span,.pulse-master-auto small,
+ .pulse-master-table-head span){color:var(--pulse-white)}
+.tool-settings .tool-module-host .pulse-master-band{background:var(--pulse-ink)}
+.tool-settings .tool-module-host .pulse-master-spectrum-legend span::before{background:var(--pulse-ink)}
+.tool-settings .tool-module-host :is(
+ .pulse-master-section-head>span,.pulse-master-control-head>span:last-child,
+ .pulse-master-spectrum-head>span,.pulse-noise-report span,.pulse-fx-result span
+){color:var(--pulse-ink)}
+
+/* F. STATUS, DIVIDERS AND WORKSPACE ACTIONS — black lines on red. */
+.tool-settings .tool-module-host :is(
+ .ai2-status,.pulse-master-status,.pulse-noise-status,.pulse-legacy-status,
+ .focus-status,.pulse-workspace-actions-status,.pulse-noise-notice,
+ .pulse-master-disclaimer
+){
+  color:var(--pulse-ink);
+  border-color:var(--pulse-ink);
+  font-size:12px;
+  line-height:1.6;
+}
+.tool-settings .tool-module-host :is(
+ .ai2-status[data-error="true"],.pulse-master-status[data-error="true"],
+ .pulse-noise-status[data-error="true"],.focus-status[data-error="true"],
+ .pulse-workspace-actions-status[data-error="true"]
+){color:var(--pulse-ink);font-weight:700}
+.tool-settings .tool-module-host .pulse-workspace-actions{background:transparent;color:var(--pulse-ink)}
+.tool-settings .tool-module-host .pulse-workspace-actions :is(p,span){color:var(--pulse-ink)}
+.tool-settings .tool-module-host .pulse-workspace-actions-buttons button[data-workspace-export] span{
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host .pulse-workspace-actions :is(.pulse-workspace-actions-heading,
+ .pulse-workspace-actions-status){border-color:var(--pulse-ink)}
+
+/* G. EXCEPTION: BLACK audio graphs need white labels for actual visibility.
+ * The reference style already has dark waveforms/FFT canvases; keep them.
+ */
+.tool-settings .tool-module-host :is(.pulse-eq-live,.pulse-eq-left,.pulse-eq-stage,
+ .pulse-eq-graph,.audio-source-area,.pulse-fx-graph){
+  --pulse-tool-fg:var(--pulse-white);
+}
+.tool-settings .tool-module-host :is(.pulse-eq-live,.pulse-eq-left){
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host :is(.pulse-eq-live,.pulse-eq-left) :is(
+ .eq-left-heading,.eq-left-heading strong,.eq-left-heading span,.pulse-eq-feedback,
+ .pulse-eq-editor-note,.eq-graph-grid text
+){color:var(--pulse-white)}
+.tool-settings .tool-module-host .pulse-eq-stage{
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host .pulse-eq-live :is(.eq-band-switch button){
+  color:var(--pulse-white);
+  border-color:var(--pulse-white);
+}
+.tool-settings .tool-module-host .pulse-eq-live .eq-band-switch button[aria-pressed="true"]{
+  color:var(--pulse-ink);
+  background:var(--pulse-white);
+}
+.tool-settings .tool-module-host .pulse-eq-live .eq-graph-grid text{fill:var(--pulse-white)}
+
+/* H. GRID / RESPONSIVE / ACCESSIBILITY */
+.tool-settings .tool-module-host :is(
+ .ai2-panel,.pulse-master-work,.focus-module,.pulse-legacy,.pulse-web-tool
+){
+  font-family:var(--pulse-font);
+}
+.tool-settings .tool-module-host .ai2-panel{gap:var(--pulse-space-3)}
+.tool-settings .tool-module-host .ai2-actions{gap:var(--pulse-space-2)}
+.tool-settings .tool-module-host .ai2-metrics{gap:var(--pulse-space-2)}
+.tool-settings .tool-module-host :is(.pulse-master-reference,.pulse-master-assistant,
+ .focus-song-panel){padding:var(--pulse-space-3)}
+.tool-settings .tool-module-host :is(.pulse-master-actions,.pulse-master-fields,
+ .pulse-fx-controls,.ai2-fields){column-gap:var(--pulse-space-2);row-gap:var(--pulse-space-2)}
+.tool-settings .tool-module-host :is(.pulse-master-audition,.pulse-master-reference-foot,
+ .pulse-master-assistant-entry,.pulse-master-section-head){gap:var(--pulse-space-2)}
+@media(max-width:700px){
+ .tool-settings .tool-module-host .focus-song-summary{grid-template-columns:1fr}
+ .tool-settings .tool-module-host .focus-song-tonality{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tool-settings .tool-module-host :is(.ai2-actions,.pulse-master-actions,.pulse-master-assistant-entry){grid-template-columns:1fr}
+ .tool-settings .tool-module-host :is(.pulse-master-presets,.pulse-fx-presets){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:440px){
+ .tool-settings{padding:20px}
+ .tool-settings .tool-module-host :is(.ai2-fields,.pulse-master-fields,.ai2-metrics){grid-template-columns:1fr}
+ .tool-settings .tool-module-host .pulse-master-table-head,
+ .tool-settings .tool-module-host .pulse-master-table-row{grid-template-columns:minmax(60px,1.2fr) repeat(3,minmax(42px,1fr));gap:2px;padding:8px 4px}
+ .tool-settings .tool-module-host .pulse-master-table-row strong{font-size:10px}
+ .tool-settings .tool-module-host .focus-song-tonality{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+ .tool-settings .tool-module-host *{animation-duration:0s!important;transition-duration:0s!important}
+}

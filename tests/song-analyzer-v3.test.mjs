@@ -47,7 +47,7 @@ test('focused Song Analyzer shares tempo and harmony worker, provides candidates
  const ui=read('focused-tools.mjs'),css=read('focused-tools.css');
  assert.match(ui,/analyzeHarmonyInWorker/);
  assert.match(ui,/analyzeRhythmInWorker/);
- assert.match(ui,/buildBeatGrid/);
+ assert.match(ui,/buildAnalyzerBeatGrid/);
  assert.match(ui,/data-focus-candidates/);
  assert.match(ui,/data-focus-tempo="half"/);
  assert.match(ui,/data-focus-tempo="double"/);

@@ -182,7 +182,7 @@ export function mountMusicGPTMasteringCloud({host,workspace,getReference,onResul
      const a=document.createElement('a');a.href=reply.audioUrl;a.target='_blank';a.rel='noopener noreferrer';
      a.textContent='OPEN / DOWNLOAD MASTERED AUDIO ↗';
      out.append(player,a);out.hidden=false;
-     const imported=await onResult?.(reply.audioUrl,ac.signal);
+     const imported=await onResult?.(reply.audioUrl,ac.signal,{sourceMethod:sourceMethod.value,previewSeconds:MAX_SECONDS});
      if(disposed||requestId!==revision||ac.signal.aborted)return;
      status(imported?'MusicGPT master ready for A/B, APPLY and local WAV export.':
       'MusicGPT master ready to play or download. Browser cross-origin restrictions may prevent importing it for A/B.');

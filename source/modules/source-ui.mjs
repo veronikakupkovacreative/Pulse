@@ -16,7 +16,7 @@ if(area){
  const ruler=document.createElement('div');ruler.className='pulse-source-ruler';ruler.id='source-ruler';canvas.before(ruler);
  const help=document.createElement('p');help.className='pulse-source-help';help.textContent='Click or drag to seek · I/O loop · L toggle · +/− zoom · Arrows ±1 s, Shift ±5 s.';canvas.after(help);
  const meta=document.createElement('p');meta.className='pulse-source-loopline';meta.id='source-loopline';help.after(meta);
- const reuse=document.createElement('button');reuse.className='pulse-source-reuse';reuse.textContent='Use track from Rhythm Engine ↗';document.getElementById('audio-controls')?.after(reuse);area.append(reuse);
+ const reuse=document.createElement('button');reuse.className='pulse-source-reuse';reuse.textContent='Use track from Song Analyzer ↗';document.getElementById('audio-controls')?.after(reuse);area.append(reuse);
  const transport=document.querySelector('.audio-controls');if(transport)transport.append(replace);
  const reset=document.createElement('button');reset.className='pulse-source-reset';reset.textContent='Reset to Original';document.getElementById('audio-redo')?.after(reset);
  let loop=false,snap=false,zoom=1,view=0,tempo=122.7,offset=0,meter=4;

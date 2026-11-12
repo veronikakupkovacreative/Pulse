@@ -32,7 +32,7 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
  note.parentNode.insertBefore(section,note);
  const $=selector=>section.querySelector(selector);
  let disposed=false,busy=false,configured=false,format='mp3',controller=null,
-  jobId=null,ownerCode='';
+  jobId=null,ownerCode='',finished=false;
  const start=$('[data-yt-start]'),cancel=$('[data-yt-cancel]'),
   code=$('[data-yt-access]'),rights=$('[data-yt-rights]'),
   video=host.querySelector('[data-video-url]'),progress=$('[data-yt-progress]'),
@@ -89,7 +89,7 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
    if(!configured)throw Error('Download worker is not configured.');
    if(!rights.checked)throw Error('Confirm permission to download this video.');
    const parsed=parseYouTubeLink(video.value.trim());
-   busy=true;update();jobId=null;ownerCode=access;download.hidden=true;download.removeAttribute('href');
+   busy=true;update();jobId=null;finished=false;ownerCode=access;download.hidden=true;download.removeAttribute('href');
    setPercent(0);status('Submitting YouTube download…');
    const active=new AbortController();controller=active;
    const created=await youtubeJobRequest(access,{
@@ -106,7 +106,7 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
    download.href=done.downloadUrl;
    download.textContent='DOWNLOAD '+format.toUpperCase()+
     (done.bytes?' · '+(done.bytes/1048576).toFixed(1)+' MB':'')+' ↗';
-   download.hidden=false;
+   download.hidden=false;finished=true;
    setPercent(100);
    status('Your '+format.toUpperCase()+' is ready. The download link expires after about 15 minutes.');
   }catch(error){
@@ -127,7 +127,7 @@ export function mountYouTubeControls({host,parseYouTubeLink}){
  return()=>{
   disposed=true;
   controller?.abort();
-  if(jobId&&ownerCode)void youtubeJobRequest(ownerCode,{action:'cancel',id:jobId}).catch(()=>{});
+  if(jobId&&ownerCode&&!finished)void youtubeJobRequest(ownerCode,{action:'cancel',id:jobId}).catch(()=>{});
   section.remove();
  };
 }

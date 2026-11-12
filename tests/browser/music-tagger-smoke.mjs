@@ -111,9 +111,9 @@ async function main(){
   await runtimePage.close();
   console.log('PASS: real Transformers.js ESM runtime imports and exposes the local pipeline.');
 
-  const voiceCalls=[];
+  const voiceCalls=[],voicePayloads=[];
   await page.route('**/api/pulse-musicgpt',route=>{
-   const payload=route.request().postDataJSON();voiceCalls.push(payload.action);
+   const payload=route.request().postDataJSON();voiceCalls.push(payload.action);voicePayloads.push(payload);
    const reply=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
    if(payload.action==='voices')return reply({voices:[{id:'e0bb585f-b798-4bac-ac4e-de7fff38f9d75',label:'Licensed QA voice'}]});
    if(payload.action==='submit')return reply({status:'submitted',conversionId:'e3631817-165d-4f17-a7e2-7008d200ff3e'});
@@ -126,6 +126,7 @@ async function main(){
   assert.match(await page.locator('[data-voice-status]').innerText(),/authorization and consent/i);
   assert.deepEqual(voiceCalls,[]);
   await page.locator('[data-voice-token]').fill('qa-owner');
+  await page.locator('[data-voice-search]').fill('licensed');
   await page.locator('[data-voice-action="voices"]').click();
   await page.waitForFunction(()=>document.querySelector('[data-voice-list]')?.options?.length===2);
   await page.locator('[data-voice-list]').selectOption('e0bb585f-b798-4bac-ac4e-de7fff38f9d75');
@@ -133,7 +134,22 @@ async function main(){
   await page.locator('[data-voice-action="submit"]').click();
   await page.waitForFunction(()=>document.querySelector('[data-voice-status]')?.textContent?.includes('Voice conversion complete'),{timeout:15000});
   assert.deepEqual(voiceCalls,['voices','submit','result']);
-  console.log('PASS: independent MusicGPT Vocal Studio still functions.');
+  assert.equal(voicePayloads[0].query,'licensed');
+  assert.equal(voicePayloads[1].pitch,0);
+  assert.equal(voicePayloads[1].consent,true);
+  assert.equal(voicePayloads[1].authorizedVoice,true);
+  const voiceWav=Buffer.from(voicePayloads[1].file.base64,'base64');
+  assert.equal(voiceWav.toString('ascii',0,4),'RIFF');
+  assert.ok(voiceWav.byteLength<2400000);
+  assert.equal(await page.locator('[data-voice-action="submit"]').innerText(),'CONVERT AGAIN ↗');
+  await page.locator('[data-voice-pitch]').fill('3');
+  await page.locator('[data-voice-pitch]').press('Tab');
+  assert.equal(await page.locator('[data-voice-output]').isVisible(),false,'Changed parameters must invalidate the old result.');
+  await page.locator('[data-voice-action="submit"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-voice-status]')?.textContent?.includes('Voice conversion complete'),{timeout:15000});
+  assert.deepEqual(voiceCalls,['voices','submit','result','submit','result']);
+  assert.equal(voicePayloads[3].pitch,3);
+  console.log('PASS: MusicGPT search, consent, audio upload, result and rerun after pitch change without stale job reuse.');
   assert.ok(!errors.some(e=>/music.tagger|musicgpt|Worker|Module not found/i.test(e)),errors.join('; '));
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 }

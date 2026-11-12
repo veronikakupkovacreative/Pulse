@@ -36,8 +36,8 @@ function mountTool({host},mode){
  ];
  host.innerHTML='<section class="tool-view ai2-panel ai2-local-stereo">'+
   '<div class="tool-view-header"><span>04 / '+title+'</span><span>LOCAL DSP / WEB WORKER</span></div>'+
-  (stereo?'<h3>Shape the space.<span>Control the low end.</span></h3>':
-   '<h3>Double the voice.<span>Keep it human.</span></h3>')+
+  (stereo?'<h3>Shape the space.<br><span>Control the low end.</span></h3>':
+   '<h3>Double the voice.<br><span>Keep it human.</span></h3>')+
   '<p class="tool-description">'+description+'</p>'+
   '<div class="ai2-switch-buttons ai2-local-presets" role="group" aria-label="'+title+' presets">'+
     presets.map(([id,label],i)=>'<button type="button" data-stereo-preset="'+id+'" aria-pressed="'+(i===0)+'">'+label+'</button>').join('')+'</div>'+

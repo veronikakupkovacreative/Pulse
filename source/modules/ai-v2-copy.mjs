@@ -12,9 +12,9 @@ const data=Object.freeze({
   benefits:[['MID/SIDE CONTROL','Control stereo width while monitoring correlation and mono compatibility.'],['BASS MONO','Centre low frequencies below an adjustable crossover.'],['REAL LOCAL DSP','Offline audio processing in a Worker with peak protection.']]},
  'ai2-vocals':{
   title:['Refine the voice','Create natural doubles'],
-  summary:'Choose local Vocal Enhance (EQ, de-essing and compression) or Vocal Doubler (modulated stereo micro-delays). Neither mode uploads audio or claims neural voice isolation.',
-  steps:['Load a vocal recording in SOURCE AUDIO.','Choose VOCAL ENHANCE or VOCAL DOUBLER and adjust the settings.','Render locally, listen to the stereo result and use Undo if needed.'],
-  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['PRIVATE BY DEFAULT','All vocal processing stays in your browser.'] ]},
+  summary:'Choose local Vocal Enhance, local Vocal Doubler, or optional MusicGPT AI Voice Changer. Only AI Voice Changer uploads a short authorized vocal excerpt after explicit consent; local DSP remains private.',
+  steps:['Load a vocal into SOURCE AUDIO or choose an optional short file.','Choose local ENHANCE/DOUBLER, or MusicGPT AI VOICE CHANGER with an authorized voice ID and consent.','Process the vocal, listen to the result and download it. Local DSP is reversible with Undo.'],
+  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['LOCAL OR CLOUD','Enhance and Doubler are local. MusicGPT AI Voice Changer is owner-authorized cloud processing.'] ]},
  'ai2-beat':{
   title:['Read the rhythm','Find the groove'],
   summary:'Estimate tempo and beat markers without freezing the UI, create a four-bar region and export a ready-to-use loop.',

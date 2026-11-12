@@ -43,11 +43,27 @@ async function main(){
   const errors=[],network=[];
   page.on('pageerror',error=>errors.push(error.message));
   page.on('response',response=>{if(response.status()>=400&&response.url().includes('music-tagger'))network.push(response.status()+' '+response.url());});
-  let cloudCalls=0,cloudPayload=null;
+  let cloudCalls=0,cloudPayload=null,cloudMode='unconfigured',cloudActions=[];
   await page.route('**/api/pulse-tags',route=>{
    cloudCalls++;
-   if(route.request().method()==='POST')cloudPayload=route.request().postDataJSON();
-   return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'AUDIAL_NOT_CONFIGURED'})});
+   const payload=route.request().method()==='POST'?route.request().postDataJSON():null;
+   if(payload){cloudPayload=payload;cloudActions.push(payload.action);}
+   const reply=(status,data)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
+   if(cloudMode==='unconfigured')return reply(503,{error:'AUDIAL_NOT_CONFIGURED'});
+   if(payload?.action==='start')return reply(200,{analysisExeId:'exe_test123456',status:'segmentation_requested'});
+   if(payload?.action==='tag')return reply(200,{analysisExeId:'exe_test123456',status:'tagging_requested'});
+   if(payload?.action==='result')return reply(200,{
+    analysisExeId:'exe_test123456',status:'complete',
+    tags:{genre:['UK Garage','Tech House'],description:'A test track driven by rhythm and synthesis.',
+      song_tags:{
+       full:{moods:['energetic'],instruments:['synth bass','drum machine']},
+       drums:{moods:['punchy'],instruments:['drum machine']},
+       bass:{moods:['dark'],instruments:['808 bass']},
+       melody:{moods:['dreamy'],instruments:['synthesizer']},
+       vocals:{silent:true,moods:[],instruments:[]}
+      }}
+   });
+   return reply(400,{error:'INVALID_ACTION'});
   });
   await page.goto(url,{waitUntil:'domcontentloaded'});
   await page.locator('[data-tool="music-tagger"]').waitFor({timeout:12000});
@@ -89,26 +105,45 @@ async function main(){
   assert.equal(cloudCalls,0);
   console.log('PASS: replacement source invalidates old analysis and Worker measures a new tone.');
 
-  // Cloud consent must prevent unwanted network requests.
-  await page.locator('.pulse-tagger-cloud summary').click();
-  await page.locator('[data-tag-action="cloud-start"]').click();
+  // All model classifications remain within PULSE, never navigate to provider website.
+  await page.locator('[data-tag-action="cloud-run"]').click();
   assert.match(await page.locator('[data-cloud-status]').innerText(),/consent/i);
-  assert.equal(cloudCalls,0);
-  console.log('PASS: cloud tag submission is gated by explicit consent.');
-
+  assert.equal(cloudCalls,0,'No explicit consent means zero requests.');
   await page.locator('[data-tag-token]').fill('qa-owner-token');
   await page.locator('[data-tag-consent]').check();
-  await page.locator('[data-tag-action="cloud-start"]').click();
-  await page.waitForFunction(()=>document.querySelector('[data-cloud-status]')?.textContent?.includes('AUDIAL_NOT_CONFIGURED'));
+  await page.locator('[data-tag-action="cloud-run"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-cloud-status]')?.textContent?.includes('not configured'),{timeout:15000});
   assert.equal(cloudCalls,1);
   assert.equal(cloudPayload.action,'start');
   assert.equal(cloudPayload.consent,true);
   assert.equal(cloudPayload.file.name,'pulse-excerpt.wav');
   const uploadedBytes=Buffer.from(cloudPayload.file.base64,'base64');
   assert.equal(uploadedBytes.toString('ascii',0,4),'RIFF');
-  assert.equal(uploadedBytes.readUInt32LE(24),44100,'Use the effective browser AudioContext sample rate (decoded WAV may have been resampled)');
+  assert.equal(uploadedBytes.readUInt32LE(24),44100);
   assert.ok(uploadedBytes.length<2500000);
-  console.log('PASS: explicit consent prepares a bounded valid WAV excerpt from SOURCE AUDIO, without a second file upload.');
+  console.log('PASS: cloud upload occurs only after consent and uses a bounded valid excerpt from SOURCE AUDIO.');
+
+  cloudMode='success';cloudActions=[];
+  await page.locator('[data-tag-action="cloud-run"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-cloud-status]')?.textContent?.includes('AI tags ready'),{timeout:15000});
+  assert.deepEqual(cloudActions,['start','tag','result']);
+  assert.equal(await page.locator('[data-cloud-results]').isVisible(),true);
+  const rendered=await page.locator('[data-cloud-results]').innerText();
+  for(const label of ['GENRES','UK Garage','Tech House','MOODS','energetic','INSTRUMENTS','808 bass','FULL MIX','DRUMS','BASS','MELODY','VOCALS'])
+   assert.ok(rendered.includes(label),'Missing in-PULSE model tags: '+label);
+  assert.match(rendered,/No audible vocals detected/);
+  const cloudDownloadEvent=page.waitForEvent('download');
+  await page.locator('[data-tag-action="download"]').click();
+  const cloudDownload=await cloudDownloadEvent;
+  const cloudReport=JSON.parse(await readFile(await cloudDownload.path(),'utf8'));
+  assert.deepEqual(cloudReport.ai.genre,['UK Garage','Tech House']);
+  assert.equal(cloudReport.ai.song_tags.vocals.silent,true);
+  const startCount=cloudActions.filter(x=>x==='start').length;
+  await page.locator('[data-tag-action="cloud-run"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-cloud-status]')?.textContent?.includes('AI tags ready'),{timeout:15000});
+  assert.equal(cloudActions.filter(x=>x==='start').length,startCount,'Already processed job should resume without an extra upload.');
+  assert.equal(new URL(page.url()).origin,new URL(url).origin,'AI tagging must not redirect outside PULSE');
+  console.log('PASS: automatic AI genre/mood/instrument tagging completes in-page, shows all five stem groups, supports JSON export and resumable polling.');
 
   await page.screenshot({path:'test-results/music-tagger-desktop.png',fullPage:true});
   const mobile=await browser.newPage({viewport:{width:375,height:812},deviceScaleFactor:1});

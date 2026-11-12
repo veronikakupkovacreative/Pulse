@@ -1,5 +1,6 @@
 /** Three truthful, tool-specific reasons, updated from the active PULSE module. */
 export const TOOL_BENEFITS=Object.freeze({
+  'song-analyzer':[['COMPLETE TRACK CONTEXT','View estimated BPM, key, Camelot and a basic chord timeline in one inspector.'],['ONE SHARED WORKSPACE','Beat positions appear in the same audio waveform used by the editor.'],['LOCAL ANALYSIS','Signal analysis runs in the browser; estimates should be checked by ear.']],
   rhythm:[['TEMPO + BEAT GRID','Estimate BPM and place beat markers in the same analysis pass.'],['HALF / DOUBLE CONTEXT','Review rhythmic interpretations before applying tempo to the workspace.'],['BACKGROUND PROCESSING','Run the analysis in a Web Worker while the main interface stays responsive.']],
   key:[['HARMONIC START','Estimate the track key without exporting it to another application.'],['CAMELOT REFERENCE','Use the wheel notation to plan a harmonically compatible transition.'],['QUICK CROSS-CHECK','See a confidence indicator and verify complex chords by ear.']],
   tap:[['NO FILE REQUIRED','Tap along with any playing beat to estimate tempo.'],['INSTANT FEEDBACK','Read the calculated BPM as your tapping becomes more consistent.'],['MANUAL CONTROL','Confirm a difficult rhythm without automatic onset detection.']],

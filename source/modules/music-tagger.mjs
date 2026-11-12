@@ -14,6 +14,42 @@ export const chooseTaggingWindow=(duration,selection,maxSeconds=60)=>{
  const start=from+(to-from-time)/2;
  return {start,end:start+time};
 };
+
+/** Encode up to 20 seconds from the already-decoded SOURCE AUDIO into a small
+ * mono 44.1 kHz PCM16 WAV. This function does not upload anything.
+ * A 20-second excerpt is ~1.76 MB (well under the Audial gateway's 2.5 MB limit).
+ */
+export function makeCloudTaggingExcerpt(audio,{selection=null,maxSeconds=20}={}){
+ if(!audio||!Number.isFinite(audio.sampleRate)||!Number.isInteger(audio.length)||
+  audio.length<1||audio.numberOfChannels<1||audio.numberOfChannels>2)
+  throw Error('Load a valid mono/stereo track into SOURCE AUDIO.');
+ const window=chooseTaggingWindow(audio.duration||audio.length/audio.sampleRate,selection,maxSeconds);
+ const seconds=window.end-window.start;
+ if(seconds<6)throw Error('Cloud tagging needs at least six seconds. Choose a longer section.');
+ const targetRate=Math.min(44100,Math.round(audio.sampleRate));
+ const frames=Math.floor(seconds*targetRate),bytes=new Uint8Array(44+frames*2);
+ if(bytes.length>2500000)throw Error('Cloud excerpt exceeds the upload size limit.');
+ const view=new DataView(bytes.buffer);
+ const word=(at,value)=>{for(let i=0;i<value.length;i++)bytes[at+i]=value.charCodeAt(i);};
+ word(0,'RIFF');view.setUint32(4,bytes.length-8,true);word(8,'WAVE');word(12,'fmt ');
+ view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
+ view.setUint32(24,targetRate,true);view.setUint32(28,targetRate*2,true);
+ view.setUint16(32,2,true);view.setUint16(34,16,true);
+ word(36,'data');view.setUint32(40,frames*2,true);
+ const channels=Array.from({length:audio.numberOfChannels},(_,index)=>audio.getChannelData(index));
+ for(let i=0;i<frames;i++){
+  const position=(window.start+i/targetRate)*audio.sampleRate,lo=Math.min(audio.length-1,Math.floor(position));
+  const hi=Math.min(audio.length-1,lo+1),fraction=position-lo;
+  let sample=0;
+  for(const channel of channels)sample+=(channel[lo]*(1-fraction)+channel[hi]*fraction)/channels.length;
+  sample=Math.max(-1,Math.min(1,Number.isFinite(sample)?sample:0));
+  view.setInt16(44+i*2,Math.round(sample<0?sample*32768:sample*32767),true);
+ }
+ let base64='';
+ for(let i=0;i<bytes.length;i+=8192)base64+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ return {file:{name:'pulse-excerpt.wav',base64:btoa(base64)},window};
+}
+
 function saveJson(name,data){
  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
@@ -30,22 +66,22 @@ function mountMusicTagger({host}){
  '<p class="focus-status" role="status" aria-live="polite" data-tag-status>Load an audio track in SOURCE AUDIO. Shift-drag the waveform to analyze a selected passage (up to 60 seconds).</p>'+
  '<div data-tag-results aria-label="Measured acoustic descriptors" hidden></div>'+
  '<details class="pulse-tagger-cloud"><summary>OPTIONAL / AI GENRE, MOOD & INSTRUMENT TAGGING</summary>'+
- '<p>Audial runs an external cloud model and can classify the full mix, drums, bass, melody and vocals. PULSE never uploads audio when you choose local analysis. Cloud preview accepts the original file only, up to 2.5 MB. Audial subscription and owner credentials are required.</p>'+
+ '<p>Audial runs an external cloud model for genres, moods and instruments. After explicit consent, PULSE can send a maximum 20-second mono WAV excerpt from your loaded SOURCE AUDIO (not the entire file). You can optionally select a different short file below. Audial subscription and owner credentials are required.</p>'+
  '<label>OWNER ACCESS TOKEN <input type="password" data-tag-token autocomplete="off" placeholder="Token configured on your Vercel server"></label>'+
- '<label>SHORT TRACK FILE <input type="file" accept=".mp3,.wav,.m4a,.aac,.flac,.ogg,audio/*" data-tag-file></label>'+
- '<label class="pulse-tagger-consent"><input type="checkbox" data-tag-consent> I agree to send this selected file to Audial servers for music tagging.</label>'+
+ '<label>OPTIONAL / DIFFERENT SHORT AUDIO FILE <input type="file" accept=".mp3,.wav,.m4a,.aac,.flac,.ogg,audio/*" data-tag-file></label>'+
+ '<label class="pulse-tagger-consent"><input type="checkbox" data-tag-consent> I consent to send an audio excerpt (or the optional selected file) to Audial servers for music tagging.</label>'+
  '<div class="pulse-tagger-cloud-buttons"><button type="button" data-tag-action="cloud-start">1 / SEND TO AUDIAL</button>'+
  '<button type="button" data-tag-action="cloud-tag" disabled>2 / GENERATE TAGS</button>'+
  '<button type="button" data-tag-action="cloud-result" disabled>3 / FETCH RESULTS</button></div>'+
  '<p class="focus-status" data-cloud-status role="status" aria-live="polite">Cloud mode is optional and disabled until you authorize it.</p>'+
  '<div data-cloud-results hidden></div></details></section>';
- let dead=false,worker=null,local=null,remote=null,busy=false,analysisId=null,revision=0;
+ let dead=false,worker=null,local=null,remote=null,busy=false,analysisId=null,revision=0,cloudOrigin=null;
  const $=(q)=>host.querySelector(q),status=(text,error=false)=>{const el=$('[data-tag-status]');el.textContent=text;el.dataset.error=String(error);};
  const cloudStatus=(text,error=false)=>{const el=$('[data-cloud-status]');el.textContent=text;el.dataset.error=String(error);};
  const download=$('[data-tag-action="download"]');
  const abort=()=>{worker?.terminate();worker=null;};
  const refreshDownload=()=>{download.disabled=!local&&!remote;};
- const clear=()=>{revision++;abort();busy=false;$('[data-tag-action="local"]').disabled=false;$('[data-tag-action="cloud-start"]').disabled=false;local=null;remote=null;analysisId=null;refreshDownload();$('[data-tag-results]').hidden=true;$('[data-cloud-results]').hidden=true;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=true;};
+ const clear=()=>{revision++;abort();busy=false;$('[data-tag-action="local"]').disabled=false;$('[data-tag-action="cloud-start"]').disabled=false;local=null;remote=null;analysisId=null;cloudOrigin=null;refreshDownload();$('[data-tag-results]').hidden=true;$('[data-cloud-results]').hidden=true;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=true;};
  function renderLocal(result){
   const out=$('[data-tag-results]');out.replaceChildren();out.hidden=false;
   if(result.silent){out.textContent='No audible signal detected in this section.';return;}
@@ -109,11 +145,20 @@ function mountMusicTagger({host}){
   if(!token)return cloudStatus('Enter owner access token.',true);
   const payload={action,consent:true};
   if(action==='start'){
-   const file=$('[data-tag-file]').files?.[0];if(!file)return cloudStatus('Choose a short audio file for cloud analysis.',true);
-   if(file.size>2500000)return cloudStatus('Cloud preview supports files up to 2.5 MB. Export a compressed short clip first.',true);
-   const bytes=new Uint8Array(await file.arrayBuffer());
-   let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-   payload.file={name:file.name,base64:btoa(binary)};
+   const file=$('[data-tag-file]').files?.[0];
+   try{
+    if(file){
+     if(file.size>2500000)throw Error('Optional cloud input exceeds 2.5 MB. Choose a shorter file.');
+     const bytes=new Uint8Array(await file.arrayBuffer());
+     let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+     payload.file={name:file.name,base64:btoa(binary)};
+     cloudOrigin={kind:'optional-file',name:file.name};
+    }else{
+     const source=w.ensureAudio(),excerpt=makeCloudTaggingExcerpt(source,{selection:w.selection});
+     payload.file=excerpt.file;
+     cloudOrigin={kind:'source-excerpt',start:excerpt.window.start,end:excerpt.window.end};
+    }
+   }catch(error){return cloudStatus(error.message||'Cannot prepare cloud excerpt.',true);}
    if(dead||revision!==at)return;
   }else{if(!analysisId)return cloudStatus('Request segmentation before fetching tags.',true);payload.analysisExeId=analysisId;}
   busy=true;
@@ -126,7 +171,7 @@ function mountMusicTagger({host}){
    analysisId=data.analysisExeId||analysisId;
    if(action==='start'){remote=null;cloudStatus('Audial accepted the track. Select GENERATE TAGS. It may take time for stems to become ready.');}
    else if(action==='tag')cloudStatus('Tag request accepted. Select FETCH RESULTS. If still processing, repeat the action later.');
-   else if(data.status==='complete'&&data.tags){remote={...data.tags,provider:'Audial'};renderRemote(remote);refreshDownload();cloudStatus('Audial tags received. Genres, moods and instruments are model estimates.');}
+   else if(data.status==='complete'&&data.tags){remote={...data.tags,provider:'Audial',audioInput:cloudOrigin};renderRemote(remote);refreshDownload();cloudStatus('Audial tags received. Genres, moods and instruments are model estimates.');}
    else cloudStatus('Audial is still processing. Select FETCH RESULTS again later.');
   }catch(error){if(!dead&&revision===at)cloudStatus(error.message||'Cloud tagging failed.',true);}
   finally{if(revision===at){busy=false;if(!dead){$('[data-tag-action="cloud-start"]').disabled=false;for(const a of ['cloud-tag','cloud-result'])$('[data-tag-action="'+a+'"]').disabled=!analysisId;}}}

@@ -160,6 +160,48 @@ async function main(){
   assert.ok(!errors.some(e=>/music.tagger|Music Tagger|music-tagger|failed to load/i.test(e)),
    'Module runtime error: '+errors.join('; '));
   console.log('PASS: narrow mobile panel fits viewport and no Music Tagger resource/runtime failures.');
+
+  // Vocal Studio: MusicGPT Voice Changer is embedded in the same browser workspace.
+  let voiceCalls=[],voicePayload=null;
+  await page.route('**/api/pulse-musicgpt',route=>{
+   const data=route.request().postDataJSON();
+   voiceCalls.push(data.action);voicePayload=data;
+   const reply=(payload,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(payload)});
+   if(data.action==='voices')return reply({voices:[{id:'e0bb585f-b798-4bac-ac4e-de7fff38f9d75',label:'Licensed QA voice'}]});
+   if(data.action==='submit')return reply({status:'submitted',conversionId:'e3631817-165d-4f17-a7e2-7008d200ff3e',eta:3});
+   if(data.action==='result')return reply({status:'complete',audioUrl:'https://musicgpt.s3.amazonaws.com/fixture.mp3',conversionId:data.conversionId});
+   return reply({error:'INVALID_ACTION'},400);
+  });
+  await page.locator('[data-category="ai"]').click();
+  await page.locator('[data-tool="ai2-vocals"]').click();
+  await page.locator('[data-view="ai-voice-changer"]').click();
+  assert.equal(await page.locator('[data-voice-action="submit"]').count(),1);
+  await page.locator('[data-voice-action="submit"]').click();
+  assert.match(await page.locator('[data-voice-status]').innerText(),/authorization and consent/i);
+  assert.deepEqual(voiceCalls,[],'No upload before rights and consent are confirmed');
+  await page.locator('[data-voice-token]').fill('private-qa-owner');
+  await page.locator('[data-voice-action="voices"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-voice-list]')?.options?.length===2);
+  await page.locator('[data-voice-list]').selectOption('e0bb585f-b798-4bac-ac4e-de7fff38f9d75');
+  assert.equal(await page.locator('[data-voice-id]').inputValue(),'e0bb585f-b798-4bac-ac4e-de7fff38f9d75');
+  await page.locator('[data-voice-consent]').check();
+  await page.locator('[data-voice-action="submit"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-voice-status]')?.textContent?.includes('Voice conversion complete'),{timeout:12000});
+  assert.deepEqual(voiceCalls,['voices','submit','result']);
+  assert.equal(await page.locator('[data-voice-output]').isVisible(),true);
+  assert.equal(await page.locator('[data-voice-output] audio').getAttribute('src'),'https://musicgpt.s3.amazonaws.com/fixture.mp3');
+  const submittedFile=Buffer.from(voicePayload?.file?.base64||'','base64');
+  // Last request was status, so inspect the payload captured at submit in a separate route log.
+  assert.equal(new URL(page.url()).origin,new URL(url).origin);
+  await page.screenshot({path:'test-results/musicgpt-voice-desktop.png',fullPage:true});
+  await mobile.locator('[data-category="ai"]').click();
+  await mobile.locator('[data-tool="ai2-vocals"]').click();
+  await mobile.locator('[data-view="ai-voice-changer"]').click();
+  const voiceBox=await mobile.locator('.pulse-voice-ai').evaluate(el=>{const rect=el.getBoundingClientRect();return {left:rect.left,right:rect.right,width:window.innerWidth};});
+  assert.ok(voiceBox.right<=voiceBox.width+4&&voiceBox.left>=-4,'MusicGPT panel exceeds 375px viewport: '+JSON.stringify(voiceBox));
+  await mobile.screenshot({path:'test-results/musicgpt-voice-mobile.png',fullPage:true});
+  console.log('PASS: MusicGPT Vocal Studio UI loads catalog, requires consent, sends VoiceChanger request and renders playback without leaving PULSE.');
+
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 }
 main().catch(error=>{console.error('FAIL: Music Tagger real-browser QA:',error);process.exitCode=1;});

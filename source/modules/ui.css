@@ -385,7 +385,7 @@
   font:400 11px Arial,Helvetica,sans-serif;
   cursor:pointer;
 }
-.tool-module-host .pulse-slider-pills button[aria-pressed=true]{background:#f2f0ec;border-color:#191919;color:#191919}
+.tool-module-host .pulse-slider-pills button[aria-pressed=true]{background:var(--pulse-ink,#191919);border-color:var(--pulse-ink,#191919);color:var(--pulse-white,#fff)}
 .tool-module-host .pulse-slider-pills button:focus-visible{outline:2px solid #191919;outline-offset:3px}
 .tool-module-host .pulse-slider-discrete .pulse-slider-value{font-size:12px;max-width:62%}
 .tool-module-host .pulse-slider-discrete .pulse-slider-title{font-size:14px}

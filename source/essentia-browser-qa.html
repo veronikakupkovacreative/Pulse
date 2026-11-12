@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PULSE / ESSENTIA WASM / BROWSER QA</title>
+<style>
+:root{color-scheme:light;font-family:Arial,Helvetica,sans-serif;background:#f4f3ef;color:#191919}
+*{box-sizing:border-box}body{margin:0}main{width:min(860px,100% - 32px);margin:35px auto 80px}
+header{border-top:10px solid #ff2b20;border-bottom:1px solid #191919;padding:18px 0 22px}
+small,.label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+h1{font-size:clamp(32px,6vw,60px);line-height:1.02;margin:14px 0 10px;letter-spacing:-.05em}
+p{line-height:1.6;font-size:14px;max-width:690px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}
+button{border:1px solid #191919;border-radius:0;min-height:50px;padding:12px 17px;background:#191919;color:#fff;font-weight:700;cursor:pointer;text-transform:uppercase}
+button.secondary{color:#191919;background:transparent}
+button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible{outline:3px solid #ff2b20;outline-offset:3px}
+.case{padding:15px 0;border-bottom:1px solid #a8a8a3;display:grid;grid-template-columns:180px 1fr;gap:14px}
+.case strong{font-size:14px}.case output{font-family:monospace;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+[data-result="pass"] output{font-weight:700}[data-result="fail"] output{color:#a01818;font-weight:700}
+progress{height:10px;width:100%;accent-color:#ff2b20}
+pre{white-space:pre-wrap;word-break:break-word;background:#191919;color:#f4f3ef;padding:16px;font-size:11px;line-height:1.6;max-height:400px;overflow:auto}
+footer{margin-top:32px;border-top:1px solid #191919;padding-top:16px}
+a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:580px){.case{grid-template-columns:1fr;gap:6px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="label">PULSE STUDIO / EXPERIMENTAL QA / ESSENTIA.JS 0.1.3</div>
+<h1>Real browser.<br>Real WASM.</h1>
+<p>Runs the actual PULSE Essentia.js Web Worker and WebAssembly files, directly in this browser. Synthetic audio is generated locally. No files are uploaded and no analysis request is sent to a cloud API.</p>
+</header>
+<div class="controls">
+<button id="run" type="button">Run browser checks ↗</button>
+<button id="copy" type="button" class="secondary" disabled>Copy results</button>
+</div>
+<progress id="progress" max="5" value="0" aria-label="Browser checks completed"></progress>
+<p id="status" role="status" aria-live="polite">Ready. Press Run browser checks.</p>
+<div id="cases">
+<div class="case" data-check="70"><strong>70 BPM / WASM</strong><output>Not started</output></div>
+<div class="case" data-check="140"><strong>140 BPM / WASM</strong><output>Not started</output></div>
+<div class="case" data-check="80"><strong>80 BPM / WASM</strong><output>Not started</output></div>
+<div class="case" data-check="160"><strong>160 BPM / WASM</strong><output>Not started</output></div>
+<div class="case" data-check="harmony"><strong>C major · 8B · chords</strong><output>Not started</output></div>
+</div>
+<h2 style="margin:28px 0 10px;font-size:18px">Diagnostic output</h2>
+<pre id="report" aria-label="Machine-readable diagnostic report">No checks run yet.</pre>
+<footer>
+<p><strong>Important:</strong> These are synthetic reference checks, not proof of accuracy on complete mastered tracks. A successful result verifies that the Worker, WASM binary, rhythm detector, key detection and chord analysis can execute in this browser.</p>
+<p><strong>License:</strong> Essentia.js is AGPL-3.0. This is an experimental test and is not approval for a closed-source commercial release. See <a href="https://essentia.upf.edu/licensing_information.html" target="_blank" rel="noopener noreferrer">official licensing information</a> and <a href="https://github.com/veronikakupkovacreative/Pulse/tree/experiment/pulse-essentia-wasm-song-analyzer-20261112" target="_blank" rel="noopener noreferrer">PULSE experimental source</a>.</p>
+</footer>
+</main>
+<script type="module">
+const $=id=>document.getElementById(id);
+const results=[];
+const audioRate=44100;
+const fail=(message)=>{throw new Error(message);};
+function generateClicks(bpm,seconds=20){
+ const audio=new Float32Array(seconds*audioRate);
+ for(let b=0;b<seconds*bpm/60;b++){
+  const start=Math.floor((b*60/bpm+.19)*audioRate);
+  for(let i=0;i<200&&start+i<audio.length;i++)
+   if(start+i>=0)audio[start+i]+=.6*Math.exp(-i/35)*(Math.sin(2*Math.PI*100*i/audioRate)+.15);
+ }
+ return audio;
+}
+function generateTriad(seconds=12){
+ const out=new Float32Array(seconds*audioRate);
+ const notes=[261.6256,329.6276,391.9954];
+ for(let i=0;i<out.length;i++){
+  const t=i/audioRate;
+  for(const hz of notes)out[i]+=.07*Math.sin(2*Math.PI*hz*t);
+ }
+ return out;
+}
+function analyze(mode,samples,beatTimes=[]){
+ return new Promise((resolve,reject)=>{
+  const worker=new Worker('/vendor/essentia/essentia-worker.mjs');
+  const id='qa-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+  const done=(err,result)=>{
+   clearTimeout(timeout);worker.terminate();
+   if(err)reject(err);else resolve(result);
+  };
+  const timeout=setTimeout(()=>done(new Error('Worker timeout (90s)')),90000);
+  worker.onerror=event=>done(new Error('Worker script: '+(event.message||'Uncaught exception')));
+  worker.onmessage=({data})=>{
+   if(data?.id!==id)return;
+   if(data.type==='error')done(new Error(data.error||'Worker error'));
+   else if(data.type==='done')done(null,data.result);
+  };
+  try{
+   worker.postMessage({type:'analyze',id,mode,channels:[samples.buffer],
+    sampleRate:audioRate,offset:0,beatTimes},[samples.buffer]);
+  }catch(error){done(error);}
+ });
+}
+function display(id,passed,text){
+ const row=document.querySelector('[data-check="'+id+'"]');
+ row.dataset.result=passed?'pass':'fail';
+ row.querySelector('output').textContent=(passed?'PASS · ':'FAIL · ')+text;
+}
+async function execute(){
+ $('run').disabled=true;$('copy').disabled=true;$('progress').value=0;
+ results.length=0;
+ $('status').textContent='Starting real WASM Worker checks…';
+ for(const row of document.querySelectorAll('[data-check]')){
+  row.removeAttribute('data-result');
+  row.querySelector('output').textContent='Waiting';
+ }
+ const all=[70,140,80,160,'harmony'];
+ for(let i=0;i<all.length;i++){
+  const test=all[i],started=performance.now();
+  $('status').textContent='Running '+(test==='harmony'?'harmony':'rhythm '+test+' BPM')+'…';
+  try{
+   if(test==='harmony'){
+    const beatTimes=Array.from({length:22},(_,i)=>.5+i*.5);
+    const v=await analyze('harmony',generateTriad(),beatTimes);
+    const pass=v.key?.camelot==='8B' && v.key?.name==='C major' &&
+     Array.isArray(v.chords)&&v.chords.some(x=>x.label==='C maj');
+    const summary='Key '+(v.key?.name||'?')+' / Camelot '+(v.key?.camelot||'?')+
+     ' / '+(v.chords?.length??0)+' chord segment(s)';
+    display('harmony',pass,summary);
+    results.push({case:'harmony',pass,elapsedMs:Math.round(performance.now()-started),
+     key:v.key,chords:v.chords?.slice(0,8),frames:v.sampledFrames});
+   }else{
+    const v=await analyze('rhythm',generateClicks(test));
+    const pass=Math.abs(v.bpm-test)<3 &&
+     Array.isArray(v.beatTimes)&&v.beatTimes.length>10 &&
+     v.measuredBeatTimes===true;
+    const summary=Number(v.bpm).toFixed(2)+' BPM · '+(v.beatTimes?.length||0)+
+     ' measured beats · '+(v.confidence||'?')+' confidence';
+    display(String(test),pass,summary);
+    results.push({case:'rhythm-'+test,pass,elapsedMs:Math.round(performance.now()-started),
+     bpm:v.bpm,beats:v.beatTimes?.length,confidence:v.confidence,
+     method:v.method,firstTicks:v.beatTimes?.slice(0,4)});
+   }
+  }catch(error){
+   display(String(test),false,error.message||String(error));
+   results.push({case:test,pass:false,error:error.message||String(error),
+    elapsedMs:Math.round(performance.now()-started)});
+  }
+  $('progress').value=i+1;
+  $('report').textContent=JSON.stringify({
+   userAgent:navigator.userAgent,at:new Date().toISOString(),results
+  },null,2);
+ }
+ const count=results.filter(x=>x.pass).length;
+ window.__PULSE_ESSENTIA_BROWSER_QA__={passed:count,total:all.length,results};
+ $('status').textContent='Completed: '+count+'/'+all.length+' browser checks passed.'+
+  (count===all.length?' Actual Worker/WASM execution confirmed.':' Inspect the failed checks below.');
+ $('copy').disabled=false;$('run').disabled=false;
+}
+$('run').addEventListener('click',()=>void execute());
+$('copy').addEventListener('click',async()=>{
+ try{
+  await navigator.clipboard.writeText($('report').textContent);
+  $('copy').textContent='Copied';
+ }catch(error){
+  $('copy').textContent='Select the report to copy';
+ }
+});
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import {toolModules} from './modules/index.mjs';
+import {visibleToolModules as toolModules} from './modules/index.mjs';
 import {enhanceParameterControls} from './modules/slider-ui.mjs';
 import {renderToolEditorial} from './modules/tool-editorial.mjs';
 import {renderToolBenefits} from './modules/tool-benefits.mjs';
@@ -11,11 +11,11 @@ import {initializeThemeToggle} from './modules/theme-toggle.mjs';
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
 const categories=Object.freeze({
-  analyze:{name:'ANALYZE',title:'Analyze.',description:'Analyze tempo, beat positions and musical key from the active track.',number:'01'},
-  edit:{name:'EDIT',title:'Edit.',description:'This category is ready for new audio editing modules.',number:'02'},
-  export:{name:'EXPORT',title:'Export.',description:'This category is ready for new audio export modules.',number:'03'},
+  analyze:{name:'ANALYSIS',title:'Song Analyzer.',description:'BPM, musical key, Camelot, approximate chords and beat grid.',number:'01'},
+  edit:{name:'EDIT',title:'Audio Editor.',description:'Trim, cut, merge, fade, reverse, gain and parametric EQ.',number:'02'},
+  export:{name:'EXPORT',title:'Audio Converter.',description:'Convert WAV, MP3, FLAC, AAC and OGG audio.',number:'03'},
   ai:{name:'AI STUDIO',title:'AI Studio.',description:'Eight focused audio tools for mixing, mastering, separation, repair and sound design.',number:'04'},
-  visuals:{name:'VISUALS',title:'Visuals.',description:'Audio visualizations are ready.',number:'05'}
+  visuals:{name:'VISUALS',title:'Audio Visualizer.',description:'Waveform, spectrum, audiogram and browser-supported video export.',number:'05'}
 });
 const query=(selector)=>document.querySelector(selector);
 initializeThemeToggle();
@@ -147,7 +147,9 @@ document.addEventListener('click',event=>{
  const target=[...tabs.querySelectorAll('[data-tool]')].find(b=>b.dataset.tool==='visualizer');
  if(target)target.click();
  const mode=shortcut.dataset.openVisual;
- const control=[...document.querySelectorAll('#module-visualizer [data-mode]')].find(b=>b.dataset.mode===mode);
+ const lookup={audiogram:'radial',podcast:'radial',bars:'spectrum',sound_wave_maker:'oscilloscope',waveform:'oscilloscope',audio_waveform_generator:'oscilloscope',spectrum:'spectrum'};
+ const requested=lookup[mode]||mode;
+ const control=[...document.querySelectorAll('#module-visualizer [data-option]')].find(b=>b.dataset.option===requested);
  if(control)control.click();
  query('#toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
 });

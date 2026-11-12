@@ -41,3 +41,25 @@ test('Vercel server uses documented Audial endpoints and no client secrets',()=>
  assert.match(api,/STEMS_NOT_READY/);
  assert.match(read('vercel.json'),/api\/pulse-tags\.js/);
 });
+
+test('actual FFT worker measures a known 440 Hz tone without inventing instrument labels',async()=>{
+ const previous=globalThis.self;
+ globalThis.self={postMessage(){}};
+ try{
+  const {analyzeAcoustics}=await import('../source/modules/music-tagger-worker.mjs');
+  const rate=44100,seconds=4,mono=new Float32Array(rate*seconds);
+  for(let i=0;i<mono.length;i++)mono[i]=.35*Math.sin(2*Math.PI*440*i/rate);
+  const result=analyzeAcoustics([mono],rate);
+  assert.equal(result.silent,false);
+  assert.ok(Math.abs(result.peakDb-(-9.12))<1);
+  assert.ok(Math.abs(result.spectralCentroidHz-440)<65,'Measured frequency should follow synthetic signal: '+result.spectralCentroidHz);
+  assert.ok(Math.abs(result.frequencyBalance.mid-100)<3);
+  assert.equal(result.stereoCorrelation,null);
+  assert.equal(result.descriptors.some(x=>/HOUSE|POP|SYNTH|VIOLIN/.test(x)),false);
+  const inverted=Float32Array.from(mono,x=>-x);
+  const stereo=analyzeAcoustics([mono,inverted],rate);
+  assert.ok(stereo.stereoCorrelation<-.99);
+  const silence=analyzeAcoustics([new Float32Array(rate*3)],rate);
+  assert.equal(silence.silent,true);
+ }finally{if(previous===undefined)delete globalThis.self;else globalThis.self=previous;}
+});

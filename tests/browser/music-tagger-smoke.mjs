@@ -43,9 +43,10 @@ async function main(){
   const errors=[],network=[];
   page.on('pageerror',error=>errors.push(error.message));
   page.on('response',response=>{if(response.status()>=400&&response.url().includes('music-tagger'))network.push(response.status()+' '+response.url());});
-  let cloudCalls=0;
+  let cloudCalls=0,cloudPayload=null;
   await page.route('**/api/pulse-tags',route=>{
    cloudCalls++;
+   if(route.request().method()==='POST')cloudPayload=route.request().postDataJSON();
    return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'AUDIAL_NOT_CONFIGURED'})});
   });
   await page.goto(url,{waitUntil:'domcontentloaded'});
@@ -94,6 +95,20 @@ async function main(){
   assert.match(await page.locator('[data-cloud-status]').innerText(),/consent/i);
   assert.equal(cloudCalls,0);
   console.log('PASS: cloud tag submission is gated by explicit consent.');
+
+  await page.locator('[data-tag-token]').fill('qa-owner-token');
+  await page.locator('[data-tag-consent]').check();
+  await page.locator('[data-tag-action="cloud-start"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-cloud-status]')?.textContent?.includes('AUDIAL_NOT_CONFIGURED'));
+  assert.equal(cloudCalls,1);
+  assert.equal(cloudPayload.action,'start');
+  assert.equal(cloudPayload.consent,true);
+  assert.equal(cloudPayload.file.name,'pulse-excerpt.wav');
+  const uploadedBytes=Buffer.from(cloudPayload.file.base64,'base64');
+  assert.equal(uploadedBytes.toString('ascii',0,4),'RIFF');
+  assert.equal(uploadedBytes.readUInt32LE(24),22050,'Do not upsample a lower-rate source');
+  assert.ok(uploadedBytes.length<2500000);
+  console.log('PASS: explicit consent prepares a bounded valid WAV excerpt from SOURCE AUDIO, without a second file upload.');
 
   await page.screenshot({path:'test-results/music-tagger-desktop.png',fullPage:true});
   const mobile=await browser.newPage({viewport:{width:375,height:812},deviceScaleFactor:1});

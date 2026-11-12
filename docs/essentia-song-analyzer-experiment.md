@@ -22,7 +22,7 @@ This experimental branch keeps the existing Producer Toolkit Song Analyzer UI an
 - source/modules/essentia-client.mjs validates source, picks the user-selected region or a centered 90-second window, copies input channels and starts a cancellable classic Web Worker.
 - source/modules/essentia-worker.mjs imports pinned same-origin Essentia WASM/runtime assets with importScripts and loads the pure DSP engine module. Separate Worker instances run rhythm then harmony using measured beat ticks.
 - source/modules/essentia-algorithms.mjs contains actual Essentia DSP calls, key mapping and normalized results.
-- scripts/build.mjs copies the same-origin Essentia WASM, UMD core and upstream LICENSE into /vendor/essentia/. No runtime CDN or API credentials.
+- scripts/build.mjs copies the same-origin Essentia WASM, UMD core, Worker entrypoint and upstream LICENSE into /vendor/essentia/. The Worker must live alongside the WASM because Emscripten resolves the binary relative to the Worker script location. No runtime CDN or API credentials.
 - Analysis is confined to at most 90 seconds; Shift-drag on the waveform selects a region. Measured markers never silently extend to the unanalyzed parts of a longer song.
 - Half-time uses every other measured tick. Double-time inserts clearly identified interpolated midpoint subdivisions. Other tempo candidates do not fabricate uniform markers.
 - Only the shared AudioWorkspace buffer is used; it is never modified by analysis. Workers terminate on completion or cancellation.

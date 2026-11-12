@@ -10,6 +10,7 @@ on:
       - fix/pulse-new-tools-color-system-20261112
       - feature/pulse-musicgpt-mastering-20261112
       - fix/remove-musicgpt-mastering-20261112
+      - feature/pulse-musicai-v2-remove-video-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -41,6 +42,11 @@ jobs:
           test -f public/modules/musicgpt-voicechanger.css
           test -f public/modules/musicgpt-lyrics.mjs
           test -f public/modules/musicgpt-lyrics.css
+          test -f public/modules/musicgpt-musicai.mjs
+          test -f public/modules/musicgpt-musicai.css
+          ! test -e public/modules/video-audio-tool.mjs
+          ! test -e tests/video-to-audio.test.mjs
+          ! grep -q 'data-open-tool="video-to-audio"' public/index.html
           ! test -e public/modules/musicgpt-mastering.mjs
           ! test -e api/pulse-mastering.js
           ! test -e api/pulse-audial.js
@@ -76,6 +82,8 @@ jobs:
             test-results/music-tagger-*.png
             test-results/musicgpt-*.png
             test-results/pulse-mastering-local-*.png
+            test-results/musicgpt-musicai-*.png
+            test-results/pulse-colors-musicai-*.png
             test-results/pulse-colors-*.png
           if-no-files-found: ignore
 

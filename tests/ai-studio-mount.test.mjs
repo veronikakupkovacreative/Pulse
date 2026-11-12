@@ -44,12 +44,12 @@ test('all nine AI Studio modules mount without throwing',async()=>{
 
 test('AI Mastering exposes all controls and has a valid cloud-status selector',()=>{
  const code=read('modules/mastering-ui.mjs');
- assert.ok(code.includes("cloudAvailability=$('[data-master-cloud-availability]')"));
- assert.ok(!code.includes("cloudAvailability=$('[data-master-cloud-availability\"]')"));
+ assert.ok(code.includes("mountMusicGPTMasteringCloud"));
+ assert.ok(!/AUDIAL CLOUD|pulse-audial/i.test(code));
  for(const marker of [
   'data-master-engine="local"',
   'data-master-engine="cloud"',
-  'data-master-cloud-availability',
+  'data-master-cloud',
   'data-master-reference',
   'data-master-action="render"',
   'data-master-action="assist"',

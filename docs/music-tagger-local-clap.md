@@ -20,4 +20,4 @@ The Chromium smoke test uses a fake model runtime to verify UI, Worker communica
 Before releasing: test the first full model download and actual ONNX inference on several known tracks in current Chrome/Safari and mobile hardware.
 Do not describe a mocked model response as real classification accuracy.
 
-Music Tagger remains entirely local. AI Mastering now offers independent local DSP and MusicGPT reference mastering; MusicGPT Voice Changer is another independently consent-gated cloud tool.
+Music Tagger and AI Mastering run locally. AI Mastering supports local reference comparison; its discontinued MusicGPT cloud mastering mode and API have been removed. The separate MusicGPT Voice Changer still requires explicit consent for cloud audio processing.

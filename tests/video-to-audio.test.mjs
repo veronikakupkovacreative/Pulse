@@ -28,7 +28,7 @@ test('YouTube links are validated with strict hostname + video ID parsing',()=>{
   'https://youtube.com@evil.test/watch?v='+ID,
   'https://www.youtube.com/playlist?list=PL123',
   'javascript:alert(1)',
-  'https://youtu.be/not-a-video',
+  'https://youtu.be/not-a-vid',
   'https://youtube.com/watch?v=%3Cscript%3E',
   'https://www.youtube.com:9090/watch?v='+ID,
   '',

@@ -47,9 +47,8 @@ test('yt-dlp and FFmpeg arguments never invoke shells and select only one media 
  const mp4=downloadArgs(URL,'/tmp/test-pulse','mp4');
  assert.ok(mp4.includes('--merge-output-format'));
  assert.ok(mp4.includes('mp4'));
- assert.deepEqual(audioEncodeArgs('src.m4a','out.mp3','mp3',256).slice(-4),
-  ['-b:a','256k','out.mp3'].slice(-4).length===3?
-   audioEncodeArgs('src.m4a','out.mp3','mp3',256).slice(-4):[]);
+ assert.deepEqual(audioEncodeArgs('src.m4a','out.mp3','mp3',256).slice(-5),
+  ['-c:a','libmp3lame','-b:a','256k','out.mp3']);
  const wav=audioEncodeArgs('input.m4a','output.wav','wav');
  assert.ok(wav.includes('pcm_s16le'));assert.ok(wav.includes('-vn'));
  assert.equal(metadataArgs(URL).at(-1),URL);

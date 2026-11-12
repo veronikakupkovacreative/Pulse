@@ -9,6 +9,7 @@ import {advancedModules} from './advanced-features.mjs';
 import {mountStereoLab,mountVocalDoubler} from './stereo-lab-ui.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
 import {processVocal} from './vocal-v2-dsp.mjs';
+import {mountMusicGPTVoiceChanger} from './musicgpt-voicechanger.mjs';
 import {suggestGainDb,renderMultitrack} from './mix-v2-dsp.mjs';
 
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -67,7 +68,8 @@ function mountVocalEnhance({host}){
 function mountVocals(args){
  return switcher(args,[
   {id:'enhance',label:'VOCAL ENHANCE',mount:mountVocalEnhance},
-  {id:'doubler',label:'VOCAL DOUBLER',mount:mountVocalDoubler}
+  {id:'doubler',label:'VOCAL DOUBLER',mount:mountVocalDoubler},
+  {id:'ai-voice-changer',label:'AI VOICE CHANGER',mount:mountMusicGPTVoiceChanger}
  ]);
 }
 

@@ -18,9 +18,6 @@
     },
     "api/pulse-lyrics.js": {
       "maxDuration": 60
-    },
-    "api/pulse-mastering.js": {
-      "maxDuration": 60
     }
   }
 }

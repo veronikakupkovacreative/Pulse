@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {chooseTaggingWindow,musicTaggerModule} from '../source/modules/music-tagger.mjs';
+import {chooseTaggingWindow,makeCloudTaggingExcerpt,musicTaggerModule} from '../source/modules/music-tagger.mjs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 test('Music Tagger is registered in ANALYSIS without replacing Song Analyzer',()=>{
  const index=read('source/modules/index.mjs'),ui=read('source/index.html');
@@ -62,4 +62,21 @@ test('actual FFT worker measures a known 440 Hz tone without inventing instrumen
   const silence=analyzeAcoustics([new Float32Array(rate*3)],rate);
   assert.equal(silence.silent,true);
  }finally{if(previous===undefined)delete globalThis.self;else globalThis.self=previous;}
+});
+
+test('opt-in cloud excerpt is genuine PCM16 WAV bounded to 20 seconds from shared audio',()=>{
+ const rate=48000,seconds=24,a=new Float32Array(rate*seconds);
+ for(let i=0;i<a.length;i++)a[i]=.25*Math.sin(2*Math.PI*440*i/rate);
+ const source={duration:seconds,sampleRate:rate,length:a.length,numberOfChannels:1,getChannelData:()=>a};
+ const out=makeCloudTaggingExcerpt(source);
+ const wav=Buffer.from(out.file.base64,'base64');
+ assert.ok(wav.length<=2500000);assert.equal(out.file.name,'pulse-excerpt.wav');
+ assert.equal(wav.toString('ascii',0,4),'RIFF');assert.equal(wav.toString('ascii',8,12),'WAVE');
+ assert.equal(wav.readUInt32LE(24),44100);
+ assert.equal(wav.readUInt16LE(22),1);
+ assert.equal(wav.readUInt16LE(34),16);
+ assert.equal(wav.readUInt32LE(40),44100*20*2);
+ assert.ok(Math.abs((out.window.end-out.window.start)-20)<.001);
+ assert.ok(Math.abs(out.window.start-2)<.001);
+ assert.throws(()=>makeCloudTaggingExcerpt(source,{selection:{start:1,end:3}}),/at least six seconds/);
 });

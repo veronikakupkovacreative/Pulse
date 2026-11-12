@@ -3,6 +3,7 @@
  */
 import {conversionOptions,convertMediaFile,downloadConversion} from './converter.mjs';
 import {fetchAuthorizedMedia,validateDirectMediaUrl} from './media-source.mjs';
+import {mountYouTubeControls} from './youtube-ui.mjs';
 
 const ID=/^[A-Za-z0-9_-]{11}$/;
 const HOSTS=new Set(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com',
@@ -66,13 +67,13 @@ export function mountVideoToAudio({host}={}){
  '<h3>Just the audio.<br><span>Keep the sound.</span></h3>'+
  '<p class="tool-description">Preview YouTube videos, or import an authorized direct HTTPS media-file URL / local file. Encode MP3, WAV, FLAC, AAC, M4A or OGG in your browser.</p>'+
  '<div class="pulse-video-block">'+
- '<div class="pulse-video-section"><span>01 / YOUTUBE LINK</span><span>VIDEO PREVIEW</span></div>'+
+ '<div class="pulse-video-section"><span>01 / YOUTUBE DOWNLOADER</span><span>PREVIEW + MP3 / WAV / MP4</span></div>'+
  '<label class="pulse-video-label" for="pulse-video-link">PASTE YOUTUBE VIDEO URL</label>'+
  '<div class="pulse-video-linkrow"><input id="pulse-video-link" type="url" inputmode="url" spellcheck="false" autocomplete="off" placeholder="https://www.youtube.com/watch?v=..." data-video-url>'+
  '<button type="button" data-video-preview>PREVIEW VIDEO ↗</button></div>'+
  '<div class="pulse-video-preview" data-video-preview-frame hidden></div>'+
- '<p class="pulse-video-status" data-video-url-status role="status" aria-live="polite">YouTube URL preview does not download or extract audio.</p>'+
- '<p class="pulse-video-note">YouTube does not provide general direct-download access to arbitrary videos. For a video you own, <a href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">download your original from YouTube Studio ↗</a> and convert the downloaded file below. Do not upload copyrighted video without permission.</p>'+
+ '<p class="pulse-video-status" data-video-url-status role="status" aria-live="polite">Use PREVIEW to watch the video; the separate downloader below processes authorized MP3/WAV/MP4 requests.</p>'+
+ '<p class="pulse-video-note">Only download content where the platform permits it and you have appropriate rights. For your own uploads, <a href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">YouTube Studio ↗</a> is also an official download option. The PULSE downloader uses an external authorized worker.</p>'+
  '</div>'+
  '<div class="pulse-video-block">'+
  '<div class="pulse-video-section"><span>02 / DIRECT HTTPS FILE</span><span>CORS REQUIRED / 100 MB MAX</span></div>'+
@@ -106,6 +107,7 @@ export function mountVideoToAudio({host}={}){
  '</div>'+
  '<p class="pulse-video-privacy">LOCAL PROCESSING / AUDIO ONLY · VIDEO FRAMES ARE DISCARDED · NO UPLOAD TO PULSE SERVERS</p>'+
  '</section>';
+ const cleanupYoutube=mountYouTubeControls({host,parseYouTubeLink});
  let disposed=false,busy=false,sourceFile=null,format='mp3',remoteController=null;
  const $=selector=>host.querySelector(selector);
  const all=selector=>[...host.querySelectorAll(selector)];
@@ -222,7 +224,7 @@ export function mountVideoToAudio({host}={}){
   finally{busy=false;update();}
  };
  update();
- return()=>{disposed=true;remoteController?.abort();frame.replaceChildren();sourceFile=null;};
+ return()=>{disposed=true;cleanupYoutube();remoteController?.abort();frame.replaceChildren();sourceFile=null;};
 }
 export const videoToAudioModule=Object.freeze({
  id:'video-to-audio',category:'export',label:'Video to Audio',mount:mountVideoToAudio

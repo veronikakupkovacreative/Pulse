@@ -70,14 +70,17 @@ export function downmixAndResample(essentia,channels,sampleRate,targetRate=44100
  if(channels.length===1)mono.set(channels[0]);
  else for(let i=0;i<len;i++)mono[i]=(channels[0][i]+channels[1][i])*.5;
  if(Math.abs(sampleRate-targetRate)<1)return mono;
- const src=essentia.arrayToVector(mono);
- try{
-  const out=essentia.Resample(src,sampleRate,targetRate,2).signal;
-  const samples=essentia.vectorToArray(out);
-  const copy=new Float32Array(samples);
-  deleteVector(out);
-  return copy;
- }finally{deleteVector(src);}
+ // A bounded worker-local sample-rate conversion is more portable than
+ // Essentia.Resample (which may abort WASM on some input sample rates).
+ // Tonal analysis focuses below 5kHz; the simple interpolation is sufficient
+ // for the 44.1/48 kHz sources targeted by the Song Analyzer.
+ const count=Math.floor(mono.length*targetRate/sampleRate);
+ const output=new Float32Array(count),ratio=sampleRate/targetRate;
+ for(let i=0;i<count;i++){
+  const pos=i*ratio,lo=Math.floor(pos),frac=pos-lo;
+  output[i]=mono[lo]*(1-frac)+(mono[Math.min(lo+1,mono.length-1)]||0)*frac;
+ }
+ return output;
 }
 export function analyzeEssentiaRhythm(essentia,channels,sampleRate,offset=0){
  const mono=downmixAndResample(essentia,channels,sampleRate,44100);

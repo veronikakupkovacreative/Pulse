@@ -50,12 +50,11 @@ test('reference mastering rejects silent reference',()=>{
  const input=audio(16000,.75,.07),silent=fromChannels([new Float32Array(16000),new Float32Array(16000)],16000);
  assert.throws(()=>planReferenceMastering(input,silent,MASTER_PRESETS.streaming),/measurable/);
 });
-test('mastering UI includes explicit reference, assistant, dashboard, 3-way A/B and cloud consent',()=>{
+test('mastering UI retains local reference, assistant, dashboard and A/B without cloud mastering',()=>{
  const ui=readFileSync(new URL('../source/modules/mastering-ui.mjs',import.meta.url),'utf8');
  const worker=readFileSync(new URL('../source/modules/mastering-worker.mjs',import.meta.url),'utf8');
  const css=readFileSync(new URL('../source/modules/ui.css',import.meta.url),'utf8');
- assert.match(ui,/data-master-engine="cloud"/);
- assert.match(ui,/data-master-cloud-consent/);
+ assert.doesNotMatch(ui,/MusicGPT|cloudController|pulse-mastering|data-master-cloud|data-master-engine/i);
  assert.match(ui,/data-master-reference/);
  assert.match(ui,/data-master-suggest/);
  assert.match(ui,/data-master-action="match"/);

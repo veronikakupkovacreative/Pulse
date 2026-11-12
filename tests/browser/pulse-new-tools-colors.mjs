@@ -111,6 +111,20 @@ async function tagger(page,label){
   await checkText(page,sel);
  if(label==='desktop')await page.locator('.pulse-tagger').screenshot({path:'test-results/pulse-colors-tagger-desktop.png'});
 }
+async function mastering(page,label){
+ await page.locator('[data-category="ai"]').click();
+ await page.locator('[data-tool="ai2-mastering"]').click();
+ await page.locator('.pulse-master-work').waitFor();
+ assert.equal(await page.locator('[data-master-engine="cloud"]').count(),0);
+ assert.equal(await page.locator('[data-master-cloud]').count(),0);
+ await checkText(page,'.pulse-master-work .tool-description');
+ await checkText(page,'.pulse-master-work .pulse-master-status');
+ await checkText(page,'.pulse-master-work .pulse-master-section-head strong');
+ assert.equal(await page.locator('[data-master-action="render"]').count(),1);
+ assert.equal(await page.locator('[data-master-action="match"]').count(),1);
+ if(label==='desktop')await page.locator('.pulse-master-work').screenshot({path:'test-results/pulse-colors-mastering-desktop.png'});
+}
+
 async function main(){
  await mkdir('test-results',{recursive:true});
  await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
@@ -127,6 +141,7 @@ async function main(){
     await lyrics(page,name);
     await voice(page,name);
     await tagger(page,name);
+    await mastering(page,name);
    }
    if(name==='mobile'){
     await lyrics(page,'mobile');
@@ -140,7 +155,7 @@ async function main(){
    assert.ok(!errors.some(e=>/lyrics|musicgpt|music.tag|CSS|stylesheet/i.test(e)),
     'Browser runtime errors: '+errors.join('; '));
    await page.close();
-   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, all three modules, light and dark, responsive lyrics grid.');
+   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / local Mastering in light and dark.');
   }
  }finally{await browser?.close();await new Promise(ok=>server.close(ok));}
 }

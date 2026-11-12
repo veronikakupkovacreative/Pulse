@@ -196,6 +196,27 @@ async function main(){
   await mobileLyrics.screenshot({path:'test-results/musicgpt-lyrics-mobile.png',fullPage:true});
   console.log('PASS: MusicGPT lyrics requires consent, returns editable lyrics, exports TXT without recharging, and fits mobile.');
 
+  // Local AI Mastering remains available; no MusicGPT Mastering UI or API.
+  const masteringCalls=[];
+  await page.route('**/api/pulse-mastering',route=>{
+   masteringCalls.push(route.request().url());
+   return route.abort();
+  });
+  await page.locator('[data-category="ai"]').click();
+  await page.locator('[data-tool="ai2-mastering"]').click();
+  await page.locator('.pulse-master-work').waitFor();
+  assert.equal(await page.locator('[data-master-engine="cloud"]').count(),0);
+  assert.equal(await page.locator('[data-master-cloud]').count(),0);
+  assert.equal(await page.locator('[data-master-cloud-token]').count(),0);
+  assert.equal(await page.locator('[data-master-action="render"]').count(),1);
+  assert.equal(await page.locator('[data-master-action="match"]').count(),1);
+  assert.equal(await page.locator('[data-master-action="export"]').count(),1);
+  assert.match(await page.locator('.pulse-master-work .tool-description').innerText(),/local|browser/i);
+  assert.deepEqual(masteringCalls,[],'Local mastering must never call removed cloud API');
+  assert.deepEqual(audialCalls,[],'Audial traffic must remain zero across all tools');
+  await page.screenshot({path:'test-results/pulse-mastering-local-desktop.png',fullPage:true});
+  console.log('PASS: Local AI Mastering preserved with reference matching and no removed cloud requests.');
+
   assert.ok(!errors.some(e=>/music.tagger|musicgpt|Worker|Module not found/i.test(e)),errors.join('; '));
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 }

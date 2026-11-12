@@ -3,12 +3,27 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseHTML} from 'linkedom';
 import {aiV2Modules} from '../source/modules/ai-v2.mjs';
+import {TOOL_EDITORIAL} from '../source/modules/tool-editorial.mjs';
+import {TOOL_BENEFITS} from '../source/modules/tool-benefits.mjs';
+import {isAiV2} from '../source/modules/ai-v2-copy.mjs';
 
 const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8');
 
 /** Mount actual production module functions into a DOM.
  * This catches invalid selectors and runtime initialization exceptions that a build misses.
  */
+test('AI Studio registry has nine valid editorial routes and safe backup copy',()=>{
+ assert.equal(aiV2Modules.length,9);
+ for(const tool of aiV2Modules){
+  assert.equal(isAiV2(tool),true,tool.id+' missing dedicated AI Studio copy');
+ }
+ const lyrics=aiV2Modules.find(tool=>tool.id==='ai2-lyrics');
+ assert.ok(lyrics,'Lyrics Generator must be registered');
+ assert.deepEqual(TOOL_EDITORIAL[lyrics.id].title,['Lyrics','Generator']);
+ assert.ok(TOOL_EDITORIAL[lyrics.id].steps.length>=3);
+ assert.equal(TOOL_BENEFITS[lyrics.id].length,3);
+});
+
 test('all nine AI Studio modules mount without throwing',async()=>{
  const {window,document}=parseHTML('<html><body><div id="audio-meta"></div><div id="source-status"></div><main id="host"></main></body></html>');
  const props=['window','document','navigator','fetch'];
@@ -42,22 +57,23 @@ test('all nine AI Studio modules mount without throwing',async()=>{
  }
 });
 
-test('AI Mastering exposes all controls and has a valid cloud-status selector',()=>{
+test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  const code=read('modules/mastering-ui.mjs');
- assert.ok(code.includes("cloudAvailability=$('[data-master-cloud-availability]')"));
- assert.ok(!code.includes("cloudAvailability=$('[data-master-cloud-availability\"]')"));
+ assert.doesNotMatch(code,/MusicGPT|pulse-mastering|data-master-cloud|data-master-engine|cloudController/i);
  for(const marker of [
-  'data-master-engine="local"',
-  'data-master-engine="cloud"',
-  'data-master-cloud-availability',
   'data-master-reference',
+  'data-master-preset',
+  'data-master-auto',
+  'data-master-action="analyze"',
   'data-master-action="render"',
   'data-master-action="assist"',
   'data-master-action="match"',
-  'data-master-ab="c"'
- ])assert.ok(code.includes(marker),'Missing control: '+marker);
+  'data-master-action="apply"',
+  'data-master-action="export"',
+  'data-master-ab="c"',
+  "runMasteringWorker('render'"
+ ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
-
 
 test('full application routes to all nine AI Studio tabs without a module initialization error',async()=>{
  const html=read('index.html');

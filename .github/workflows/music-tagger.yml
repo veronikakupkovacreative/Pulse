@@ -8,6 +8,8 @@ on:
       - fix/pulse-musicgpt-voice-qa-20261112
       - feature/pulse-musicgpt-lyrics-generator-20261112
       - fix/pulse-new-tools-color-system-20261112
+      - feature/pulse-musicgpt-mastering-20261112
+      - fix/remove-musicgpt-mastering-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -39,6 +41,10 @@ jobs:
           test -f public/modules/musicgpt-voicechanger.css
           test -f public/modules/musicgpt-lyrics.mjs
           test -f public/modules/musicgpt-lyrics.css
+          ! test -e public/modules/musicgpt-mastering.mjs
+          ! test -e api/pulse-mastering.js
+          ! test -e api/pulse-audial.js
+          ! grep -q 'pulse-audial' vercel.json
           grep -q 'music-tagger' public/modules/index.mjs
 
   browser-smoke:
@@ -69,6 +75,7 @@ jobs:
           path: |
             test-results/music-tagger-*.png
             test-results/musicgpt-*.png
+            test-results/pulse-mastering-local-*.png
             test-results/pulse-colors-*.png
           if-no-files-found: ignore
 

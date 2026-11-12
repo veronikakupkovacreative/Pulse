@@ -2,9 +2,9 @@
 const data=Object.freeze({
  'ai2-mastering':{
   title:['Master the track','Finish the sound'],
-  summary:'Automatically recommend gentle 3-band EQ, linked compression and stereo width using spectral balance, crest factor and correlation. Choose Trap, Hip-Hop, EDM, Pop or Streaming. Local DSP, with LUFS estimates, limiter, level-matched A/B and WAV export.',
-  steps:['Load audio into SOURCE AUDIO.','Choose Trap, Hip-Hop, EDM, Pop or Streaming. Keep Auto Analyze enabled for track-dependent settings, or adjust manually.','Render in a Web Worker, compare level-matched A/B, then apply or export the mastered WAV.'],
-  benefits:[['ADAPTIVE LOCAL DSP','Track-dependent 3-band EQ recommendations, linked compression and stereo controls.'],['GENRE PRESETS','Trap, Hip-Hop, EDM, Pop and Streaming with measured loudness and peak estimates.'],['FAIR A/B + EXPORT','Level-matched audition before committing, plus 24-bit WAV export.']]},
+  summary:'Process your mix entirely in PULSE using adaptive EQ, compression, saturation and output limiting. Analyze loudness and stereo image, optionally match a reference locally, then compare A/B and export 24-bit WAV. No cloud upload, API token or paid credits.',
+  steps:['Load your mix into SOURCE AUDIO. Optionally choose a reference track to compare loudness and spectral balance locally.','Select a mastering preset, use AUTO ANALYZE or adjust the EQ, compressor and limiter controls yourself.','Render MASTER on-device, compare original, master and reference, then apply with Undo or export a 24-bit WAV.'],
+  benefits:[['100% LOCAL MASTERING','All processing happens in your browser with no cloud transfer or API credits.'],['REFERENCE MATCH','Analyze a reference track locally to guide loudness, tonal balance and dynamics.'],['A/B AND 24-BIT WAV','Audition the result before applying; preserve Undo and export a 24-bit mastered WAV.']]},
  'ai2-stereo':{
   title:['Shape the stereo','Keep the bass solid'],
   summary:'Control stereo width, Mid/Side balance, low-frequency mono, panning and output gain. Fully local DSP in a Web Worker; no neural isolation or stem splitting.',

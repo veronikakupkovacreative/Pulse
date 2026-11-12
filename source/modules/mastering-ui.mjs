@@ -33,20 +33,9 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const fieldRows=rows.map(([id,name,min,max,step,unit])=>
     `<label class="pulse-master-field"><span>${name}</span><input data-param="${id}" data-unit="${unit}" type="number" min="${min}" max="${max}" step="${step}" value="${MASTER_PRESETS[first][id]??0}" aria-label="${name}"></label>`).join('');
   host.innerHTML=`<section class="tool-view pulse-master-work" data-master-mode="${mode}">
-    <div class="tool-view-header"><span>04 / ${label}</span><span>ADAPTIVE DSP / WORKER</span></div>
+    <div class="tool-view-header"><span>04 / ${label}</span><span>LOCAL DSP / REFERENCE MATCH</span></div>
     <h3>${isMix?'Mix character.<br><span>Master control.</span>':'Master your track.<br><span>Keep its character.</span>'}</h3>
-    <p class="tool-description">Analyze spectral balance, dynamics, loudness and stereo correlation. Automatically adapt gentle EQ, compression and output limiting. Local DSP, not a trained neural AI model.</p>
-    <div class="pulse-master-engines" role="group" aria-label="Mastering processing engine">
-      <button type="button" data-master-engine="local" aria-pressed="true">01 / LOCAL DSP</button>
-      <button type="button" data-master-engine="cloud" aria-pressed="false">02 / AUDIAL CLOUD</button>
-    </div>
-    <div class="pulse-master-cloud" data-master-cloud hidden>
-      <p><strong>AUDIAL CLOUD · OWNER PREVIEW</strong> Sends the mix to Audial only after clicking Run and explicitly consenting. Requires Audial credentials in Vercel and owner access token. Short clips only (max 2.7 MB total) until direct upload is available.</p>
-      <label class="pulse-master-field">OWNER ACCESS TOKEN<input data-master-cloud-token type="password" autocomplete="off" placeholder="Owner token — not stored"></label>
-      <label class="pulse-master-consent"><input type="checkbox" data-master-cloud-consent> I AGREE TO SEND MY MIX AND OPTIONAL REFERENCE TO AUDIAL FOR PROCESSING</label>
-      <p data-master-cloud-availability role="status">Checking Audial configuration…</p>
-      <div data-master-cloud-results aria-live="polite"></div>
-    </div>
+    <p class="tool-description">Analyze spectral balance, dynamics, loudness and stereo correlation. Automatically adapt gentle EQ, compression and output limiting. All mastering processing is local, with an optional reference track for measured EQ and loudness matching. No audio is uploaded.</p>
     <p class="pulse-detail-label">${isMix?'MIX CHARACTER':'MASTER CHARACTER'}</p>
     <div class="pulse-master-presets" role="group" aria-label="Mastering character presets">${presetButtons}</div>
     <div class="pulse-master-reference">
@@ -99,13 +88,11 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const setText=(key,value)=>{const el=$('[data-master-metric="'+key+'"]');if(el)el.textContent=value;};
   const status=$('.pulse-master-status'),play=$('[data-master-action="listen"]');
   const refFile=$('[data-master-reference]'),matchButton=$('[data-master-action="match"]'),
-   clearRefButton=$('[data-master-action="clear-reference"]'),refName=$('[data-master-reference-name]'),
-   cloudPane=$('[data-master-cloud]'),cloudAvailability=$('[data-master-cloud-availability]'),
-   cloudResults=$('[data-master-cloud-results]');
+   clearRefButton=$('[data-master-action="clear-reference"]'),refName=$('[data-master-reference-name]');
   const renderButton=$('[data-master-action="render"]'),analysisButton=$('[data-master-action="analyze"]');
   const applyButton=$('[data-master-action="apply"]'),exportButton=$('[data-master-action="export"]');
   let activePreset=first,prepared=null,sourceRef=null,disposed=false,busy=false,selected='a',previewNode=null,previewGain=null,previewPosition=0,startedAt=0,jobController=null;
-  let referenceAudio=null,referenceFile=null,referenceStats=null,cloudAvailable=false,engine='local';
+  let referenceAudio=null,referenceFile=null,referenceStats=null;
   let dashboard={original:null,master:null,reference:null,spectrumOriginal:null,spectrumMaster:null,spectrumReference:null};
   function message(text,error=false){status.textContent=text;status.dataset.error=String(error);}
   function dashboardView(){
@@ -177,7 +164,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   }
   const setBusy=value=>{
     busy=value;renderButton.disabled=value;analysisButton.disabled=value;
-    all('[data-param], [data-master-preset], [data-master-auto], [data-master-engine], [data-master-reference], [data-master-instruction], [data-master-action="assist"], [data-master-suggest]').forEach(el=>el.disabled=value);
+    all('[data-param], [data-master-preset], [data-master-auto], [data-master-reference], [data-master-instruction], [data-master-action="assist"], [data-master-suggest]').forEach(el=>el.disabled=value);
     matchButton.disabled=value||!referenceAudio;
     clearRefButton.disabled=value||!referenceAudio;
     applyButton.disabled=value||!prepared;exportButton.disabled=value||!prepared;
@@ -341,89 +328,6 @@ export function mountMasteringTool({host,mode='mix'}={}){
   $('[data-master-instruction]').addEventListener('keydown',event=>{
     if(event.key==='Enter'){event.preventDefault();performAssistant(event.currentTarget.value);}
   });
-  async function asCloudFile(buffer,name){
-    const file=encodeWav(buffer,16);
-    if(file.size>2_700_000)throw Error('Audial cloud preview accepts up to 2.7 MB total. For a full song, use Local DSP until direct cloud uploading is implemented.');
-    const raw=new Uint8Array(await file.arrayBuffer());
-    let base64='';
-    for(let i=0;i<raw.length;i+=24000)base64+=btoa(String.fromCharCode(...raw.subarray(i,i+24000)));
-    return {name,type:'audio/wav',base64};
-  }
-  async function runCloud(){
-    if(busy)return;
-    if(!cloudAvailable)return message('Audial is not configured in Vercel. Set AUDIAL_API_KEY, AUDIAL_USER_ID and PULSE_AUDIAL_OWNER_TOKEN.',true);
-    if(!$('[data-master-cloud-consent]').checked)return message('Confirm permission to upload audio to Audial before starting.',true);
-    const token=$('[data-master-cloud-token]').value.trim();
-    if(!token)return message('Enter the owner token. It is not stored in the browser.',true);
-    jobController?.abort();jobController=new AbortController();
-    try{
-      const input=w.ensureAudio(),reference=referenceAudio;
-      setBusy(true);cloudResults.replaceChildren();
-      message('Preparing short WAV file for explicit Audial cloud upload…');
-      const original=await asCloudFile(input,'pulse-mix.wav');
-      const referenceData=reference?await asCloudFile(reference,'pulse-reference.wav'):null;
-      if(original.base64.length+(referenceData?.base64.length||0)>3_700_000)
-        throw Error('Mix and reference together exceed the 2.7 MB cloud transport limit.');
-      if(jobController.signal.aborted||disposed||w.buffer!==input)return;
-      message('Uploading to Audial. Audio is leaving this device now…');
-      const response=await fetch('/api/pulse-audial',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-Pulse-Owner-Token':token},
-        body:JSON.stringify({consent:true,original,reference:referenceData}),
-        signal:jobController.signal
-      });
-      const result=await response.json();
-      if(!response.ok)throw Error(result.error||'Audial refused the request. Check subscription and server settings.');
-      if(disposed||w.buffer!==input)return;
-      if(result.audio?.base64){
-        const bytes=Uint8Array.from(atob(result.audio.base64),ch=>ch.charCodeAt(0));
-        const ctx=await w.ensureContext();
-        const decoded=await ctx.decodeAudioData(bytes.buffer);
-        const [before,after]=await Promise.all([
-          runMasteringWorker('analyze',input,{preset:activePreset,signal:jobController.signal}),
-          runMasteringWorker('analyze',decoded,{preset:activePreset,signal:jobController.signal})
-        ]);
-        if(disposed||w.buffer!==input)return;
-        prepared={buffer:decoded,before:before.before,after:after.before,
-          processing:{maxCompressionDb:0,maxLimiterDb:0,targetReached:false}};
-        sourceRef=input;selected='b';
-        display(prepared.before,prepared.after,prepared.processing);
-        setDashboard({original:before.before,master:after.before,
-          spectrumOriginal:before.spectrum?.input,spectrumMaster:after.spectrum?.input});
-        applyButton.disabled=false;exportButton.disabled=false;
-        all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb==='b')));
-        message('Audial returned playable audio. Compare A/B before applying or exporting.');
-      }else{
-        for(const link of result.links||[]){
-          try{
-            const url=new URL(link.url);
-            if(url.protocol!=='https:')continue;
-            const a=document.createElement('a');a.href=url.toString();a.target='_blank';a.rel='noopener noreferrer';
-            a.textContent='OPEN AUDIAL OUTPUT · '+link.label;
-            cloudResults.append(a);
-          }catch{}
-        }
-        message((result.message||'Audial accepted the request.')+
-          (cloudResults.childElementCount?' Open the output link above.':' See your Audial account for processing status. No playable file was returned to PULSE.'));
-      }
-    }catch(error){if(!disposed&&error?.name!=='AbortError')message(error.message||'Cloud mastering failed.',true);}
-    finally{if(!disposed)setBusy(false);}
-  }
-  all('[data-master-engine]').forEach(button=>button.onclick=()=>{
-    if(busy)return;engine=button.dataset.masterEngine;
-    all('[data-master-engine]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    cloudPane.hidden=engine!=='cloud';
-    renderButton.textContent=engine==='cloud'?'RUN AUDIAL CLOUD ↗':'RENDER MASTER ↗';
-    message(engine==='cloud'?'Audial cloud mode needs your credentials and consent. Local presets do not control Audial processing.':'Local DSP selected. Processing stays in this browser.');
-  });
-  void fetch('/api/pulse-audial',{cache:'no-store'})
-    .then(r=>r.ok?r.json():Promise.reject(Error('Cloud status unavailable')))
-    .then(info=>{
-      if(disposed)return;
-      cloudAvailable=Boolean(info.configured);
-      cloudAvailability.textContent=cloudAvailable?'AUDIAL READY · OWNER TOKEN REQUIRED':'AUDIAL NOT CONFIGURED · LOCAL DSP AVAILABLE';
-    }).catch(()=>{if(!disposed)cloudAvailability.textContent='AUDIAL STATUS UNAVAILABLE · LOCAL DSP AVAILABLE';});
-
   const audition=async()=>{
     if(busy)return;
     try{
@@ -463,7 +367,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
     all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
     if(hadPreview)void audition();
   }));
-  analysisButton.onclick=analyze;renderButton.onclick=()=>engine==='cloud'?runCloud():render();play.onclick=audition;
+  analysisButton.onclick=analyze;renderButton.onclick=render;play.onclick=audition;
   const unsubscribe=w.subscribe((snapshot,reason)=>{
     if(!['load','clear','commit','undo','redo'].includes(reason))return;
     jobController?.abort();invalidate();setDashboard({original:null,spectrumOriginal:null});

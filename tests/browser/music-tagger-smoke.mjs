@@ -1,6 +1,5 @@
-/** Headless Chromium QA for PULSE Music Tagger local AI and MusicGPT Vocal Studio.
- * The model RUNTIME is mocked for deterministic CLAP UI tests; no pretrained weights are
- * downloaded in default CI. Production worker uses the real bundled Transformers.js.
+/** Browser QA: CLAP Worker is real; runtime is mocked only for deterministic scores.
+ * The actual bundled Transformers.js module is separately imported and checked.
  */
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
@@ -8,9 +7,7 @@ import {readFile,mkdir} from 'node:fs/promises';
 import {resolve,sep,extname,join} from 'node:path';
 import {chromium} from 'playwright';
 const root=resolve('public');
-const types={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.html':'text/html',
- '.wasm':'application/wasm','.json':'application/json','.png':'image/png','.svg':'image/svg+xml',
- '.woff2':'font/woff2','.mp3':'audio/mpeg'};
+const types={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.html':'text/html','.wasm':'application/wasm','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2'};
 function sineWav(hz=440,seconds=6,rate=22050){
  const count=seconds*rate,bytes=Buffer.alloc(44+count*2);
  bytes.write('RIFF',0);bytes.writeUInt32LE(bytes.length-8,4);bytes.write('WAVEfmt ',8);
@@ -26,7 +23,118 @@ const server=createServer(async(req,res)=>{
   let file=resolve(root,'.'+pathname);
   if(file!==root&&!file.startsWith(root+sep)){res.writeHead(403);return res.end('Forbidden');}
   if(file===root)file=join(root,'index.html');
-  const data=await readFile(file);res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream','Cache-Control':'no-store'});res.end(data);
+  const data=await readFile(file);
+  res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream','Cache-Control':'no-store'});res.end(data);
  }catch(error){res.writeHead(404);res.end(String(error.message||'Not found'));}
 });
-const mockRuntime=String.raw
+const mockRuntime=[
+ "export const env={allowRemoteModels:false,allowLocalModels:false,useBrowserCache:false,backends:{onnx:{wasm:{wasmPaths:'',numThreads:1}}}};",
+ "export async function pipeline(task,model,options={}){",
+ " if(task!=='zero-shot-audio-classification'||model!=='Xenova/clap-htsat-unfused')throw Error('Wrong model');",
+ " options.progress_callback?.({status:'progress',progress:100,file:'model_quantized.onnx'});",
+ " return async (audio,labels,config)=>{",
+ "  if(!(audio instanceof Float32Array)||audio.length<96000||audio.length>480000)throw Error('Unexpected sample rate or duration');",
+ "  if(config.hypothesis_template!=='This is a sound of {}.')throw Error('Unexpected prompt');",
+ "  return labels.map((label,i)=>({label,score:i===2?.92:.02/(i+1)}));",
+ " };",
+ "}"
+].join('\n');
+async function main(){
+ await mkdir('test-results',{recursive:true});
+ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
+ const url='http://127.0.0.1:'+server.address().port+'/';
+ let browser;
+ try{
+  browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+  const page=await browser.newPage({viewport:{width:1440,height:900},acceptDownloads:true});
+  const errors=[],audialCalls=[],runtimePaths=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('request',request=>{
+   const p=request.url();
+   if(p.includes('audialmusic.ai')||p.includes('/api/pulse-tags'))audialCalls.push(p);
+   if(p.includes('/vendor/clap/transformers.min.js'))runtimePaths.push(p);
+  });
+  await page.route('**/vendor/clap/transformers.min.js',route=>route.fulfill({status:200,contentType:'text/javascript',body:mockRuntime}));
+  await page.goto(url,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-tool="music-tagger"]').click();
+  await page.locator('#audio-file').setInputFiles({name:'local-440.wav',mimeType:'audio/wav',buffer:sineWav(440)});
+  await page.waitForFunction(()=>document.querySelector('#audio-meta')?.textContent?.includes('local-440'),{timeout:14000});
+  await page.locator('[data-tag-action="local"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-tag-status]')?.textContent?.includes('measurements complete'),{timeout:25000});
+  assert.equal(await page.locator('[data-tag-results]').isVisible(),true);
+  assert.match(await page.locator('[data-tag-results]').innerText(),/CENTROID/);
+  await page.locator('[data-tag-action="ai-run"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-ai-status]')?.textContent?.includes('predictions ready'),{timeout:25000});
+  const visible=await page.locator('[data-ai-results]').innerText();
+  for(const expected of ['GENRES','MOODS','INSTRUMENTS','House','Melancholic','Drum Kit'])
+   assert.ok(visible.includes(expected),'Missing: '+expected);
+  assert.deepEqual(audialCalls,[]);
+  assert.ok(runtimePaths.length>0,'Local runtime not requested');
+  const fileEvent=page.waitForEvent('download');
+  await page.locator('[data-tag-action="download"]').click();
+  const file=await fileEvent,data=JSON.parse(await readFile(await file.path(),'utf8'));
+  assert.equal(data.ai.audioUploaded,false);
+  assert.equal(data.ai.device,'browser');
+  assert.equal(data.ai.engine,'local-onnx-wasm');
+  assert.equal(data.ai.genre[0].label,'House');
+  assert.equal(data.ai.instruments[0].label,'Drum Kit');
+  await page.screenshot({path:'test-results/music-tagger-desktop.png',fullPage:true});
+  console.log('PASS: local FFT and CLAP Worker with mock weights classified genre mood instruments with zero Audial requests.');
+
+  await page.locator('#audio-file').setInputFiles({name:'local-880.wav',mimeType:'audio/wav',buffer:sineWav(880)});
+  await page.waitForFunction(()=>document.querySelector('[data-ai-status]')?.textContent?.includes('Source changed'),{timeout:12000});
+  assert.equal(await page.locator('[data-tag-action="download"]').isDisabled(),true);
+  assert.equal(await page.locator('[data-ai-results]').isVisible(),false);
+  await page.locator('[data-tag-action="ai-run"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-ai-status]')?.textContent?.includes('predictions ready'),{timeout:25000});
+  console.log('PASS: changing SOURCE AUDIO invalidates old local tags.');
+
+  const mobile=await browser.newPage({viewport:{width:375,height:812}});
+  mobile.on('pageerror',e=>errors.push('mobile: '+e.message));
+  await mobile.goto(url,{waitUntil:'domcontentloaded'});
+  await mobile.locator('[data-tool="music-tagger"]').click();
+  const bounds=await mobile.locator('#module-music-tagger').evaluate(el=>{
+   const rect=el.getBoundingClientRect();return {left:rect.left,right:rect.right,screen:innerWidth};
+  });
+  assert.ok(bounds.left>=-4&&bounds.right<=bounds.screen+4,'Mobile overflow: '+JSON.stringify(bounds));
+  await mobile.screenshot({path:'test-results/music-tagger-mobile.png',fullPage:true});
+  console.log('PASS: mobile Music Tagger fits 375px.');
+
+  // Validate that the actual pinned self-hosted runtime is a valid ES module.
+  const runtimePage=await browser.newPage();
+  await runtimePage.goto(url,{waitUntil:'domcontentloaded'});
+  const runtime=await runtimePage.evaluate(async()=>{
+   const lib=await import('/vendor/clap/transformers.min.js');
+   return {pipeline:typeof lib.pipeline,env:typeof lib.env,onnx:!!lib.env?.backends?.onnx?.wasm};
+  });
+  assert.deepEqual(runtime,{pipeline:'function',env:'object',onnx:true});
+  await runtimePage.close();
+  console.log('PASS: real Transformers.js ESM runtime imports and exposes the local pipeline.');
+
+  const voiceCalls=[];
+  await page.route('**/api/pulse-musicgpt',route=>{
+   const payload=route.request().postDataJSON();voiceCalls.push(payload.action);
+   const reply=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
+   if(payload.action==='voices')return reply({voices:[{id:'e0bb585f-b798-4bac-ac4e-de7fff38f9d75',label:'Licensed QA voice'}]});
+   if(payload.action==='submit')return reply({status:'submitted',conversionId:'e3631817-165d-4f17-a7e2-7008d200ff3e'});
+   return reply({status:'complete',audioUrl:'https://musicgpt.s3.amazonaws.com/fixture.mp3'});
+  });
+  await page.locator('[data-category="ai"]').click();
+  await page.locator('[data-tool="ai2-vocals"]').click();
+  await page.locator('[data-view="ai-voice-changer"]').click();
+  await page.locator('[data-voice-action="submit"]').click();
+  assert.match(await page.locator('[data-voice-status]').innerText(),/authorization and consent/i);
+  assert.deepEqual(voiceCalls,[]);
+  await page.locator('[data-voice-token]').fill('qa-owner');
+  await page.locator('[data-voice-action="voices"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-voice-list]')?.options?.length===2);
+  await page.locator('[data-voice-list]').selectOption('e0bb585f-b798-4bac-ac4e-de7fff38f9d75');
+  await page.locator('[data-voice-consent]').check();
+  await page.locator('[data-voice-action="submit"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-voice-status]')?.textContent?.includes('Voice conversion complete'),{timeout:15000});
+  assert.deepEqual(voiceCalls,['voices','submit','result']);
+  console.log('PASS: independent MusicGPT Vocal Studio still functions.');
+  assert.ok(!errors.some(e=>/music.tagger|musicgpt|Worker|Module not found/i.test(e)),errors.join('; '));
+ }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
+}
+main().catch(error=>{console.error('FAIL: Browser QA:',error);process.exitCode=1;});

@@ -27,7 +27,7 @@ export function recommendedAudioSettings(format) {
 }
 export function conversionOptions({format,bitrate='auto',bitDepth='auto',oggQuality='auto',flacLevel='auto',sampleRate='auto'}={}) {
   const auto=recommendedAudioSettings(format);
-  const rate=sampleRate==='auto'?auto.sampleRate:sampleRate==='original'?null:Number(sampleRate);
+  const rate=sampleRate==='auto'?auto.sampleRate:sampleRate==='original'||sampleRate===null?null:Number(sampleRate);
   if (rate!==null&&![22050,32000,44100,48000,88200,96000].includes(rate))throw Error('Unsupported sample rate.');
   const n=bitrate==='auto'?auto.bitrate:Number(bitrate);
   const depth=bitDepth==='auto'?auto.bitDepth:Number(bitDepth);

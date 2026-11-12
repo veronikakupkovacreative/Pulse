@@ -12,9 +12,6 @@
     },
     "api/pulse-audial.js": {
       "maxDuration": 60
-    },
-    "api/pulse-youtube.js": {
-      "maxDuration": 30
     }
   }
 }

@@ -35,7 +35,7 @@ test('editor merges audio without changing the input buffers',()=>{
  const merged=mergePreparedAudio([a,b]);
  assert.equal(merged.length,200);
  assert.equal(merged.sampleRate,rate);
- assert.equal(a.length,110);
+ assert.equal(a.length,100);
  assert.equal(a.getChannelData(0)[0],.5);
  assert.equal(b.getChannelData(0)[0],.25);
  assert.equal(merged.numberOfChannels,1);

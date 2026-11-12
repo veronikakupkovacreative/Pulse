@@ -41,7 +41,7 @@ test('all eleven AI Studio modules mount without throwing',async()=>{
    const cleanup=module.mount({host,category:'ai'});
    assert.ok(host.children.length,module.id+' must render a nonempty panel');
    assert.ok(host.querySelector('button'),module.id+' must have an actionable control');
-   assert.ok(!host.textConelevent.includes('This module could not start.'),module.id);
+   assert.ok(!host.textContent.includes('This module could not start.'),module.id);
    mounted.push(module.id);
    if(typeof cleanup==='function')cleanup();
   }
@@ -105,7 +105,7 @@ test('full application routes to all eleven AI Studio tabs without a module init
   const host=document.querySelector('.tool-module-host');
   assert.ok(host,button.dataset.tool+' must render');
   const message=host.querySelector('[role="alert"]');
-  if(message)errors.push(button.dataset.tool+': '+message.textConelevent);
+  if(message)errors.push(button.dataset.tool+': '+message.textContent);
  }
  assert.deepEqual(ids,aiV2Modules.map(item=>item.id));
  assert.deepEqual(errors,[]);

@@ -55,7 +55,7 @@ test('single Producer Toolkits Song Analyzer stays inside RED design scope',()=>
  assert.match(css,/\.focus-song-v3/);
  assert.match(css,/\.tool-settings/);
 });
-test('consiselevent uppercase control and senelevence-case editorial styles survive mobile',()=>{
+test('consistent uppercase control and sentence-case editorial styles survive mobile',()=>{
  assert.match(css,/text-transform:uppercase/);
  assert.match(css,/text-transform:none/);
  assert.match(css,/@media\(max-width:700px\)/);

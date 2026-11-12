@@ -61,7 +61,7 @@ test('five categories and all eleven AI Studio tools remain registered unchanged
   'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai','ai2-watermark'
  ]);
 });
-test('system specifies consiselevent casing, focus and responsive states',()=>{
+test('system specifies consistent casing, focus and responsive states',()=>{
  assert.match(css,/text-transform:uppercase;/);
  assert.match(css,/text-transform:none;/);
  assert.match(css,/:focus-visible\{/);

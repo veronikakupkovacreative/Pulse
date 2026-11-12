@@ -57,7 +57,7 @@ test('Stereo Lab and Vocal Doubler controls mount and remain local',()=>{
   assert.ok(root.querySelector('[data-stereo-param="bassMonoHz"]'));
   assert.ok(root.querySelector('[data-stereo-preset="mono-bass"]'));
   assert.ok(root.querySelector('[data-stereo-action="render"]'));
-  assert.ok(!root.textConelevent.includes('Stem Separator'));
+  assert.ok(!root.textContent.includes('Stem Separator'));
   clean();
   root.replaceChildren();
   const close=mountVocalDoubler({host:root});
@@ -67,8 +67,8 @@ test('Stereo Lab and Vocal Doubler controls mount and remain local',()=>{
   const v=document.createElement('div');
   const vocals=aiV2Modules.find(m=>m.id==='ai2-vocals');
   const dispose=vocals.mount({host:v});
-  assert.ok(v.textConelevent.includes('VOCAL DOUBLER'));
-  assert.ok(!v.textConelevent.includes('NEURAL VOICE ISOLATOR'));
+  assert.ok(v.textContent.includes('VOCAL DOUBLER'));
+  assert.ok(!v.textContent.includes('NEURAL VOICE ISOLATOR'));
   dispose();
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });

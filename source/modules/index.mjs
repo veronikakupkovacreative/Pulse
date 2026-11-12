@@ -2,12 +2,13 @@ import {toolModules as existingToolModules} from './features.mjs';
 import {aiV2Modules} from './ai-v2.mjs';
 import {workspace} from './workspace.mjs';
 import {songAnalyzerModule,audioEditorModule} from './focused-tools.mjs';
+import {videoToAudioModule} from './video-audio-tool.mjs';
 import {mountAdvancedVisualizer} from './pulse-ai-master.mjs';
 export const toolModules=Object.freeze([...existingToolModules.filter(module=>module.category!=='ai'),...aiV2Modules]);
 const converter=toolModules.find(m=>m.id==='wav');
 if(!converter)throw Error('PULSE converter module missing.');
 const visualizer=Object.freeze({id:'visualizer',category:'visuals',label:'Audio Visualizer',mount:({host})=>mountAdvancedVisualizer({host})});
-export const visibleToolModules=Object.freeze([songAnalyzerModule,audioEditorModule,converter,...aiV2Modules,visualizer]);
+export const visibleToolModules=Object.freeze([songAnalyzerModule,audioEditorModule,converter,videoToAudioModule,...aiV2Modules,visualizer]);
 if(typeof document!=='undefined'){
   const link=document.createElement('link');link.rel='stylesheet';link.href='/modules/ui.css';document.head.append(link);
   const eqStyle=document.createElement('link');eqStyle.rel='stylesheet';eqStyle.href='/modules/eq-ui.css';document.head.append(eqStyle);

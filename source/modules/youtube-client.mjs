@@ -44,7 +44,7 @@ export async function waitForYoutubeJob(id,owner,{
     throw Error('Unexpected worker download URL.');
    return state;
   }
-  if(['failed','cancelled'].includes(state.status))
+  if(['failed','cancelled','expired'].includes(state.status))
    throw Error(state.error||'Download '+state.status+'.');
   await pause(2000,signal);
  }

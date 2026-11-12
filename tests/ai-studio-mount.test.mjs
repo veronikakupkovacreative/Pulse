@@ -57,3 +57,40 @@ test('AI Mastering exposes all controls and has a valid cloud-status selector',(
   'data-master-ab="c"'
  ])assert.ok(code.includes(marker),'Missing control: '+marker);
 });
+
+
+test('full application routes to all eight AI Studio tabs without a module initialization error',async()=>{
+ const html=read('index.html');
+ const {window,document}=parseHTML(html);
+ // linkedom does not emulate a Canvas 2D context: skip only Source Audio painting.
+ document.querySelector('.tool-empty')?.remove();
+ for(const key of ['document','window','Element','HTMLElement','Node','Event','CustomEvent','MutationObserver']){
+  if(window[key])Object.defineProperty(globalThis,key,{configurable:true,writable:true,value:window[key]});
+ }
+ Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:document});
+ Object.defineProperty(globalThis,'window',{configurable:true,writable:true,value:window});
+ Object.defineProperty(globalThis,'navigator',{configurable:true,writable:true,value:{clipboard:{writeText:async()=>{}}}});
+ globalThis.localStorage={getItem:()=>null,setItem(){}};
+ globalThis.fetch=async()=>({ok:true,json:async()=>({configured:false})});
+ globalThis.requestAnimationFrame=()=>1;
+ globalThis.cancelAnimationFrame=()=>{};
+ await import('../source/app.mjs');
+ assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Single Producer Toolkit analyzer must mount');
+ const event=()=>new window.Event('click',{bubbles:true,cancelable:true});
+ document.querySelector('[data-category="ai"]').dispatchEvent(event());
+ const errors=[];
+ const ids=[];
+ for(const button of [...document.querySelectorAll('#tool-tabs [data-tool]')]){
+  button.dispatchEvent(event());
+  ids.push(button.dataset.tool);
+  const host=document.querySelector('.tool-module-host');
+  assert.ok(host,button.dataset.tool+' must render');
+  const message=host.querySelector('[role="alert"]');
+  if(message)errors.push(button.dataset.tool+': '+message.textContent);
+ }
+ assert.deepEqual(ids,aiV2Modules.map(item=>item.id));
+ assert.deepEqual(errors,[]);
+ assert.ok(document.querySelector('#module-ai2-mastering')===null,'Last selection should replace the previous tool');
+ document.querySelector('.nav-bpm').dispatchEvent(event());
+ assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Navigation must reopen the one active Song Analyzer');
+});

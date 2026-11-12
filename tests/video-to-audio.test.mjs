@@ -45,7 +45,7 @@ test('local video validation limits size and input media types',()=>{
  assert.throws(()=>validateVideoFile({name:'bad.exe',size:1}),/Unsupported/);
  assert.throws(()=>validateVideoFile(null),/Choose a video/);
 });
-test('local extraction uses real codecs and disables video streams in FFmpeg',()=>{
+test('local extraction uses real codecs and disables video streams in FFmpeg',async()=>{
  const mp3=videoToAudioOptions('mp3',{bitrate:'192',sampleRate:'48000'});
  const args=buildConversionArgs('clip.mp4','out.mp3',mp3);
  assert.ok(args.includes('-vn'));

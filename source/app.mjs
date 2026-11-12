@@ -14,7 +14,7 @@ const categories=Object.freeze({
   analyze:{name:'ANALYSIS',title:'Song Analyzer.',description:'BPM, musical key, Camelot, beat grid and music tagging.',number:'01'},
   edit:{name:'EDIT',title:'Audio Editor.',description:'Trim, cut, merge, fade, reverse, gain and parametric EQ.',number:'02'},
   export:{name:'EXPORT',title:'Audio Converter.',description:'Convert media locally or download authorized YouTube audio/video via a separately configured worker.',number:'03'},
-  ai:{name:'AI STUDIO',title:'AI Studio.',description:'Eight focused tools for stereo, vocals, beats, mixing, mastering, repair and effects.',number:'04'},
+  ai:{name:'AI STUDIO',title:'AI Studio.',description:'Nine focused tools for stereo, vocals, beats, mixing, mastering, repair, effects and lyrics.',number:'04'},
   visuals:{name:'VISUALS',title:'Audio Visualizer.',description:'Waveform, spectrum, audiogram and browser-supported video export.',number:'05'}
 });
 const query=(selector)=>document.querySelector(selector);

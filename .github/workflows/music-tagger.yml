@@ -27,3 +27,29 @@ jobs:
           test -f public/modules/music-tagger-worker.mjs
           test -f public/modules/music-tagger.css
           grep -q 'music-tagger' public/modules/index.mjs
+
+  browser-smoke:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build for real browser QA
+        run: npm run build
+      - name: Run real Chromium Music Tagger tests
+        run: node tests/browser/music-tagger-smoke.mjs
+      - name: Upload QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: music-tagger-browser-qa
+          path: test-results/music-tagger-*.png
+          if-no-files-found: ignore

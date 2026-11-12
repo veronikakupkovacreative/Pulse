@@ -40,7 +40,8 @@ jobs:
           test -f public/modules/musicgpt-voicechanger.css
           test -f public/modules/musicgpt-lyrics.mjs
           test -f public/modules/musicgpt-lyrics.css
-          test -f public/modules/musicgpt-mastering.mjs
+          ! test -e public/modules/musicgpt-mastering.mjs
+          ! test -e api/pulse-mastering.js
           ! test -e api/pulse-audial.js
           ! grep -q 'pulse-audial' vercel.json
           grep -q 'music-tagger' public/modules/index.mjs

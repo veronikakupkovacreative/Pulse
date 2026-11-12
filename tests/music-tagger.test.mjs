@@ -22,7 +22,9 @@ test('Music Tagger distinguishes DSP from AI and uploads only after consent',()=
  const code=read('source/modules/music-tagger.mjs');
  assert.match(code,/new Worker\('\/modules\/music-tagger-worker.mjs',\{type:'module'\}\)/);
  assert.match(code,/data-tag-consent/);
- assert.match(code,/data-tag-action="cloud-start"/);
+ assert.match(code,/data-tag-action="cloud-run"/);
+ assert.match(code,/data-tag-action="cloud-cancel"/);
+ assert.match(code,/runAudialMusicTags/);
  assert.match(code,/data-tag-action="local"/);
  assert.match(code,/data-tag-action="download"/);
  assert.match(code,/fetch\('\/api\/pulse-tags'/);

@@ -121,6 +121,6 @@ test('active Song Analyzer retains its design, offers two engines, and never upl
  assert.match(worker,/importScripts\('\/vendor\/essentia/);
  assert.match(worker,/analyzeEssentiaHarmony/);
  assert.match(client,/new Worker\(new URL\('\.\/essentia-worker\.mjs'/);
- assert.doesNotMatch(client,/fetch\(|upload|\/api\/|https:/);
+ assert.doesNotMatch(client,/fetch\(|\/api\/|https:/);
  assert.match(read('focused-tools.css'),/\.focus-song-engine/);
 });

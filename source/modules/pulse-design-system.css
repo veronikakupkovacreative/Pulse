@@ -18,6 +18,12 @@
   --pulse-space-5:32px;
   --pulse-space-6:48px;
   --pulse-font:Arial,Helvetica,sans-serif;
+  --pulse-text-red-primary:var(--pulse-ink);
+  --pulse-text-red-secondary:var(--pulse-ink);
+  --pulse-text-dark-primary:var(--pulse-white);
+  --pulse-text-dark-secondary:rgba(255,255,255,.82);
+  --pulse-metric-label-size:11px;
+  --pulse-cta-height:48px;
   --red:var(--pulse-red);
   --ink:var(--pulse-ink);
   --paper:var(--pulse-paper);
@@ -239,7 +245,7 @@ html[data-theme="dark"] .tool-settings{
   outline-offset:3px;
 }
 .tool-settings .tool-module-host :is(button,input,select):disabled{
-  opacity:.48;
+  opacity:.85;
   cursor:not-allowed;
 }
 
@@ -263,7 +269,7 @@ html[data-theme="dark"] .tool-settings{
   background:var(--pulse-ink);
   border:1px solid var(--pulse-ink);
   color:var(--pulse-white);
-  min-height:48px;
+  min-height:var(--pulse-cta-height);
   padding:12px 14px;
   font-size:11px;
   font-weight:700;
@@ -364,6 +370,109 @@ html[data-theme="dark"] .tool-settings{
 }
 .tool-settings .tool-module-host .pulse-workspace-actions :is(.pulse-workspace-actions-heading,
  .pulse-workspace-actions-status){border-color:var(--pulse-ink)}
+
+/* Phase 4 / SECTION QA: targeted cleanup of source controls, sliders,
+ * nested editor panels and plugin-specific button states.
+ * Never paint another background over the red toolkit canvas.
+ */
+.tool-settings .tool-module-host :is(
+ .pulse-slider-card,.pulse-number-field,.pulse-noise-profile,.ai2-track,
+ .pulse-master-reports>div,.pulse-master-assistant,.pulse-master-reference
+){
+  background:transparent;
+  color:var(--pulse-text-red-primary);
+  border-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(.pulse-slider-title,.pulse-slider-card label,
+ .pulse-noise-field>span,.ai2-track-head strong,.pulse-field>span){
+  color:var(--pulse-text-red-secondary);
+  opacity:1;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.045em;
+  font-size:var(--pulse-metric-label-size);
+}
+.tool-settings .tool-module-host :is(.pulse-slider-value,.pulse-number-field small,
+ .pulse-master-reports strong,.pulse-master-table-row strong){
+  color:var(--pulse-text-red-primary);
+  opacity:1;
+}
+.tool-settings .tool-module-host .pulse-number-field{
+  border:1px solid var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-number-field input[type="number"]{
+  border:0;
+  background:transparent;
+  min-height:39px;
+}
+.tool-settings .tool-module-host .pulse-number-field small{
+  padding-right:10px;
+  font-size:10px;
+}
+.tool-settings .tool-module-host .pulse-slider-pills button{
+  background:transparent;
+  color:var(--pulse-ink);
+  border:1px solid var(--pulse-ink);
+  min-height:40px;
+  font:700 10px/1.4 var(--pulse-font);
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.tool-settings .tool-module-host .pulse-slider-pills button[aria-pressed="true"]{
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+  border-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-slider-pills button:hover:not(:disabled):not([aria-pressed="true"]){
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host :is(.ai2-track-head button,.ai2-import button,
+ .ai2-stem-row button,.ai2-stem-row a,.pulse-fx-secondary,
+ .pulse-noise-output button,.pulse-master-output button:last-child){
+  background:transparent;
+  border:1px solid var(--pulse-ink);
+  color:var(--pulse-ink);
+  border-radius:0;
+  min-height:40px;
+  text-transform:uppercase;
+  font:700 10px/1.35 var(--pulse-font);
+  letter-spacing:.045em;
+}
+.tool-settings .tool-module-host :is(.ai2-track-head button,.ai2-import button,
+ .ai2-stem-row button,.ai2-stem-row a,.pulse-fx-secondary,
+ .pulse-noise-output button,.pulse-master-output button:last-child):hover:not(:disabled){
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host :is(.pulse-slider-card input[type="range"],
+ .pulse-master-field input[type="range"],.ai2-field input[type="range"]){
+  accent-color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(.pulse-master-cloud,.pulse-master-dashboard,
+ .pulse-noise-module,.ai2-track,.focus-editor-modes,.focus-edit-view){
+  color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(.pulse-noise-field small,.pulse-noise-profile p,
+ .pulse-master-analysis,.ai2-note,.focus-song-v3 .focus-status){
+  color:var(--pulse-text-red-secondary);
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(.pulse-workspace-actions-buttons button[data-workspace-preview],
+ .pulse-master-match,.pulse-noise-profile-actions button){
+  color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host :is(.pulse-workspace-actions-buttons button[data-workspace-preview],
+ .pulse-noise-profile-actions button):hover:not(:disabled){
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+/* Black channel plots retain legible white metadata, not black text. */
+.tool-settings .tool-module-host .pulse-eq-left :is(.pulse-eq-feedback,.eq-left-heading span,
+ .eq-left-heading strong){
+  color:var(--pulse-text-dark-secondary);
+  opacity:1;
+}
 
 /* G. EXCEPTION: BLACK audio graphs need white labels for actual visibility.
  * The reference style already has dark waveforms/FFT canvases; keep them.

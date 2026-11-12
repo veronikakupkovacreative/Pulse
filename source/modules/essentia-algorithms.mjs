@@ -37,7 +37,7 @@ export function bpmCandidates(primary,estimates=[]){
 }
 export function cleanMeasuredBeats(ticks,duration,offset=0){
  const sorted=[...ticks].filter(n=>finite(n)&&n>=0&&n<=duration)
-  .map(t=>r2(t+offset)).sort((a,b)=>a-b);
+  .map(t=>Math.round((t+offset)*100000)/100000).sort((a,b)=>a-b);
  return sorted.filter((x,i)=>i===0||x-sorted[i-1]>=.055);
 }
 export function rhythmResultFromWasm(data,{offset=0,duration,rawConfidence=null}={}){

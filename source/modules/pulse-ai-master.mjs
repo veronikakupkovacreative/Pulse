@@ -554,7 +554,7 @@ class AdvancedVisualizer {
   }
 }
 
-function mountAdvancedVisualizer({host}) {
+export function mountAdvancedVisualizer({host}) {
   mountStyles();
   host.innerHTML=`<section class="pulse-ai-master">
     ${header('05 / ADVANCED MUSIC VISUALIZER','See the<br><span>frequencies.</span>',

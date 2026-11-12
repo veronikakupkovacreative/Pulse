@@ -32,7 +32,7 @@ function mountSongAnalyzer({host}){
   '<p>Short harmonic snapshots, not a transcription. Uncertain chords are deliberately hidden.</p>'+
   '<div class="focus-chords" data-focus-chords><p class="focus-song-muted">Analyze a musical track to view potential chords.</p></div></div>'+
   '<div class="focus-song-actions">'+button('analyze','ANALYZE TRACK')+
-  '<button type="button" class="focus-song-link" data-focus-action="full">OPEN DETAILED ANALYZER <span aria-hidden="true">↗</span></button></div>'+
+  '<button type="button" class="focus-song-link" data-focus-action="copy" disabled>COPY DETECTED BPM <span aria-hidden="true">↗</span></button></div>'+
   '<p class="focus-status" data-focus-status role="status" aria-live="polite">Load audio into SOURCE AUDIO, then analyze. For BPM use at least 6 seconds of clear rhythm.</p>'+
   '</section>';
  let disposed=false,busy=false,controller=null,current=null,selectionBpm=null;
@@ -40,7 +40,17 @@ function mountSongAnalyzer({host}){
  const candidatesHost=host.querySelector('[data-focus-candidates]');
  const controls=[...host.querySelectorAll('[data-focus-tempo]')];
  const status=(message,error=false)=>report(host,message,error);
- host.querySelector('[data-focus-action="full"]').onclick=()=>document.getElementById('analyzer')?.scrollIntoView({behavior:'smooth',block:'start'});
+ const copyButton=host.querySelector('[data-focus-action="copy"]');
+ copyButton.onclick=async()=>{
+  if(!Number.isFinite(selectionBpm)||selectionBpm<=0)return status('Analyze audio before copying BPM.',true);
+  try{
+    if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');
+    await navigator.clipboard.writeText(selectionBpm.toFixed(1));
+    status('Copied '+selectionBpm.toFixed(1)+' BPM to clipboard.');
+  }catch{
+    status('Detected tempo: '+selectionBpm.toFixed(1)+' BPM. Clipboard permission is unavailable — copy the number above.');
+  }
+ };
  function renderGrid(bpm){
   const source=w.buffer;
   if(!source||!current||!Number.isFinite(bpm))return;
@@ -49,6 +59,7 @@ function mountSongAnalyzer({host}){
   w.setMarkers(beats);
   setText(host,'bpm',bpm.toFixed(1));
   setText(host,'beats',beats.length.toLocaleString('en-US')+' MARKERS');
+  copyButton.disabled=false;
   controls.forEach(b=>b.disabled=b.dataset.focusTempo==='half'?bpm/2<40:
    b.dataset.focusTempo==='double'?bpm*2>240:Math.abs(bpm-current.bpm)<.015);
   for(const b of candidatesHost.querySelectorAll('[data-candidate]'))b.setAttribute('aria-pressed',
@@ -79,6 +90,7 @@ function mountSongAnalyzer({host}){
   const chords=host.querySelector('[data-focus-chords]');
   chords.replaceChildren();chords.textContent='Run analysis to see possible chords.';
   controls.forEach(b=>b.disabled=true);
+  copyButton.disabled=true;
  }
  analyzeButton.onclick=async()=>{
   if(busy||disposed)return;
@@ -112,6 +124,7 @@ function mountSongAnalyzer({host}){
     setText(host,'rhythm-confidence','UNRELIABLE');
     candidatesHost.textContent='No reliable tempo found. Try a section with a distinct drum pattern.';
     controls.forEach(b=>b.disabled=true);
+    copyButton.disabled=true;
    }
    const chordBox=host.querySelector('[data-focus-chords]');
    chordBox.replaceChildren();

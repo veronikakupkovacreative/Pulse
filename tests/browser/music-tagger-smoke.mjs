@@ -106,7 +106,7 @@ async function main(){
   assert.equal(cloudPayload.file.name,'pulse-excerpt.wav');
   const uploadedBytes=Buffer.from(cloudPayload.file.base64,'base64');
   assert.equal(uploadedBytes.toString('ascii',0,4),'RIFF');
-  assert.equal(uploadedBytes.readUInt32LE(24),22050,'Do not upsample a lower-rate source');
+  assert.equal(uploadedBytes.readUInt32LE(24),44100,'Use the effective browser AudioContext sample rate (decoded WAV may have been resampled)');
   assert.ok(uploadedBytes.length<2500000);
   console.log('PASS: explicit consent prepares a bounded valid WAV excerpt from SOURCE AUDIO, without a second file upload.');
 

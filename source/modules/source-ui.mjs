@@ -24,6 +24,12 @@ if(area){
  const refresh=()=>{const b=w.buffer,span=b?b.duration/zoom:0;area.classList.toggle('has-audio',!!b);const info=sourceDisplay(b,{name:w.displayName||w.name,size:w.fileSize||0});if(b){metadata.textContent=info.title;sub.textContent=info.details;}$('source-format').textContent=info.format||'AUDIO';$('source-zoom').textContent=zoom+'×';$('source-loop').textContent=loop?'LOOP ON':'LOOP OFF';$('source-snap').textContent=snap?'SNAP ON':'SNAP OFF';$('source-zoomout').disabled=zoom===1;$('source-zoomin').disabled=zoom===16;reset.disabled=!b||!w.originalFile;reuse.disabled=!b;
   $('source-loopline').textContent=b?'LOOP '+label(w.selection?.start||0)+' – '+label(w.selection?.end||b.duration)+' · '+(loop?'ON':'OFF')+' · Grid '+tempo.toFixed(1)+' BPM (offset '+offset.toFixed(2)+'s)':'Upload or reuse a track to begin.';
   
+  // Keep the visible waveform and pointer seeking aligned with zoom/pan.
+  if(b){
+   view=Math.min(view,Math.max(0,b.duration-span));
+   w.waveView={start:view,end:Math.min(b.duration,view+span)};
+  }else w.waveView=null;
+  w.drawWave();
   const ruler=$('source-ruler');ruler.replaceChildren();
   if(b){for(let i=0;i<=4;i++){const e=document.createElement('span');e.textContent=label(Math.min(b.duration,view+span*i/4));ruler.append(e)}}};
  $('source-loop').onclick=()=>{loop=!loop;refresh()};

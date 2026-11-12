@@ -62,3 +62,20 @@
 .pulse-tagger-stem>p{font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#aaa;margin:0}
 @media(max-width:700px){.pulse-tagger-cloud-fields,.pulse-tagger-stem-grid{grid-template-columns:1fr}.pulse-tagger-cloud-label{white-space:normal}.pulse-tagger-progress{grid-template-columns:1fr;gap:6px}.pulse-tagger-cloud-buttons{flex-wrap:wrap}.pulse-tagger-stem:first-child{grid-column:auto}}
 @media(max-width:430px){.pulse-tagger-ai-head{flex-direction:column;gap:8px}.pulse-tagger-cloud-label{text-align:left}}
+
+
+/* Zero-shot CLAP inference: all labels are computed on the device; no stem claims. */
+.pulse-tagger [hidden]{display:none!important}
+.pulse-tagger-local-ai{background:#171717;border:1px solid #555}
+.pulse-tagger-ai-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.pulse-tagger-ai-grid .pulse-tagger-stem:first-child{grid-column:auto}
+.pulse-tagger-prediction{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #444;padding:10px 0;font:400 12px/1.3 Arial,Helvetica,sans-serif}
+.pulse-tagger-prediction span:first-child{min-width:0;overflow-wrap:anywhere}
+.pulse-tagger-prediction span:last-child{color:#ff6660;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pulse-tagger-model-credit{font:400 11px/1.6 Arial,Helvetica,sans-serif;color:#a8a8a8}
+.pulse-tagger-progress strong{font:700 10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.06em;color:#ff6c63}
+.pulse-tagger-cloud-buttons button{min-height:46px}
+.pulse-tagger-cloud-buttons [data-tag-action="ai-run"]{flex:1;background:#ff2b20;border-color:#ff2b20;color:white}
+.pulse-tagger-cloud-buttons [data-tag-action="ai-stop"]{flex:0 0 auto}
+@media(max-width:840px){.pulse-tagger-ai-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pulse-tagger-ai-grid .pulse-tagger-stem:last-child{grid-column:1/-1}}
+@media(max-width:540px){.pulse-tagger-ai-grid{grid-template-columns:1fr}.pulse-tagger-ai-grid .pulse-tagger-stem:last-child{grid-column:auto}}

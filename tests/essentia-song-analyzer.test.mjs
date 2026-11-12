@@ -124,3 +124,16 @@ test('active Song Analyzer retains its design, offers two engines, and never upl
  assert.doesNotMatch(client,/fetch\(|\/api\/|https:/);
  assert.match(read('focused-tools.css'),/\.focus-song-engine/);
 });
+
+test('48kHz sources are resampled inside the Worker without changing rhythmic tempo',()=>{
+ const rate=48000,seconds=12,bpm=140,a=new Float32Array(rate*seconds);
+ for(let beat=0;beat<bpm/60*seconds;beat++){
+  const start=Math.floor((beat*60/bpm+.19)*rate);
+  for(let i=0;i<200&&start+i<a.length;i++){
+   if(start+i>=0)a[start+i]+=.6*Math.exp(-i/35)*(Math.sin(2*Math.PI*100*i/rate)+.15);
+  }
+ }
+ const r=analyzeEssentiaRhythm(essentia,[a],rate,3);
+ assert.ok(Math.abs(r.bpm-140)<3,'48kHz resampling must preserve tempo');
+ assert.ok(r.beatTimes.every(t=>t>=3));
+});

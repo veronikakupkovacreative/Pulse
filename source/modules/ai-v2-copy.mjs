@@ -2,9 +2,9 @@
 const data=Object.freeze({
  'ai2-mastering':{
   title:['Master the track','Finish the sound'],
-  summary:'Render a controlled final master with measured loudness, dynamics and output protection. Local DSP, with A/B audition and WAV export.',
-  steps:['Load audio into SOURCE AUDIO.','Choose a mastering preset or adjust the detailed controls.','Render, compare A/B and apply or export the result.'],
-  benefits:[['REAL MASTERING DSP','Stereo-linked dynamics and output ceiling controls.'],['USEFUL MEASUREMENTS','Approximate integrated loudness and true-peak estimates.'],['A/B + EXPORT','Preview before committing and export 24-bit WAV.']]},
+  summary:'Automatically recommend gentle 3-band EQ, linked compression and stereo width using spectral balance, crest factor and correlation. Choose Trap, Hip-Hop, EDM, Pop or Streaming. Local DSP, with LUFS estimates, limiter, level-matched A/B and WAV export.',
+  steps:['Load audio into SOURCE AUDIO.','Choose Trap, Hip-Hop, EDM, Pop or Streaming. Keep Auto Analyze enabled for track-dependent settings, or adjust manually.','Render in a Web Worker, compare level-matched A/B, then apply or export the mastered WAV.'],
+  benefits:[['ADAPTIVE LOCAL DSP','Track-dependent 3-band EQ recommendations, linked compression and stereo controls.'],['GENRE PRESETS','Trap, Hip-Hop, EDM, Pop and Streaming with measured loudness and peak estimates.'],['FAIR A/B + EXPORT','Level-matched audition before committing, plus 24-bit WAV export.']]},
  'ai2-stems':{
   title:['Separate the mix','Work with stems'],
   summary:'Use a real neural Demucs model to separate vocals, drums, bass and remaining instruments. Requires a protected paid cloud inference connection.',

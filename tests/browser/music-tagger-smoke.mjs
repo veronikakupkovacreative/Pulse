@@ -196,6 +196,69 @@ async function main(){
   await mobileLyrics.screenshot({path:'test-results/musicgpt-lyrics-mobile.png',fullPage:true});
   console.log('PASS: MusicGPT lyrics requires consent, returns editable lyrics, exports TXT without recharging, and fits mobile.');
 
+  // Music AI V2: real browser UI, mocked provider. No credits are consumed.
+  const musicAICalls=[];
+  await page.route('**/api/pulse-musicai-v2',route=>{
+   if(route.request().method()==='GET'){
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({configured:true,provider:'MusicGPT',versions:2})});
+   }
+   const payload=route.request().postDataJSON();
+   musicAICalls.push(payload);
+   if(payload.action==='generate'){
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+      status:'submitted',model:'v7',versions:[
+       {id:'2872d9a6-4abe-4a8f-a04f-5540c4ef0a1a'},
+       {id:'dda98922-d5e9-4fc9-accd-4fc1f0729234'}],
+      eta:120,creditEstimate:1.25
+    })});
+   }
+   if(payload.action==='result'){
+    const suffix=payload.conversionId.startsWith('2872')?'A':'B';
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+      conversionId:payload.conversionId,status:'complete',title:'QA original '+suffix,
+      audioUrl:'https://cdn.example.com/generated-'+suffix+'.mp3',
+      wavUrl:'https://cdn.example.com/generated-'+suffix+'.wav',duration:152
+    })});
+   }
+   return route.fulfill({status:400,body:'{"error":"UNKNOWN_ACTION"}'});
+  });
+  await page.locator('[data-category="ai"]').click();
+  await page.locator('[data-tool="ai2-musicai"]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-mai-config]')?.textContent?.includes('READY'),{timeout:10000});
+  assert.equal(await page.locator('[data-mai-track]').count(),2);
+  assert.equal(await page.locator('[data-mai-results]').isVisible(),false);
+  await page.locator('[data-mai-prompt]').fill('Dark trap with punchy 808s and hypnotic vocals');
+  await page.locator('[data-mai-style]').fill('Trap');
+  await page.locator('[data-mai-model]').selectOption('v7');
+  await page.locator('[data-mai-token]').fill('qa-owner-only-token');
+  await page.locator('[data-mai-generate]').click();
+  assert.equal(musicAICalls.length,0,'Paid Music AI generation needs explicit consent');
+  await page.locator('[data-mai-consent]').check();
+  await page.locator('[data-mai-generate]').click();
+  await page.waitForFunction(()=>[...document.querySelectorAll('[data-mai-track]')]
+   .every(el=>el.dataset.complete==='true'),{timeout:18000});
+  assert.equal(musicAICalls.filter(x=>x.action==='generate').length,1);
+  assert.equal(musicAICalls.filter(x=>x.action==='result').length,2);
+  assert.equal(musicAICalls[0].consent,true);
+  assert.equal(musicAICalls[0].mode,'prompt');
+  assert.equal(musicAICalls[0].model,'v7');
+  assert.equal(await page.locator('[data-mai-track] audio').count(),2);
+  assert.equal(await page.locator('.pulse-mai-downloads a').count(),4);
+  assert.equal(await page.locator('[data-mai-generate]').isDisabled(),true,'Prevent a paid duplicate while a submitted job exists');
+  await page.screenshot({path:'test-results/musicgpt-musicai-desktop.png',fullPage:true});
+  const musicAIMobile=await browser.newPage({viewport:{width:375,height:812}});
+  musicAIMobile.on('pageerror',e=>errors.push('musicai mobile: '+e.message));
+  await musicAIMobile.goto(url,{waitUntil:'domcontentloaded'});
+  await musicAIMobile.locator('[data-category="ai"]').click();
+  await musicAIMobile.locator('[data-tool="ai2-musicai"]').click();
+  const maiBounds=await musicAIMobile.locator('.pulse-musicai').evaluate(el=>{
+   const r=el.getBoundingClientRect();return {left:r.left,right:r.right,viewport:innerWidth};
+  });
+  assert.ok(maiBounds.left>=-4&&maiBounds.right<=maiBounds.viewport+4,'Music AI V2 mobile overflow: '+JSON.stringify(maiBounds));
+  await musicAIMobile.screenshot({path:'test-results/musicgpt-musicai-mobile.png',fullPage:true});
+  await musicAIMobile.close();
+  console.log('PASS: Music AI V2 consents before one paid request, exposes two playable/downloadable versions, fits 375px and never recharges on results.');
+
   // Local AI Mastering remains available; no MusicGPT Mastering UI or API.
   const masteringCalls=[];
   await page.route('**/api/pulse-mastering',route=>{

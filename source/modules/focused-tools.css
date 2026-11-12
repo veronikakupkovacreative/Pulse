@@ -86,3 +86,29 @@
 .focus-song-v3 button:focus-visible{outline:2px solid #ff2b20;outline-offset:3px}
 @media(max-width:720px){.focus-song-summary{grid-template-columns:1fr}.focus-song-main{min-height:175px}.focus-song-actions{grid-template-columns:1fr}}
 @media(max-width:440px){.focus-song-tonality{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.focus-song-tonality>div{min-height:85px}.focus-song-tonality>div:first-child{grid-column:1/-1}.focus-song-panel-top{font-size:9px}}
+
+
+/* Essentia is an engine choice, not a redesign. Preserve current PULSE panel hierarchy. */
+.focus-song-engine{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.tool-settings .tool-module-host .focus-song-engine button{
+ min-height:45px;padding:10px 12px;border:1px solid currentColor;border-radius:0;
+ background:transparent;color:inherit;cursor:pointer;
+ font:700 10px/1.35 Arial,Helvetica,sans-serif;letter-spacing:.045em;text-align:left;
+}
+.tool-settings .tool-module-host .focus-song-engine button[aria-pressed="true"]{
+ background:#191919;color:#fff;border-color:#191919;
+}
+.tool-settings .tool-module-host .focus-song-engine button:focus-visible{
+ outline:2px solid #191919;outline-offset:3px;
+}
+.focus-song-alt-keys{
+ display:flex;flex-direction:column;gap:7px;border:1px solid currentColor;
+ padding:13px;min-width:0;overflow-wrap:anywhere;
+}
+.focus-song-alt-keys span{
+ font:700 10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.045em;
+}
+.focus-song-alt-keys p{
+ font:400 11px/1.55 Arial,Helvetica,sans-serif;margin:0;
+}
+@media(max-width:480px){.focus-song-engine{grid-template-columns:1fr}}

@@ -107,7 +107,7 @@ export function mountMusicGPTVoiceChanger({host}){
    if(!dead&&rev===at&&error?.name!=='AbortError'){setStage('ACTION REQUIRED');status(error.message||'Voice conversion failed.',true);}
   }finally{
    if(controller===active){controller=null;setBusy(false);}
-   $('[data-voice-action="submit"]').textContent=conversionId?'RESUME CONVERSION ↗':'CONVERT VOICE ↗';
+   const submitButton=$('[data-voice-action="submit"]');if(submitButton)submitButton.textContent=conversionId?'RESUME CONVERSION ↗':'CONVERT VOICE ↗';
   }
  }
  $('[data-voice-action="submit"]').onclick=()=>{void start();};

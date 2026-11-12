@@ -100,7 +100,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const status=$('.pulse-master-status'),play=$('[data-master-action="listen"]');
   const refFile=$('[data-master-reference]'),matchButton=$('[data-master-action="match"]'),
    clearRefButton=$('[data-master-action="clear-reference"]'),refName=$('[data-master-reference-name]'),
-   cloudPane=$('[data-master-cloud]'),cloudAvailability=$('[data-master-cloud-availability"]'),
+   cloudPane=$('[data-master-cloud]'),cloudAvailability=$('[data-master-cloud-availability]'),
    cloudResults=$('[data-master-cloud-results]');
   const renderButton=$('[data-master-action="render"]'),analysisButton=$('[data-master-action="analyze"]');
   const applyButton=$('[data-master-action="apply"]'),exportButton=$('[data-master-action="export"]');

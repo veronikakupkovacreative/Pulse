@@ -474,6 +474,69 @@ html[data-theme="dark"] .tool-settings{
   opacity:1;
 }
 
+/* Producer utilities, converter and creative effects share the same RED logic.
+ * Earlier styles used gray/brown hints; those are unreadable on the vivid red.
+ */
+.tool-settings .tool-module-host :is(.pulse-producer-secondary,.pulse-producer-detail,
+ .pulse-producer-status,.module-work .converter-codec-note,
+ .pulse-creative .creative-status,.creative-meter>span,.creative-meter>strong,
+ .pulse-producer-summary,.pulse-producer-field>span,
+ .pulse-noise-module .pulse-noise-notice){
+  color:var(--pulse-text-red-primary);
+  opacity:1;
+  font-family:var(--pulse-font);
+  line-height:1.6;
+}
+.tool-settings .tool-module-host :is(.pulse-producer-field,.pulse-producer-upload,
+ .creative-presets button,.pulse-legacy-field,.pulse-producer-summary){
+  background:transparent;
+  border-color:var(--pulse-ink);
+  color:var(--pulse-ink);
+}
+.tool-settings .tool-module-host .pulse-producer-field input[type="number"]{
+  background:transparent;
+  color:var(--pulse-ink);
+  border:0;
+  border-bottom:1px solid var(--pulse-ink);
+  min-height:39px;
+}
+.tool-settings .tool-module-host :is(.pulse-producer-action,.creative-apply){
+  background:var(--pulse-ink);
+  border:1px solid var(--pulse-ink);
+  color:var(--pulse-white);
+  min-height:var(--pulse-cta-height);
+  font:700 11px/1.4 var(--pulse-font);
+  letter-spacing:.05em;
+}
+.tool-settings .tool-module-host :is(.pulse-producer-action,.creative-apply):hover:not(:disabled){
+  background:var(--pulse-ink);
+  color:var(--pulse-white);
+  opacity:.85;
+}
+.tool-settings .tool-module-host :is(.creative-presets button[aria-pressed="true"],
+ .creative-modes button[aria-pressed="true"],.pulse-legacy-presets button[aria-pressed="true"]){
+  background:var(--pulse-ink);
+  border-color:var(--pulse-ink);
+  color:var(--pulse-white);
+}
+.tool-settings .tool-module-host .creative-presets button[aria-pressed="true"] :is(strong,span){
+  color:var(--pulse-white);
+  opacity:1;
+}
+.tool-settings .tool-module-host .creative-presets button:not([aria-pressed="true"]) :is(strong,span){
+  color:var(--pulse-ink);
+  opacity:1;
+}
+.tool-settings .tool-module-host :is(.pulse-producer-action,.creative-apply,
+ .pulse-master-actions button[data-master-action="render"],.ai2-action){
+  text-transform:uppercase;
+}
+@media(max-width:560px){
+  .tool-settings .tool-module-host .pulse-producer-fields{
+    grid-template-columns:1fr;
+  }
+}
+
 /* G. EXCEPTION: BLACK audio graphs need white labels for actual visibility.
  * The reference style already has dark waveforms/FFT canvases; keep them.
  */

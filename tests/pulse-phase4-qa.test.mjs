@@ -46,10 +46,12 @@ test('phase 4 covers producer tools, converter, creative FX and mixer details',(
   '.pulse-slider-card input[type="range"]'
  ])assert.ok(css.includes(selector),selector);
 });
-test('original song upload/analysis is outside the scoped RED design system',()=>{
- assert.ok(html.includes('id="analyzer"'));
+test('single Producer Toolkits Song Analyzer stays inside RED design scope',()=>{
+ assert.ok(html.includes('id="analyzer"')); // old bookmarked #analyzer redirects to the toolkit
  assert.ok(html.includes('id="toolkit"'));
- assert.doesNotMatch(css,/#analyzer\s*[.{]/);
+ assert.doesNotMatch(html,/class="pulse-song-analyzer"/);
+ assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
+ assert.match(css,/\.focus-song-v3/);
  assert.match(css,/\.tool-settings/);
 });
 test('consistent uppercase control and sentence-case editorial styles survive mobile',()=>{

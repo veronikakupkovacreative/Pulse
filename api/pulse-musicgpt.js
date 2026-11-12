@@ -67,9 +67,15 @@ export default async function handler(req,res){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),51000);
  try{
   if(payload.action==='voices'){
-   const result=await upstream('/getAllVoices',{signal:controller.signal});
+   const query=typeof payload.query==='string'?payload.query.trim():'';
+   if(query.length>80||query.length===1)return respond(res,400,{error:'INVALID_SEARCH_QUERY'});
+   const page=Number(payload.page??0);
+   if(!Number.isInteger(page)||page<0||page>100)return respond(res,400,{error:'INVALID_PAGE'});
+   const endpoint=query?'/searchVoices?query='+encodeURIComponent(query)+'&limit=20&page='+page:
+    '/getAllVoices?limit=20&page='+page;
+   const result=await upstream(endpoint,{signal:controller.signal});
    if(!result.ok)return respond(res,result.status>=400&&result.status<500?result.status:502,{error:result.error});
-   return respond(res,200,{voices:sanitizeVoices(result.data)});
+   return respond(res,200,{voices:sanitizeVoices(result.data),page,total:Number.isInteger(result.data.total)?result.data.total:undefined,query});
   }
   if(payload.action==='submit'){
    const voiceId=typeof payload.voiceId==='string'?payload.voiceId.trim():'';

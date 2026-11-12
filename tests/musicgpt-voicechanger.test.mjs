@@ -45,7 +45,7 @@ test('owner may browse provider voices without exposing the MusicGPT API key',as
   const result=await run({action:'voices'});
   assert.equal(result.code,200);
   assert.deepEqual(result.payload.voices,[{id:voiceId,label:'Licensed demo'}]);
-  assert.match(captured.url,/\/api\/public\/v1\/getAllVoices$/);
+  assert.match(captured.url,/\/api\/public\/v1\/getAllVoices\?limit=20&page=0$/);
   assert.equal(captured.opt.headers.Authorization,'server-only-mock-key');
   assert.doesNotMatch(JSON.stringify(result.payload),/server-only-mock-key/);
  });
@@ -100,4 +100,31 @@ test('Vocal Studio includes MusicGPT changer as one subtool, preserves eight mod
  assert.match(ui,/data-voice-consent/);
  assert.match(ui,/makeCloudTaggingExcerpt/);
  assert.doesNotMatch(ui,/MUSICGPT_API_KEY/);
+});
+
+test('Voice Changer searches a voice catalog by name without a browser API key',async()=>{
+ await withEnv(async()=>{
+  let seen='';
+  global.fetch=async(url)=>{
+   seen=url;
+   return new Response(JSON.stringify({success:true,voices:[{voice_id:voiceId,voice_name:'Owned demo voice'}],limit:20,page:0,total:1}),{status:200});
+  };
+  const found=await run({action:'voices',query:'owned demo',page:0});
+  assert.equal(found.code,200);
+  assert.deepEqual(found.payload.voices,[{id:voiceId,label:'Owned demo voice'}]);
+  assert.equal(found.payload.total,1);
+  assert.match(seen,/\/searchVoices\?query=owned%20demo&limit=20&page=0$/);
+ });
+});
+test('Voice search validates query and pagination before any network request',async()=>{
+ await withEnv(async()=>{
+  let calls=0;global.fetch=async()=>{calls++;return new Response('{}',{status:200});};
+  const query=await run({action:'voices',query:'a'});
+  assert.equal(query.code,400);
+  assert.equal(query.payload.error,'INVALID_SEARCH_QUERY');
+  const page=await run({action:'voices',query:'demo',page:-2});
+  assert.equal(page.code,400);
+  assert.equal(page.payload.error,'INVALID_PAGE');
+  assert.equal(calls,0);
+ });
 });

@@ -19,7 +19,7 @@ const messages={
  MUSICGPT_CONNECTION_ERROR:'MusicGPT service is temporarily unavailable.'
 };
 export function mountMusicGPTVoiceChanger({host}){
- host.innerHTML="<section class=\"tool-view ai2-panel pulse-voice-ai\">\n <div class=\"tool-view-header\"><span>04 / VOCAL STUDIO / AI VOICE CHANGER</span><span>MUSICGPT CLOUD PROCESSING</span></div>\n <h3>Change the voice.<br><span>Keep the performance.</span></h3>\n <p class=\"tool-description\">Transform a vocal with MusicGPT VoiceChanger. Work from SOURCE AUDIO or an optional short voice file. Processing occurs on MusicGPT servers with your permission, not locally.</p>\n <div class=\"pulse-voice-fields\">\n  <label>PULSE OWNER ACCESS TOKEN<input data-voice-token type=\"password\" autocomplete=\"off\" placeholder=\"Private PULSE access token\"></label>\n  <div class=\"pulse-voice-picker\"><label>AUTHORIZED VOICE ID<input data-voice-id type=\"text\" autocomplete=\"off\" placeholder=\"Select a licensed voice or enter its ID\"></label><button type=\"button\" data-voice-action=\"voices\" class=\"pulse-voice-secondary\">LOAD VOICES</button></div>\n  <label>AVAILABLE VOICES<select data-voice-list aria-label=\"Available MusicGPT voices\"><option value=\"\">Load voices or enter an authorized ID</option></select></label>\n  <label>OPTIONAL / OTHER VOCAL FILE<input data-voice-file type=\"file\" accept=\".wav,.mp3,.m4a,.flac,.aac,.ogg,audio/*\"></label>\n  <label>PITCH ADJUSTMENT (-12 TO +12)<input data-voice-pitch type=\"number\" min=\"-12\" max=\"12\" step=\"1\" value=\"0\"></label>\n  <label class=\"pulse-voice-check\"><input data-voice-remove type=\"checkbox\" checked> REMOVE BACKGROUND BEFORE CONVERSION</label>\n </div>\n <label class=\"pulse-voice-consent\"><input data-voice-consent type=\"checkbox\"> I own or am authorized to use the input recording and target voice, and consent to uploading audio to MusicGPT for conversion.</label>\n <div class=\"pulse-voice-actions\"><button class=\"ai2-action\" data-voice-action=\"submit\" type=\"button\">CONVERT VOICE ↗</button><button type=\"button\" class=\"pulse-voice-secondary\" data-voice-action=\"cancel\" hidden>STOP WAITING</button></div>\n <div class=\"pulse-voice-progress\"><strong data-voice-stage>READY</strong><p role=\"status\" aria-live=\"polite\" data-voice-status>Load a vocal, select a voice and confirm permission to begin.</p></div>\n <div class=\"pulse-voice-output\" data-voice-output hidden></div>\n <p class=\"ai2-note\">The output is AI-generated. Only use voices you are authorized to reproduce; do not present converted audio as an authentic recording of another person.</p>\n </section>";
+ host.innerHTML="<section class=\"tool-view ai2-panel pulse-voice-ai\">\n <div class=\"tool-view-header\"><span>04 / VOCAL STUDIO / AI VOICE CHANGER</span><span>MUSICGPT CLOUD PROCESSING</span></div>\n <h3>Change the voice.<br><span>Keep the performance.</span></h3>\n <p class=\"tool-description\">Transform a vocal with MusicGPT VoiceChanger. Work from SOURCE AUDIO or an optional short voice file. Processing occurs on MusicGPT servers with your permission, not locally.</p>\n <div class=\"pulse-voice-fields\">\n  <label>PULSE OWNER ACCESS TOKEN<input data-voice-token type=\"password\" autocomplete=\"off\" placeholder=\"Private PULSE access token\"></label>\n  <div class=\"pulse-voice-picker\"><label>FIND VOICE BY NAME<input data-voice-search type=\"search\" autocomplete=\"off\" placeholder=\"Search voice catalog (optional)\"></label><button type=\"button\" data-voice-action=\"voices\" class=\"pulse-voice-secondary\">FIND VOICES</button></div>\n  <label>AUTHORIZED VOICE ID<input data-voice-id type=\"text\" autocomplete=\"off\" placeholder=\"Choose below or paste a licensed voice ID\"></label>\n  <label>AVAILABLE VOICES<select data-voice-list aria-label=\"Available MusicGPT voices\"><option value=\"\">Search available voices or enter a licensed voice ID</option></select></label>\n  <label>OPTIONAL / OTHER VOCAL FILE<input data-voice-file type=\"file\" accept=\".wav,.mp3,.m4a,.flac,.aac,.ogg,audio/*\"></label>\n  <label>PITCH ADJUSTMENT (-12 TO +12)<input data-voice-pitch type=\"number\" min=\"-12\" max=\"12\" step=\"1\" value=\"0\"></label>\n  <label class=\"pulse-voice-check\"><input data-voice-remove type=\"checkbox\" checked> REMOVE BACKGROUND BEFORE CONVERSION</label>\n </div>\n <label class=\"pulse-voice-consent\"><input data-voice-consent type=\"checkbox\"> I own or am authorized to use the input recording and target voice, and consent to uploading audio to MusicGPT for conversion.</label>\n <div class=\"pulse-voice-actions\"><button class=\"ai2-action\" data-voice-action=\"submit\" type=\"button\">CONVERT VOICE ↗</button><button type=\"button\" class=\"pulse-voice-secondary\" data-voice-action=\"cancel\" hidden>STOP WAITING</button></div>\n <div class=\"pulse-voice-progress\"><strong data-voice-stage>READY</strong><p role=\"status\" aria-live=\"polite\" data-voice-status>Load your vocal, search for an authorized voice, then confirm permission to begin.</p></div>\n <div class=\"pulse-voice-output\" data-voice-output hidden></div>\n <p class=\"ai2-note\">The output is AI-generated. Only use voices you are authorized to reproduce; do not present converted audio as an authentic recording of another person.</p>\n </section>";
  const $=selector=>host.querySelector(selector);
  let dead=false,busy=false,controller=null,conversionId=null,rev=0;
  const status=(message,error=false)=>{const el=$('[data-voice-status]');el.textContent=message;el.dataset.error=String(error);};
@@ -39,22 +39,35 @@ export function mountMusicGPTVoiceChanger({host}){
   }
   return data;
  }
- $('[data-voice-list]').onchange=event=>{const id=event.target.value;if(id)$('[data-voice-id]').value=id;};
- $('[data-voice-file]').onchange=()=>{stop();conversionId=null;$('[data-voice-output]').hidden=true;setStage('READY');status('Input changed. Ready for another conversion.');};
- $('[data-voice-id]').onchange=()=>{stop();conversionId=null;$('[data-voice-output]').hidden=true;};
+ const resetJob=(message='Voice settings changed. Ready to start a new conversion.')=>{
+  stop();conversionId=null;
+  const output=$('[data-voice-output]');if(output){output.replaceChildren();output.hidden=true;}
+  const submit=$('[data-voice-action="submit"]');if(submit)submit.textContent='CONVERT VOICE ↗';
+  setStage('READY');status(message);
+ };
+ $('[data-voice-list]').onchange=event=>{
+  const id=event.target.value;
+  if(id&&id!==$('[data-voice-id]').value){$('[data-voice-id]').value=id;resetJob();}
+ };
+ $('[data-voice-file]').onchange=()=>resetJob('Input changed. Ready for another conversion.');
+ $('[data-voice-id]').onchange=()=>resetJob();
+ $('[data-voice-pitch]').onchange=()=>resetJob();
+ $('[data-voice-remove]').onchange=()=>resetJob();
  $('[data-voice-action="voices"]').onclick=async()=>{
   if(dead||busy)return;
   const at=rev,active=new AbortController();controller=active;setBusy(true);
   setStage('LOADING VOICES');status('Loading the MusicGPT voice catalog…');
   try{
-   const result=await gateway('voices',{},active.signal);
+   const query=$('[data-voice-search]').value.trim();
+   if(query.length===1)throw Error('Enter at least two characters or leave search blank.');
+   const result=await gateway('voices',{query,page:0},active.signal);
    if(dead||rev!==at)return;
    const select=$('[data-voice-list]');select.replaceChildren();
    const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Select an authorized voice';select.append(placeholder);
    for(const voice of result.voices||[]){
     const option=document.createElement('option');option.value=voice.id;option.textContent=voice.label;select.append(option);
    }
-   setStage('READY');status('Voice catalog loaded. Only select voices you have permission to use.');
+   setStage('READY');status((result.voices?.length||0)+' voice models found. Select only a voice you have permission to use.');
   }catch(error){if(!dead&&rev===at){setStage('ACTION REQUIRED');status(error.message,true);}}
   finally{if(controller===active){controller=null;setBusy(false);}}
  };
@@ -66,6 +79,7 @@ export function mountMusicGPTVoiceChanger({host}){
   const pitch=Number($('[data-voice-pitch]').value);
   if(!Number.isInteger(pitch)||pitch<-12||pitch>12)return status('Pitch must be an integer from -12 to +12.',true);
   const at=rev,active=new AbortController();controller=active;setBusy(true);
+  let done=false;
   try{
    if(!conversionId){
     let file;
@@ -84,7 +98,6 @@ export function mountMusicGPTVoiceChanger({host}){
     if(active.signal.aborted||dead||rev!==at)return;
     conversionId=submitted.conversionId;
    }
-   let done=false;
    for(let attempt=0;attempt<24;attempt++){
     if(active.signal.aborted||dead||rev!==at)return;
     setStage('PROCESSING');status('MusicGPT is converting the voice ('+(attempt+1)+'/24). You can stop waiting and resume.');
@@ -96,7 +109,7 @@ export function mountMusicGPTVoiceChanger({host}){
      const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=result.audioUrl;
      const link=document.createElement('a');link.href=result.audioUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='OPEN / DOWNLOAD AUDIO ↗';
      output.append(label,audio,link);output.hidden=false;
-     setStage('COMPLETE');status('Voice conversion complete. Listen to or download the result in PULSE.');
+     conversionId=null;setStage('COMPLETE');status('Voice conversion complete. Listen to or download the result in PULSE.');
      done=true;break;
     }
     if(result.status==='failed')throw Error(result.message||'MusicGPT conversion failed.');
@@ -107,7 +120,7 @@ export function mountMusicGPTVoiceChanger({host}){
    if(!dead&&rev===at&&error?.name!=='AbortError'){setStage('ACTION REQUIRED');status(error.message||'Voice conversion failed.',true);}
   }finally{
    if(controller===active){controller=null;setBusy(false);}
-   const submitButton=$('[data-voice-action="submit"]');if(submitButton)submitButton.textContent=conversionId?'RESUME CONVERSION ↗':'CONVERT VOICE ↗';
+   const submitButton=$('[data-voice-action="submit"]');if(submitButton&&!dead)submitButton.textContent=done?'CONVERT AGAIN ↗':conversionId?'RESUME CONVERSION ↗':'CONVERT VOICE ↗';
   }
  }
  $('[data-voice-action="submit"]').onclick=()=>{void start();};

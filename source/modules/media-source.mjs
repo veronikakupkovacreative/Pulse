@@ -24,7 +24,8 @@ export function validateDirectMediaUrl(raw,{checkExtension=true}={}){
 }
 function ensureMime(value){
  const mime=String(value||'').split(';')[0].trim().toLowerCase();
- if(/^(text\/|application\/(json|xml|xhtml\+xml|javascript))/.test(mime))
+ if(mime&&!mime.startsWith('audio/')&&!mime.startsWith('video/')&&
+    !['application/octet-stream','binary/octet-stream','application/ogg','application/x-matroska','application/mp4'].includes(mime))
   throw Error('The link returned a page or document, not a media file.');
  return mime||'application/octet-stream';
 }

@@ -28,3 +28,5 @@
 @media(max-width:700px){.pulse-voice-fields,.pulse-voice-actions{grid-template-columns:1fr}.pulse-voice-progress{flex-direction:column;gap:7px}}
 @media(max-width:450px){.pulse-voice-picker{grid-template-columns:1fr}.pulse-voice-ai{padding:14px}}
 @media(prefers-reduced-motion:reduce){.pulse-voice-ai *{animation:none!important;transition:none!important}}
+
+.pulse-voice-output[hidden]{display:none!important}

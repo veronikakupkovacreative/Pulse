@@ -150,6 +150,52 @@ async function main(){
   assert.deepEqual(voiceCalls,['voices','submit','result','submit','result']);
   assert.equal(voicePayloads[3].pitch,3);
   console.log('PASS: MusicGPT search, consent, audio upload, result and rerun after pitch change without stale job reuse.');
+  // Lyrics Generator: verify no paid request without consent, generated result and offline export.
+  const lyricRequests=[];
+  await page.route('**/api/pulse-lyrics',route=>{
+   const body=route.request().postDataJSON();lyricRequests.push(body);
+   return route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({lyrics:'[Verse]\nCity lights keep moving\n\n[Chorus]\nNew day, new start',taskId:'task-lyrics-qa',creditEstimate:10,provider:'MusicGPT'})});
+  });
+  await page.locator('[data-tool="ai2-lyrics"]').click();
+  assert.equal(await page.locator('[data-lyrics-theme]').count(),1);
+  await page.locator('[data-lyrics-theme]').fill('Starting fresh on a late train after a concert');
+  await page.locator('[data-lyrics-language]').selectOption('Czech');
+  await page.locator('[data-lyrics-genre]').selectOption('Trap');
+  await page.locator('[data-lyrics-keywords]').fill('night train, lights');
+  await page.locator('[data-lyrics-token]').fill('test-owner-token');
+  await page.locator('[data-lyrics-generate]').click();
+  assert.equal(lyricRequests.length,0,'Lyrics generation must not start without consent');
+  await page.locator('[data-lyrics-consent]').check();
+  await page.locator('[data-lyrics-generate]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-lyrics-output]')?.value?.includes('[Chorus]'),{timeout:15000});
+  assert.equal(lyricRequests.length,1);
+  assert.equal(lyricRequests[0].action,'generate');
+  assert.equal(lyricRequests[0].consent,true);
+  assert.ok(lyricRequests[0].prompt.includes('Czech'));
+  assert.ok(lyricRequests[0].prompt.includes('Trap'));
+  assert.ok(lyricRequests[0].prompt.length<=1000);
+  assert.equal(await page.locator('[data-lyrics-meta]').innerText(),'GENERATED / EST. 10 CREDITS');
+  await page.locator('[data-lyrics-output]').fill('[Verse]\nEdited by the artist.');
+  assert.equal(await page.locator('[data-lyrics-action="copy"]').isDisabled(),false);
+  const lyricsEvent=page.waitForEvent('download');
+  await page.locator('[data-lyrics-action="download"]').click();
+  const lyricsFile=await lyricsEvent;
+  assert.ok(lyricsFile.suggestedFilename().endsWith('.txt'));
+  const exported=await readFile(await lyricsFile.path(),'utf8');
+  assert.equal(exported,'[Verse]\nEdited by the artist.');
+  assert.equal(lyricRequests.length,1,'Export must never call the paid API again');
+  await page.screenshot({path:'test-results/musicgpt-lyrics-desktop.png',fullPage:true});
+  const mobileLyrics=await browser.newPage({viewport:{width:375,height:812}});
+  mobileLyrics.on('pageerror',e=>errors.push('lyrics mobile: '+e.message));
+  await mobileLyrics.goto(url,{waitUntil:'domcontentloaded'});
+  await mobileLyrics.locator('[data-category="ai"]').click();
+  await mobileLyrics.locator('[data-tool="ai2-lyrics"]').click();
+  const box=await mobileLyrics.locator('.pulse-lyrics').evaluate(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,screen:innerWidth};});
+  assert.ok(box.left>=-4&&box.right<=box.screen+4,'Lyrics panel exceeds mobile viewport: '+JSON.stringify(box));
+  await mobileLyrics.screenshot({path:'test-results/musicgpt-lyrics-mobile.png',fullPage:true});
+  console.log('PASS: MusicGPT lyrics requires consent, returns editable lyrics, exports TXT without recharging, and fits mobile.');
+
   assert.ok(!errors.some(e=>/music.tagger|musicgpt|Worker|Module not found/i.test(e)),errors.join('; '));
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 }

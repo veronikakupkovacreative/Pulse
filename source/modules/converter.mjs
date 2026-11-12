@@ -124,6 +124,25 @@ export async function convertBuffer(audioBuffer,settings={},onState=()=>{},onPro
   const input=encodeWav(audioBuffer,16);
   return run(input,'workspace.wav',opts,onState,onProgress);
 }
+/** Extract the first audio stream from a user-provided video/audio file.
+ * The same in-browser FFmpeg WASM engine powers the existing Audio Converter.
+ * Does not fetch YouTube streams or remote URLs.
+ */
+export async function convertMediaFile(file,settings={},onState=()=>{},onProgress=()=>{}){
+  if(!file||typeof file.name!=='string'||typeof file.arrayBuffer!=='function'||
+      !Number.isFinite(file.size)||file.size<=0)
+    throw Error('Choose a local video or audio file first.');
+  if(file.size>100*1024*1024)
+    throw Error('Source media exceeds the 100 MB local conversion limit.');
+  const ext=file.name.split('.').pop()?.toLowerCase()||'';
+  const allowed=new Set([...EXTENSIONS,'webm','mkv','m4v','3gp','ts']);
+  if(!allowed.has(ext))
+    throw Error('Unsupported source file type. Use MP4, MOV, WEBM, MKV or a supported audio file.');
+  const opts=conversionOptions(settings);
+  onState('Extracting the first audio track locally. Video frames are discarded.');
+  return run(file,file.name,opts,onState,onProgress);
+}
+
 export async function decodeUnsupportedAudio(file,onState=()=>{}){
   if(!file||file.size>100*1024*1024)throw Error('Maximum source file size: 100 MB.');
   const ext=String(file.name).split('.').pop().toLowerCase();

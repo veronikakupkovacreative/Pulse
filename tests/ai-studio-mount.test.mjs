@@ -13,7 +13,7 @@ const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8')
  * This catches invalid selectors and runtime initialization exceptions that a build misses.
  */
 test('AI Studio registry has nine valid editorial routes and safe backup copy',()=>{
- assert.equal(aiV2Modules.length,9);
+ assert.equal(aiV2Modules.length,10);
  for(const tool of aiV2Modules){
   assert.equal(isAiV2(tool),true,tool.id+' missing dedicated AI Studio copy');
  }
@@ -22,9 +22,13 @@ test('AI Studio registry has nine valid editorial routes and safe backup copy',(
  assert.deepEqual(TOOL_EDITORIAL[lyrics.id].title,['Lyrics','Generator']);
  assert.ok(TOOL_EDITORIAL[lyrics.id].steps.length>=3);
  assert.equal(TOOL_BENEFITS[lyrics.id].length,3);
+ const musicai=aiV2Modules.find(tool=>tool.id==='ai2-musicai');
+ assert.ok(musicai,'Music AI v2 must be registered');
+ assert.deepEqual(TOOL_EDITORIAL[musicai.id].title,['AI Music','Generator']);
+ assert.equal(TOOL_BENEFITS[musicai.id].length,3);
 });
 
-test('all nine AI Studio modules mount without throwing',async()=>{
+test('all ten AI Studio modules mount without throwing',async()=>{
  const {window,document}=parseHTML('<html><body><div id="audio-meta"></div><div id="source-status"></div><main id="host"></main></body></html>');
  const props=['window','document','navigator','fetch'];
  const before=Object.fromEntries(props.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
@@ -35,7 +39,7 @@ test('all nine AI Studio modules mount without throwing',async()=>{
  const host=document.getElementById('host');
  const mounted=[];
  try{
-  assert.equal(aiV2Modules.length,9);
+  assert.equal(aiV2Modules.length,10);
   for(const module of aiV2Modules){
    host.replaceChildren();
    const cleanup=module.mount({host,category:'ai'});
@@ -47,7 +51,7 @@ test('all nine AI Studio modules mount without throwing',async()=>{
   }
   assert.deepEqual(mounted,[
    'ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat',
-   'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics'
+   'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai'
   ]);
  }finally{
   for(const key of props) {
@@ -75,7 +79,7 @@ test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
 
-test('full application routes to all nine AI Studio tabs without a module initialization error',async()=>{
+test('full application routes to all ten AI Studio tabs without a module initialization error',async()=>{
  const html=read('index.html');
  const {window,document}=parseHTML(html);
  // linkedom does not emulate a Canvas 2D context: skip only Source Audio painting.

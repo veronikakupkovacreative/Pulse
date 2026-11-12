@@ -65,11 +65,12 @@ export function createApp({
  const timer=setInterval(()=>void cleanup(),60000);
  timer.unref?.();
  function status(job){
-  const available=job.status==='ready';
+  const available=job.status==='ready'&&Date.now()-job.updatedAt<ttlMs;
+  const expired=job.status==='ready'&&!available;
   return {
-   id:job.id,status:job.status,percent:job.percent,
+   id:job.id,status:expired?'expired':job.status,percent:job.percent,
    title:job.title||'',duration:job.duration||null,
-   format:job.format,error:job.error||null,
+   format:job.format,error:expired?'The download link has expired. Start a new job.':(job.error||null),
    bytes:available?job.bytes:null,
    downloadUrl:available?base+'/v1/jobs/'+job.id+'/download?ticket='+job.ticket:null,
    expiresInSeconds:available?Math.max(0,Math.floor((ttlMs-(Date.now()-job.updatedAt))/1000)):null
@@ -120,7 +121,7 @@ export function createApp({
   // File URLs require only the per-job random ticket. All other APIs require the service key.
   if(method==='GET'&&jobRoute?.[2]==='download'){
    const job=jobs.get(jobRoute[1]);
-   if(!job||job.status!=='ready'||!secureEqual(url.searchParams.get('ticket'),job.ticket))
+   if(!job||job.status!=='ready'||Date.now()-job.updatedAt>=ttlMs||!secureEqual(url.searchParams.get('ticket'),job.ticket))
     return reply(res,404,{error:'Download unavailable or expired.'});
    let file;try{file=await stat(job.filePath);}catch{return reply(res,404,{error:'Download file expired.'});}
    res.writeHead(200,{

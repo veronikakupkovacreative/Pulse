@@ -11,7 +11,7 @@ import {initializeThemeToggle} from './modules/theme-toggle.mjs';
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
 const categories=Object.freeze({
-  analyze:{name:'ANALYSIS',title:'Song Analyzer.',description:'BPM, musical key, Camelot, approximate chords and beat grid.',number:'01'},
+  analyze:{name:'ANALYSIS',title:'Song Analyzer.',description:'BPM, musical key, Camelot, beat grid and music tagging.',number:'01'},
   edit:{name:'EDIT',title:'Audio Editor.',description:'Trim, cut, merge, fade, reverse, gain and parametric EQ.',number:'02'},
   export:{name:'EXPORT',title:'Audio Converter.',description:'Convert media locally or download authorized YouTube audio/video via a separately configured worker.',number:'03'},
   ai:{name:'AI STUDIO',title:'AI Studio.',description:'Eight focused tools for stereo, vocals, beats, mixing, mastering, repair and effects.',number:'04'},

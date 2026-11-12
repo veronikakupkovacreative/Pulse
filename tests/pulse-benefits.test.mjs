@@ -16,8 +16,8 @@ test('all registered tools have three individual and truthful benefits',()=>{
    descriptions.add(copy);
   }
  }
- // Legacy catalog plus Song Analyzer, Music Tagger, Visualizer and Lyrics Generator.
- assert.equal(Object.keys(TOOL_BENEFITS).length,toolModules.length+4);
+ // Legacy catalog plus Song Analyzer, Music Tagger, Visualizer Lyrics Generator and MusicAI.
+ assert.equal(Object.keys(TOOL_BENEFITS).length,toolModules.length+5);
  assert.equal(TOOL_BENEFITS['ai2-lyrics'].length,3);
  assert.equal(TOOL_BENEFITS['song-analyzer'].length,3);
 });

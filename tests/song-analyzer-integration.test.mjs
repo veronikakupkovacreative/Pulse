@@ -17,12 +17,12 @@ function beat(bpm=120,seconds=12,sampleRate=22050){
   }
   return samples;
 }
-test('Song Analyzer retains tempo analysis',()=>{
+test('Legacy reference analyzer retains tempo analysis',()=>{
   const result=analyzeSong(beat(128),22050);
   assert.ok(Math.abs(result.bpm-128)<1.1);
   assert.equal(result.waveform.length,220);
 });
-test('Song Analyzer supplies key and Camelot even when rhythm is missing',()=>{
+test('Legacy reference analyzer supplies key and Camelot even without rhythm',()=>{
   const result=analyzeSong(triad(),22050);
   assert.equal(result.bpm,null);
   assert.equal(result.key.primary.name,'C');
@@ -34,52 +34,60 @@ test('Tuning estimator approximates a known tuned chord',()=>{
   assert.ok(result);
   assert.ok(Math.abs(result.cents+20)<3);
 });
-test('Song Analyzer rejects silence',()=>{
+test('Legacy reference analyzer rejects silence',()=>{
   assert.throws(()=>analyzeSong(new Float32Array(22050*8),22050),/SILENCE/);
 });
-test('Song Analyzer rejects too short audio',()=>{
+test('Legacy reference analyzer rejects too-short audio',()=>{
   assert.throws(()=>analyzeSong(new Float32Array(22050*2),22050),/TOO_SHORT/);
 });
 
 import {readFileSync} from 'node:fs';
-const read = path => readFileSync(new URL('../source/'+path,import.meta.url),'utf8');
-test('Song Analyzer occupies section 01 and all existing category panels are retained',()=>{
- const h=read('index.html');
- const start=h.indexOf('<section id="analyzer"');
- const tools=h.indexOf('<section class="toolkit"');
- assert.ok(start>0&&tools>start);
- const upper=h.slice(start,tools),lower=h.slice(tools);
- assert.match(upper,/01 \/ SONG ANALYZER/);
- assert.doesNotMatch(upper,/01 \/ RHYTHM ENGINE/);
- for(const id of ['song-key','song-camelot','song-tuning','song-key-confidence','song-export-json','analyze-selection','analyze-full','try-demo','play-track'])assert.ok(upper.includes('id="'+id+'"'),id);
- for(const category of ['analyze','edit','export','ai','visuals'])assert.ok(lower.includes('data-category="'+category+'"'),category);
- assert.match(lower,/class="tool-board"/);
- assert.match(h,/id="pulse-theme-toggle"/);
- assert.match(h,/src="\/song\/song-ui.mjs"/);
- assert.doesNotMatch(h,/src="\/reference-ui.mjs"/);
-});
-test('Song Analyzer analysis stays in Worker and shares the toolkit AudioSession',()=>{
- const ui=read('song/song-ui.mjs');
- const worker=read('song/analysis-worker.mjs');
- const logic=read('song/song-analyzer.mjs');
- assert.match(ui,/import \{workspace\} from '\.\.\/modules\/workspace.mjs'/);
- assert.match(ui,/await workspace.load\(file\)/);
- assert.match(ui,/workspace.subscribe/);
- assert.match(ui,/workspace.setMarkers\(markers\)/);
- assert.match(ui,/new CustomEvent\('pulse:tempo'/);
- assert.match(ui,/source\/song\/analysis-worker|new URL\('\.\/analysis-worker.mjs'/);
- assert.match(worker,/import \{analyzeSong\}/);
- assert.match(logic,/estimateTuning/);
-});
-test('Song Analyzer styling is scoped and does not override toolkit styles',()=>{
- const c=read('song/song-analyzer.css');
- assert.match(c,/#analyzer.pulse-song-analyzer .result-panel:has\(\.song-results:not\(\[hidden\]\)\)/);
- assert.match(c,/#analyzer.pulse-song-analyzer .selection-tools/);
- assert.match(c,/html\[data-theme="dark"\] #analyzer.pulse-song-analyzer/);
- assert.doesNotMatch(c,/^\.tool-settings\{/m);
+const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8');
+
+test('Producer Toolkits contains the sole active Song Analyzer',()=>{
+ const html=read('index.html');
+ assert.match(html,/id="toolkit"/);
+ assert.match(html,/data-open-tool="song-analyzer"/);
+ assert.match(html,/href="#toolkit" class="nav-bpm"/);
+ assert.match(html,/<span id="analyzer" aria-hidden="true"><\/span>/);
+ assert.doesNotMatch(html,/<section id="analyzer" class="pulse-song-analyzer"/);
+ assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
+ assert.doesNotMatch(html,/href="\/song\/song-analyzer.css"/);
+ for(const category of ['analyze','edit','export','ai','visuals'])
+  assert.ok(html.includes('data-category="'+category+'"'),category);
+ assert.match(html,/class="tool-board"/);
+ assert.match(html,/id="pulse-theme-toggle"/);
 });
 
-test('Vercel build publishes the Song Analyzer ESM, worker and stylesheet',()=>{
- const build=readFileSync(new URL('../scripts/build.mjs',import.meta.url),'utf8');
- assert.match(build,/await cp\(join\(source,'song'\),join\(output,'song'\),\{recursive:true\}\)/);
+test('active Song Analyzer shares Workspace and analyzes rhythm/harmony in workers',()=>{
+ const code=read('modules/focused-tools.mjs');
+ assert.match(code,/function mountSongAnalyzer/);
+ assert.match(code,/analyzeRhythmInWorker/);
+ assert.match(code,/analyzeHarmonyInWorker/);
+ assert.match(code,/w\.ensureAudio\(\)/);
+ assert.match(code,/w\.setMarkers\(beats\)/);
+ assert.match(code,/w\.subscribe/);
+ assert.match(code,/data-focus-action="copy"/);
+ assert.doesNotMatch(code,/OPEN DETAILED ANALYZER/);
+ assert.doesNotMatch(code,/getElementById\('analyzer'\)/);
+});
+
+test('toolkit red analyzer UI is defined by shared design system, not legacy standalone CSS',()=>{
+ const css=read('modules/pulse-design-system.css');
+ const html=read('index.html');
+ assert.match(css,/\.focus-song-main/);
+ assert.match(css,/\.focus-song-tonality/);
+ assert.match(css,/\.tool-settings/);
+ assert.doesNotMatch(html,/href="\/song\/song-analyzer.css"/);
+ assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
+});
+
+test('build ships the active rhythm and harmony worker modules',()=>{
+ const source=read('modules/focused-tools.mjs');
+ const script=readFileSync(new URL('../scripts/build.mjs',import.meta.url),'utf8');
+ assert.match(script,/readdir\(join\(source,'modules'\)\)/);
+ assert.match(source,/rhythm-client\.mjs/);
+ assert.match(source,/harmony-client\.mjs/);
+ assert.match(read('modules/rhythm-worker.mjs'),/onmessage/);
+ assert.match(read('modules/harmony-worker.mjs'),/onmessage/);
 });

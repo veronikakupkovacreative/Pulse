@@ -22,8 +22,8 @@ if(typeof document!=='undefined'){
   set('.hero-description','Analyze, edit, master and export music in one focused browser workspace. Five sections, one shared waveform and eight AI Studio tools.');
   set('.state-line','LOCAL AUDIO PROCESSING / MODULES ACTIVE');
   set('.toolkit-intro p','Analyze rhythm and harmony, edit audio, convert formats or open a focused AI Studio tool. Your main SOURCE AUDIO stays in the shared workspace.');
-  set('.toolkit-intro .intro-accent','Local tools require no account. Cloud AI needs protected access.');
-  set('.toolkit-note','+ Local DSP stays in your browser. Neural voice operations use an explicitly authorized cloud service and require separate access.');
+  set('.toolkit-intro .intro-accent','Stereo, vocal, repair and beat tools process audio locally. Cloud mastering is optional.');
+  set('.toolkit-note','+ Stereo Lab and Vocal Doubler work entirely in your browser. Optional Audial mastering is separate and requires explicit consent.');
   set('.footer-brand p','A focused audio workspace for producers. Analyze, edit, process and export without installing software.');
   const status=document.querySelector('.tiny-status');if(status)status.textContent='READY FOR AUDIO';
   const source=document.querySelector('.tool-source');if(source)source.setAttribute('aria-label','Audio upload, waveform and transport');

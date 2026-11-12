@@ -10,9 +10,6 @@
     "api/pulse-stems.js": {
       "maxDuration": 60
     },
-    "api/pulse-audial.js": {
-      "maxDuration": 60
-    },
     "api/pulse-youtube.js": {
       "maxDuration": 30
     },
@@ -20,6 +17,9 @@
       "maxDuration": 60
     },
     "api/pulse-lyrics.js": {
+      "maxDuration": 60
+    },
+    "api/pulse-mastering.js": {
       "maxDuration": 60
     }
   }

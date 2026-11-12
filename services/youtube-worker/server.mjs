@@ -71,6 +71,7 @@ export function createApp({
    id:job.id,status:expired?'expired':job.status,percent:job.percent,
    title:job.title||'',duration:job.duration||null,
    format:job.format,error:expired?'The download link has expired. Start a new job.':(job.error||null),
+   errorCode:expired?'JOB_EXPIRED':(job.errorCode||null),retryable:job.retryable??null,
    bytes:available?job.bytes:null,
    downloadUrl:available?base+'/v1/jobs/'+job.id+'/download?ticket='+job.ticket:null,
    expiresInSeconds:available?Math.max(0,Math.floor((ttlMs-(Date.now()-job.updatedAt))/1000)):null
@@ -102,10 +103,12 @@ export function createApp({
      if(!info.isFile()||info.size<=0)throw Error('The converter returned no output.');
      job.filePath=result.path;job.filename=result.filename;job.bytes=info.size;
      job.title=result.title||job.title;job.duration=result.duration||job.duration;
-     job.status='ready';job.percent=100;
+     job.status='ready';job.percent=100;job.errorCode=null;job.retryable=null;
     }catch(error){
      job.status=job.abort.signal.aborted?'cancelled':'failed';
      job.error=job.abort.signal.aborted?'Job cancelled.':String(error.message||'Media conversion failed.').slice(0,240);
+     job.errorCode=job.abort.signal.aborted?'JOB_CANCELLED':(typeof error.code==='string'&&/^[A-Z_]{3,48}$/.test(error.code)?error.code:'MEDIA_PROCESSING_FAILED');
+     job.retryable=job.abort.signal.aborted?false:(error.retryable===true);
      if(job.directory){await rm(job.directory,{recursive:true,force:true}).catch(()=>{});job.directory=null;}
     }finally{
      job.updatedAt=Date.now();active--;drain();

@@ -125,6 +125,31 @@ async function mastering(page,label){
  if(label==='desktop')await page.locator('.pulse-master-work').screenshot({path:'test-results/pulse-colors-mastering-desktop.png'});
 }
 
+async function musicAI(page,label){
+ await page.locator('[data-category="ai"]').click();
+ await page.locator('[data-tool="ai2-musicai"]').click();
+ await page.locator('.pulse-musicai').waitFor();
+ await checkCanvas(page,'.pulse-musicai');
+ await checkSurface(page,'.pulse-mai-form');
+ await checkSurface(page,'.pulse-mai-status-panel');
+ for(const selector of [
+  '.pulse-musicai .tool-view-header','.pulse-musicai h3','.pulse-musicai .tool-description',
+  '.pulse-mai-field','.pulse-mai-field input[data-mai-token]',
+  '.pulse-mai-field textarea','.pulse-mai-consent','.pulse-mai-hint',
+  '.pulse-mai-status-heading strong','.pulse-mai-status',
+  '.pulse-mai-result-head strong','.pulse-mai-track-head h4'
+ ])await checkText(page,selector);
+ const button=await sample(page,'.pulse-mai-generate');
+ assert.equal(button.bg,'rgb(25, 25, 25)','Music AI CTA must be black');
+ assert.equal(button.text,'rgb(255, 255, 255)','Music AI CTA text must be white');
+ const bounds=await page.locator('.pulse-musicai').evaluate(el=>{
+  const rect=el.getBoundingClientRect();return {width:rect.width,scrollWidth:el.scrollWidth,left:rect.left,right:rect.right,viewport:innerWidth};
+ });
+ assert.ok(bounds.scrollWidth<=bounds.width+3,'Music AI form overflow: '+JSON.stringify(bounds));
+ assert.ok(bounds.left>=-4&&bounds.right<=bounds.viewport+4,'Music AI viewport overflow: '+JSON.stringify(bounds));
+ if(label==='desktop')await page.locator('.pulse-musicai').screenshot({path:'test-results/pulse-colors-musicai-desktop.png'});
+}
+
 async function main(){
  await mkdir('test-results',{recursive:true});
  await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
@@ -142,6 +167,7 @@ async function main(){
     await voice(page,name);
     await tagger(page,name);
     await mastering(page,name);
+    await musicAI(page,name);
    }
    if(name==='mobile'){
     await lyrics(page,'mobile');
@@ -155,7 +181,7 @@ async function main(){
    assert.ok(!errors.some(e=>/lyrics|musicgpt|music.tag|CSS|stylesheet/i.test(e)),
     'Browser runtime errors: '+errors.join('; '));
    await page.close();
-   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / local Mastering in light and dark.');
+   console.log('PASS:',name,'contrast >= 4.5, canonical red surface, Lyrics / Voice / Tagger / local Mastering / Music AI V2 in light and dark.');
   }
  }finally{await browser?.close();await new Promise(ok=>server.close(ok));}
 }

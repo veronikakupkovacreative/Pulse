@@ -2,7 +2,7 @@
 .ai2-panel{color:var(--ink,#191919);display:grid;gap:15px;min-width:0}
 .ai2-panel .tool-view-header{display:flex;justify-content:space-between;gap:10px;letter-spacing:.08em;font-size:10px}
 .ai2-panel h3{font-size:clamp(32px,3vw,46px);font-weight:400;line-height:1.07;letter-spacing:-.045em;margin:5px 0}
-.ai2-panel h3 span{opacity:.55}
+.ai2-panel h3 span{opacity:.72}
 .ai2-panel .tool-description{font-size:13px;line-height:1.62;max-width:580px;margin:0 0 9px}
 .ai2-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .ai2-field{display:flex;flex-direction:column;gap:8px;min-width:0;font:400 11px/1.5 Arial,Helvetica,sans-serif;letter-spacing:.02em}
@@ -12,8 +12,8 @@
 .ai2-panel input[type=file]::file-selector-button{font:600 11px Arial,Helvetica,sans-serif;padding:8px 10px;margin-right:9px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer}
 .ai2-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .ai2-action{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;background:#191919;color:#fff;border:1px solid #191919;padding:11px 14px;text-align:left;font:600 11px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.03em}
-.ai2-action:hover{background:#333}
-.ai2-action:disabled,.ai2-panel button:disabled{opacity:.45;cursor:not-allowed}
+.ai2-action:hover{background:#191919;filter:brightness(.96)}
+.ai2-action:disabled,.ai2-panel button:disabled{opacity:.85;cursor:not-allowed}
 .ai2-panel :is(button,input,a):focus-visible,.ai2-switch button:focus-visible{outline:2px solid var(--red,#ff2b20);outline-offset:3px}
 .ai2-status{font:400 12px/1.55 Arial,Helvetica,sans-serif;border-top:1px solid currentColor;padding-top:12px;margin:10px 0 0;min-height:40px;overflow-wrap:anywhere}
 .ai2-status[data-error=true]{font-weight:700;color:var(--red,#ff2b20)}

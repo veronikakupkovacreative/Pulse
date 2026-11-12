@@ -13,6 +13,7 @@
     "web-audio-beat-detector": "8.2.39"
   },
   "devDependencies": {
-    "esbuild": "0.25.12"
+    "esbuild": "0.25.12",
+    "linkedom": "0.18.15"
   }
 }

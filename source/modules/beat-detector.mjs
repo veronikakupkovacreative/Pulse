@@ -77,6 +77,27 @@ export function buildAnalyzerBeatGrid(result,selectedBpm,duration){
   if(!validTempo(selectedBpm)||!Number.isFinite(duration)||duration<=0)return [];
   const primary=Number(result?.bpm);
   const original=Array.isArray(result?.beatTimes)?result.beatTimes:[];
+  if(result?.measuredBeatTimes===true){
+    // For Essentia, show only measured timestamps from the analyzed window.
+    // Half-time downsamples existing ticks; double-time adds clearly marked
+    // estimated subdivisions (reported as such in the UI).
+    const measured=original.filter(t=>Number.isFinite(t)&&t>=0&&t<=duration)
+      .sort((a,b)=>a-b).filter((t,i,array)=>i===0||t-array[i-1]>.035);
+    if(measured.length<2)return [];
+    const ratio=selectedBpm/primary;
+    if(Math.abs(ratio-1)<.02)return measured;
+    if(Math.abs(ratio-.5)<.025)return measured.filter((_,i)=>i%2===0);
+    if(Math.abs(ratio-2)<.05){
+      const withMidpoints=[];
+      for(let i=0;i<measured.length;i++){
+        withMidpoints.push(measured[i]);
+        if(i+1<measured.length)withMidpoints.push(Math.round((measured[i]+measured[i+1])*.5*10000)/10000);
+      }
+      return withMidpoints;
+    }
+    // Never fabricate a uniform grid when Essentia selected a non-metrical alternative.
+    return [];
+  }
   if(Number.isFinite(primary)&&Math.abs(selectedBpm-primary)<0.015&&original.length>=2){
     const measured=original.filter(t=>Number.isFinite(t)&&t>=0&&t<=duration).sort((a,b)=>a-b);
     const unique=measured.filter((t,i)=>i===0||t-measured[i-1]>0.035);

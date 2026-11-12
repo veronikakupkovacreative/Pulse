@@ -24,6 +24,8 @@ for(const file of ['essentia-wasm.web.js','essentia-wasm.web.wasm','essentia.js-
  await copyFile(join(root,'node_modules','essentia.js','dist',file),join(output,'vendor','essentia',file));
 }
 await copyFile(join(root,'node_modules','essentia.js','LICENSE'),join(output,'vendor','essentia','LICENSE.txt'));
+// Emscripten resolves .wasm relative to the Worker script, not importScripts URL.
+await copyFile(join(source,'modules','essentia-worker.mjs'),join(output,'vendor','essentia','essentia-worker.mjs'));
 console.log('Built PULSE Studio with browser audio modules.');
 
 // Ship pinned codec binaries and ESM worker from node_modules; no runtime CDN dependency.

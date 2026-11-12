@@ -68,13 +68,15 @@ export function analyzeTempo(samples, sampleRate) {
     const bpm = 60 * rate / period;
     if (bpm < 45 || bpm > 220) continue;
     const periodicity = at(period);
-    const prior = Math.exp(-0.5 * (Math.log(bpm / 115) / 0.65) ** 2);
-    const score = (periodicity + 0.45 * at(period * 2) + 0.2 * at(period * 3)) * (0.84 + 0.16 * prior);
+    // No default BPM bias: judge candidate from evidence instead of a fixed tempo prior.
+    const score = periodicity + .24 * at(period * 2) + .09 * at(period * 3);
     candidates.push({bpm, score, periodicity});
   }
   candidates.sort((a,b) => b.score - a.score);
   if (!candidates.length || candidates[0].periodicity < 0.14) throw new Error('NO_RHYTHM');
   const best = candidates[0];
+  const alternatives=candidates.slice(1).filter(c=>Math.abs(Math.log(c.bpm/best.bpm))>.025)
+    .slice(0,4).map(c=>({bpm:Math.round(c.bpm*10)/10,relativeScore:Math.round(100*c.score/Math.max(best.score,1e-6))}));
   const backgroundValues = Array.from(corr.slice(Math.floor(rate*60/220),Math.ceil(rate*60/45))).sort((a,b)=>a-b);
   const background = backgroundValues[Math.floor(backgroundValues.length/2)];
   const prominence = (best.periodicity-background)/(1-background || 1);
@@ -91,7 +93,10 @@ export function analyzeTempo(samples, sampleRate) {
     return winner.bpm;
   });
   const consistency = windows.filter(bpm => Math.abs(Math.log2(bpm / best.bpm) - Math.round(Math.log2(bpm / best.bpm))) < 0.035).length / windows.length;
-  const confidence = prominence > 0.45 && consistency > 0.65 ? 'high' : prominence > 0.18 ? 'medium' : 'low';
+  const second=candidates.find(c=>Math.abs(Math.log(c.bpm/best.bpm))>.025);
+  const separation=second?Math.max(0,(best.score-second.score)/Math.max(Math.abs(best.score),1e-6)):1;
+  const confidence = prominence > .45 && consistency > .65 && separation>.12?'high':
+    prominence>.18&&separation>.05?'medium':'low';
   // Estimate beat phase from the onset envelope, then snap each grid point to a local onset.
   const period = 60 * rate / best.bpm;
   const phaseLimit = Math.max(1, Math.ceil(period));
@@ -128,5 +133,5 @@ export function analyzeTempo(samples, sampleRate) {
     return Math.sqrt(sum / (count || 1));
   });
   const peak = Math.max(...waveform) || 1;
-  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatTimes, interpretations:{half:Math.round(best.bpm*5)/10,main:Math.round(best.bpm*10)/10,double:Math.round(best.bpm*20)/10}};
+  return {bpm:Math.round(best.bpm * 10) / 10, confidence, duration, waveform:waveform.map(x=>x/peak), analyzedWindows:starts.length, beatTimes,alternatives,tempoStability:Math.round(consistency*100),candidateSeparation:Math.round(separation*100), interpretations:{half:Math.round(best.bpm*5)/10,main:Math.round(best.bpm*10)/10,double:Math.round(best.bpm*20)/10}};
 }

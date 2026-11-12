@@ -2,6 +2,7 @@
  * No YouTube scraping, server uploads or misleading download-by-link claims.
  */
 import {conversionOptions,convertMediaFile,downloadConversion} from './converter.mjs';
+import {fetchAuthorizedMedia,validateDirectMediaUrl} from './media-source.mjs';
 
 const ID=/^[A-Za-z0-9_-]{11}$/;
 const HOSTS=new Set(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com',
@@ -63,7 +64,7 @@ export function mountVideoToAudio({host}={}){
  '<section class="tool-view pulse-video-audio" aria-label="Video to Audio converter">'+
  '<div class="tool-view-header"><span>03 / VIDEO TO AUDIO</span><span>LOCAL FFmpeg / MP3 + WAV</span></div>'+
  '<h3>Just the audio.<br><span>Keep the sound.</span></h3>'+
- '<p class="tool-description">Preview a YouTube link, then convert an authorized video file to audio. MP3, WAV, FLAC, AAC, M4A and OGG are encoded in your browser.</p>'+
+ '<p class="tool-description">Preview YouTube videos, or import an authorized direct HTTPS media-file URL / local file. Encode MP3, WAV, FLAC, AAC, M4A or OGG in your browser.</p>'+
  '<div class="pulse-video-block">'+
  '<div class="pulse-video-section"><span>01 / YOUTUBE LINK</span><span>VIDEO PREVIEW</span></div>'+
  '<label class="pulse-video-label" for="pulse-video-link">PASTE YOUTUBE VIDEO URL</label>'+
@@ -74,13 +75,20 @@ export function mountVideoToAudio({host}={}){
  '<p class="pulse-video-note">YouTube does not provide general direct-download access to arbitrary videos. For a video you own, <a href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">download your original from YouTube Studio ↗</a> and convert the downloaded file below. Do not upload copyrighted video without permission.</p>'+
  '</div>'+
  '<div class="pulse-video-block">'+
- '<div class="pulse-video-section"><span>02 / IMPORT MEDIA FILE</span><span>UP TO 100 MB</span></div>'+
+ '<div class="pulse-video-section"><span>02 / DIRECT HTTPS FILE</span><span>CORS REQUIRED / 100 MB MAX</span></div>'+
+ '<label class="pulse-video-label" for="pulse-direct-url">AUTHORIZED MEDIA FILE URL · MP4, MOV, MP3, WAV…</label>'+
+ '<div class="pulse-video-linkrow"><input id="pulse-direct-url" type="url" spellcheck="false" autocomplete="off" placeholder="https://cdn.example.com/owned-video.mp4" data-video-direct-url>'+
+ '<button type="button" data-video-import-url>IMPORT FILE ↗</button></div>'+
+ '<p class="pulse-video-status" data-video-direct-status role="status" aria-live="polite">Use a direct HTTPS file link (including a signed storage URL), not a YouTube or sharing page. The host must allow CORS.</p>'+
+ '</div>'+
+ '<div class="pulse-video-block">'+
+ '<div class="pulse-video-section"><span>03 / IMPORT MEDIA FILE</span><span>UP TO 100 MB</span></div>'+
  '<label class="pulse-video-upload" for="pulse-video-file"><span>CHOOSE VIDEO / AUDIO FILE</span><strong>MP4 · MOV · WEBM · MKV · M4A</strong></label>'+
  '<input id="pulse-video-file" class="pulse-video-file-input" type="file" accept="video/*,audio/*,.mp4,.mov,.webm,.mkv,.m4v,.m4a,.mp3,.wav,.flac,.ogg" data-video-file>'+
  '<p class="pulse-video-fileinfo" data-video-fileinfo>NO MEDIA FILE SELECTED</p>'+
  '</div>'+
  '<div class="pulse-video-block">'+
- '<div class="pulse-video-section"><span>03 / OUTPUT SETTINGS</span><span>ENCODE IN BROWSER</span></div>'+
+ '<div class="pulse-video-section"><span>04 / OUTPUT SETTINGS</span><span>ENCODE IN BROWSER</span></div>'+
  '<div class="pulse-video-formats" role="group" aria-label="Audio output format">'+formatButtons+'</div>'+
  '<div class="pulse-video-settings">'+
  '<label class="pulse-video-setting">SAMPLE RATE<select data-video-sample-rate>'+
@@ -98,7 +106,7 @@ export function mountVideoToAudio({host}={}){
  '</div>'+
  '<p class="pulse-video-privacy">LOCAL PROCESSING / AUDIO ONLY · VIDEO FRAMES ARE DISCARDED · NO UPLOAD TO PULSE SERVERS</p>'+
  '</section>';
- let disposed=false,busy=false,sourceFile=null,format='mp3';
+ let disposed=false,busy=false,sourceFile=null,format='mp3',remoteController=null;
  const $=selector=>host.querySelector(selector);
  const all=selector=>[...host.querySelectorAll(selector)];
  const link=$('[data-video-url]'),frame=$('[data-video-preview-frame]');
@@ -107,12 +115,15 @@ export function mountVideoToAudio({host}={}){
   const el=$(target);el.textContent=message;el.dataset.error=String(error);
  };
  const convert=$('[data-video-convert]'),input=$('[data-video-file]');
+ const remoteLoad=$('[data-video-import-url]'),remoteInput=$('[data-video-direct-url]');
  const rights=$('[data-video-rights]');
  const progress=$('.pulse-video-progress'),progressBar=progress.querySelector('i');
  function update(){
   if(disposed)return;
   convert.disabled=busy||!sourceFile||!rights.checked;
   input.disabled=busy;
+  remoteLoad.disabled=busy;
+  remoteInput.disabled=busy;
   rights.disabled=busy;
   all('[data-video-format],[data-video-sample-rate],[data-video-bitrate],[data-video-wav-bits]').forEach(el=>el.disabled=busy);
   $('[data-video-bitrate-field]').hidden=!['mp3','aac','m4a'].includes(format);
@@ -140,6 +151,35 @@ export function mountVideoToAudio({host}={}){
  link.addEventListener('keydown',event=>{
   if(event.key==='Enter'){event.preventDefault();$('[data-video-preview]').click();}
  });
+ remoteInput.addEventListener('keydown',event=>{
+  if(event.key==='Enter'){event.preventDefault();remoteLoad.click();}
+ });
+ remoteLoad.onclick=async()=>{
+  if(busy||disposed)return;
+  if(!rights.checked){status('Confirm permission to convert the media below before importing.',true,'[data-video-direct-status]');return;}
+  try{validateDirectMediaUrl(remoteInput.value);}
+  catch(error){status(error.message,true,'[data-video-direct-status]');return;}
+  const abort=new AbortController();remoteController=abort;
+  busy=true;update();status('Importing your authorized direct HTTPS media file…',false,'[data-video-direct-status]');
+  try{
+   const media=await fetchAuthorizedMedia(remoteInput.value,{
+    signal:abort.signal,onProgress:({received,total})=>{
+     if(!disposed)status('Downloaded '+(received/1048576).toFixed(1)+' MB'+(total?' / '+(total/1048576).toFixed(1)+' MB':''),false,'[data-video-direct-status]');
+    }
+   });
+   if(disposed||abort.signal.aborted)return;
+   validateVideoFile(media);
+   sourceFile=media;input.value='';
+   $('[data-video-fileinfo]').textContent=media.name+' · '+(media.size/1048576).toFixed(1)+' MB · HTTPS';
+   status('HTTPS media imported. Choose an output format and click Convert & Download.',false,'[data-video-direct-status]');
+   status('Authorized media ready for local conversion.');
+  }catch(error){
+   if(!disposed)status(error.message||'Could not import media URL.',true,'[data-video-direct-status]');
+  }finally{
+   if(remoteController===abort)remoteController=null;
+   if(!disposed){busy=false;update();}
+  }
+ };
  input.addEventListener('change',()=>{
   try{
    const selected=input.files?.[0];
@@ -182,7 +222,7 @@ export function mountVideoToAudio({host}={}){
   finally{busy=false;update();}
  };
  update();
- return()=>{disposed=true;frame.replaceChildren();sourceFile=null;};
+ return()=>{disposed=true;remoteController?.abort();frame.replaceChildren();sourceFile=null;};
 }
 export const videoToAudioModule=Object.freeze({
  id:'video-to-audio',category:'export',label:'Video to Audio',mount:mountVideoToAudio

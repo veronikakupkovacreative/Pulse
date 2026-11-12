@@ -196,47 +196,26 @@ async function main(){
   await mobileLyrics.screenshot({path:'test-results/musicgpt-lyrics-mobile.png',fullPage:true});
   console.log('PASS: MusicGPT lyrics requires consent, returns editable lyrics, exports TXT without recharging, and fits mobile.');
 
-  // MusicGPT reference mastering — no provider charges; use mocked owner API only.
+  // Local AI Mastering remains available; no MusicGPT Mastering UI or API.
   const masteringCalls=[];
   await page.route('**/api/pulse-mastering',route=>{
-   const method=route.request().method();
-   if(method==='GET')return route.fulfill({status:200,contentType:'application/json',
-     body:JSON.stringify({configured:true,provider:'MusicGPT',referenceRequired:true})});
-   const data=route.request().postDataJSON();masteringCalls.push(data);
-   const reply=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
-   if(data.action==='submit')return reply({status:'submitted',conversionId:'ab12cd34',creditEstimate:10,eta:25});
-   if(data.action==='result')return reply({status:'complete',conversionId:'ab12cd34',
-      audioUrl:'https://musicgpt.s3.amazonaws.com/mastered-qa.mp3'});
-   return route.fulfill({status:400,body:'{"error":"UNKNOWN_ACTION"}'});
+   masteringCalls.push(route.request().url());
+   return route.abort();
   });
   await page.locator('[data-category="ai"]').click();
   await page.locator('[data-tool="ai2-mastering"]').click();
-  await page.locator('[data-master-engine="cloud"]').click();
-  await page.waitForFunction(()=>document.querySelector('[data-master-cloud-availability]')?.textContent?.includes('MUSICGPT READY'),{timeout:15000});
-  assert.equal(await page.locator('[data-master-engine="cloud"]').getAttribute('aria-pressed'),'true');
-  assert.equal(await page.locator('[data-master-action="render"]').innerText(),'RUN MUSICGPT MASTERING ↗');
-  await page.locator('[data-mg-source-method]').selectOption('url');
-  await page.locator('[data-mg-ref-method]').selectOption('url');
-  await page.locator('[data-mg-original-url]').fill('https://cdn.example.com/song.wav');
-  await page.locator('[data-mg-reference-url]').fill('https://cdn.example.com/reference.wav');
-  await page.locator('[data-master-cloud-token]').fill('qa-owner');
-  await page.locator('[data-master-action="render"]').click();
-  assert.equal(masteringCalls.length,0,'Cloud master must never submit without consent');
-  assert.match(await page.locator('[data-mg-status]').innerText(),/authorization and explicit consent/i);
-  await page.locator('[data-master-cloud-consent]').check();
-  await page.locator('[data-master-action="render"]').click();
-  await page.waitForFunction(()=>document.querySelector('[data-mg-status]')?.textContent?.includes('ready to play or download'),{timeout:15000});
-  assert.equal(masteringCalls.length,2);
-  assert.deepEqual(masteringCalls.map(c=>c.action),['submit','result']);
-  assert.equal(masteringCalls[0].original.url,'https://cdn.example.com/song.wav');
-  assert.equal(masteringCalls[0].reference.url,'https://cdn.example.com/reference.wav');
-  assert.equal(masteringCalls[0].consent,true);
-  assert.equal(masteringCalls[0].outputExtension,'wav');
-  assert.equal(await page.locator('[data-master-cloud-results] audio').count(),1);
-  assert.match(await page.locator('[data-master-cloud-results] a').getAttribute('href'),/^https:\/\//);
+  await page.locator('.pulse-master-work').waitFor();
+  assert.equal(await page.locator('[data-master-engine="cloud"]').count(),0);
+  assert.equal(await page.locator('[data-master-cloud]').count(),0);
+  assert.equal(await page.locator('[data-master-cloud-token]').count(),0);
+  assert.equal(await page.locator('[data-master-action="render"]').count(),1);
+  assert.equal(await page.locator('[data-master-action="match"]').count(),1);
+  assert.equal(await page.locator('[data-master-action="export"]').count(),1);
+  assert.match(await page.locator('.pulse-master-work .tool-description').innerText(),/local|browser/i);
+  assert.deepEqual(masteringCalls,[],'Local mastering must never call removed cloud API');
   assert.deepEqual(audialCalls,[],'Audial traffic must remain zero across all tools');
-  await page.screenshot({path:'test-results/musicgpt-mastering-desktop.png',fullPage:true});
-  console.log('PASS: MusicGPT reference mastering uses explicit consent and two HTTPS URLs, polls result and never calls Audial.');
+  await page.screenshot({path:'test-results/pulse-mastering-local-desktop.png',fullPage:true});
+  console.log('PASS: Local AI Mastering preserved with reference matching and no removed cloud requests.');
 
   assert.ok(!errors.some(e=>/music.tagger|musicgpt|Worker|Module not found/i.test(e)),errors.join('; '));
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

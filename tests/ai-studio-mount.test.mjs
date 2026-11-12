@@ -64,6 +64,9 @@ test('full application routes to all eight AI Studio tabs without a module initi
  const {window,document}=parseHTML(html);
  // linkedom does not emulate a Canvas 2D context: skip only Source Audio painting.
  document.querySelector('.tool-empty')?.remove();
+ // Browser navigation methods are omitted from linkedom; provide small DOM-test shims.
+ window.HTMLElement.prototype.scrollIntoView=function(){};
+ window.HTMLElement.prototype.click=function(){this.dispatchEvent(new window.Event('click',{bubbles:true,cancelable:true}));};
  for(const key of ['document','window','Element','HTMLElement','Node','Event','CustomEvent','MutationObserver']){
   if(window[key])Object.defineProperty(globalThis,key,{configurable:true,writable:true,value:window[key]});
  }

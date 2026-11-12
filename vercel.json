@@ -21,6 +21,9 @@
     },
     "api/pulse-musicai-v2.js": {
       "maxDuration": 60
+    },
+    "api/pulse-sound-generator.js": {
+      "maxDuration": 60
     }
   }
 }

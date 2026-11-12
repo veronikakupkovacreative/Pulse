@@ -81,6 +81,33 @@ export function parseProgress(line){
  return match?Math.max(0,Math.min(100,Number(match[1]))):null;
 }
 
+/** Convert provider/encoder failures into safe, actionable public errors.
+ * Never forward raw extractor stderr (which may contain internal URLs or options).
+ * Verification challenges are not retryable from the same server.
+ */
+export function classifyProcessingFailure(command,output,exitCode=1){
+ const details=String(output||'');
+ const issue=(code,message,retryable=false)=>{
+  const error=new Error(message);
+  error.code=code;
+  error.retryable=retryable;
+  return error;
+ };
+ if(command==='yt-dlp'){
+  if(/sign in to confirm you(?:['’]re| are) not a bot|cookies-from-browser|captcha|verify you(?:['’]re| are) not a bot/i.test(details))
+   return issue('YOUTUBE_VERIFICATION_REQUIRED',
+    'YouTube is requesting account verification from the download server. PULSE cannot access this video through Render. If this is your own upload, download the MP4 from YouTube Studio, then import it under Video to Audio.');
+  if(/private video|members.only|sign in to confirm your age|age.restricted/i.test(details))
+   return issue('YOUTUBE_ACCESS_RESTRICTED','This video requires private or age-restricted access. PULSE cannot retrieve it from the server.');
+  if(/video unavailable|this video is unavailable|not available in your country|removed by the uploader/i.test(details))
+   return issue('YOUTUBE_VIDEO_UNAVAILABLE','This YouTube video is unavailable to the server. Check the video and its access permissions.');
+  return issue('YOUTUBE_DOWNLOAD_FAILED',
+   'YouTube did not provide an accessible video stream to PULSE. Try an authorized local MP4 file or direct HTTPS media file instead.');
+ }
+ return issue('MEDIA_CONVERSION_FAILED',
+  'Audio/video conversion failed. Check that your source has a supported media stream.');
+}
+
 /** No shell, no stdin, bounded logs, controllable timeout. */
 export function execBinary(command,args,{timeoutMs=300000,signal,onOutput=()=>{}}={}){
  return new Promise((resolve,reject)=>{
@@ -107,7 +134,7 @@ export function execBinary(command,args,{timeoutMs=300000,signal,onOutput=()=>{}
   child.once('error',finish);
   child.once('close',code=>{
    if(signal?.aborted)return finish(Error('Job cancelled.'));
-   if(code!==0)return finish(Error('Media processing failed ('+command+', code '+code+'): '+(stderr||stdout).slice(-450)));
+   if(code!==0)return finish(classifyProcessingFailure(command,stderr||stdout,code));
    finish(null);
   });
  });

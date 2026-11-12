@@ -5,6 +5,7 @@ on:
       - feature/pulse-analysis-music-tagger-20261112
       - feature/pulse-musicgpt-voice-changer-20261112
       - feature/pulse-local-clap-tagger-20261112
+      - fix/pulse-musicgpt-voice-qa-20261112
   workflow_dispatch:
 permissions:
   contents: read

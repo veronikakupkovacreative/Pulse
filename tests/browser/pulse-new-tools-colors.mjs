@@ -62,6 +62,25 @@ async function checkSurface(page,selector){
  assert.ok(row.bg==='rgba(0, 0, 0, 0)'||row.bg==='rgb(255, 43, 32)',
   selector+' still has a dark tile on red canvas: '+row.bg);
 }
+async function checkBlackRule(page,selector){
+ const color=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).borderTopColor);
+ assert.equal(color,'rgb(25, 25, 25)',selector+' must have a true black stroke');
+}
+async function songAnalyzer(page,label){
+ await page.locator('[data-category="analyze"]').click();
+ await page.locator('[data-tool="song-analyzer"]').click();
+ await page.locator('.focus-song-v3').waitFor();
+ await checkCanvas(page,'.focus-song-v3');
+ for(const selector of [
+  '.focus-song-v3 .tool-description','.focus-song-main>strong',
+  '.focus-song-main .focus-song-kicker','.focus-song-main .focus-song-unit',
+  '.focus-song-tonality strong','.focus-song-panel>p','.focus-song-panel-top',
+  '.focus-song-v3 .focus-status'
+ ])await checkText(page,selector);
+ await checkBlackRule(page,'.focus-song-main');
+ if(label==='desktop')await page.locator('.focus-song-v3').screenshot({path:'test-results/pulse-colors-song-analyzer-desktop.png'});
+}
+
 async function lyrics(page,label){
  await page.locator('[data-category="ai"]').click();
  await page.locator('[data-tool="ai2-lyrics"]').click();
@@ -69,6 +88,8 @@ async function lyrics(page,label){
  await checkCanvas(page,'.pulse-lyrics');
  await checkSurface(page,'.pulse-lyrics-form');
  await checkSurface(page,'.pulse-lyrics-result');
+  await checkBlackRule(page,'.pulse-lyrics-form');
+  await checkBlackRule(page,'.pulse-lyrics-result');
  for(const sel of [
   '.pulse-lyrics .tool-view-header','.pulse-lyrics h3','.pulse-lyrics .tool-description',
   '.pulse-lyrics-form label','.pulse-lyrics-form [data-lyrics-theme]',
@@ -92,6 +113,8 @@ async function voice(page,label){
  await page.locator('[data-view="ai-voice-changer"]').click();
  await page.locator('.pulse-voice-ai').waitFor();
  await checkCanvas(page,'.pulse-voice-ai');
+  await checkBlackRule(page,'.pulse-voice-consent');
+  await checkBlackRule(page,'.pulse-voice-output');
  for(const sel of ['.pulse-voice-ai h3','.pulse-voice-ai .tool-description',
    '.pulse-voice-fields label','.pulse-voice-fields [data-voice-token]',
    '.pulse-voice-ai .pulse-voice-consent','.pulse-voice-progress p'])await checkText(page,sel);
@@ -187,6 +210,7 @@ async function main(){
    await page.goto(url,{waitUntil:'domcontentloaded'});
    for(const mode of ['light','dark']){
     await page.evaluate(mode=>document.documentElement.setAttribute('data-theme',mode),mode);
+    await songAnalyzer(page,name);
     await lyrics(page,name);
     await voice(page,name);
     await tagger(page,name);

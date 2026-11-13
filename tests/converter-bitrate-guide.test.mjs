@@ -14,7 +14,7 @@ test('MP3 bitrate guide is attached immediately below the converter workspace an
  assert.match(guide,/id="pulse-bitrate-guide"[^>]*hidden/);
  assert.match(guide,/id="pulse-bitrate-title"/);
  assert.ok(html.indexOf('class="pulse-bitrate-guide"')>html.indexOf('class="tool-board"'));
- assert.ok(html.indexOf('class="pulse-bitrate-guide"')<html.indexOf('class="pulse-benefits"'));
+ assert.ok(html.indexOf('class="pulse-bitrate-guide"')<html.indexOf('class="pulse-directory"'));
  assert.equal((guide.match(/class="pulse-bitrate-card"/g)||[]).length,5);
 });
 
@@ -23,7 +23,7 @@ test('MP3 guide contains the five requested bitrate ranges and truthful caveats'
  for(const label of ['64 kbps','96 kbps','128 kbps','192 kbps','256–320 kbps'])assert.ok(html.includes('<h3>'+label+'</h3>'),label);
  for(const text of [
  'Choose an MP3 bitrate for the job.',
- 'Bitrate is a quality-and-size tradeoff, not a quality upgrade switch.',
+ 'More bitrate = larger files. It cannot restore lost source quality.',
  'Speech drafts and very compact spoken-word files.',
  'Music and ambience can show obvious compression artifacts.',
  'Sibilance and complex backgrounds deserve a careful preview.',

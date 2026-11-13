@@ -191,13 +191,13 @@ test('double clicking Extraction while input is loading makes one paid submissio
   const file=host.querySelector('[data-ext-file]');
   Object.defineProperty(file,'files',{configurable:true,value:[{name:'clip.mp3',size:2000,arrayBuffer:()=>pendingFile}]});
   host.querySelector('[data-ext-token]').value='only-a-test-owner-token';
-  host.querySelector('[data-ext-consent]').checked=true;
+  const consent=host.querySelector('[data-ext-consent]');consent.checked=true;consent.setAttribute('checked','');
   // Allow the read-only configuration check to finish before clicking.
   for(let i=0;i<6;i++)await Promise.resolve();
   const submitButton=host.querySelector('[data-ext-submit]');
   assert.equal(submitButton.disabled,false);
   submitButton.onclick();submitButton.onclick();
-  assert.equal(submitButton.disabled,true,'The first click must synchronously disable the second.');
+  assert.equal(submitButton.disabled,true,'Button not locked: '+host.querySelector('[data-ext-status]').textContent);
   releaseFile(new Uint8Array(2000).buffer);
   for(let i=0;i<20;i++)await Promise.resolve();
   assert.equal(paid,1,'Only one credit-bearing API submission is allowed.');

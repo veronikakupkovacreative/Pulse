@@ -1,3 +1,5 @@
+import {inspectM4aMetadata} from './watermark-cleaner-m4a.mjs';
+
 /**
  * PULSE / Watermark Cleaner.
  * Local, lossless metadata inspection for WAV, MP3 and FLAC plus conservative
@@ -95,16 +97,57 @@ export function inspectAudioMetadata(buffer){
  let report;
  if(u.length>=12&&four(u,0)==='RIFF'&&four(u,8)==='WAVE')report=inspectWav(u);
  else if(u.length>=4&&four(u,0)==='fLaC')report=inspectFlac(u);
+ else if(u.length>=8&&four(u,4)==='ftyp')report=inspectM4aMetadata(u);
  else report=inspectMp3(u);
- return {...report,changed:report.findings.length>0,originalBytes:u.length,cleanedBytes:report.bytes.length,
+ return {...report,neutralizedBytes:report.neutralizedBytes||0,changed:report.findings.length>0,originalBytes:u.length,cleanedBytes:report.bytes.length,
   metadataBytesRemoved:u.length-report.bytes.length,mime:mime[report.format],extension:report.format};
 }
-// Deliberately keep ZWJ/ZWNJ: they are meaningful in many scripts and emoji.
+// Preserve ZWJ/ZWNJ and variation selectors: these are meaningful in languages,
+// emoji compositions, and designed typography. The extra options are opt-in.
 const MARKS=/[\u200B\u2060\uFEFF\u00AD\u202A-\u202E\u2066-\u2069\u{E0000}-\u{E007F}]/gu;
-export function inspectTextMarkers(value){
+const SPACES=/[\u00A0\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]/gu;
+const TYPO=Object.freeze({
+ '‐':'-','‑':'-','‒':'-','–':'-','—':'-','―':'-','‘':"'",'’':"'",'‚':"'",'‛':"'",
+ '“':'"','”':'"','„':'"','‟':'"','…':'...','′':"'",'″':'"','«':'"','»':'"','⁄':'/','−':'-'
+});
+const CONFUSABLES=Object.freeze({
+ 'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X',
+ 'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j',
+ 'Α':'A','Β':'B','Ε':'E','Ζ':'Z','Η':'H','Ι':'I','Κ':'K','Μ':'M','Ν':'N','Ο':'O',
+ 'Ρ':'P','Τ':'T','Υ':'Y','Χ':'X','ο':'o','Ѕ':'S','һ':'h'
+});
+const WORDS=/[\p{L}\p{M}\p{N}_]+/gu;
+export function inspectTextMarkers(value,options={}){
  if(typeof value!=='string')throw TypeError('Text input must be a string.');
- const matches=[...value.matchAll(MARKS)];
- const preserved=(value.match(/[\u200C\u200D]/g)||[]).length;
- return {removed:matches.length,preservedJoiners:preserved,cleaned:value.replace(MARKS,''),
-  found:matches.map(m=>'U+'+m[0].codePointAt(0).toString(16).toUpperCase())};
+ const matched=[...value.matchAll(MARKS)];
+ const preservedJoiners=(value.match(/[\u200C\u200D]/g)||[]).length;
+ const normalizations={spaces:0,typography:0,homoglyphs:0,nfkc:0};
+ let cleaned=value.replace(MARKS,'');
+ if(options.spaces===true){
+  cleaned=cleaned.replace(SPACES,()=>{normalizations.spaces++;return ' ';});
+ }
+ if(options.typography===true){
+  cleaned=cleaned.replace(/[‐‑‒–—―‘’‚‛“”„‟…′″«»⁄−]/gu,c=>{
+   normalizations.typography++;return TYPO[c]||c;
+  });
+ }
+ if(options.homoglyphs===true){
+  cleaned=cleaned.replace(WORDS,token=>{
+   // Never rewrite ordinary Greek/Cyrillic words without ASCII Latin letters.
+   if(!/[A-Za-z]/.test(token))return token;
+   return [...token].map(c=>{
+    if(Object.hasOwn(CONFUSABLES,c)){normalizations.homoglyphs++;return CONFUSABLES[c];}
+    return c;
+   }).join('');
+  });
+ }
+ if(options.nfkc===true){
+  const normalized=cleaned.normalize('NFKC');
+  if(normalized!==cleaned)normalizations.nfkc=1;
+  cleaned=normalized;
+ }
+ return {
+  removed:matched.length,preservedJoiners,cleaned,normalizations,
+  found:matched.map(m=>'U+'+m[0].codePointAt(0).toString(16).toUpperCase())
+ };
 }

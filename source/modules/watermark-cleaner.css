@@ -62,3 +62,21 @@
  .tool-settings .tool-module-host .pulse-wm-tabs{grid-template-columns:1fr}
  .tool-settings .tool-module-host .pulse-wm-downloads{grid-template-columns:1fr}
 }
+
+.tool-settings .tool-module-host .pulse-wm-options{
+ display:grid;gap:10px;min-width:0;border:1px solid var(--wm-ink);
+ padding:12px;margin:0;box-sizing:border-box
+}
+.tool-settings .tool-module-host .pulse-wm-options legend{
+ padding:0 6px;font:700 10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.07em
+}
+.tool-settings .tool-module-host .pulse-wm-options label{
+ display:flex;align-items:flex-start;gap:9px;
+ font:400 12px/1.5 Arial,Helvetica,sans-serif;cursor:pointer
+}
+.tool-settings .tool-module-host .pulse-wm-options input[type=checkbox]{
+ flex:none;width:17px;height:17px;margin:1px 0 0;accent-color:var(--wm-ink)
+}
+.tool-settings .tool-module-host .pulse-watermarks :is(button,textarea,input):focus-visible{
+ outline:2px solid #DB4444;outline-offset:3px
+}

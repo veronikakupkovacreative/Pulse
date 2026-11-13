@@ -56,28 +56,52 @@ export function buildConversionArgs(input,output,options){
   return [...args,output];
 }
 
+export const ENCODER_ASSETS=Object.freeze({
+ core:'/vendor/ffmpeg-core-esm/ffmpeg-core.js',
+ wasm:'/vendor/ffmpeg-core-esm/ffmpeg-core.wasm'
+});
 let engine=null,engineLoad=null,activeConversion=false,serial=0;
+const LOAD_TIMEOUT_MS=150000;
+const formatLoadError=error=>{
+ const detail=typeof error==='string'?error:error?.message||String(error??'unknown worker failure');
+ return 'Could not start the audio encoder: '+detail+'. Reload the page and try again.';
+};
 async function getEngine(onState=()=>{}){
-  if(engine?.loaded)return engine;
-  if(engineLoad)return engineLoad;
-  engineLoad=(async()=>{
-    onState('Loading audio encoder (first use downloads a large WebAssembly engine)…');
-    // These assets are bundled by scripts/build.mjs from pinned npm versions.
-    const {FFmpeg}=await import('/vendor/ffmpeg/index.js');
-    const instance=new FFmpeg();
-    try{
-      await instance.load({
-        coreURL:'/vendor/ffmpeg-core/ffmpeg-core.js',
-        wasmURL:'/vendor/ffmpeg-core/ffmpeg-core.wasm'
-      });
-      engine=instance;
-      return instance;
-    }catch(error){
-      instance.terminate();
-      throw Error('Cannot load local FFmpeg encoder. Check your network and browser memory. '+(error?.message||''));
-    }
-  })();
-  try{return await engineLoad}finally{engineLoad=null}
+ if(engine?.loaded)return engine;
+ if(engineLoad)return engineLoad;
+ engineLoad=(async()=>{
+  if(typeof Worker==='undefined'||typeof WebAssembly==='undefined')
+   throw Error('This browser does not support Web Workers and WebAssembly needed for audio conversion.');
+  onState('Loading FFmpeg encoder…');
+  // A HEAD request is cheap and gives a useful error when a deployed asset is missing.
+  for(const [kind,url] of Object.entries(ENCODER_ASSETS)){
+   let response;
+   try{response=await fetch(url,{method:'HEAD',cache:'no-store'});}
+   catch(error){throw Error('Cannot reach encoder '+kind+' asset ('+url+'): '+String(error?.message||error));}
+   if(!response.ok)throw Error('Missing encoder '+kind+' asset (HTTP '+response.status+'): '+url);
+  }
+  const {FFmpeg}=await import('/vendor/ffmpeg/index.js');
+  const instance=new FFmpeg();
+  let timer;
+  try{
+   const deadline=new Promise((_,reject)=>{
+    timer=setTimeout(()=>reject(Error('Encoder initialization timed out after '+Math.round(LOAD_TIMEOUT_MS/1000)+' seconds')),LOAD_TIMEOUT_MS);
+   });
+   // ESM class worker -> ESM core. A UMD core fails dynamic import in module workers.
+   await Promise.race([instance.load({
+    coreURL:ENCODER_ASSETS.core,
+    wasmURL:ENCODER_ASSETS.wasm
+   }),deadline]);
+   if(!instance.loaded)throw Error('FFmpeg worker did not finish loading');
+   engine=instance;
+   onState('Encoder ready.');
+   return instance;
+  }catch(error){
+   instance.terminate();
+   throw Error(formatLoadError(error));
+  }finally{clearTimeout(timer);}
+ })();
+ try{return await engineLoad;}finally{engineLoad=null;}
 }
 function bytes(source){return source instanceof Uint8Array?source:new Uint8Array(source)}
 async function run(source,sourceName,opts,onState=()=>{},onProgress=()=>{}){

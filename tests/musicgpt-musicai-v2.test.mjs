@@ -152,13 +152,14 @@ test('MusicAI UI retains existing tools while adding two generated variations',(
    assert.equal(host.querySelector('[data-mai-model]'),null);
    assert.equal(host.querySelector('[data-mai-prompt]').getAttribute('maxlength'),'280');
   assert.equal(host.querySelector('[data-mai-generate]').disabled,false);
-  assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,11);
+  assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,12);
   assert.ok(visibleToolModules.some(x=>x.id==='ai2-musicai'));
    assert.ok(visibleToolModules.some(x=>x.id==='ai2-watermark'));
-  assert.ok(visibleToolModules.some(x=>x.id==='video-to-audio'));
+  assert.ok(!visibleToolModules.some(x=>x.id==='video-to-audio'));
+   assert.ok(visibleToolModules.some(x=>x.id==='ai2-extraction'));
   const base=new URL('../',import.meta.url);
-  assert.equal(existsSync(new URL('source/modules/video-audio-tool.mjs',base)),true);
-  assert.equal(existsSync(new URL('tests/video-to-audio.test.mjs',base)),true);
+  assert.equal(existsSync(new URL('source/modules/video-audio-tool.mjs',base)),false);
+  assert.equal(existsSync(new URL('tests/video-to-audio.test.mjs',base)),false);
 
 
   cleanup();

@@ -45,6 +45,11 @@ const data=Object.freeze({
   summary:'Create two original tracks with MusicGPT MusicAI from a description or your lyrics. Source audio stays on your device.',
   steps:['Describe your music or enter original lyrics.','Choose the output, enter your private PULSE token and approve credit usage.','Check progress and download either completed version.'],
   benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['PRIVATE ACCESS','Server authorization and consent protect your credits.']]},
+ 'ai2-extraction':{
+  title:['Separate the stems','Keep every layer'],
+  summary:'Extract individual vocal and instrument stems with MusicGPT Extraction v2. Explicit permission, a private PULSE owner token and paid credits are required. Audio is uploaded to MusicGPT only when you submit.',
+  steps:['Choose a short audio upload, SOURCE AUDIO excerpt or supported YouTube URL.','Select the required stems, optional preprocessing and confirm rights and credit consent.','Start extraction once, then check the same job ID to preview and download available stems.'],
+  benefits:[['CHOOSE YOUR STEMS','Split vocals, instruments, bass or individual drum elements.'],['CLOUD AI PROCESSING','MusicGPT v2 processes the audio after explicit approval.'],['RESUMABLE JOBS','Check pending extraction results without a new paid submission.']]},
  'ai2-watermark':{
   title:['Inspect provenance','Keep the audio'],
   summary:'Inspect and remove supported metadata from WAV, MP3, FLAC and M4A without audio re-encoding. A separate text tab removes selected invisible characters and offers opt-in normalization. Embedded acoustic AI watermarks are not detected or removed.',

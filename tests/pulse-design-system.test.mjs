@@ -53,12 +53,12 @@ test('only Producer Toolkits Song Analyzer renders and uses shared RED design sc
  assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
  assert.match(css,/\.focus-song-v3/);
 });
-test('five categories and all eleven AI Studio tools remain registered unchanged',()=>{
+test('five categories and all twelve AI Studio tools remain registered unchanged',()=>{
  assert.deepEqual([...new Set(visibleToolModules.map(x=>x.category))],['analyze','edit','export','ai','visuals']);
- assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,11);
+ assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,12);
  assert.deepEqual(visibleToolModules.filter(x=>x.category==='ai').map(x=>x.id),[
   'ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat',
-  'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai','ai2-watermark'
+  'ai2-mix','ai2-repair','ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai','ai2-watermark','ai2-extraction'
  ]);
 });
 test('system specifies consistent casing, focus and responsive states',()=>{

@@ -1,0 +1,46 @@
+/* MusicGPT Extraction — PULSE AI Studio red inspector surface. */
+.tool-settings .tool-module-host .pulse-extraction{display:grid;gap:15px;min-width:0;color:var(--pulse-ink,#191919);font-family:Arial,Helvetica,sans-serif;}
+.tool-settings .tool-module-host .pulse-extraction [hidden]{display:none!important}
+.tool-settings .tool-module-host .pulse-extraction :is(.tool-view-header,h3,h3 span,.tool-description){color:var(--pulse-ink,#191919)}
+.tool-settings .tool-module-host .pulse-extraction .tool-view-header{border-bottom:1px solid currentColor;padding-bottom:12px}
+.tool-settings .tool-module-host .pulse-ext-form{display:grid;gap:14px;padding:15px;border:1px solid currentColor;min-width:0}
+.tool-settings .tool-module-host .pulse-ext-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:1px solid currentColor;padding:12px 0 8px;font:700 11px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.04em}
+.tool-settings .tool-module-host .pulse-ext-section-heading span{font:400 10px/1.4 Arial,Helvetica,sans-serif}
+.tool-settings .tool-module-host .pulse-ext-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tool-settings .tool-module-host .pulse-ext-modes button,.tool-settings .tool-module-host .pulse-ext-job-actions button{
+ padding:11px 7px;min-height:44px;border:1px solid currentColor;border-radius:0;
+ background:transparent;color:inherit;font:700 10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.03em;cursor:pointer
+}
+.tool-settings .tool-module-host .pulse-ext-modes button[aria-pressed="true"]{background:var(--pulse-ink,#191919);color:#fff}
+.tool-settings .tool-module-host .pulse-ext-field{display:grid;gap:7px;font:700 11px/1.45 Arial,Helvetica,sans-serif;letter-spacing:.04em;min-width:0}
+.tool-settings .tool-module-host .pulse-ext-field :is(input[type="url"],input[type="password"],input[type="file"]){
+ box-sizing:border-box;min-width:0;width:100%;min-height:44px;border:1px solid currentColor;border-radius:0;
+ padding:9px;background:transparent;color:inherit;font:400 12px/1.4 Arial,Helvetica,sans-serif
+}
+.tool-settings .tool-module-host .pulse-ext-note{margin:0;font:400 12px/1.6 Arial,Helvetica,sans-serif}
+.tool-settings .tool-module-host .pulse-ext-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tool-settings .tool-module-host .pulse-ext-group{border:1px solid currentColor;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:9px;min-width:0;padding:13px 10px 10px;margin:0}
+.tool-settings .tool-module-host .pulse-ext-group legend{font:700 10px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.06em;padding:0 4px}
+.tool-settings .tool-module-host .pulse-ext-group label,.tool-settings .tool-module-host .pulse-ext-pre label,.tool-settings .tool-module-host .pulse-ext-check{display:flex;gap:7px;align-items:flex-start;font:400 11px/1.4 Arial,Helvetica,sans-serif;cursor:pointer}
+.tool-settings .tool-module-host .pulse-ext-group input,.tool-settings .tool-module-host .pulse-ext-pre input,.tool-settings .tool-module-host .pulse-ext-check input{flex:none;width:16px;height:16px;margin:0;accent-color:var(--pulse-ink,#191919)}
+.tool-settings .tool-module-host .pulse-ext-pre{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tool-settings .tool-module-host .pulse-ext-consent{padding:12px;border:1px solid currentColor;font-weight:700}
+.tool-settings .tool-module-host .pulse-ext-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.tool-settings .tool-module-host .pulse-ext-actions button{border:1px solid var(--pulse-ink,#191919);background:var(--pulse-ink,#191919);color:#fff;min-height:46px;padding:12px;font:700 11px/1.3 Arial,Helvetica,sans-serif;letter-spacing:.05em;cursor:pointer}
+.tool-settings .tool-module-host .pulse-ext-actions button[data-ext-stop]{background:transparent;color:var(--pulse-ink,#191919)}
+.tool-settings .tool-module-host .pulse-extraction button:disabled{opacity:.5;cursor:not-allowed}
+.tool-settings .tool-module-host .pulse-ext-status,.tool-settings .tool-module-host .pulse-ext-job{border:1px solid currentColor;padding:13px;font:400 12px/1.5 Arial,Helvetica,sans-serif}
+.tool-settings .tool-module-host .pulse-ext-status[data-error="true"]{font-weight:700;text-decoration:underline}
+.tool-settings .tool-module-host .pulse-ext-job{display:grid;gap:10px;overflow-wrap:anywhere}
+.tool-settings .tool-module-host .pulse-ext-job p{margin:0}
+.tool-settings .tool-module-host .pulse-ext-job-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tool-settings .tool-module-host .pulse-ext-results{display:grid;gap:12px}
+.tool-settings .tool-module-host .pulse-ext-results>div:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tool-settings .tool-module-host .pulse-ext-result-card{display:grid;gap:10px;border:1px solid currentColor;padding:13px;min-width:0}
+.tool-settings .tool-module-host .pulse-ext-result-card h4{margin:0;font:700 13px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.04em}
+.tool-settings .tool-module-host .pulse-ext-result-card audio{width:100%;min-width:0}
+.tool-settings .tool-module-host .pulse-ext-downloads{display:flex;flex-wrap:wrap;gap:8px}
+.tool-settings .tool-module-host .pulse-ext-downloads a{font:700 10px/1.4 Arial,Helvetica,sans-serif;color:inherit;text-decoration:underline}
+.tool-settings .tool-module-host .pulse-extraction :is(input,button,a):focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:680px){.tool-settings .tool-module-host .pulse-ext-groups,.tool-settings .tool-module-host .pulse-ext-results>div:last-child{grid-template-columns:1fr}}
+@media(max-width:440px){.tool-settings .tool-module-host .pulse-ext-modes,.tool-settings .tool-module-host .pulse-ext-pre{grid-template-columns:1fr}.tool-settings .tool-module-host .pulse-ext-group{grid-template-columns:1fr}}

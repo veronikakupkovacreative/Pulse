@@ -13,6 +13,7 @@ import {mountMusicGPTVoiceChanger} from './musicgpt-voicechanger.mjs';
 import {mountLyricsGenerator} from './musicgpt-lyrics.mjs';
 import {mountMusicAIV2} from './musicgpt-musicai.mjs';
 import {mountWatermarkCleaner} from './watermark-cleaner.mjs';
+import {mountStemExtraction} from './musicgpt-extraction.mjs';
 import {suggestGainDb,renderMultitrack} from './mix-v2-dsp.mjs';
 
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -233,5 +234,6 @@ export const aiV2Modules=Object.freeze([
  {id:'ai2-fx',category:'ai',label:'Smart FX',mount:mountSmartFx},
  {id:'ai2-lyrics',category:'ai',label:'Lyrics Generator',mount:mountLyricsGenerator},
   {id:'ai2-musicai',category:'ai',label:'AI Music Generator',mount:mountMusicAIV2},
-  {id:'ai2-watermark',category:'ai',label:'Watermark Cleaner',mount:mountWatermarkCleaner}
+  {id:'ai2-watermark',category:'ai',label:'Watermark Cleaner',mount:mountWatermarkCleaner},
+  {id:'ai2-extraction',category:'ai',label:'Stem Extraction',mount:mountStemExtraction}
 ]);

@@ -1,6 +1,0 @@
-node_modules
-public
-.git
-.env
-.env.*
-*.log

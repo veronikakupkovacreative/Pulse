@@ -11,7 +11,7 @@ const html=read('index.html');
 
 test('phase 4 includes all original 5 toolkit areas and 11 AI tools',()=>{
  assert.deepEqual([...new Set(visibleToolModules.map(m=>m.category))],['analyze','edit','export','ai','visuals']);
- assert.equal(visibleToolModules.filter(m=>m.category==='ai').length,11);
+ assert.equal(visibleToolModules.filter(m=>m.category==='ai').length,12);
  assert.equal(visibleToolModules.length,17);
  assert.ok(visibleToolModules.some(m=>m.id==='music-tagger'&&m.category==='analyze'));
  for(const id of ['song-analyzer','editor','wav','visualizer'])assert.ok(visibleToolModules.some(m=>m.id===id));

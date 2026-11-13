@@ -3,7 +3,6 @@ import {workspace as w} from './workspace.mjs';
 import {encodeWav} from './dsp.mjs';
 import {MASTER_PRESETS,masteringSettings} from './mastering-engine.mjs';
 import {runMasteringWorker} from './mastering-client.mjs';
-import {mountMusicGPTMasteringCloud} from './musicgpt-mastering.mjs';
 import {interpretMasteringRequest,MASTER_ASSISTANT_EXAMPLES,MASTER_BANDS} from './mastering-advanced.mjs';
 
 const rows=[
@@ -34,14 +33,9 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const fieldRows=rows.map(([id,name,min,max,step,unit])=>
     `<label class="pulse-master-field"><span>${name}</span><input data-param="${id}" data-unit="${unit}" type="number" min="${min}" max="${max}" step="${step}" value="${MASTER_PRESETS[first][id]??0}" aria-label="${name}"></label>`).join('');
   host.innerHTML=`<section class="tool-view pulse-master-work" data-master-mode="${mode}">
-    <div class="tool-view-header"><span>04 / ${label}</span><span>LOCAL DSP / MUSICGPT CLOUD</span></div>
+    <div class="tool-view-header"><span>04 / ${label}</span><span>LOCAL DSP / OFFLINE</span></div>
     <h3>${isMix?'Mix character.<br><span>Master control.</span>':'Master your track.<br><span>Keep its character.</span>'}</h3>
-    <p class="tool-description">Analyze spectral balance, dynamics, loudness and stereo correlation. Automatically adapt gentle EQ, compression and output limiting. Local DSP is on-device; MusicGPT can also master a source against a reference via its paid cloud API.</p>
-    <div class="pulse-master-engines" role="group" aria-label="Mastering processing engine">
-      <button type="button" data-master-engine="local" aria-pressed="true">01 / LOCAL DSP</button>
-      <button type="button" data-master-engine="cloud" aria-pressed="false">02 / MUSICGPT MASTERING</button>
-    </div>
-    <div class="pulse-master-cloud" data-master-cloud hidden></div>
+    <p class="tool-description">Analyze spectral balance, dynamics, loudness and stereo correlation. Automatically adapt gentle EQ, compression and output limiting. Processing runs locally in your browser; no cloud mastering is used.</p>
     <p class="pulse-detail-label">${isMix?'MIX CHARACTER':'MASTER CHARACTER'}</p>
     <div class="pulse-master-presets" role="group" aria-label="Mastering character presets">${presetButtons}</div>
     <div class="pulse-master-reference">
@@ -94,12 +88,11 @@ export function mountMasteringTool({host,mode='mix'}={}){
   const setText=(key,value)=>{const el=$('[data-master-metric="'+key+'"]');if(el)el.textContent=value;};
   const status=$('.pulse-master-status'),play=$('[data-master-action="listen"]');
   const refFile=$('[data-master-reference]'),matchButton=$('[data-master-action="match"]'),
-   clearRefButton=$('[data-master-action="clear-reference"]'),refName=$('[data-master-reference-name]'),
-   cloudPane=$('[data-master-cloud]');
+   clearRefButton=$('[data-master-action="clear-reference"]'),refName=$('[data-master-reference-name]');
   const renderButton=$('[data-master-action="render"]'),analysisButton=$('[data-master-action="analyze"]');
   const applyButton=$('[data-master-action="apply"]'),exportButton=$('[data-master-action="export"]');
   let activePreset=first,prepared=null,sourceRef=null,disposed=false,busy=false,selected='a',previewNode=null,previewGain=null,previewPosition=0,startedAt=0,jobController=null;
-  let referenceAudio=null,referenceFile=null,referenceStats=null,engine='local';
+  let referenceAudio=null,referenceFile=null,referenceStats=null;
   let dashboard={original:null,master:null,reference:null,spectrumOriginal:null,spectrumMaster:null,spectrumReference:null};
   function message(text,error=false){status.textContent=text;status.dataset.error=String(error);}
   function dashboardView(){
@@ -171,7 +164,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   }
   const setBusy=value=>{
     busy=value;renderButton.disabled=value;analysisButton.disabled=value;
-    all('[data-param], [data-master-preset], [data-master-auto], [data-master-engine], [data-master-reference], [data-master-instruction], [data-master-action="assist"], [data-master-suggest]').forEach(el=>el.disabled=value);
+    all('[data-param], [data-master-preset], [data-master-auto], [data-master-reference], [data-master-instruction], [data-master-action="assist"], [data-master-suggest]').forEach(el=>el.disabled=value);
     matchButton.disabled=value||!referenceAudio;
     clearRefButton.disabled=value||!referenceAudio;
     applyButton.disabled=value||!prepared;exportButton.disabled=value||!prepared;
@@ -298,7 +291,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
       message('Measuring reference loudness and spectral balance in the background…');
       const analyzed=await runMasteringWorker('analyze',audio,{preset:activePreset});
       if(disposed)return;
-      referenceAudio=audio;referenceFile=file;referenceStats=analyzed.before;cloudController.discard();
+      referenceAudio=audio;referenceFile=file;referenceStats=analyzed.before;
       setDashboard({reference:analyzed.before,spectrumReference:analyzed.spectrum?.input??null});
       refName.textContent=file.name;
       clearRefButton.disabled=false;matchButton.disabled=false;refAB.disabled=false;
@@ -308,7 +301,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
   });
   clearRefButton.onclick=()=>{
     if(busy)return;
-    stopPreview(true);referenceAudio=null;referenceFile=null;referenceStats=null;cloudController.discard();
+    stopPreview(true);referenceAudio=null;referenceFile=null;referenceStats=null;
     refFile.value='';refName.textContent='NO REFERENCE LOADED';refAB.disabled=true;
     if(selected==='c')selected='a';
     all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb===selected)));
@@ -335,55 +328,6 @@ export function mountMasteringTool({host,mode='mix'}={}){
   $('[data-master-instruction]').addEventListener('keydown',event=>{
     if(event.key==='Enter'){event.preventDefault();performAssistant(event.currentTarget.value);}
   });
-  const cloudController=mountMusicGPTMasteringCloud({
-    host:cloudPane,workspace:w,
-    getReference:()=>({buffer:referenceAudio,file:referenceFile}),
-    onMessage:message,
-    onResult:async(audioUrl,signal,{sourceMethod}={})=>{
-      const input=w.buffer;
-      // Never A/B a six-second preview against a full song or assume
-      // URL input represents the currently loaded workspace source.
-      if(!input||sourceMethod!=='preview'||input.duration>6.01)return false;
-      try{
-        // Some provider output servers disallow cross-origin downloads.
-        // PULSE always presents the external player/link as a fallback.
-        const response=await fetch(audioUrl,{mode:'cors',signal});
-        if(!response.ok)return false;
-        const advertised=Number(response.headers.get('content-length')||0);
-        if(advertised>100_000_000)return false;
-        const audio=await response.arrayBuffer();
-        if(audio.byteLength>100_000_000)return false;
-        const ctx=await w.ensureContext(),decoded=await ctx.decodeAudioData(audio);
-        if(signal?.aborted||disposed||w.buffer!==input)return false;
-        const [before,after]=await Promise.all([
-          runMasteringWorker('analyze',input,{preset:activePreset,signal}),
-          runMasteringWorker('analyze',decoded,{preset:activePreset,signal})
-        ]);
-        if(signal?.aborted||disposed||w.buffer!==input)return false;
-        prepared={buffer:decoded,before:before.before,after:after.before,
-          processing:{maxCompressionDb:0,maxLimiterDb:0,targetReached:false}};
-        sourceRef=input;selected='b';previewPosition=0;
-        display(prepared.before,prepared.after,prepared.processing);
-        setDashboard({original:before.before,master:after.before,
-          spectrumOriginal:before.spectrum?.input,spectrumMaster:after.spectrum?.input});
-        applyButton.disabled=false;exportButton.disabled=false;
-        all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.masterAb==='b')));
-        return true;
-      }catch{return false;}
-    }
-  });
-  all('[data-master-engine]').forEach(button=>button.onclick=()=>{
-    if(busy)return;
-    engine=button.dataset.masterEngine;
-    all('[data-master-engine]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
-    cloudPane.hidden=engine!=='cloud';
-    renderButton.textContent=engine==='cloud'?'RUN MUSICGPT MASTERING ↗':'RENDER MASTER ↗';
-    invalidate();
-    message(engine==='cloud'?
-      'MusicGPT matches the source and a REQUIRED reference. Explicit consent and paid credits are required.':
-      'Local DSP selected. EQ, compressor and limiter run entirely in your browser.');
-  });
-
   const audition=async()=>{
     if(busy)return;
     try{
@@ -423,7 +367,7 @@ export function mountMasteringTool({host,mode='mix'}={}){
     all('[data-master-ab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
     if(hadPreview)void audition();
   }));
-  analysisButton.onclick=analyze;renderButton.onclick=async()=>{if(engine==='cloud'){if(busy)return;setBusy(true);try{await cloudController.run();}finally{if(!disposed)setBusy(false);}}else await render();};play.onclick=audition;
+  analysisButton.onclick=analyze;renderButton.onclick=render;play.onclick=audition;
   const unsubscribe=w.subscribe((snapshot,reason)=>{
     if(!['load','clear','commit','undo','redo'].includes(reason))return;
     jobController?.abort();invalidate();setDashboard({original:null,spectrumOriginal:null});
@@ -446,5 +390,5 @@ export function mountMasteringTool({host,mode='mix'}={}){
       message('Exported 24-bit mastered WAV. The current workspace was not changed.');
     }catch(e){message(e.message||'Export failed.',true)}
   };
-  return ()=>{disposed=true;jobController?.abort();cloudController.dispose();unsubscribe();stopPreview(true);prepared=null;sourceRef=null;referenceAudio=null;referenceFile=null};
+  return ()=>{disposed=true;jobController?.abort();unsubscribe();stopPreview(true);prepared=null;sourceRef=null;referenceAudio=null;referenceFile=null};
 }

@@ -71,7 +71,7 @@ export function mountStemExtraction({host}={}){
    '<label class="pulse-ext-field" data-ext-input="file">UPLOAD AUDIO (MAX 2.4 MB)<input type="file" data-ext-file accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg,.opus,.aac"></label>'+
    '<p class="pulse-ext-note" data-ext-input="workspace" hidden>Uses the middle 12 seconds or a selected waveform region from SOURCE AUDIO. This is an excerpt, not full-track separation.</p>'+
    '<label class="pulse-ext-field" data-ext-input="url" hidden>YOUTUBE AUDIO SOURCE<input type="url" data-ext-url placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"></label>'+
-   '<p class="pulse-ext-note">For complete songs, use a MusicGPT-supported URL. The separate Video to Audio converter is not part of PULSE.</p>'+
+   '<p class="pulse-ext-note">For complete songs, use a provider-supported YouTube watch URL. The result contains separate audio stems.</p>'+
    '<div class="pulse-ext-section-heading"><strong>02 / SELECT OUTPUT STEMS</strong><span>CHOOSE AT LEAST ONE</span></div>'+
    '<div class="pulse-ext-groups">'+stemChoices+'</div>'+
    '<div class="pulse-ext-section-heading"><strong>03 / OPTIONAL PREPROCESSING</strong><span>BEFORE EXTRACTION</span></div>'+

@@ -159,3 +159,52 @@ test('Stem Extraction UI mounts, stays in AI Studio and replaces removed video/c
   cleanup();
  }finally{if(old===undefined)delete globalThis.document;else globalThis.document=old;}
 });
+
+test('single-url completed Extraction outputs a playable result; empty completed job exits processing',async()=>{
+ await setup(async()=>{
+  const direct=safeStemFiles({audio_url:'https://cdn.example/stem.mp3'});
+  assert.deepEqual(direct,[{stem:'result',audioUrl:'https://cdn.example/stem.mp3',wavUrl:null}]);
+  globalThis.fetch=async()=>new Response(JSON.stringify({success:true,conversion:{status:'COMPLETED',
+   audio_url:'https://cdn.example/stem.mp3'}}),{status:200});
+  const ready=await call({action:'result',conversionId:CONVERSION_ID});
+  assert.equal(ready.data.status,'complete');assert.equal(ready.data.files.length,1);
+  globalThis.fetch=async()=>new Response(JSON.stringify({success:true,conversion:{status:'COMPLETED'}}),{status:200});
+  const empty=await call({action:'result',conversionId:CONVERSION_ID});
+  assert.equal(empty.data.status,'complete');assert.deepEqual(empty.data.files,[]);
+  assert.match(empty.data.message,/no downloadable/i);
+ });
+});
+test('double clicking Extraction while input is loading makes one paid submission',async()=>{
+ const previous={document:globalThis.document,fetch:globalThis.fetch};
+ const {document}=parseHTML('<html><body><main id="host"></main></body></html>');
+ globalThis.document=document;
+ let releaseFile,paid=0;
+ const pendingFile=new Promise(resolve=>{releaseFile=resolve;});
+ globalThis.fetch=async(_url,options)=>{
+  if(!options?.method)return {ok:true,json:async()=>({configured:true})};
+  const body=JSON.parse(options.body);
+  if(body.action==='submit'){paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
+  return {ok:true,json:async()=>({status:'complete',files:[{stem:'vocals',audioUrl:'https://cdn.example/voice.mp3',wavUrl:null}]})};
+ };
+ try{
+  const host=document.getElementById('host'),cleanup=mountStemExtraction({host});
+  const file=host.querySelector('[data-ext-file]');
+  Object.defineProperty(file,'files',{configurable:true,value:[{name:'clip.mp3',size:2000,arrayBuffer:()=>pendingFile}]});
+  host.querySelector('[data-ext-token]').value='only-a-test-owner-token';
+  host.querySelector('[data-ext-consent]').checked=true;
+  // Allow the read-only configuration check to finish before clicking.
+  for(let i=0;i<6;i++)await Promise.resolve();
+  const submitButton=host.querySelector('[data-ext-submit]');
+  assert.equal(submitButton.disabled,false);
+  submitButton.onclick();submitButton.onclick();
+  assert.equal(submitButton.disabled,true,'The first click must synchronously disable the second.');
+  releaseFile(new Uint8Array(2000).buffer);
+  for(let i=0;i<20;i++)await Promise.resolve();
+  assert.equal(paid,1,'Only one credit-bearing API submission is allowed.');
+  assert.match(host.querySelector('[data-ext-status]').textContent,/stem\(s\) ready|Submitted/);
+  cleanup();
+ }finally{
+  if(previous.document===undefined)delete globalThis.document;else globalThis.document=previous.document;
+  if(previous.fetch===undefined)delete globalThis.fetch;else globalThis.fetch=previous.fetch;
+ }
+});

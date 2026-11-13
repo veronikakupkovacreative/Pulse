@@ -472,3 +472,8 @@ input[type="range"]{accent-color:#191919}
  .pulse-bitrate-value h3{font-size:30px}
  .pulse-bitrate-card p{font-size:14px}
 }
+
+.toolkit-intro .pulse-howto{margin-top:12px}
+.toolkit-intro .pulse-howto summary{display:list-item;cursor:pointer;font:700 11px/1.5 Arial,Helvetica,sans-serif;letter-spacing:.06em;outline-offset:3px}
+.toolkit-intro .pulse-howto summary:focus-visible{outline:2px solid currentColor}
+.toolkit-intro .pulse-howto ol{margin:9px 0 0;padding-left:20px}

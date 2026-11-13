@@ -126,6 +126,8 @@ export function safeStemFiles(conversion){
  const data=conversion&&typeof conversion==='object'?conversion:{};
  const mp3=normalizeMap(data.audio_url??data.output?.audio_url??data.output);
  const wav=normalizeMap(data.audio_url_wav??data.output?.audio_url_wav);
+ const direct=allowedDownloadUrl(data.audio_url??data.conversion_path??data.output?.audio_url);
+ if(direct)return [{stem:'result',audioUrl:direct,wavUrl:allowedDownloadUrl(data.audio_url_wav??data.conversion_path_wav)}];
  const files=[];
  for(const stem of STEMS){
   const audioUrl=allowedDownloadUrl(mp3[stem]);
@@ -190,9 +192,10 @@ export default async function handler(req,res){
   const failed=['FAILED','ERROR','CANCELED','CANCELLED'].includes(state);
   const complete=['COMPLETED','COMPLETE','SUCCESS','SUCCEEDED'].includes(state);
   const files=complete?safeStemFiles(conversion):[];
-  return response(res,200,{status:failed?'failed':complete&&files.length?'complete':'processing',
+  return response(res,200,{status:failed?'failed':complete?'complete':'processing',
    conversionId:id,files,
-   message:typeof conversion.status_msg==='string'?conversion.status_msg.slice(0,160):null,
+   message:complete&&!files.length?'MusicGPT completed the job but returned no downloadable output.':
+     typeof conversion.status_msg==='string'?conversion.status_msg.slice(0,160):null,
    conversionCost:Number.isFinite(conversion.conversion_cost)?conversion.conversion_cost:null});
  }
  return response(res,400,{error:'UNKNOWN_ACTION'});

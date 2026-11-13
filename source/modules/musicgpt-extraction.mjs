@@ -61,7 +61,7 @@ export function mountStemExtraction({host}={}){
  host.innerHTML='<section class="tool-view ai2-panel pulse-extraction">'+
   '<div class="tool-view-header"><span>04 / AI STUDIO / STEM EXTRACTION</span><span>MUSICGPT / V2 CLOUD</span></div>'+
   '<h3>Pull it apart.<br><span>Keep every layer.</span></h3>'+
-  '<p class="tool-description">Extract individual vocals, instrumentals, drums, bass and more using MusicGPT. This is real paid AI stem separation, processed on MusicGPT servers after your explicit consent.</p>'+
+  '<p class="tool-description">Separate vocals, drums, bass and instruments using MusicGPT.</p>'+
   '<div class="pulse-ext-form">'+
    '<div class="pulse-ext-section-heading"><strong>01 / SOURCE AUDIO</strong><span>CHOOSE ONE METHOD</span></div>'+
    '<div class="pulse-ext-modes" role="group" aria-label="Audio source">'+
@@ -71,7 +71,7 @@ export function mountStemExtraction({host}={}){
    '<label class="pulse-ext-field" data-ext-input="file">UPLOAD AUDIO (MAX 2.4 MB)<input type="file" data-ext-file accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg,.opus,.aac"></label>'+
    '<p class="pulse-ext-note" data-ext-input="workspace" hidden>Uses the middle 12 seconds or a selected waveform region from SOURCE AUDIO. This is an excerpt, not full-track separation.</p>'+
    '<label class="pulse-ext-field" data-ext-input="url" hidden>YOUTUBE AUDIO SOURCE<input type="url" data-ext-url placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"></label>'+
-   '<p class="pulse-ext-note">For complete songs, use a provider-supported YouTube watch URL. The result contains separate audio stems.</p>'+
+   '<p class="pulse-ext-note">Full tracks: use a supported YouTube URL.</p>'+
    '<div class="pulse-ext-section-heading"><strong>02 / SELECT OUTPUT STEMS</strong><span>CHOOSE AT LEAST ONE</span></div>'+
    '<div class="pulse-ext-groups">'+stemChoices+'</div>'+
    '<div class="pulse-ext-section-heading"><strong>03 / OPTIONAL PREPROCESSING</strong><span>BEFORE EXTRACTION</span></div>'+
@@ -80,7 +80,7 @@ export function mountStemExtraction({host}={}){
    '<label class="pulse-ext-field">PRIVATE PULSE ACCESS TOKEN<input type="password" data-ext-token autocomplete="off" spellcheck="false" placeholder="Owner token, not MusicGPT API key"></label>'+
    '<label class="pulse-ext-check pulse-ext-consent"><input type="checkbox" data-ext-consent> I own or have permission to use this audio. I consent to sending it to MusicGPT and spending API credits.</label>'+
    '<div class="pulse-ext-actions"><button type="button" data-ext-submit>EXTRACT STEMS ↗</button><button type="button" data-ext-stop hidden>STOP CHECKING</button></div>'+
-   '<p class="pulse-ext-note">MusicGPT processes audio in the cloud. Submission may spend credits even if you close this page. Stop only pauses polling; it does not cancel provider processing.</p>'+
+   '<p class="pulse-ext-note">Uses paid cloud credits. Stop pauses status checks, not the job.</p>'+
   '</div>'+
   '<div class="pulse-ext-status" role="status" aria-live="polite" data-ext-status>Checking MusicGPT Extraction availability…</div>'+
   '<div class="pulse-ext-job" data-ext-job hidden>'+
@@ -175,16 +175,17 @@ export function mountStemExtraction({host}={}){
     if(disposed||ac.signal.aborted||run!==turn)return;
     const result=await gateway('result',{conversionId},ac.signal);
     if(disposed||ac.signal.aborted||run!==turn)return;
-    if(result.status==='complete'&&Array.isArray(result.files)&&result.files.length){
+    if(result.status==='complete'){
+     if(!Array.isArray(result.files)||!result.files.length){status(result.message||'Completed without downloadable stems.',true);return;}
      renderFiles(result.files);
      status(result.files.length+' extracted stem(s) ready. Preview or open the download links.');
      return;
     }
     if(result.status==='failed'){status(result.message||'MusicGPT Extraction failed. Check your MusicGPT account.',true);return;}
-    status('MusicGPT is separating the stems · check '+(i+1)+'/50. Stop and resume without submitting a new paid task.');
+    status('Processing · '+(i+1)+'/50.');
     if(i<49)await sleep(10_000,ac.signal);
    }
-   status('Still processing. Use CHECK / RESUME JOB later; no extra generation charge.');
+   status('Still processing. Resume this job later.');
   }catch(err){
    if(!disposed&&run===turn&&err?.name!=='AbortError')status(err.message||'Could not check the job.',true);
   }finally{
@@ -195,36 +196,33 @@ export function mountStemExtraction({host}={}){
   if(disposed||busy||conversionId)return;
   if(!configured)return status(ERRORS.MUSICGPT_EXTRACTION_NOT_CONFIGURED,true);
   if(!$('[data-ext-consent]').checked)return status(ERRORS.AUDIO_CONSENT_REQUIRED,true);
-  let selection;
+  // Lock before asynchronous File reading; two clicks must never create two paid jobs.
+  const turn=++run,ac=new AbortController();controller=ac;busy=true;showControls();
   try{
    token();
    const stems=picked('[data-ext-stem]');
    if(!stems.length)throw Error('Select at least one stem.');
-   selection={stems,preprocessingOptions:picked('[data-ext-pre]'),ecoMode:$('[data-ext-eco]').checked,
-    consent:true,rightsConfirmed:true,...await prepareInput()};
-  }catch(err){return status(err.message||'Invalid extraction input.',true);}
-  const turn=++run,ac=new AbortController();controller=ac;busy=true;showControls();
-  status('Submitting paid MusicGPT v2 Extraction. Do not submit again after a timeout until you check your MusicGPT account.');
-  try{
+   status('Preparing audio…');
+   const input=await prepareInput();
+   if(disposed||ac.signal.aborted||turn!==run)return;
+   const selection={stems,preprocessingOptions:picked('[data-ext-pre]'),ecoMode:$('[data-ext-eco]').checked,
+    consent:true,rightsConfirmed:true,...input};
+   status('Submitting extraction. One paid request.');
    const result=await gateway('submit',selection,ac.signal);
    if(disposed||ac.signal.aborted||turn!==run)return;
    if(!ID.test(result.conversionId||''))throw Error(ERRORS.MISSING_CONVERSION_ID);
    conversionId=result.conversionId;remember();showControls();
-   status('Extraction submitted'+(Number.isFinite(result.creditEstimate)?' · estimate '+result.creditEstimate+' credits':'')+
-    (Number.isFinite(result.eta)?' · ETA '+result.eta+' sec':'')+'.');
-  }catch(err){
-   if(!disposed&&err?.name!=='AbortError')status(err.message||'Could not submit extraction.',true);
-  }finally{
-   if(controller===ac){controller=null;busy=false;if(!disposed)showControls();}
-  }
+   status('Submitted'+(Number.isFinite(result.creditEstimate)?' · est. '+result.creditEstimate+' credits':'')+'.');
+  }catch(err){if(!disposed&&err?.name!=='AbortError')status(err.message||'Extraction failed.',true);}
+  finally{if(controller===ac){controller=null;busy=false;if(!disposed)showControls();}}
   if(conversionId&&!disposed)void checkJob();
  };
- $('[data-ext-stop]').onclick=()=>{abort();status('Stopped waiting. MusicGPT may still be processing. Click CHECK / RESUME JOB to check without spending credits again.');};
+ $('[data-ext-stop]').onclick=()=>{abort();status('Paused. The cloud job may continue.');};
  $('[data-ext-resume]').onclick=()=>{if(!busy&&conversionId)void checkJob();};
  $('[data-ext-new]').onclick=()=>{
   if(busy)return;conversionId=null;remember();$('[data-ext-results]').hidden=true;
   $('[data-ext-files]').replaceChildren();showControls();
-  status('Ready for a new paid extraction. Previous results remain in your MusicGPT account.');
+  status('Ready for a new extraction.');
  };
  try{
   const saved=JSON.parse(storage()?.getItem(SESSION_KEY)||'null');
@@ -241,7 +239,7 @@ export function mountStemExtraction({host}={}){
    configured=res.ok&&info.configured===true;
    showControls();
    if(!configured)status(ERRORS.MUSICGPT_EXTRACTION_NOT_CONFIGURED,true);
-   else if(!conversionId)status('MusicGPT Extraction is ready. Select stems, confirm consent, then extract.');
+   else if(!conversionId)status('Ready. Select stems and extract.');
   }catch{if(!disposed)status('Could not check MusicGPT configuration. Try reloading the tool.',true);}
  })();
  return()=>{disposed=true;abort();$('[data-ext-token]').value='';host.replaceChildren();};

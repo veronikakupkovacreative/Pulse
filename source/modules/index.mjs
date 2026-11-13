@@ -25,12 +25,12 @@ if(typeof document!=='undefined'){
   const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
-  set('.hero-description','Analyze, edit, master and export music in one focused browser workspace. Five sections, one shared waveform and twelve AI Studio tools.');
+  set('.hero-description','Analyze, edit, master and export audio.');
   set('.state-line','LOCAL AUDIO PROCESSING / MODULES ACTIVE');
-  set('.toolkit-intro p','Analyze rhythm and harmony, edit audio, convert formats or open a focused AI Studio tool. Your main SOURCE AUDIO stays in the shared workspace.');
-  set('.toolkit-intro .intro-accent','Mastering, stereo, repair and beat processing run locally in your browser. Cloud features are available only in separately labeled tools.');
-  set('.toolkit-note','+ Stereo Lab and Vocal Doubler run locally. Stem Extraction requires explicit permission and MusicGPT credits.');
-  set('.footer-brand p','A focused audio workspace for producers. Analyze, edit, process and export without installing software.');
+  set('.toolkit-intro p','BPM, key, Camelot and beat grid.');
+  set('.toolkit-intro .intro-accent','Cloud tools are labeled separately.');
+  set('.toolkit-note','+ Local processing unless marked MUSICGPT CLOUD.');
+  set('.footer-brand p','Audio tools for producers.');
   const status=document.querySelector('.tiny-status');if(status)status.textContent='READY FOR AUDIO';
   const source=document.querySelector('.tool-source');if(source)source.setAttribute('aria-label','Audio upload, waveform and transport');
 }

@@ -79,11 +79,11 @@ function mountVocals(args){
 
 function mountBeatLab({host}){
  panel(host,heading('BEAT LAB','Detect the beat.<br><span>Cut the loop.</span>',
-  'Estimate tempo and beat positions in a Web Worker. Create a 4-bar selection and export it as WAV. This tool analyzes beats and exports loops without cloud processing.','BEAT ANALYSIS / WORKER')+
+  'Detect BPM, mark beats and export four-bar loops.','BEAT ANALYSIS / WORKER')+
   '<div class="ai2-metrics"><div>BPM<strong data-bpm>—</strong></div><div>CONFIDENCE<strong data-confidence>—</strong></div><div>MARKERS<strong data-markers>—</strong></div></div>'+
   '<div class="ai2-actions">'+button('analyze','ANALYZE RHYTHM')+button('loop','SELECT 4 BARS')+button('export','EXPORT SELECTED LOOP')+'</div>'+
   '<p class="ai2-note">Half-time/double-time interpretation remains possible. Check the beat grid against the music.</p>');
- let disposed=false,controller=null,result=null;
+ let disposed=false,controller=null,result=null,lastSource=null;
  const buttons=[...host.querySelectorAll('[data-ai2-action]')];
  const setBusy=x=>buttons.forEach(b=>b.disabled=x);
  const perform=async(id)=>{
@@ -91,13 +91,13 @@ function mountBeatLab({host}){
    if(id==='analyze'){
     const source=w.ensureAudio();controller?.abort();controller=new AbortController();setBusy(true);status(host,'Analyzing rhythm in background…');
     const next=await analyzeRhythmInWorker(source,{signal:controller.signal,onProgress:p=>{if(!disposed)status(host,`Analyzing rhythm · ${p}%`);}});
-    if(disposed||w.buffer!==source)return;result=next;w.setMarkers(next.beatTimes);
+    if(disposed||w.buffer!==source)return;result=next;lastSource=source;w.setMarkers(next.beatTimes);
     host.querySelector('[data-bpm]').textContent=next.bpm.toFixed(2);
     host.querySelector('[data-confidence]').textContent=String(next.confidence).toUpperCase();
     host.querySelector('[data-markers]').textContent=next.beatTimes.length;
     status(host,'Detected '+next.beatTimes.length+' beat markers. Select a loop or revise BPM by ear.');
    }else if(id==='loop'){
-    const b=w.ensureAudio();if(!result?.bpm||!result.beatTimes?.length)throw Error('Analyze rhythm first.');
+    const b=w.ensureAudio();if(lastSource!==b||!result?.bpm||!result.beatTimes?.length)throw Error('Analyze the current track first.');
     const start=result.beatTimes.find(t=>t>=w.position-.05)??result.beatTimes[0];
     const seconds=16*60/result.bpm;
     if(start+seconds>b.duration)throw Error('Not enough audio remains for four bars. Move the playhead earlier.');
@@ -109,12 +109,20 @@ function mountBeatLab({host}){
   finally{if(!disposed)setBusy(false)}
  };
  for(const b of buttons)b.onclick=()=>void perform(b.dataset.ai2Action);
- return()=>{disposed=true;controller?.abort();};
+ const unsubscribe=w.subscribe((_snapshot,reason)=>{
+  if(['load','clear','commit','undo','redo'].includes(reason)){
+   controller?.abort();result=null;lastSource=null;
+   for(const key of ['data-bpm','data-confidence','data-markers']){
+    const el=host.querySelector('['+key+']');if(el)el.textContent='—';
+   }
+  }
+ });
+ return()=>{disposed=true;controller?.abort();unsubscribe();};
 }
 
 function mountMultitrack({host}){
  panel(host,heading('MIX ASSISTANT','Build your mix.<br><span>Control the balance.</span>',
-  'Import up to 8 tracks, apply RMS-assisted gain suggestions, adjust pan, and render a stereo mix. This is heuristic/local DSP, not a trained mixing model.')+
+  'Balance, pan and render up to eight tracks.')+
   '<div class="ai2-import"><button type="button" data-add-current>+ ADD SOURCE AUDIO</button><label>+ ADD AUDIO FILES<input type="file" data-add-files accept="audio/*,.wav,.mp3,.m4a,.flac" multiple></label></div>'+
   '<div data-mix-tracks class="ai2-tracks" aria-label="Mix tracks"><p class="ai2-note">No tracks added.</p></div>'+
   '<div class="ai2-actions">'+button('balance','SUGGEST LEVEL BALANCE')+button('render','RENDER STEREO MIX')+'</div>'+
@@ -178,7 +186,7 @@ function mountMultitrack({host}){
 
 function mountPitchTime({host}){
  panel(host,heading('PITCH & TIME','Change the tempo.<br><span>Keep the pitch.</span>',
-  'Independent tempo and pitch processing using resampling and WSOLA overlap alignment. Works offline on clips up to 120 seconds. Strong shifts may introduce artifacts.','LOCAL DSP / WEB WORKER')+
+  'Change tempo or pitch independently. Up to 120-second clips.','LOCAL DSP / WEB WORKER')+
   '<div class="ai2-fields">'+num('tempo','Tempo multiplier',.7,1.5,1,.01,'×')+num('pitch','Pitch transpose',-6,6,0,1,'semitones')+'</div>'+
   '<div class="ai2-actions">'+button('process','PROCESS PITCH & TIME')+button('reset','RESTORE PARAMETER DEFAULTS')+'</div>'+
   '<p class="ai2-note">Tempo 1.25× makes the clip faster while holding pitch. +2 semitones raises the notes while preserving the chosen duration.</p>');

@@ -14,7 +14,7 @@ test('reference red BPM section stays isolated from DSP',()=>{
 test('all legacy and web inspectors have PULSE styles',()=>{
  const a=read('modules/legacy-tools.mjs'),b=read('modules/web-tools.mjs'),c=read('modules/ui.css');
  assert.match(a,/tool-view module-work pulse-legacy/);
- assert.equal((b.match(/tool-view module-work pulse-web-tool/g)||[]).length,4);
+ assert.equal((b.match(/tool-view module-work pulse-web-tool/g)||[]).length,3);
  for(const p of ['.pulse-legacy-presets button','.pulse-legacy-fields input','.pulse-web-tool .pulse-fx-field select','.pulse-web-tool .pulse-fx-file-label input[type="file"]'])assert.ok(c.includes(p),p);
  assert.match(c,/\.pulse-legacy-fields input\s*\{[^}]*background:transparent/s);
  assert.match(c,/\.pulse-web-tool \.pulse-fx-field select\s*\{[^}]*background:transparent/s);

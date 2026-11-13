@@ -7,9 +7,9 @@ const mono=(values,rate=8000)=>fromChannels([Float32Array.from(values)],rate);
 const stereo=(left,right,rate=8000)=>fromChannels([Float32Array.from(left),Float32Array.from(right)],rate);
 test('Web API is exported and all new UI tools are registered',()=>{
  const api=new Web();
- for(const name of ['importAudio','extractAudioFromVideo','cutAudio','normalizeAudio','removeSilence','reverseAudio','mergeAudioFiles','bitrateConverter','fileSizeCalculator','exportWavBlob','adjustVolume','changeAudioSpeed','bassBooster','reduceBackgroundNoise','audioCompressor','audioFadeInOut','audioEqualizer','aiMixer','aiMaster','voiceCleaner','audioEnhancer','detectBPM','separateStems','createVisualizer'])
+ for(const name of ['importAudio','cutAudio','normalizeAudio','removeSilence','reverseAudio','mergeAudioFiles','bitrateConverter','fileSizeCalculator','exportWavBlob','adjustVolume','changeAudioSpeed','bassBooster','reduceBackgroundNoise','audioCompressor','audioFadeInOut','audioEqualizer','aiMixer','aiMaster','voiceCleaner','audioEnhancer','detectBPM','separateStems','createVisualizer'])
   assert.equal(typeof api[name],'function',name);
- for(const id of ['merge-files','speed-change','file-size','video-audio'])
+ for(const id of ['merge-files','speed-change','file-size'])
   assert.ok(toolModules.some(tool=>tool.id===id&&typeof tool.mount==='function'),id);
 });
 test('normalization preserves original and targets safe ceiling',()=>{

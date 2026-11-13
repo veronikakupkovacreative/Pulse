@@ -52,11 +52,6 @@ export class Web extends ThePulseStudioEngine{
    throw Error('Maximum decoded audio is 20 minutes / 240 MB.');
   return decoded;
  }
- async extractAudioFromVideo(file){
-  if(!file||!/\.(mp4|mov)$/i.test(String(file.name||'')))
-   throw Error('Choose an MP4 or MOV file with an audio track.');
-  return this.importAudio(file);
- }
  cutAudio(buffer,startTimeSec,endTimeSec){
   const b=validateBuffer(buffer);
   const start=finite(startTimeSec,0,b.duration,'start time');

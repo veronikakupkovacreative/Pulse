@@ -47,8 +47,8 @@ const data=Object.freeze({
   benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['PRIVATE ACCESS','Server authorization and consent protect your credits.']]},
  'ai2-watermark':{
   title:['Inspect provenance','Keep the audio'],
-  summary:'Inspect and remove supported metadata from WAV, MP3 and FLAC without audio re-encoding. A separate text tab removes selected invisible characters. Embedded acoustic AI watermarks are not detected or removed.',
-  steps:['Choose your own WAV, MP3 or FLAC file, or switch to Text Markers.','Inspect locally and review supported metadata or Unicode findings.','Download a cleaned copy while preserving the original audio frames.'],
+  summary:'Inspect and remove supported metadata from WAV, MP3, FLAC and M4A without audio re-encoding. A separate text tab removes selected invisible characters and offers opt-in normalization. Embedded acoustic AI watermarks are not detected or removed.',
+  steps:['Choose your own WAV, MP3, FLAC or M4A file, or switch to Text Markers.','Inspect locally and review supported metadata or Unicode findings.','Download a cleaned copy while preserving the original audio frames.'],
   benefits:[['LOCAL INSPECTION','Audio and text remain on your device.'],['LOSSLESS AUDIO','Only selected container metadata is removed; encoded sound remains unchanged.'],['CLEAR LIMITS','No false promises about embedded acoustic watermarks.']]},
  'ai2-lyrics':{
   title:['Generate lyrics','Shape the story'],

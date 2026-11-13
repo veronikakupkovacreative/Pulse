@@ -192,6 +192,7 @@ test('double clicking Extraction while input is loading makes one paid submissio
   Object.defineProperty(file,'files',{configurable:true,value:[{name:'clip.mp3',size:2000,arrayBuffer:()=>pendingFile}]});
   host.querySelector('[data-ext-token]').value='only-a-test-owner-token';
   Object.defineProperty(host.querySelector('[data-ext-consent]'),'checked',{configurable:true,value:true});
+   Object.defineProperty(host.querySelector('[data-ext-stem="vocals"]'),'checked',{configurable:true,value:true});
   // Allow the read-only configuration check to finish before clicking.
   for(let i=0;i<6;i++)await Promise.resolve();
   const submitButton=host.querySelector('[data-ext-submit]');

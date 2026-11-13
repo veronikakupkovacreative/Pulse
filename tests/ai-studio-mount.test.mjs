@@ -12,7 +12,7 @@ const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8')
 /** Mount actual production module functions into a DOM.
  * This catches invalid selectors and runtime initialization exceptions that a build misses.
  */
-test('AI Studio registry has eleven valid editorial routes and safe backup copy',()=>{
+test('AI Studio registry has twelve valid editorial routes and safe backup copy',()=>{
  assert.equal(aiV2Modules.length,12);
  for(const tool of aiV2Modules){
   assert.equal(isAiV2(tool),true,tool.id+' missing dedicated AI Studio copy');
@@ -110,6 +110,27 @@ test('full application routes to all twelve AI Studio tabs without a module init
  assert.deepEqual(ids,aiV2Modules.map(item=>item.id));
  assert.deepEqual(errors,[]);
  assert.ok(document.querySelector('#module-ai2-mastering')===null,'Last selection should replace the previous tool');
+ // Visit every non-AI category and mount every visible tool without audio.
+ const remaining={
+  analyze:['song-analyzer','music-tagger'],edit:['editor'],export:['wav'],visuals:['visualizer']
+ };
+ let checked=0;
+ for(const [category,expected] of Object.entries(remaining)){
+  document.querySelector('[data-category="'+category+'"]').dispatchEvent(event());
+  const buttons=[...document.querySelectorAll('#tool-tabs [data-tool]')];
+  assert.deepEqual(buttons.map(b=>b.dataset.tool),expected,category+' tab inventory');
+  for(const button of buttons){
+   button.dispatchEvent(event());
+   const host=document.querySelector('.tool-module-host');
+   assert.ok(host,'Cannot mount '+button.dataset.tool);
+   assert.ok(host.children.length>0,'Empty panel '+button.dataset.tool);
+   assert.ok(!host.querySelector('[role="alert"]'),'Module raised an alert: '+button.dataset.tool);
+   assert.ok(document.querySelector('.pulse-howto'),'Help must remain available but collapsed');
+   checked++;
+  }
+ }
+ assert.equal(checked,5);
+ assert.equal(ids.length+checked,17,'All active tools were opened');
  document.querySelector('.nav-bpm').dispatchEvent(event());
  assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Navigation must reopen the one active Song Analyzer');
 });

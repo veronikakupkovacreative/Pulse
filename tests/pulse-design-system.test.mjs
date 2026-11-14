@@ -55,7 +55,7 @@ test('only Producer Toolkits Song Analyzer renders and uses shared RED design sc
 });
 test('three categories retain all twelve existing AI Studio tools',()=>{
  assert.deepEqual([...new Set(visibleToolModules.map(x=>x.category))].sort(),['analyze','create','prepare']);
- assert.equal(visibleToolModules.length,22);
+ assert.equal(visibleToolModules.length,23);
  const expected=['ai2-mastering','ai2-stereo','ai2-vocals','ai2-beat','ai2-mix','ai2-repair',
   'ai2-pitch','ai2-fx','ai2-lyrics','ai2-musicai','ai2-watermark','ai2-extraction'];
  for(const id of expected)assert.equal(visibleToolModules.filter(x=>x.id===id).length,1,id);

@@ -910,7 +910,7 @@ html,body{background:#0e0e0f!important;color:#f4f2ee!important;color-scheme:dark
 #pulse-proto-root .tool-module-host button[aria-pressed=true]{
  background:#ff4d1c!important;color:#14130f!important;border-color:#ff4d1c!important;
 }
-#pulse-proto-root .tool-module-host :is(.ai2-action,.focus-action,.module-button,.pulse-legacy-run,.pulse-fx-apply,.pulse-master-actions button[data-master-action=render],.pw-action,.pulse-workspace-actions-buttons button[data-workspace-export]){
+#pulse-proto-root .tool-module-host :is(.ai2-action,.focus-action,.module-button,.pulse-legacy-run,.pulse-fx-apply,.pulse-master-actions button[data-master-action=render],.pw-action,.pulse-workspace-actions-buttons button[data-workspace-export],.btn--primary){
  background:#ff4d1c!important;color:#14130f!important;border-color:#ff4d1c!important;
 }
 #pulse-proto-root .tool-module-host button:disabled{opacity:.5!important;cursor:not-allowed}

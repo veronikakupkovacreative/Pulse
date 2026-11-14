@@ -1448,3 +1448,11 @@ html[data-theme="dark"] :focus-visible{outline:3px solid var(--accent)!important
  #toolkit #module-wav .module-work>*{grid-column:1!important}
  #toolkit .tool-module-host .pulse-protection .ap-grid{grid-template-columns:1fr!important}
 }
+/* PULSE v3 dark scheme wins over the obsolete red inspector variables. */
+#toolkit .tool-settings{color-scheme:dark!important;--pulse-tool-bg:#141416;--pulse-tool-fg:#f4f2ee;--pulse-tool-line:#2a2a2e}
+#toolkit .tool-module-host :is(.pulse-master-auto small,.pulse-master-field>span,.pulse-noise-field>span,
+ .pulse-master-section-head,.pulse-noise-report span,.pulse-workspace-actions-status){color:var(--ink-2)!important}
+#toolkit .tool-module-host .pulse-master-section-head strong{color:var(--ink)!important}
+#toolkit .tool-module-host :is(.pulse-noise-report>div,.pulse-master-dashboard,
+ .pulse-master-reference,.pulse-master-assistant,.pulse-master-cloud){background:var(--surface)!important;
+ border:1px solid var(--line)!important;border-radius:12px!important;color:var(--ink)!important}

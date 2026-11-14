@@ -255,7 +255,7 @@ export function initializePrototypeRuntime(){
  },true);
  document.addEventListener('click',e=>{
   const trigger=e.target.closest('#pulse-proto-root [data-load],#pulse-proto-root [data-unload],#pulse-proto-root [data-open-audio]');
-  if(trigger){e.preventDefault();openFile();return}
+  if(trigger){e.preventDefault();e.stopImmediatePropagation();openFile();return}
   const item=e.target.closest('#pulse-proto-root [data-scroll]');if(item){document.getElementById(item.dataset.scroll)?.scrollIntoView({behavior:'smooth'});return}
   const toast=e.target.closest('#pulse-proto-root [data-toast]');if(toast){e.preventDefault();say('This action is only available through a live PULSE tool.',true)}
  },true);

@@ -1,6 +1,5 @@
 import {toolModules as existingToolModules} from './features.mjs';
 import {aiV2Modules} from './ai-v2.mjs';
-import {toolModules as existingToolModules} from './features.mjs';
 import {workspace} from './workspace.mjs';
 import {songAnalyzerModule,audioEditorModule} from './focused-tools.mjs';
 import {musicTaggerModule} from './music-tagger.mjs';

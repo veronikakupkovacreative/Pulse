@@ -89,7 +89,7 @@ async function exportAudio(){
 const ROUTES=Object.freeze({
  'song-analyzer':'#/analyzer','music-tagger':'#/tagger','release-preflight':'#/release-preflight',
  'editor':'#/editor','wav':'#/converter','visualizer':'#/visualizer','audio-protection':'#/protection',
- 'ai2-mastering':'#/ai','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
+ 'ai2-mastering':'#/ai/mastering','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
 });
 let currentTool='song-analyzer';
 function pageTitle(idValue){
@@ -119,7 +119,7 @@ function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
  });
  const desired=ROUTES[currentTool]||'#/tool/'+encodeURIComponent(currentTool);
  if(updateUrl&&location.hash!==desired)history.pushState(null,'',desired);
- requestAnimationFrame(()=>{w.drawWave();if(scroll)id('toolkit')?.scrollIntoView({block:'start',behavior:'auto'});});
+ requestAnimationFrame(()=>{w.drawWave();if(scroll)(document.querySelector('#pulse-proto-root .view:not([hidden])')||id('toolkit'))?.scrollIntoView({block:'start',behavior:'auto'});});
 }
 function navigateHome({updateUrl=true,scroll=true}={}){
  document.body.classList.add('pulse-home-view');

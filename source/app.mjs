@@ -195,4 +195,7 @@ document.addEventListener('keydown',event=>{
 });
 
 // Enhancement layer, after the existing workspace and modules are mounted.
-import('./modules/studio-redesign.mjs').then(module=>module.initializeStudioRedesign()).catch(error=>console.error('Studio redesign initialization:',error));
+import('./modules/studio-redesign.mjs')
+ .then(module=>{module.initializeStudioRedesign();return import('./modules/prototype-runtime.mjs')})
+ .then(module=>module.initializePrototypeRuntime())
+ .catch(error=>console.error('PULSE runtime initialization:',error));

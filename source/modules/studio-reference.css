@@ -880,3 +880,29 @@ html,body{background:#0e0e0f!important;color:#f4f2ee!important;color-scheme:dark
 @media(max-width:640px){#pulse-proto-root .filechip{max-width:100%;flex-wrap:wrap}#pulse-proto-root .editor__head{gap:12px}}
 
 #pulse-proto-root .brand .brand-period{font:700 10px/1.2 Arial,Helvetica,sans-serif!important;letter-spacing:0!important;color:var(--accent)!important;align-self:flex-start;margin-left:-4px}
+
+/* Pulse-Updated.zip / typography sync and consistent real-tool styling. */
+#pulse-proto-root{font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+#pulse-proto-root :is(h1,h2,h3,.logo,.btn,.tool,.card__link){
+  font-family:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+}
+#pulse-proto-root :is(.eyebrow,.crumbs,.nav__links a,.subnav a,.tag,.card__num,.filechip,.time){
+  font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+}
+#pulse-proto-root .view .panel{
+  min-width:0;
+}
+#pulse-proto-root .editor__grid{
+  align-items:start;
+}
+#pulse-proto-root :is(button,a,input,select):focus-visible{
+  outline:3px solid #ff4d1c;
+  outline-offset:3px;
+}
+@media (max-width:900px){
+  #pulse-proto-root .editor__grid{grid-template-columns:minmax(0,1fr)}
+  #pulse-proto-root .toolbar{overflow-x:auto;overscroll-behavior-inline:contain}
+}
+@media (prefers-reduced-motion:reduce){
+  #pulse-proto-root :is(button,a,input,select){scroll-behavior:auto;transition:none!important}
+}

@@ -29,7 +29,7 @@ export function initializePhaseOne({workspace:w}){
  const home=()=>{
   root.dataset.view='home';
   if(legacy)legacy.hidden=true;
-  for(const nav of $('[data-phase-nav]'))nav.removeAttribute('aria-current');
+  for(const nav of $$('[data-phase-nav]'))nav.removeAttribute('aria-current');
   document.getElementById('main')?.scrollIntoView({behavior:'smooth',block:'start'});
  };
  // Capture tool-card clicks before the existing application selects the real module.

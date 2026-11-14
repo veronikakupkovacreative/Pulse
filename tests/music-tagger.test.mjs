@@ -7,7 +7,7 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const sine=(rate=48000,seconds=4,hz=440)=>Float32Array.from({length:rate*seconds},(_,i)=>.3*Math.sin(2*Math.PI*hz*i/rate));
 test('Music Tagger remains in ANALYSIS and does not use Audial APIs or keys',()=>{
  const index=read('source/modules/index.mjs'),html=read('source/index.html'),ui=read('source/modules/music-tagger.mjs');
- assert.match(index,/songAnalyzerModule,musicTaggerModule,audioEditorModule/);
+ assert.match(index,/songAnalyzerModule,musicTaggerModule,\.\.\.producerModules/);
  assert.match(html,/data-open-tool="music-tagger"/);
  assert.equal(musicTaggerModule.category,'analyze');
  assert.equal(typeof musicTaggerModule.mount,'function');

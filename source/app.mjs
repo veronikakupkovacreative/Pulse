@@ -10,7 +10,7 @@ import {initializeThemeToggle} from './modules/theme-toggle.mjs';
 const toolSummaries=Object.freeze({
  "song-analyzer": "BPM, key, Camelot, chords and an optional independent cross-check.",
  "music-tagger": "Local genre, mood and instrument tagging.",
- "editor": "Cut, fade, reverse, merge and adjust audio.",
+ "editor": "Trim, cut, fade, merge and adjust audio.",
  "wav": "Convert audio to WAV, MP3, M4A, FLAC and more.",
  "ai2-mastering": "Local mastering, presets and reference matching.",
  "ai2-stereo": "Stereo width, mid/side and mono-bass controls.",
@@ -24,17 +24,20 @@ const toolSummaries=Object.freeze({
  "ai2-musicai": "Generate two music versions from your prompt.",
  "ai2-watermark": "Clean selected audio metadata or text markers.",
  "ai2-extraction": "Separate vocals, drums and instruments.",
- "visualizer": "Waveforms, spectrum and audiograms."
+ "visualizer": "Waveforms, spectrum and audio-reactive visuals.",
+ "release-preflight": "Check LUFS, true peak, clipping, noise floor and delivery metadata.",
+ "vocal-session-mapper": "Transcribe vocals, align lyrics and translate sessions.",
+ "smart-sample-finder": "Find standout moments and export sample ranges.",
+ "sample-pack-lab": "Batch clean, normalize, chop and convert sample packs.",
+ "stem-delivery-studio": "Standardize and package stems for mixing or mastering."
 });
 
 // PULSE shell: category navigation and optional module mounting only.
 // This file intentionally contains no audio DSP or legacy processors.
 const categories=Object.freeze({
-  analyze:{name:'ANALYSIS',title:'Song Analyzer.',description:'BPM, musical key, Camelot, beat grid and music tagging.',number:'01'},
-  edit:{name:'EDIT',title:'Audio Editor.',description:'Trim, cut, merge, fade, reverse, gain and parametric EQ.',number:'02'},
-  export:{name:'EXPORT',title:'Audio Converter.',description:'Convert audio formats locally.',number:'03'},
-  ai:{name:'AI STUDIO',title:'AI Studio.',description:'Mastering, creative tools and AI audio processing.',number:'04'},
-  visuals:{name:'VISUALS',title:'Audio Visualizer.',description:'Waveform, spectrum, audiogram and browser-supported video export.',number:'05'}
+  analyze:{name:'ANALYZE',title:'Analyze your sound.',description:'Song analysis, tagging, release checks, vocal timing and sample discovery.',number:'01'},
+  create:{name:'CREATE',title:'Create your sound.',description:'Generate, shape and transform music, vocals and effects.',number:'02'},
+  prepare:{name:'PREPARE',title:'Prepare your files.',description:'Edit, organize, standardize and deliver production-ready audio.',number:'03'}
 });
 const query=(selector)=>document.querySelector(selector);
 initializeThemeToggle();
@@ -164,7 +167,7 @@ document.addEventListener('click',event=>{
 // The visualizer shortcuts open the selected real module and switch to its mode.
 document.addEventListener('click',event=>{
  const shortcut=event.target.closest('[data-open-visual]');if(!shortcut)return;
- event.preventDefault();activateCategory('visuals');
+ event.preventDefault();activateCategory('create');
  const target=[...tabs.querySelectorAll('[data-tool]')].find(b=>b.dataset.tool==='visualizer');
  if(target)target.click();
  const mode=shortcut.dataset.openVisual;

@@ -48,12 +48,12 @@ test('Producer Toolkits contains the sole active Song Analyzer',()=>{
  const html=read('index.html');
  assert.match(html,/id="toolkit"/);
  assert.match(html,/data-open-tool="song-analyzer"/);
- assert.match(html,/href="#toolkit" class="nav-bpm"/);
+ assert.match(html,/data-category-link="analyze">ANALYZE/);
  assert.match(html,/<span id="analyzer" aria-hidden="true"><\/span>/);
  assert.doesNotMatch(html,/<section id="analyzer" class="pulse-song-analyzer"/);
  assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
  assert.doesNotMatch(html,/href="\/song\/song-analyzer.css"/);
- for(const category of ['analyze','edit','export','ai','visuals'])
+ for(const category of ['analyze','create','prepare'])
   assert.ok(html.includes('data-category="'+category+'"'),category);
  assert.match(html,/class="tool-board"/);
  assert.match(html,/id="pulse-theme-toggle"/);

@@ -75,12 +75,10 @@ test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
 
-test('full application routes to all twelve AI Studio tabs without a module initialization error',async()=>{
+test('complete application routes to all 22 tools in ANALYZE / CREATE / PREPARE without module errors',async()=>{
  const html=read('index.html');
  const {window,document}=parseHTML(html);
- // linkedom does not emulate a Canvas 2D context: skip only Source Audio painting.
  document.querySelector('.tool-empty')?.remove();
- // Browser navigation methods are omitted from linkedom; provide small DOM-test shims.
  window.HTMLElement.prototype.scrollIntoView=function(){};
  window.HTMLElement.prototype.click=function(){this.dispatchEvent(new window.Event('click',{bubbles:true,cancelable:true}));};
  for(const key of ['document','window','Element','HTMLElement','Node','Event','CustomEvent','MutationObserver']){
@@ -93,44 +91,32 @@ test('full application routes to all twelve AI Studio tabs without a module init
  globalThis.fetch=async()=>({ok:true,json:async()=>({configured:false})});
  globalThis.requestAnimationFrame=()=>1;
  globalThis.cancelAnimationFrame=()=>{};
+ const {visibleToolModules}=await import('../source/modules/index.mjs');
  await import('../source/app.mjs');
- assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Single Producer Toolkit analyzer must mount');
+ assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Song Analyzer should mount by default');
  const event=()=>new window.Event('click',{bubbles:true,cancelable:true});
- document.querySelector('[data-category="ai"]').dispatchEvent(event());
- const errors=[];
- const ids=[];
- for(const button of [...document.querySelectorAll('#tool-tabs [data-tool]')]){
-  button.dispatchEvent(event());
-  ids.push(button.dataset.tool);
-  const host=document.querySelector('.tool-module-host');
-  assert.ok(host,button.dataset.tool+' must render');
-  const message=host.querySelector('[role="alert"]');
-  if(message)errors.push(button.dataset.tool+': '+message.textContent);
+ const byCategory=new Map();
+ for(const mod of visibleToolModules){
+  const list=byCategory.get(mod.category)||[];
+  list.push(mod.id);byCategory.set(mod.category,list);
  }
- assert.deepEqual(ids,aiV2Modules.map(item=>item.id));
- assert.deepEqual(errors,[]);
- assert.ok(document.querySelector('#module-ai2-mastering')===null,'Last selection should replace the previous tool');
- // Visit every non-AI category and mount every visible tool without audio.
- const remaining={
-  analyze:['song-analyzer','music-tagger'],edit:['editor'],export:['wav'],visuals:['visualizer']
- };
  let checked=0;
- for(const [category,expected] of Object.entries(remaining)){
+ for(const category of ['analyze','create','prepare']){
   document.querySelector('[data-category="'+category+'"]').dispatchEvent(event());
   const buttons=[...document.querySelectorAll('#tool-tabs [data-tool]')];
-  assert.deepEqual(buttons.map(b=>b.dataset.tool),expected,category+' tab inventory');
+  assert.deepEqual(buttons.map(b=>b.dataset.tool),byCategory.get(category),category+' inventory');
   for(const button of buttons){
    button.dispatchEvent(event());
    const host=document.querySelector('.tool-module-host');
    assert.ok(host,'Cannot mount '+button.dataset.tool);
    assert.ok(host.children.length>0,'Empty panel '+button.dataset.tool);
-   assert.ok(!host.querySelector('[role="alert"]'),'Module raised an alert: '+button.dataset.tool);
-   assert.ok(document.querySelector('.pulse-howto'),'Help must remain available but collapsed');
+   assert.ok(!host.querySelector('[role="alert"]'),'Module failed to mount: '+button.dataset.tool);
+   assert.ok(document.querySelector('.pulse-howto'),'Help must be available');
    checked++;
   }
  }
- assert.equal(checked,5);
- assert.equal(ids.length+checked,17,'All active tools were opened');
- document.querySelector('.nav-bpm').dispatchEvent(event());
- assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Navigation must reopen the one active Song Analyzer');
+ assert.equal(checked,22);
+ const nav=document.querySelector('[data-category-link="analyze"]');
+ nav.dispatchEvent(event());
+ assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Header navigation should return to Song Analyzer');
 });

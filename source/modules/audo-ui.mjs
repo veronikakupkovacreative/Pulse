@@ -3,7 +3,7 @@ import {workspace as w} from './workspace.mjs';
 import {makeCloudTaggingExcerpt} from './music-tagger.mjs';
 
 const API='/api/pulse-audo';
-const MAX_BYTES=2_400_000;
+export const MAX_BYTES=2_400_000;
 const TRANSITIONS=new Set(['load','clear','commit','undo','redo']);
 const ERROR_MESSAGES={
  INVALID_JSON:'Invalid input.',
@@ -22,7 +22,16 @@ const ERROR_MESSAGES={
  AUDO_PROCESSING_FAILED:'Processing failed.',
  MISSING_AUDO_STATUS_URL:'No usable job status was returned.',
  UNRECOGNIZED_AUDO_OUTPUT:'The processing service returned an unsupported result.',
- AUDO_OUTPUT_TOO_LARGE:'Output is too large to download through PULSE.'
+ AUDO_OUTPUT_TOO_LARGE:'Output is too large to download through PULSE.',
+ INVALID_PUBLIC_URL:'Use a public HTTPS audio URL.',
+ INVALID_SCRIPT:'Add the lyrics or script to align.',
+ INVALID_LANGUAGE:'Choose a valid target language.',
+ INVALID_JOIN_FILES:'Select between two and twenty files to join.',
+ INVALID_CUT_RANGES:'Check the selected cut ranges.',
+ INVALID_LOUDNESS_TARGET:'Choose a supported loudness target.',
+ AUDO_INVALID_INPUT:'The selected format or input is not supported.',
+ AUDO_PROVIDER_AUTH:'The processing service could not authorize this request.',
+ AUDO_PROVIDER_ERROR:'The processing service could not complete the request.'
 };
 const wait=(ms,signal)=>new Promise((resolve,reject)=>{
  if(signal?.aborted)return reject(Object.assign(Error('Cancelled'),{name:'AbortError'}));
@@ -55,7 +64,7 @@ const status=(host,text,error=false)=>{
  const el=host.querySelector('[data-audo-status]');
  if(el){el.textContent=text;el.dataset.error=String(error);}
 };
-async function base64File(file){
+export async function base64File(file){
  if(!file||file.size<1024||file.size>MAX_BYTES)throw Error(ERROR_MESSAGES.AUDIO_SIZE_LIMIT);
  if(!/\.(wav|mp3|m4a|aac|flac|ogg|opus|webm|aiff)$/i.test(file.name))throw Error(ERROR_MESSAGES.INVALID_AUDIO);
  const bytes=new Uint8Array(await file.arrayBuffer());
@@ -119,9 +128,10 @@ export function mountAudoVocalCleanup({host}){
    const prepared=await audoWorkspaceFile({maxSeconds:12});
    if(disposed||controller.signal.aborted)return;
    status(host,'Sending '+prepared.scope.toLowerCase()+'…');
-   const result=await completeAudo({tool:'cleanup',mode:host.querySelector('[data-audo-mode]').value,
+   const mode=host.querySelector('[data-audo-mode]').value;
+   const result=await completeAudo({tool:'cleanup',mode,
     file:prepared.file,strength:Number(slider.value),autoVolume:host.querySelector('[data-audo-volume]').checked,consent:true},
-    'cleanup',{signal:controller.signal,onProgress:text=>!disposed&&status(host,text)});
+    mode,{signal:controller.signal,onProgress:text=>!disposed&&status(host,text)});
    if(disposed||controller.signal.aborted)return;
    showAudio(host,result,urls,'pulse-cleaned-vocal');
    status(host,'Vocal cleanup ready · '+prepared.scope+'. Source audio remains unchanged.');

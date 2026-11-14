@@ -21,6 +21,9 @@
     },
     "api/pulse-extraction.js": {
       "maxDuration": 60
+    },
+    "api/pulse-audo.js": {
+      "maxDuration": 60
     }
   }
 }

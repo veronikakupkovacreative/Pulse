@@ -2,7 +2,7 @@
  * Keep the existing shared AudioWorkspace and DSP engines; no duplicate upload store.
  */
 import {workspace as w} from './workspace.mjs';
-import {editRegion,reverseBuffer,gainBuffer,fromChannels} from './dsp.mjs';
+import {editRegion,gainBuffer,fromChannels} from './dsp.mjs';
 import {fadeBuffer,resampleBuffer} from './legacy-dsp.mjs';
 import {advancedEqualizerModule} from './eq-advanced.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
@@ -205,19 +205,18 @@ function matchChannels(buffer,count){
 }
 const editModes=[
  ['trim','TRIM'],['cut','CUT'],['merge','MERGE'],['fade','FADE'],
- ['reverse','REVERSE'],['gain','GAIN'],['eq','EQ']
+ ['gain','GAIN'],['eq','EQ']
 ];
 function mountAudioEditor({host}){
  host.innerHTML='<section class="tool-view focus-module focus-editor">'+
-  section('02','Audio Editor','Shape your sound')+
-  '<p class="tool-description">Edit your current SOURCE AUDIO without switching between separate utilities. Use Shift + drag on the waveform for Trim and Cut. Undo/Redo remains available.</p>'+
+  section('03','Audio Editor','Shape your sound')+
+  '<p class="tool-description">Trim, cut, merge, fade, gain and EQ your current SOURCE AUDIO. Use Shift + drag on the waveform for selection. Undo/Redo remains available.</p>'+
   '<div class="focus-editor-modes" role="group" aria-label="Audio editing tools">'+
    editModes.map(([id,label],i)=>'<button type="button" data-edit-mode="'+id+'" aria-pressed="'+(i===0?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="trim"><p>Keep the selected range and discard the rest of the track.</p>'+button('trim','TRIM TO SELECTION')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="cut" hidden><p>Remove the selected range and join the remaining audio.</p>'+button('cut','CUT SELECTION')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="merge" hidden><p>Append up to seven more tracks. The editor matches sample rates and mono/stereo layout, and adds short boundary fades.</p><label class="focus-input">ADD AUDIO FILES<input type="file" data-edit-files accept="audio/*,.wav,.mp3,.m4a,.flac" multiple></label>'+button('merge','MERGE INTO WORKSPACE')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="fade" hidden><p>Apply a smooth fade at the start or end of the full track.</p><label class="focus-input">DIRECTION<select data-edit-direction><option value="in">Fade in</option><option value="out">Fade out</option></select></label><label class="focus-input">DURATION (SECONDS)<input type="number" data-focus-input="fade" min="0.01" max="60" step="0.1" value="2"></label>'+button('fade','APPLY FADE')+'</div>'+
-  '<div class="focus-edit-view" data-edit-view="reverse" hidden><p>Reverse the full audio track without changing its duration.</p>'+button('reverse','REVERSE TRACK')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="gain" hidden><p>Adjust the overall track gain. Positive values may clip loud audio.</p><label class="focus-input">GAIN (dB)<input type="number" data-focus-input="gain" min="-24" max="24" step="0.5" value="-2"></label>'+button('gain','APPLY GAIN')+'</div>'+
   '<div class="focus-edit-view focus-eq-view" data-edit-view="eq" hidden></div>'+
   '<p class="focus-status" data-focus-status role="status" aria-live="polite">Choose a tool and load audio to begin.</p></section>';
@@ -239,7 +238,6 @@ function mountAudioEditor({host}){
    if(mode==='trim'||mode==='cut'){
     const range=w.selection;if(!range||range.end-range.start<.01)throw Error('Shift + drag over at least 10 ms of the waveform to select audio.');
     output=editRegion(source,range.start,range.end,mode);
-   }else if(mode==='reverse')output=reverseBuffer(source);
    else if(mode==='gain')output=gainBuffer(source,num(host,'gain',-24,24));
    else if(mode==='fade')output=fadeBuffer(source,num(host,'fade',.01,60),host.querySelector('[data-edit-direction]').value);
    else if(mode==='merge'){

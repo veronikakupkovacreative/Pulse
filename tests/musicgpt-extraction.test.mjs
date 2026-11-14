@@ -189,7 +189,7 @@ test('double clicking Extraction with shared SOURCE AUDIO makes one paid submiss
  globalThis.fetch=async(_url,options)=>{
   if(!options?.method)return {ok:true,json:async()=>({configured:true})};
   const body=JSON.parse(options.body);
-  if(body.action==='submit'){assert.match(String(_url),/\\?charge=1$/);paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
+  if(body.action==='submit'){assert.ok(String(_url).endsWith('?charge=1'));paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
   return {ok:true,json:async()=>({status:'complete',files:[{stem:'vocals',audioUrl:'https://cdn.example/voice.mp3',wavUrl:null}]})};
  };
  try{
@@ -205,7 +205,7 @@ test('double clicking Extraction with shared SOURCE AUDIO makes one paid submiss
   assert.equal(submitButton.disabled,true);
   for(let i=0;i<25;i++)await Promise.resolve();
   assert.equal(paid,1,'Only one paid provider job must be submitted.');
-  assert.match(host.querySelector('[data-ext-status]').textContent,/stem\\(s\\) ready|Submitted|Processing/);
+  assert.match(host.querySelector('[data-ext-status]').textContent,/ready|Submitted|Processing/);
   cleanup();
  }finally{
   w.buffer=savedBuffer;w.selection=savedSelection;

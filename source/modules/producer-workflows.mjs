@@ -90,7 +90,7 @@ function reportData(raw){
 function mountReleasePreflight({host}){
  host.innerHTML='<section class="tool-view pw-panel"><div class="tool-view-header"><span>01 / ANALYZE / RELEASE PREFLIGHT</span><span>MASTER CHECK</span></div>'+
   '<h3>Check the master.<br><span>Before release.</span></h3><p class="tool-description">Measure loudness, true peak, clipping, noise floor, format and file metadata.</p>'+
-  fileInputMarkup()+'<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to upload this file for analysis.</label>'+
+  fileInputMarkup()+'<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send this audio to Audo for analysis.</label>'+
   '<button class="pw-action" type="button" data-pw-run>ANALYZE RELEASE ↗</button>'+
   '<p class="pw-status" data-pw-status role="status" aria-live="polite">Choose a master or use a public download URL.</p>'+
   '<div class="pw-metrics" data-pw-metrics hidden></div><div class="pw-report-actions" data-pw-report-actions hidden><button type="button" data-pw-export>EXPORT REPORT JSON</button></div></section>';
@@ -122,7 +122,7 @@ function mountVocalSessionMapper({host}){
   '<label class="pw-field" data-pw-script-wrap hidden>LYRICS / SCRIPT<textarea data-pw-script rows="5" maxlength="20000" placeholder="Paste the exact lyrics or script here…"></textarea></label>'+
   '<label class="pw-field" data-pw-language-wrap hidden>TRANSLATE TO<select data-pw-language><option value="en">English</option><option value="cs">Czech</option><option value="de">German</option><option value="fr">French</option><option value="es">Spanish</option><option value="it">Italian</option><option value="pt">Portuguese</option><option value="ja">Japanese</option><option value="ko">Korean</option></select></label>'+
   '<label class="pw-field">OUTPUT FORMAT<select data-pw-format><option value="srt">SRT</option><option value="vtt">VTT</option><option value="txt">TXT</option></select></label>'+
-  '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to upload this vocal for processing.</label>'+
+  '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send this vocal to Audo for processing.</label>'+
   '<button class="pw-action" type="button" data-pw-run>TRANSCRIBE VOCAL ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Choose a vocal recording or use SOURCE AUDIO.</p>'+
   '<div class="pw-output" data-pw-output hidden></div></section>';
  const run=host.querySelector('[data-pw-run]'),script=host.querySelector('[data-pw-script]'),scriptWrap=host.querySelector('[data-pw-script-wrap]'),languageWrap=host.querySelector('[data-pw-language-wrap]'),format=host.querySelector('[data-pw-format]');
@@ -130,6 +130,7 @@ function mountVocalSessionMapper({host}){
  function setMode(next){
   mode=next;host.querySelectorAll('[data-pw-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pwMode===mode)));
   scriptWrap.hidden=mode!=='align';languageWrap.hidden=mode!=='translate';format.querySelector('[value="txt"]').disabled=mode==='align';
+  if(mode==='align'&&format.value==='txt')format.value='srt';
   run.textContent=({transcribe:'TRANSCRIBE VOCAL ↗',align:'ALIGN LYRICS ↗',translate:'TRANSLATE TRANSCRIPT ↗'})[mode];
  }
  host.querySelectorAll('[data-pw-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.pwMode));
@@ -169,7 +170,7 @@ function mountSamplePackLab({host}){
   '<label class="pw-field">LOUDNESS TARGET<select data-pw-target><option value="streaming">STREAMING · -14 LUFS</option><option value="podcast">PODCAST · -16 LUFS</option><option value="broadcast">BROADCAST · -23 LUFS</option></select></label>'+
   '<label class="pw-field">OUTPUT FORMAT<select data-pw-format><option value="wav">WAV</option><option value="flac">FLAC</option><option value="mp3">MP3</option></select></label>'+
   '<label class="pw-field">SAMPLE CHOP RANGES · OPTIONAL<input type="text" data-pw-ranges placeholder="0-1.5, 2-4"></label>'+
-  '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to upload these samples for processing.</label>'+
+  '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send these samples to Audo for processing.</label>'+
   '<button class="pw-action" type="button" data-pw-run>PROCESS SAMPLE PACK ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Choose samples to begin.</p>'+
   '<div class="pw-output" data-pw-output hidden></div></section>';
  const run=host.querySelector('[data-pw-run]'),input=host.querySelector('[data-pw-files]');let busy=false,disposed=false,controller=null;
@@ -225,7 +226,7 @@ function mountSmartSampleFinder({host}){
  host.innerHTML='<section class="tool-view pw-panel"><div class="tool-view-header"><span>01 / ANALYZE / SMART SAMPLE FINDER</span><span>HIGHLIGHT DETECTION</span></div>'+
   '<h3>Find the moment.<br><span>Make it a sample.</span></h3><p class="tool-description">Find standout sections in a track, review their timestamps and export selected ranges.</p>'+
   fileInputMarkup()+'<label class="pw-field">NUMBER OF HIGHLIGHTS<select data-pw-count><option value="3">3</option><option value="5" selected>5</option><option value="8">8</option><option value="10">10</option></select></label>'+
-  '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to upload this audio for analysis.</label>'+
+  '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send this audio to Audo for highlight analysis.</label>'+
   '<button class="pw-action" type="button" data-pw-run>FIND HIGHLIGHTS ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Choose a track to begin.</p>'+
   '<div class="pw-highlight-list" data-pw-highlights hidden></div><div class="pw-output" data-pw-output hidden></div></section>';
  const run=host.querySelector('[data-pw-run]'),list=host.querySelector('[data-pw-highlights]');let busy=false,disposed=false,controller=null,currentInput=null;
@@ -282,6 +283,8 @@ function mountStemDeliveryStudio({host}){
    const resampled=[];
    for(let i=0;i<decoded.length;i++){message(host,'[data-pw-status]','Standardizing '+decoded[i].file.name+'…');resampled.push(await resampleBuffer(decoded[i].buffer,rate));}
    const duration=Math.max(...resampled.map(buffer=>buffer.duration)),frames=Math.ceil(duration*rate),entries=[];
+   const estimatedBytes=frames*resampled.reduce((sum,b)=>sum+b.numberOfChannels,0)*(depth/8);
+   if(estimatedBytes>240*1024*1024)throw Error('This stem package would exceed 240 MB. Use shorter stems or export fewer tracks at a time.');
    for(let i=0;i<resampled.length;i++){
     const source=resampled[i],output=context.createBuffer(source.numberOfChannels,frames,rate);
     for(let channel=0;channel<source.numberOfChannels;channel++)output.getChannelData(channel).set(source.getChannelData(channel));

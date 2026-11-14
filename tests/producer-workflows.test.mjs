@@ -37,6 +37,7 @@ test('the five producer modules mount their expected controls',()=>{
   for(const module of producerModules){
    const cleanup=module.mount({host});
    for(const selector of expected[module.id])assert.ok(host.querySelector(selector),module.id+' '+selector);
+   if(module.id!=='stem-delivery-studio')assert.match(host.textContent,/Audo/,'Cloud consent must name the provider');
    cleanup?.();host.replaceChildren();
   }
  }finally{if(old===undefined)delete globalThis.document;else globalThis.document=old;}

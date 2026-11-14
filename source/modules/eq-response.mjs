@@ -19,7 +19,7 @@ const frequencyX=hz=>X0 + Math.log(clamp(hz,20,20000)/20)/Math.log(1000)*(X1-X0)
  */
 export function mountEqResponse({host, count = () => 3, gains, changeGain, changeCount = null, bandOptions = [3,10,20]}) {
   const player=document.querySelector('.audio-source-area');
-  if(!player) return () => {};
+  if(!player) return {refresh(){},cleanup(){}};
   const stage=document.createElement('section');
   stage.className='pulse-eq-left pulse-eq-live';
   stage.setAttribute('aria-label','Interactive parametric equalizer frequency response');

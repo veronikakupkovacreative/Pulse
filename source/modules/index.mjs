@@ -36,7 +36,7 @@ if(typeof document!=='undefined'){
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
   set('.hero-description','Analyze, create and prepare your sound.');
-  set('.state-line','LOCAL AUDIO PROCESSING / MODULES ACTIVE');
+  set('.state-line','LOCAL TOOLS / CONSENTED CLOUD MODULES');
   set('.toolkit-intro p','Analysis, creative tools and production-ready delivery.');
   set('.toolkit-intro .intro-accent','One workspace for the work around your DAW.');
   set('.toolkit-note','+ ANALYZE / CREATE / PREPARE');

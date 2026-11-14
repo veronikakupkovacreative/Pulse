@@ -15,7 +15,7 @@ const groups=[
  ['Generate & clean',[['lyrics','ai2-lyrics','Lyrics Generator'],['music','ai2-musicai','AI Music Generator'],['watermark','ai2-watermark','Watermark Cleaner']]]
 ];
 const aiMap=new Map(groups.flatMap(([g,items])=>items.map(([slug,id,label])=>[slug,{id,label,g}])));
-const say=(message,error=false)=>{let n=$('#pulse-exact-status');if(n){n.textContent=message;n.dataset.error=String(error);}const old=$('#source-status');if(old)old.textContent=message;};
+const say=(message,error=false)=>{let n=$('#pulse-exact-status');if(n){n.hidden=false;n.textContent=message;n.dataset.error=String(error);}const old=$('#source-status');if(old)old.textContent=message;};
 const busy={value:false};
 let current='',analysisTrack=null,eqSelected=1,activeAI=null;
 const eq=[{type:'lowshelf',f:80,g:3,q:1},{type:'peaking',f:400,g:-4,q:1.4},{type:'peaking',f:3000,g:2.5,q:1.2},{type:'highshelf',f:10000,g:4,q:.8}];
@@ -191,7 +191,7 @@ function render(){
 }
 function makeStatus(){
  const el=document.createElement('p');el.id='pulse-exact-status';el.setAttribute('role','status');el.setAttribute('aria-live','polite');el.style.cssText='position:fixed;bottom:18px;left:18px;z-index:1000;max-width:min(540px,calc(100vw - 36px));padding:12px 18px;background:#19191b;border:1px solid #48484c;border-radius:10px;color:#f4f2ee;font:13px Inter,Arial,sans-serif;pointer-events:none';
- document.body.append(el);return el;
+ el.hidden=true;document.body.append(el);return el;
 }
 function initToolUI(){
  // Replace all fake data and prototype actions, but preserve their exact visual containers.
@@ -210,7 +210,7 @@ function initToolUI(){
  const chords=$('.chords',$('[data-view="analyzer"]'));if(chords){chords.id='live-chords';chords.innerHTML='<span>—</span>'}
  for(const page of ['analyzer','tagger','ai-tool','visualizer']){
   const el=$('[data-view="'+page+'"]');if(!el)continue;
-  let host=document.createElement('div');host.id='pulse-'+(page==='ai-tool'?'ai':page)+'-module';host.className='pulse-exact-real';
+  let host=document.createElement('div');host.id='pulse-'+(page==='ai-tool'?'ai':page)+'-module';host.className='pulse-exact-real when-loaded';
   if(page==='analyzer')el.querySelector('.when-loaded .stack')?.append(host);
   else if(page==='tagger')el.querySelector('.when-loaded')?.replaceWith(host);
   else if(page==='ai-tool')el.querySelector('.when-loaded')?.replaceWith(host);
@@ -230,6 +230,7 @@ function initToolUI(){
  }
  // Display only factual source audio in converter, never the two fake demo files.
  const files=$('[data-view="converter"] .files');if(files)files.replaceChildren();
+ for(const action of $('[data-view="editor"] [data-toast]'))action.removeAttribute('data-toast');
  const editor=$('[data-view="editor"]');
  if(editor){editor.querySelector('.stage__history .history')?.replaceChildren();
   editor.querySelector('.exportbar .input')?.setAttribute('value','pulse-edit');
@@ -255,7 +256,7 @@ export function initializePrototypeRuntime(){
   const item=e.target.closest('#pulse-proto-root [data-scroll]');if(item){document.getElementById(item.dataset.scroll)?.scrollIntoView({behavior:'smooth'});return}
   const toast=e.target.closest('#pulse-proto-root [data-toast]');if(toast){e.preventDefault();say('This action is only available through a live PULSE tool.',true)}
  },true);
- $('#audio-file')?.addEventListener('change',e=>{if(e.target.files?.[0])void load(e.target.files[0])});
+ // AudioWorkspace owns the single file input handler; subscribing to its load avoids a second decode.
  const drop=$('#drop');if(drop){
   for(const type of ['dragover','dragenter'])drop.addEventListener(type,e=>{e.preventDefault();drop.classList.add('is-dragover')});
   for(const type of ['dragleave','drop'])drop.addEventListener(type,e=>{e.preventDefault();drop.classList.remove('is-dragover')});
@@ -267,11 +268,11 @@ export function initializePrototypeRuntime(){
   for(const card of $$('#toolgrid .card'))card.hidden=button.dataset.f!=='all'&&card.dataset.cat!==button.dataset.f;
  });
  const rerun=$('#an-rerun');if(rerun)rerun.addEventListener('click',runAnalysis);
- const report=$('[data-view="analyzer"] [data-toast*="Report"]');if(report)report.addEventListener('click',()=>{
+ const report=$('[data-view="analyzer"] [data-toast*="Report"]');if(report){report.removeAttribute('data-toast');report.addEventListener('click',()=>{
   if(!w.buffer)return openFile();
   const payload={name:w.displayName,bpm:$('[data-live-bpm]')?.textContent,key:$('[data-live-key]')?.textContent,camelot:$('[data-live-camelot]')?.textContent,beats:w.markers};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});downloadBlob(blob,'pulse-analysis.json');
- });
+ });}
  for(const ctrl of $$('.toolbar .tool')){
   const key=ctrl.getAttribute('aria-label')||ctrl.textContent.trim().split(/\s/)[0];
   ctrl.removeAttribute('data-toast');
@@ -321,7 +322,7 @@ export function initializePrototypeRuntime(){
  const moduleObserver=new MutationObserver(()=>syncAnalyzer());
  document.addEventListener('pulse:tool-mounted',()=>queueMicrotask(()=>{relocate();syncAnalyzer()}));
  document.addEventListener('pulse:workspace-change',e=>{
-  if(e.detail?.reason==='load'){analysisTrack=null;}render();
+  if(e.detail?.reason==='load'){analysisTrack=null;if(sectionFor()[0]==='home')location.hash='#/analyzer';}render();
  });
  window.addEventListener('hashchange',navigate);window.addEventListener('popstate',navigate);
  w.subscribe((_,reason)=>{if(reason==='position'){if(sectionFor()[0]==='editor')editorDisplay();return}render()});

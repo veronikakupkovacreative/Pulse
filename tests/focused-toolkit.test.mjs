@@ -8,7 +8,7 @@ import {fromChannels} from '../source/modules/dsp.mjs';
 
 test('PULSE registers all existing AI modules once, plus five producer workflows',()=>{
  const ids=visibleToolModules.map(m=>m.id);
- assert.equal(ids.length,22);
+ assert.equal(ids.length,23);
  assert.equal(new Set(ids).size,ids.length);
  for(const item of aiV2Modules)assert.equal(ids.filter(id=>id===item.id).length,1,item.id);
  for(const id of ['release-preflight','vocal-session-mapper','smart-sample-finder','sample-pack-lab','stem-delivery-studio'])assert.ok(ids.includes(id),id);

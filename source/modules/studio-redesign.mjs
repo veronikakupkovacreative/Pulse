@@ -112,9 +112,9 @@ function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
  mode(currentTool==='editor');
  if(id('pulse-ai-hub'))id('pulse-ai-hub').hidden=true;
  pageTitle(currentTool);
- $('[data-go-ai-hub]').forEach(link=>{const active=currentTool.startsWith('ai2-');link.classList.toggle('is-active',active);if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current')});
+ $$('[data-go-ai-hub]').forEach(link=>{const active=currentTool.startsWith('ai2-');link.classList.toggle('is-active',active);if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current')});
  const group=currentTool==='editor'?'editor':currentTool==='wav'?'wav':currentTool==='visualizer'?'visualizer':currentTool==='audio-protection'?'audio-protection':currentTool.startsWith('ai2-')?'ai2-mastering':'song-analyzer';
- $('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{
+ $$('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{
   const active=link.dataset.openTool===group;
   link.classList.toggle('is-active',active);
   if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
@@ -133,8 +133,8 @@ function navigateAiHub({updateUrl=true,scroll=true}={}){
  const summary=id('pulse-tool-summary');
  if(summary)summary.textContent='Twelve audio tools grouped by production task. Open a workflow to use it with the shared audio workspace.';
  document.title='AI Studio — PULSE Studio';
- $('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{link.classList.remove('is-active');link.removeAttribute('aria-current')});
- $('[data-go-ai-hub]').forEach(link=>{link.classList.add('is-active');link.setAttribute('aria-current','true')});
+ $$('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{link.classList.remove('is-active');link.removeAttribute('aria-current')});
+ $$('[data-go-ai-hub]').forEach(link=>{link.classList.add('is-active');link.setAttribute('aria-current','true')});
  const hub=id('pulse-ai-hub');if(hub)hub.hidden=false;
  if(updateUrl&&location.hash!=='#/ai')history.pushState(null,'','#/ai');
  if(scroll)id('toolkit')?.scrollIntoView({block:'start',behavior:'auto'});
@@ -146,10 +146,10 @@ function navigateHome({updateUrl=true,scroll=true}={}){
  if(id('pulse-ai-hub'))id('pulse-ai-hub').hidden=true;
  if(updateUrl&&location.hash!=='#/home')history.pushState(null,'','#/home');
  document.title='PULSE Studio — Find your rhythm';
- $('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{
+ $$('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{
   link.classList.remove('is-active');link.removeAttribute('aria-current');
  });
- $('[data-go-ai-hub]').forEach(link=>{link.classList.remove('is-active');link.removeAttribute('aria-current')});
+ $$('[data-go-ai-hub]').forEach(link=>{link.classList.remove('is-active');link.removeAttribute('aria-current')});
  if(scroll)window.scrollTo({top:0,behavior:'auto'});
 }
 function handleDeepLink(){

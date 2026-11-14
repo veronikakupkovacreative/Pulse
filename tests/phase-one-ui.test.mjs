@@ -23,3 +23,15 @@ test('navigation routes to existing real tool mounts',()=>{
  assert.match(html,/data-phase-category="create"/);
  assert.doesNotMatch(runtime,/location\.hash\s*=/);
 });
+
+test('homepage displays only reference UI and its single footer',()=>{
+ assert.equal((html.match(/<footer\\b/g)||[]).length,1);
+ assert.match(html,/<footer class="footer" id="pulse-phase-footer">/);
+ assert.doesNotMatch(html,/<footer class="pulse-footer"/);
+ assert.match(html,/id="pulse-legacy-workspace" hidden/);
+ assert.ok(html.indexOf('id="pulse-phase-footer"')<html.indexOf('id="pulse-legacy-workspace"'));
+ assert.match(css,/#pulse-legacy-workspace\\[hidden\\]\\{display:none!important\\}/);
+ assert.match(css,/#pulse-phase-one\\[data-view="tool"\\] > main\\{display:none!important\\}/);
+ assert.match(runtime,/root\\.dataset\\.view='home'/);
+ assert.match(runtime,/root\\.dataset\\.view='tool'/);
+});

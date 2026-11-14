@@ -24,7 +24,7 @@ if(area){
   $('source-loopline').textContent=b?'LOOP '+label(w.selection?.start||0)+' – '+label(w.selection?.end||b.duration)+' · '+(w.loopEnabled?'ON':'OFF')+' · Grid '+tempo.toFixed(1)+' BPM (offset '+offset.toFixed(2)+'s)':'Load your track into 01 / SOURCE AUDIO to begin.';
   
   const ruler=$('source-ruler');ruler.replaceChildren();
-  if(b){for(let i=0;i<=4;i++){const e=document.createElement('span');e.textContent=label(Math.min(b.duration,view+span*i/4));ruler.append(e)}}};
+  if(b){for(let i=0;i<=7;i++){const e=document.createElement('span');e.textContent=label(Math.min(b.duration,view+span*i/7));ruler.append(e)}}};
  $('source-loop').onclick=()=>w.setLoopEnabled(!w.loopEnabled);
  $('source-snap').onclick=()=>{snap=!snap;refresh()};
  $('source-in').onclick=()=>{if(w.buffer)w.setSelection(w.position,w.selection?.end??w.buffer.duration);refresh()};

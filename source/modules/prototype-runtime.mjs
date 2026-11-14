@@ -13,6 +13,34 @@ const availableTools=[
  ['Generate & clean',[['ai2-lyrics','Lyrics Generator','Create original lyrics','CLOUD'],['ai2-musicai','Music Generator','Generate music from your prompt','CLOUD'],['ai2-watermark','Watermark Cleaner','Supported metadata cleanup','LOCAL']]]
 ];
 
+
+/**
+ * Mirror the approved HTML's 90-bar hero motif. With a loaded track,
+ * use real PCM peaks instead of the prototype's simulated waveform.
+ */
+export function renderHeroWave(){
+ const host=$('#pulse-proto-root #wave');if(!host)return;
+ const audio=w.buffer,barCount=90,fragment=document.createDocumentFragment();
+ for(let i=0;i<barCount;i++){
+  let height;
+  if(audio){
+   const start=Math.floor(i/barCount*audio.length),end=Math.max(start+1,Math.floor((i+1)/barCount*audio.length));
+   let peak=0;
+   for(let channel=0;channel<Math.min(2,audio.numberOfChannels);channel++){
+    const data=audio.getChannelData(channel),step=Math.max(1,Math.floor((end-start)/100));
+    for(let j=start;j<end;j+=step)peak=Math.max(peak,Math.abs(data[j]||0));
+   }
+   height=Math.min(96,Math.max(6,Math.round(6+Math.sqrt(peak)*88)));
+  }else{
+   height=Math.min(96,Math.round(18+Math.abs(Math.sin(i*.42))*60+(i*7%13)));
+  }
+  const bar=document.createElement('i');bar.style.setProperty('--h',height+'%');
+  bar.style.setProperty('--i',String(i));fragment.append(bar);
+ }
+ host.replaceChildren(fragment);
+ host.dataset.source=audio?'audio':'decorative';
+}
+
 function initHub(){
  const host=$('#proto-ai-groups');if(!host||host.childElementCount)return;
  for(const [label,items] of availableTools){
@@ -144,7 +172,7 @@ function runAnalysis(){
 }
 export function initializePrototypeRuntime(){
  const proto=$('#pulse-proto-root');if(!proto)return;
- initHub();
+ initHub();renderHeroWave();
  const filters=$$('#filters .chip');for(const chip of filters)chip.addEventListener('click',()=>{
   for(const button of filters)button.setAttribute('aria-pressed',String(button===chip));
   const filter=chip.dataset.f;for(const card of $$('#toolgrid .card'))card.hidden=!(filter==='all'||card.dataset.cat===filter);
@@ -165,7 +193,7 @@ export function initializePrototypeRuntime(){
   if(event.target.closest('#pulse-proto-root a[href^="#/"]'))queueMicrotask(updateUI);
  });
  window.addEventListener('hashchange',updateUI);window.addEventListener('popstate',updateUI);
- w.subscribe((_snapshot,reason)=>{if(reason==='position')return;syncTrack();if(reason==='load'||reason==='clear')updateUI();else if(reason==='markers'||reason==='analysis')updateAnalyzer()});
+ w.subscribe((_snapshot,reason)=>{if(reason==='position')return;syncTrack();if(['load','clear','commit','undo','redo'].includes(reason))renderHeroWave();if(reason==='load'||reason==='clear')updateUI();else if(reason==='markers'||reason==='analysis')updateAnalyzer()});
  updateUI();watchAnalyzer();
 }
 function watchAnalyzer(){

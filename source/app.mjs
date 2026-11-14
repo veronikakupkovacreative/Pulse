@@ -6,6 +6,7 @@ import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 import {studioStore} from './modules/studio-store.mjs';
 import {initializePhaseOne} from './modules/phase-one-runtime.mjs';
+import {initializePhaseTwo} from './modules/phase-two-runtime.mjs';
 
 const toolSummaries=Object.freeze({
  "song-analyzer": "BPM, key, Camelot, chords and an optional independent cross-check.",
@@ -41,6 +42,7 @@ const categories=Object.freeze({
 });
 const query=(selector)=>document.querySelector(selector);
 initializePhaseOne({workspace:w});
+const phaseTwo=initializePhaseTwo({workspace:w});
 const blank=query('#blank-panel');
 const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');
@@ -68,6 +70,7 @@ function showEmpty(){
 }
 function mountTool(definition){
   studioStore.setActiveModule(definition.id);
+  phaseTwo.updateTool(definition,activeCategory);
   showBitrateGuide(false);
   clearMountedTool();
   blank.hidden=true;

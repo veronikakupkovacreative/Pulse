@@ -34,6 +34,7 @@ if(typeof document!=='undefined'){
   // Canonical last-loaded layer: keeps every red toolkit consistent with Beat Lab.
   const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
   const phaseOneStyle=document.createElement('link');phaseOneStyle.rel='stylesheet';phaseOneStyle.href='/modules/phase-one-reference.css';document.head.append(phaseOneStyle);
+  const referenceToolsStyle=document.createElement('link');referenceToolsStyle.rel='stylesheet';referenceToolsStyle.href='/modules/reference-tool-layout.css';document.head.append(referenceToolsStyle);
   workspace.mountSource();
   const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
   set('.hero-description','Analyze, create and prepare your sound.');

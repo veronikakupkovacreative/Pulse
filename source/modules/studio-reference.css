@@ -875,3 +875,4 @@ html,body{background:#0e0e0f!important;color:#f4f2ee!important;color-scheme:dark
 @media(max-width:1039px){#pulse-proto-root .editor__grid{grid-template-columns:1fr}#pulse-proto-root [data-proto-editor-properties]{width:100%}}
 @media(max-width:600px){#pulse-proto-root .filechip{flex-wrap:wrap}#pulse-proto-root .editor__head{grid-template-columns:1fr}#pulse-proto-root .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#pulse-proto-root .metric{padding:12px}#pulse-proto-root .toolbar{top:7.6rem}#pulse-proto-root .editor{padding-top:20px}#pulse-proto-root .proto-ai-link{min-height:190px}}
 @media(prefers-reduced-motion:reduce){#pulse-proto-root *,#pulse-proto-root *::before,#pulse-proto-root *::after{animation:none!important;transition:none!important}}
+:root{--ps-page:#0e0e0f;--ps-red:#ff4d1c;--ps-surface:#141416;--ps-text:#f4f2ee;--ps-sub:#bdbab1;--ps-border:#2a2a2e}

@@ -25,3 +25,7 @@ Vercel executes `npm test && npm run build` and publishes `public/`.
 ## Cleanup policy
 
 The legacy host is deliberately retained **only** for active audio controls until migrated. It must not become a second user-facing UI. Previous standalone Song Analyzer UI, unused red-theme overlay, obsolete theme toggle and one-time installer scripts have been removed. The abandoned standalone `source/song` implementation and its tests have been removed. The current BPM engine lives in `source/modules/rhythm-client.mjs` and its worker.
+
+## Uploaded design reference (2026-11-14)
+
+The original `Pulse-Updated.zip` contained a standalone clickable HTML prototype, not a functional replacement for the PULSE runtime. The visually unchanged reference is available at `/design-preview/` for review. The production app remains at `/` and keeps the shared audio engine. The reference only simulates navigation and example states; it does **not** process or upload audio. Do not promote it to the production app without integrating the screens with `AudioWorkspace`.

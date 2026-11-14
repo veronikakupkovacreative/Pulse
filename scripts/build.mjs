@@ -6,6 +6,8 @@ const root=join(dirname(fileURLToPath(import.meta.url)),'..');
 const source=join(root,'source'),output=join(root,'public');
 await mkdir(join(output,'modules'),{recursive:true});
 for(const file of ['index.html','style.css','app.mjs']){await readFile(join(source,file));await copyFile(join(source,file),join(output,file));}
+// Keep the supplied standalone prototype available for visual review without replacing working audio routes.
+await cp(join(source,'design-preview'),join(output,'design-preview'),{recursive:true});
 for(const file of await readdir(join(source,'modules'))){if(file.endsWith('.mjs')||file.endsWith('.css'))await copyFile(join(source,'modules',file),join(output,'modules',file));}
 // The live analyzer uses modules/rhythm-worker.mjs and modules/harmony-worker.mjs.
 // Publish a pinned same-origin beat detector for lazy browser loading.

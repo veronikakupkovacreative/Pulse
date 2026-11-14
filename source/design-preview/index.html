@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PULSE Studio - Design Reference</title>
+<meta name="description" content="PULSE Studio audio workspace.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Uploaded visual reference, isolated from the production engine -->
+<link rel="stylesheet" href="./style.css"> 
+</head>
+<body data-track="none">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="protobar">DESIGN REFERENCE · no audio processing or upload</div>
+
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a class="logo" href="#/home" aria-label="Pulse Studio home">Pulse<b>STUDIO</b></a>
+    <nav aria-label="Primary">
+      <ul class="nav__links">
+        <li><a href="#/analyzer" data-nav="analyzer">Analyze</a></li>
+        <li><a href="#/editor" data-nav="editor">Edit</a></li>
+        <li><a href="#/converter" data-nav="converter">Convert</a></li>
+        <li><a href="#/ai" data-nav="ai">AI Studio</a></li>
+        <li><a href="#/visualizer" data-nav="visualizer">Visuals</a></li>
+      </ul>
+    </nav>
+    <button class="btn btn--primary btn--sm when-empty" type="button" data-load>Open audio</button>
+    <button class="btn btn--sm when-loaded" type="button" data-unload>Replace audio</button>
+  </div>
+  <nav class="subnav" aria-label="Primary (mobile)">
+    <a href="#/analyzer" data-nav="analyzer">Analyze</a>
+    <a href="#/editor" data-nav="editor">Edit</a>
+    <a href="#/converter" data-nav="converter">Convert</a>
+    <a href="#/ai" data-nav="ai">AI Studio</a>
+    <a href="#/visualizer" data-nav="visualizer">Visuals</a>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- ===================== HOME ===================== -->
+<section class="view" data-view="home">
+  <div class="hero">
+    <div class="wrap">
+      <div class="hero__grid">
+        <div>
+          <p class="eyebrow eyebrow--accent">( Audio workspace · runs in your browser )</p>
+          <h1>Find your <em>rhythm.</em></h1>
+          <p class="hero__lede">Analyze BPM and key, edit, master and export — without installing apps or creating an account.</p>
+          <div class="hero__actions">
+            <button class="btn btn--primary" type="button" data-load data-go="analyzer">Drop a track →</button>
+            <button class="btn" type="button" data-scroll="toolkit">Browse tools</button>
+          </div>
+          <ul class="hero__trust">
+            <li>No account</li><li>Local by default</li><li>Free to start</li>
+          </ul>
+        </div>
+        <button class="dropzone" type="button" id="drop" data-load data-go="analyzer" aria-label="Drop audio here or click to load a demo track">
+          <span class="dropzone__icon" aria-hidden="true">+</span>
+          <span class="dropzone__title">Drop audio here</span>
+          <span class="dropzone__hint">or click to browse · stays on your device</span>
+          <span class="formats" aria-hidden="true"><span>MP3</span><span>WAV</span><span>M4A</span><span>FLAC</span><span>OGG</span></span>
+        </button>
+      </div>
+      <div class="wave" aria-hidden="true" id="wave"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <div><p class="eyebrow">( 01 / How it works )</p><h2>Three steps. <em>Zero setup.</em></h2></div>
+        <p>Your file is processed in browser memory. Nothing is uploaded unless you choose a cloud tool and approve it.</p>
+      </div>
+      <ol class="stepper">
+        <li><div><strong>Load audio</strong><span>Drop a file or pick one from your device.</span></div></li>
+        <li><div><strong>Run a tool</strong><span>Analyze, edit or enhance in one workspace.</span></div></li>
+        <li><div><strong>Export</strong><span>MP3, WAV, M4A or FLAC when you're done.</span></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section" id="toolkit">
+    <div class="wrap">
+      <div class="section__head">
+        <div><p class="eyebrow">( 02 / Toolkit )</p><h2>Six tools. <em>One workspace.</em></h2></div>
+        <p>Every tool is labeled so you know whether your audio stays on your device or goes to the cloud.</p>
+      </div>
+      <div class="filters" role="group" aria-label="Filter tools" id="filters">
+        <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" type="button" data-f="analyze" aria-pressed="false">Analyze</button>
+        <button class="chip" type="button" data-f="edit" aria-pressed="false">Edit</button>
+        <button class="chip" type="button" data-f="export" aria-pressed="false">Export</button>
+        <button class="chip" type="button" data-f="ai" aria-pressed="false">AI</button>
+        <button class="chip" type="button" data-f="visuals" aria-pressed="false">Visuals</button>
+      </div>
+      <div class="grid" id="toolgrid">
+        <a class="card" href="#/analyzer" data-cat="analyze">
+          <div class="card__top"><span class="card__num">01</span><span class="tag tag--local">Local</span></div>
+          <h3>Song Analyzer</h3><p>BPM, musical key, Camelot, approximate chords and beat grid in one pass.</p><span class="card__link">Open Song Analyzer</span>
+        </a>
+        <a class="card" href="#/tagger" data-cat="analyze">
+          <div class="card__top"><span class="card__num">01B</span><span class="tag tag--local">Local</span></div>
+          <h3>Music Tagger</h3><p>On-device AI genre, mood and instrument predictions. Private by design.</p><span class="card__link">Open Music Tagger</span>
+        </a>
+        <a class="card" href="#/editor" data-cat="edit">
+          <div class="card__top"><span class="card__num">02</span><span class="tag tag--local">Local</span></div>
+          <h3>Audio Editor</h3><p>Trim, cut, merge, fade, reverse, gain and parametric EQ.</p><span class="card__link">Open Audio Editor</span>
+        </a>
+        <a class="card" href="#/converter" data-cat="export">
+          <div class="card__top"><span class="card__num">03</span><span class="tag tag--local">Local</span></div>
+          <h3>Audio Converter</h3><p>WAV, MP3, FLAC, AAC and OGG with flexible sample-rate settings.</p><span class="card__link">Open Converter</span>
+        </a>
+        <a class="card card--wide" href="#/ai" data-cat="ai">
+          <div class="card__top"><span class="card__num">04</span><span class="tag tag--cloud">Some tools use cloud</span></div>
+          <h3>AI Studio</h3><p>Twelve tools in four groups: Master &amp; mix, Voice &amp; stems, Creative, and Generate &amp; clean.</p><span class="card__link">Open AI Studio</span>
+        </a>
+        <a class="card" href="#/visualizer" data-cat="visuals">
+          <div class="card__top"><span class="card__num">05</span><span class="tag tag--local">Local</span></div>
+          <h3>Audio Visualizer</h3><p>Waveform, spectrum and audio-reactive visuals. Export PNG or video.</p><span class="card__link">Open Visualizer</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <div><p class="eyebrow">( 03 / Privacy )</p><h2>Your audio stays <em>yours.</em></h2></div>
+        <p>Plain rules, shown on every tool before you run it.</p>
+      </div>
+      <div class="strip">
+        <div><b>Local by default</b><span>Analysis, editing, converting and visuals run in your browser memory.</span></div>
+        <div><b>Cloud asks first</b><span>Cloud AI tools show a permission prompt before anything leaves your device.</span></div>
+        <div><b>No account</b><span>Open a file and start. Nothing to sign up for.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SONG ANALYZER ===================== -->
+<section class="view editor" data-view="analyzer" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Analyze</p>
+    <div class="editor__head">
+      <h1>Song <em>Analyzer</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <div class="filters" aria-label="Analysis tools">
+      <a class="chip" href="#/analyzer" aria-current="true">Song Analyzer</a>
+      <a class="chip" href="#/tagger">Music Tagger</a>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to see BPM, key, Camelot, chords and beat grid. Takes a few seconds."></div>
+
+    <div class="when-loaded stack">
+      <div class="block" id="an-run">
+        <div class="status"><span>Analyzing night-drive_demo.wav…</span><span id="an-pct">0%</span></div>
+        <div class="progress"><b id="an-bar"></b></div>
+      </div>
+      <div class="stack" id="an-done" hidden>
+        <div class="metrics">
+          <div class="metric metric--hot"><span>BPM</span><b>124</b><small>Confidence 96%</small></div>
+          <div class="metric"><span>Key</span><b>A minor</b><small>Relative: C major</small></div>
+          <div class="metric"><span>Camelot</span><b>8A</b><small>Mixes with 7A · 9A · 8B</small></div>
+          <div class="metric"><span>Time sig.</span><b>4 / 4</b><small>Steady tempo</small></div>
+        </div>
+        <div class="block">
+          <div class="row row--between"><h3>Beat grid</h3><span class="note">First beat at 0.21 s · 128 bars</span></div>
+          <div class="beat"><svg id="bg" viewBox="0 0 220 100" preserveAspectRatio="none" aria-label="Waveform with beat grid"></svg></div>
+        </div>
+        <div class="block">
+          <div class="row row--between"><h3>Approximate chords</h3><span class="note">Estimated — verify by ear</span></div>
+          <div class="chords" aria-label="Chord progression"><span>Am</span><span>F</span><span>C</span><span>G</span><span>Am</span><span>F</span><span>C</span><span>Em</span></div>
+        </div>
+        <div class="row">
+          <a class="btn btn--primary" href="#/editor">Open in Editor →</a>
+          <a class="btn" href="#/tagger">Tag this track</a>
+          <button class="btn" type="button" data-toast="Report exported (prototype)">Export report</button>
+          <button class="btn" type="button" id="an-rerun">Re-run analysis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MUSIC TAGGER ===================== -->
+<section class="view editor" data-view="tagger" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Analyze</p>
+    <div class="editor__head">
+      <h1>Music <em>Tagger</em> <span class="tag tag--local">Local · on-device model</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <div class="filters" aria-label="Analysis tools">
+      <a class="chip" href="#/analyzer">Song Analyzer</a>
+      <a class="chip" href="#/tagger" aria-current="true">Music Tagger</a>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to get genre, mood and instrument predictions. The model runs on your device."></div>
+
+    <div class="when-loaded stack">
+      <div class="split">
+        <div class="block"><h3>Genre</h3>
+          <div class="meters">
+            <div class="meter"><label><span>Synthwave</span><span>72%</span></label><i><b style="--v:72%"></b></i></div>
+            <div class="meter is-dim"><label><span>Electronic</span><span>18%</span></label><i><b style="--v:18%"></b></i></div>
+            <div class="meter is-dim"><label><span>Pop</span><span>6%</span></label><i><b style="--v:6%"></b></i></div>
+            <div class="meter is-dim"><label><span>Ambient</span><span>3%</span></label><i><b style="--v:3%"></b></i></div>
+          </div>
+        </div>
+        <div class="block"><h3>Instruments</h3>
+          <div class="meters">
+            <div class="meter"><label><span>Synth pad</span><span>High</span></label><i><b style="--v:88%"></b></i></div>
+            <div class="meter"><label><span>Drum machine</span><span>High</span></label><i><b style="--v:81%"></b></i></div>
+            <div class="meter is-dim"><label><span>Bass synth</span><span>Medium</span></label><i><b style="--v:55%"></b></i></div>
+            <div class="meter is-dim"><label><span>Vocals</span><span>Low</span></label><i><b style="--v:14%"></b></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="block"><h3>Mood</h3>
+        <div class="chiprow"><span class="pill pill--hot">Nocturnal</span><span class="pill pill--hot">Driving</span><span class="pill">Dreamy</span><span class="pill">Nostalgic</span><span class="pill">Energetic</span></div>
+      </div>
+      <div class="row">
+        <button class="btn btn--primary" type="button" data-toast="Tags copied (prototype)">Copy tags</button>
+        <a class="btn" href="#/analyzer">Back to Song Analyzer</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== AUDIO EDITOR ===================== -->
+<section class="view editor" data-view="editor" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Audio Editor</p>
+    <div class="editor__head">
+      <h1>Audio <em>Editor</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to trim, cut, merge, fade, reverse, adjust gain and shape the EQ."></div>
+
+    <div class="when-loaded">
+      <div class="toolbar" role="toolbar" aria-label="Editing tools">
+        <button class="tool" type="button" aria-label="Undo" data-toast="Undo (prototype)">↶ <kbd>⌘Z</kbd></button>
+        <button class="tool" type="button" aria-label="Redo" disabled>↷</button>
+        <i class="toolbar__sep" aria-hidden="true"></i>
+        <button class="tool" type="button" aria-pressed="true">Select <kbd>V</kbd></button>
+        <button class="tool" type="button" aria-pressed="false">Trim <kbd>T</kbd></button>
+        <button class="tool" type="button" aria-pressed="false">Cut <kbd>X</kbd></button>
+        <button class="tool" type="button" aria-pressed="false">Merge</button>
+        <i class="toolbar__sep" aria-hidden="true"></i>
+        <button class="tool" type="button" aria-pressed="false">Fade in</button>
+        <button class="tool" type="button" aria-pressed="false">Fade out</button>
+        <button class="tool" type="button" aria-pressed="false">Reverse</button>
+        <button class="tool" type="button" aria-pressed="false">Gain</button>
+        <span class="toolbar__spacer"></span>
+        <button class="tool" type="button" aria-label="Zoom out" data-toast="Zoom (prototype)">−</button>
+        <button class="tool" type="button" aria-label="Zoom in" data-toast="Zoom (prototype)">+</button>
+      </div>
+
+      <div class="editor__grid">
+        <section class="panel stage" aria-label="Waveform">
+          <div class="ruler" aria-hidden="true"><span>0:00</span><span>0:30</span><span>1:00</span><span>1:30</span><span>2:00</span><span>2:30</span><span>3:00</span><span>3:42</span></div>
+          <div class="wave-wrap">
+            <div class="track"><span class="track__label">L</span><svg id="wl" viewBox="0 0 220 100" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+            <div class="track"><span class="track__label">R</span><svg id="wr" viewBox="0 0 220 100" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+            <div class="selection" role="group" aria-label="Selection 1:02.2 to 1:55.5"><span class="selection__tag">53.3 s</span></div>
+            <div class="playhead" id="playhead"></div>
+          </div>
+          <div class="transport">
+            <button class="tbtn" type="button" aria-label="Back to start" data-toast="Back to start (prototype)">⏮</button>
+            <button class="tbtn tbtn--play" type="button" id="play" aria-label="Play">▶</button>
+            <button class="tbtn" type="button" aria-label="Loop selection" aria-pressed="false" id="loopbtn">⟲</button>
+            <div class="time"><span id="now">1:17.7</span> <small>/ 3:42.0</small></div>
+            <label class="vol">VOL <input type="range" min="0" max="100" value="80" aria-label="Volume"></label>
+          </div>
+          <div class="stage__history">
+            <div class="stage__history-head"><h2>Edit history</h2><span class="tag tag--local">Undo any step</span></div>
+            <ul class="history">
+              <li><span>Gain +2.0 dB on selection</span><span>just now</span></li>
+              <li><span>Fade out 3.0 s</span><span>1 min ago</span></li>
+              <li><span>Trim 0:00 – 3:42</span><span>3 min ago</span></li>
+              <li><span>Open night-drive_demo.wav</span><span>4 min ago</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <aside class="panel side" aria-label="Properties">
+          <details open><summary>Selection</summary>
+            <div class="details__body">
+              <div class="kv"><div><span>Start</span><b>1:02.2</b></div><div><span>End</span><b>1:55.5</b></div><div><span>Length</span><b>53.3 s</b></div></div>
+              <div class="row"><button class="btn btn--sm" type="button" data-toast="Trimmed to selection (prototype)">Trim to selection</button><button class="btn btn--sm" type="button" data-toast="Cut (prototype)">Cut</button></div>
+            </div>
+          </details>
+          <details open><summary>Fade &amp; gain</summary>
+            <div class="details__body">
+              <div class="field"><label for="fi">Fade in <output id="fiO">1.5 s</output></label><input id="fi" type="range" min="0" max="10" step="0.1" value="1.5"></div>
+              <div class="field"><label for="fo">Fade out <output id="foO">3.0 s</output></label><input id="fo" type="range" min="0" max="10" step="0.1" value="3"></div>
+              <div class="field"><label for="gn">Gain <output id="gnO">+2.0 dB</output></label><input id="gn" type="range" min="-24" max="12" step="0.5" value="2"></div>
+            </div>
+          </details>
+          <details open><summary>Parametric EQ</summary>
+            <div class="details__body">
+              <div class="eq"><svg viewBox="0 0 400 150" role="img" aria-label="EQ curve"><g id="eqgrid"></g><path id="curve" class="curve"></path><g id="nodes"></g></svg></div>
+              <div class="bands" role="group" aria-label="EQ band">
+                <button class="chip" type="button" data-b="0" aria-pressed="false">Low</button>
+                <button class="chip" type="button" data-b="1" aria-pressed="true">Low-mid</button>
+                <button class="chip" type="button" data-b="2" aria-pressed="false">High-mid</button>
+                <button class="chip" type="button" data-b="3" aria-pressed="false">High</button>
+              </div>
+              <div class="field"><label for="ef">Frequency <output id="efO"></output></label><input id="ef" type="range" min="0" max="1000" step="1"></div>
+              <div class="field"><label for="eg">Gain <output id="egO"></output></label><input id="eg" type="range" min="-12" max="12" step="0.5"></div>
+              <div class="field"><label for="eqq">Q <output id="eqO"></output></label><input id="eqq" type="range" min="0.3" max="8" step="0.1"></div>
+            </div>
+          </details>
+        </aside>
+      </div>
+
+      <section class="exportbar" aria-label="Export">
+        <div><span class="eyebrow">( Filename )</span><input class="input" type="text" value="night-drive_demo_edit" aria-label="Filename"></div>
+        <div><span class="eyebrow">( Format )</span>
+          <div class="seg" role="radiogroup" aria-label="Export format">
+            <label><input type="radio" name="efmt" value="mp3"><span>MP3</span></label>
+            <label><input type="radio" name="efmt" value="wav" checked><span>WAV 16-bit</span></label>
+            <label><input type="radio" name="efmt" value="m4a"><span>M4A 192k</span></label>
+            <label><input type="radio" name="efmt" value="flac"><span>FLAC</span></label>
+          </div>
+        </div>
+        <button class="btn btn--primary" type="button" data-toast="Exported night-drive_demo_edit.wav (prototype)">Export · ~37 MB ↓</button>
+      </section>
+      <p class="statusline"><span class="tag tag--local">Local</span><span>Edited in browser memory — nothing is uploaded.</span><span>M4A/AAC export depends on browser support.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONVERTER ===================== -->
+<section class="view editor" data-view="converter" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Convert</p>
+    <div class="editor__head">
+      <h1>Audio <em>Converter</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+
+    <div data-slot="empty" data-msg="Load one or more files to convert between WAV, MP3, FLAC, AAC and OGG."></div>
+
+    <div class="when-loaded split">
+      <div class="block">
+        <h3>Files</h3>
+        <div class="files">
+          <div class="file"><span>night-drive_demo.wav<br><small>3:42 · 44.1 kHz · 37.4 MB</small></span><span class="tag tag--local">Ready</span></div>
+          <div class="file"><span>bassline_v3.flac<br><small>1:08 · 48 kHz · 9.1 MB</small></span><span class="tag tag--local">Ready</span></div>
+        </div>
+        <div class="row" style="margin-top:var(--space-2)"><button class="btn btn--sm" type="button" data-toast="Add files (prototype)">+ Add files</button><button class="btn btn--sm" type="button" data-toast="Cleared (prototype)">Clear all</button></div>
+      </div>
+
+      <div class="block">
+        <h3>Output</h3>
+        <div class="fields">
+          <div class="fieldblock"><span class="lab">Format</span>
+            <div class="seg" role="radiogroup" aria-label="Output format" id="cfmt">
+              <label><input type="radio" name="cf" value="mp3" checked><span>MP3</span></label>
+              <label><input type="radio" name="cf" value="wav"><span>WAV</span></label>
+              <label><input type="radio" name="cf" value="flac"><span>FLAC</span></label>
+              <label><input type="radio" name="cf" value="aac"><span>AAC</span></label>
+              <label><input type="radio" name="cf" value="ogg"><span>OGG</span></label>
+            </div>
+          </div>
+          <div class="fields fields--2">
+            <div class="fieldblock"><label for="csr">Sample rate</label>
+              <select class="input" id="csr"><option>44.1 kHz</option><option>48 kHz</option><option>88.2 kHz</option><option>96 kHz</option></select></div>
+            <div class="fieldblock" id="cbr-wrap"><label for="cbr">Bitrate</label>
+              <select class="input" id="cbr"><option>128 kbps</option><option>192 kbps</option><option selected>256 kbps</option><option>320 kbps</option></select></div>
+          </div>
+          <p class="note" id="cest">Estimated output: ~11 MB total</p>
+          <button class="btn btn--primary" type="button" id="cgo">Convert 2 files</button>
+          <div id="cprog" hidden>
+            <div class="status"><span id="cmsg">Converting…</span><span id="cpct">0%</span></div>
+            <div class="progress"><b id="cbar"></b></div>
+          </div>
+          <div id="cdone" hidden class="stack">
+            <p><span class="tag tag--local">Done</span> &nbsp;2 files converted in your browser.</p>
+            <div class="row"><button class="btn btn--primary" type="button" data-toast="Downloaded .zip (prototype)">Download all (.zip) ↓</button><button class="btn" type="button" id="cagain">Convert again</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== AI STUDIO HUB ===================== -->
+<section class="view editor" data-view="ai" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>AI Studio</p>
+    <div class="editor__head">
+      <h1>AI <em>Studio</em> <span class="tag tag--cloud">Some tools use cloud</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <p style="color:var(--ink-2);max-width:62ch">Twelve tools in four groups. Each card says whether your audio stays on your device or needs your permission to upload.</p>
+    <div id="ai-groups"></div>
+  </div>
+</section>
+
+<!-- ===================== AI TOOL (dynamic) ===================== -->
+<section class="view editor" data-view="ai-tool" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span><a href="#/ai">AI Studio</a><span>/</span><span id="ai-crumb" style="margin:0"></span></p>
+    <div class="editor__head">
+      <h1 id="ai-title" tabindex="-1"></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <p id="ai-desc" style="color:var(--ink-2);max-width:62ch;margin-bottom:var(--space-3)"></p>
+
+    <div data-slot="empty" data-msg="Load a file to use this tool."></div>
+
+    <div class="when-loaded split">
+      <div class="block">
+        <div class="row row--between" style="margin-bottom:var(--space-2)"><h3 style="margin:0">Settings</h3><span class="tag" id="ai-tag"></span></div>
+        <div class="fields" id="ai-controls"></div>
+        <div class="row" style="margin-top:var(--space-3)"><button class="btn btn--primary" type="button" id="ai-run">Run</button><button class="btn" type="button" data-toast="Settings reset (prototype)">Reset</button></div>
+      </div>
+      <div class="block">
+        <h3>Result</h3>
+        <p id="ai-idle" class="note">Nothing yet. Adjust the settings and press Run.</p>
+        <div id="ai-prog" hidden>
+          <div class="status"><span id="ai-msg">Processing…</span><span id="ai-pct">0%</span></div>
+          <div class="progress"><b id="ai-bar"></b></div>
+        </div>
+        <div id="ai-res" class="result" hidden>
+          <div class="row row--between">
+            <div class="seg" role="radiogroup" aria-label="Compare">
+              <label><input type="radio" name="ab" value="before"><span>Before</span></label>
+              <label><input type="radio" name="ab" value="after" checked><span>After</span></label>
+            </div>
+            <span class="tag tag--local" id="ai-done-tag">Ready</span>
+          </div>
+          <div class="beat"><svg id="aiw" viewBox="0 0 220 100" preserveAspectRatio="none" aria-label="Result waveform"></svg></div>
+          <div class="row"><button class="btn btn--primary" type="button" data-toast="Downloaded result (prototype)">Download ↓</button><a class="btn" href="#/editor">Open in Editor</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== VISUALIZER ===================== -->
+<section class="view editor viz" data-view="visualizer" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Visuals</p>
+    <div class="editor__head">
+      <h1>Audio <em>Visualizer</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to generate waveform, spectrum and audio-reactive visuals."></div>
+
+    <div class="when-loaded editor__grid">
+      <section class="panel stage" aria-label="Preview">
+        <canvas id="viz" width="1280" height="720" aria-label="Animated visualization preview"></canvas>
+        <div class="transport">
+          <button class="tbtn tbtn--play" type="button" id="vplay" aria-label="Pause">❚❚</button>
+          <div class="time"><small>night-drive_demo.wav</small></div>
+        </div>
+      </section>
+      <aside class="panel side" aria-label="Visual settings">
+        <details open><summary>Style</summary>
+          <div class="details__body">
+            <div class="seg" role="radiogroup" aria-label="Style" id="vstyle">
+              <label><input type="radio" name="vs" value="bars" checked><span>Bars</span></label>
+              <label><input type="radio" name="vs" value="wave"><span>Waveform</span></label>
+              <label><input type="radio" name="vs" value="circle"><span>Circle</span></label>
+            </div>
+            <div class="fieldblock"><span class="lab">Color</span>
+              <div class="swatches" id="vcol">
+                <button class="swatch" type="button" style="background:#ff4d1c" data-c="#ff4d1c" aria-pressed="true" aria-label="Red"></button>
+                <button class="swatch" type="button" style="background:#f4f2ee" data-c="#f4f2ee" aria-pressed="false" aria-label="White"></button>
+                <button class="swatch" type="button" style="background:#4fcf93" data-c="#4fcf93" aria-pressed="false" aria-label="Green"></button>
+              </div>
+            </div>
+            <div class="field"><label for="vsens">Sensitivity <output id="vsensO">70%</output></label><input id="vsens" type="range" min="10" max="100" value="70"></div>
+          </div>
+        </details>
+        <details open><summary>Format</summary>
+          <div class="details__body">
+            <div class="seg" role="radiogroup" aria-label="Aspect ratio" id="vasp">
+              <label><input type="radio" name="va" value="16:9" checked><span>16:9</span></label>
+              <label><input type="radio" name="va" value="9:16"><span>9:16</span></label>
+              <label><input type="radio" name="va" value="1:1"><span>1:1</span></label>
+            </div>
+            <div class="row"><button class="btn btn--sm" type="button" data-toast="Saved PNG (prototype)">Export PNG</button><button class="btn btn--primary btn--sm" type="button" data-toast="Rendering video… (prototype)">Export video</button></div>
+            <p class="note">Video export depends on browser support.</p>
+          </div>
+        </details>
+      </aside>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div><a class="logo" href="#/home">Pulse<b>STUDIO</b></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
+      <div><h4>Analysis</h4><ul><li><a href="#/analyzer">Song Analyzer</a></li><li><a href="#/tagger">Music Tagger</a></li></ul></div>
+      <div><h4>Edit &amp; Export</h4><ul><li><a href="#/editor">Audio Editor</a></li><li><a href="#/converter">Audio Converter</a></li></ul></div>
+      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering">AI Mastering</a></li><li><a href="#/ai/stems">Stem Extraction</a></li><li><a href="#/ai">All 12 tools</a></li></ul></div>
+      <div><h4>Visuals</h4><ul><li><a href="#/visualizer">Audio Visualizer</a></li></ul></div>
+    </div>
+    <div class="footer__bottom"><span>© 2026 PULSE STUDIO</span><span>Built for the sound you make.</span><a href="#/home">Back to top ↑</a></div>
+  </div>
+</footer>
+
+<dialog class="modal" id="consent" aria-labelledby="consent-t">
+  <h2 id="consent-t">Upload audio to run this tool?</h2>
+  <p>This tool runs in the cloud. Your audio leaves your device to be processed.</p>
+  <ul>
+    <li>Sent: night-drive_demo.wav (3:42)</li>
+    <li>Processed by: [placeholder: provider]</li>
+    <li>Retention: [placeholder: e.g. deleted after processing]</li>
+  </ul>
+  <div class="row"><button class="btn btn--sm" type="button" id="consent-no">Cancel</button><button class="btn btn--primary btn--sm" type="button" id="consent-yes">Allow once</button></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Interactive design preview only: no actual audio processing -->
+<script type="module" src="./preview.mjs"></script>
+
+</body>
+</html>

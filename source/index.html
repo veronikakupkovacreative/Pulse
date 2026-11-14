@@ -2,44 +2,134 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f5f4f0">
-<script>
-  // Apply saved theme before styles are painted to avoid a light-mode flash.
-  (() => {
-    let mode = 'light';
-    try { if (localStorage.getItem('pulse-theme') === 'dark') mode = 'dark'; } catch {}
-    document.documentElement.setAttribute('data-theme', mode);
-  })();
-</script>
+<meta name="theme-color" content="#0e0e0f"><script>document.documentElement.setAttribute("data-theme","dark");document.documentElement.style.colorScheme="dark";</script>
 <meta name="description" content="PULSE Studio — analyze, create and prepare audio for music production.">
 <title>PULSE Studio — Audio Workspace</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/modules/theme.css"><link rel="stylesheet" href="/modules/focused-tools.css"><script type="module" src="/app.mjs"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/modules/theme.css"><link rel="stylesheet" href="/modules/focused-tools.css"><script type="module" src="/app.mjs"></script>
 </head>
 <body>
-<div class="shell">
-<header class="header">
-  <a class="brand" href="#top" aria-label="Pulse Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a>
-  <button id="pulse-theme-toggle" class="pulse-theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
-    <svg class="pulse-theme-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 15.1A8.7 8.7 0 0 1 8.9 3.6a8.8 8.8 0 1 0 11.5 11.5Z"/></svg>
-    <svg class="pulse-theme-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
-  </button>
-  <nav aria-label="Main navigation" class="header-nav"><a href="#toolkit" data-category-link="analyze">ANALYZE</a><a href="#toolkit" data-category-link="create">CREATE</a><a href="#toolkit" data-category-link="prepare">PREPARE</a></nav>
-</header>
-<main id="top">
-  <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy"><h1 id="hero-title">Find your<br><span>rhythm.</span></h1><p class="intro"></p></div>
-      <aside class="pulse-hero-info" aria-label="About Pulse Studio">
-        <p class="pulse-info-eyebrow"><span class="pulse-info-dot" aria-hidden="true"></span>( WHAT IT IS )</p>
-        <p class="pulse-hero-description">Edit audio without installing apps, creating accounts, or leaving the tab. Pulse Studio brings common audio edits into one focused workspace: open compatible audio formats, make changes in browser memory, then export as MP3, 16-bit PCM WAV, M4A/AAC at 192 kbps where supported, or FLAC.</p>
-        <div class="pulse-formats">
-          <p class="pulse-info-eyebrow">( IN · OUT )</p>
-          <div class="pulse-format-tags" aria-label="Export formats"><span>MP3</span><span>WAV</span><span>M4A</span><span>FLAC</span></div>
+<div id="pulse-phase-one" data-track="none"><a class="skip-link" href="#main">Skip to content</a><header class="nav">
+  <div class="wrap nav__inner">
+    <a class="logo" href="#main" aria-label="Pulse Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a>
+    <nav aria-label="Primary">
+      <ul class="nav__links">
+        <li><a href="#toolkit" data-open-tool="song-analyzer" data-phase-nav="analyzer">Analyze</a></li>
+        <li><a href="#toolkit" data-open-tool="editor" data-phase-nav="editor">Edit</a></li>
+        <li><a href="#toolkit" data-open-tool="wav" data-phase-nav="converter">Convert</a></li>
+        <li><a href="#toolkit" data-phase-category="create" data-phase-nav="ai">AI Studio</a></li>
+        <li><a href="#toolkit" data-open-tool="visualizer" data-phase-nav="visualizer">Visuals</a></li>
+      </ul>
+    </nav>
+    <button class="btn btn--primary btn--sm when-empty" type="button" data-phase-open>Open audio</button>
+    <button class="btn btn--sm when-loaded" type="button" data-phase-open>Replace audio</button>
+  </div>
+  <nav class="subnav" aria-label="Primary (mobile)">
+    <a href="#toolkit" data-open-tool="song-analyzer" data-phase-nav="analyzer">Analyze</a>
+    <a href="#toolkit" data-open-tool="editor" data-phase-nav="editor">Edit</a>
+    <a href="#toolkit" data-open-tool="wav" data-phase-nav="converter">Convert</a>
+    <a href="#toolkit" data-phase-category="create" data-phase-nav="ai">AI Studio</a>
+    <a href="#toolkit" data-open-tool="visualizer" data-phase-nav="visualizer">Visuals</a>
+  </nav>
+</header><main id="main"><section class="view" data-view="home">
+  <div class="hero">
+    <div class="wrap">
+      <div class="hero__grid">
+        <div>
+          <p class="eyebrow eyebrow--accent">( Audio workspace · runs in your browser )</p>
+          <h1>Find your <em>rhythm.</em></h1>
+          <p class="hero__lede">Analyze BPM and key, edit, master and export — without installing apps or creating an account.</p>
+          <div class="hero__actions">
+            <button class="btn btn--primary" type="button" data-phase-open>Drop a track →</button>
+            <button class="btn" type="button" data-phase-scroll="toolkit-cards">Browse tools</button>
+          </div>
+          <ul class="hero__trust">
+            <li>No account</li><li>Local by default</li><li>No installation required</li>
+          </ul>
         </div>
-      </aside>
-      <div class="hero-art" aria-hidden="true"><div class="circle-grid"><i></i><i></i><i class="outline"></i><i></i><i class="black"></i><i></i><i class="outline"></i><i></i><i></i></div><div class="art-caption"><span>EVERY BEAT COUNTS.</span><span>↙</span></div></div>
-    </section>
+        <button class="dropzone" type="button" id="drop" data-phase-open aria-label="Drop audio here or choose an audio file">
+          <span class="dropzone__icon" aria-hidden="true">+</span>
+          <span class="dropzone__title">Drop audio here</span>
+          <span class="dropzone__hint">or click to browse · stays on your device</span>
+          <span class="formats" aria-hidden="true"><span>MP3</span><span>WAV</span><span>M4A</span><span>FLAC</span><span>OGG</span></span>
+        </button>
+      </div>
+      <div class="wave" aria-hidden="true" id="wave"></div><p id="phase1-upload-status" role="status" aria-live="polite" hidden></p>
+    </div>
+  </div>
 
+  <div class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <div><p class="eyebrow">( 01 / How it works )</p><h2>Three steps. <em>Zero setup.</em></h2></div>
+        <p>Your file is processed in browser memory. Nothing is uploaded unless you choose a cloud tool and approve it.</p>
+      </div>
+      <ol class="stepper">
+        <li><div><strong>Load audio</strong><span>Drop a file or pick one from your device.</span></div></li>
+        <li><div><strong>Run a tool</strong><span>Analyze, edit or enhance in one workspace.</span></div></li>
+        <li><div><strong>Export</strong><span>MP3, WAV, M4A or FLAC when you're done.</span></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section" id="toolkit-cards">
+    <div class="wrap">
+      <div class="section__head">
+        <div><p class="eyebrow">( 02 / Toolkit )</p><h2>One source. <em>Every tool.</em></h2></div>
+        <p>Every tool is labeled so you know whether your audio stays on your device or goes to the cloud.</p>
+      </div>
+      <div class="filters" role="group" aria-label="Filter tools" id="filters">
+        <button class="chip" type="button" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" type="button" data-f="analyze" aria-pressed="false">Analyze</button>
+        <button class="chip" type="button" data-f="edit" aria-pressed="false">Edit</button>
+        <button class="chip" type="button" data-f="export" aria-pressed="false">Export</button>
+        <button class="chip" type="button" data-f="ai" aria-pressed="false">AI</button>
+        <button class="chip" type="button" data-f="visuals" aria-pressed="false">Visuals</button>
+      </div>
+      <div class="grid" id="toolgrid">
+        <a class="card" href="#toolkit" data-open-tool="song-analyzer" data-cat="analyze">
+          <div class="card__top"><span class="card__num">01</span><span class="tag tag--local">Local</span></div>
+          <h3>Song Analyzer</h3><p>BPM, musical key, Camelot, approximate chords and beat grid in one pass.</p><span class="card__link">Open Song Analyzer</span>
+        </a>
+        <a class="card" href="#toolkit" data-open-tool="music-tagger" data-cat="analyze">
+          <div class="card__top"><span class="card__num">01B</span><span class="tag tag--local">Local</span></div>
+          <h3>Music Tagger</h3><p>On-device AI genre, mood and instrument predictions. Private by design.</p><span class="card__link">Open Music Tagger</span>
+        </a>
+        <a class="card" href="#toolkit" data-open-tool="editor" data-cat="edit">
+          <div class="card__top"><span class="card__num">02</span><span class="tag tag--local">Local</span></div>
+          <h3>Audio Editor</h3><p>Trim, cut, merge, fade, reverse, gain and parametric EQ.</p><span class="card__link">Open Audio Editor</span>
+        </a>
+        <a class="card" href="#toolkit" data-open-tool="wav" data-cat="export">
+          <div class="card__top"><span class="card__num">03</span><span class="tag tag--local">Local</span></div>
+          <h3>Audio Converter</h3><p>WAV, MP3, FLAC, AAC and OGG with flexible sample-rate settings.</p><span class="card__link">Open Converter</span>
+        </a>
+        <a class="card card--wide" href="#toolkit" data-phase-category="create" data-cat="ai">
+          <div class="card__top"><span class="card__num">04</span><span class="tag tag--cloud">Some tools use cloud</span></div>
+          <h3>AI Studio</h3><p>Twelve tools in four groups: Master & mix, Voice & stems, Creative, and Generate & clean.</p><span class="card__link">Open AI Studio</span>
+        </a>
+        <a class="card" href="#toolkit" data-open-tool="visualizer" data-cat="visuals">
+          <div class="card__top"><span class="card__num">05</span><span class="tag tag--local">Local</span></div>
+          <h3>Audio Visualizer</h3><p>Waveform, spectrum and audio-reactive visuals. Export PNG or video.</p><span class="card__link">Open Visualizer</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <div><p class="eyebrow">( 03 / Privacy )</p><h2>Your audio stays <em>yours.</em></h2></div>
+        <p>Plain rules, shown on every tool before you run it.</p>
+      </div>
+      <div class="strip">
+        <div><b>Local by default</b><span>Analysis, editing, converting and visuals run in your browser memory.</span></div>
+        <div><b>Cloud asks first</b><span>Cloud AI tools show a permission prompt before anything leaves your device.</span></div>
+        <div><b>No account</b><span>Open a file and start. Nothing to sign up for.</span></div>
+      </div>
+    </div>
+  </div>
+</section></main></div>
+<div class="shell" id="pulse-legacy-workspace"><main id="top">
 <!-- Backward-compatible anchor: #analyzer opens the single Song Analyzer in Producer Toolkits. -->
 <span id="analyzer" aria-hidden="true"></span>
 
@@ -131,7 +221,5 @@
 <footer class="pulse-footer" aria-label="PULSE Studio footer"><div class="pulse-footer-top"><div class="pulse-footer-brand"><a class="pulse-footer-logo" href="#top"><i aria-hidden="true"></i>Pulse<sup>STUDIO</sup></a><p>Focused tools for the work around your DAW. Analyze, create and prepare audio in one workspace.</p><a class="pulse-privacy-link" href="#toolkit">Audio tools ↗</a></div><div class="pulse-footer-links">
  <div class="pulse-footer-col"><h2>ANALYZE</h2><ul><li><button type="button" data-open-tool="song-analyzer">Song Analyzer</button></li><li><button type="button" data-open-tool="music-tagger">Music Tagger</button></li><li><button type="button" data-open-tool="release-preflight">Release Preflight</button></li><li><button type="button" data-open-tool="vocal-session-mapper">Vocal Session Mapper</button></li><li><button type="button" data-open-tool="smart-sample-finder">Smart Sample Finder</button></li></ul></div>
  <div class="pulse-footer-col"><h2>CREATE</h2><ul><li><button type="button" data-open-tool="ai2-musicai">AI Music Generator</button></li><li><button type="button" data-open-tool="ai2-lyrics">Lyrics Generator</button></li><li><button type="button" data-open-tool="ai2-vocals">Vocal Studio / Voice Changer</button></li><li><button type="button" data-open-tool="ai2-fx">Sound Effects / Smart FX</button></li><li><button type="button" data-open-tool="ai2-extraction">Stem Extraction</button></li><li><button type="button" data-open-tool="ai2-repair">Audio Repair</button></li><li><button type="button" data-open-tool="ai2-mix">Mix Assistant</button></li><li><button type="button" data-open-tool="ai2-stereo">Stereo Lab</button></li><li><button type="button" data-open-tool="visualizer">Audio Visualizer</button></li></ul></div>
- <div class="pulse-footer-col"><h2>PREPARE</h2><ul><li><button type="button" data-open-tool="sample-pack-lab">Sample Pack Lab</button></li><li><button type="button" data-open-tool="editor">Audio Editor</button></li><li><button type="button" data-open-tool="wav">Audio Converter</button></li><li><button type="button" data-open-tool="stem-delivery-studio">Stem Delivery Studio</button></li><li><button type="button" data-open-tool="ai2-mastering">AI Mastering</button></li><li><button type="button" data-open-tool="ai2-watermark">Watermark Cleaner</button></li></ul></div></div></div><div class="pulse-footer-bottom"><span>© 2026 PULSE STUDIO</span><span>BUILT FOR THE SOUND YOU MAKE.</span><a href="#top">BACK TO TOP ↑</a></div></footer>
-</div>
-</body>
+ <div class="pulse-footer-col"><h2>PREPARE</h2><ul><li><button type="button" data-open-tool="sample-pack-lab">Sample Pack Lab</button></li><li><button type="button" data-open-tool="editor">Audio Editor</button></li><li><button type="button" data-open-tool="wav">Audio Converter</button></li><li><button type="button" data-open-tool="stem-delivery-studio">Stem Delivery Studio</button></li><li><button type="button" data-open-tool="ai2-mastering">AI Mastering</button></li><li><button type="button" data-open-tool="ai2-watermark">Watermark Cleaner</button></li></ul></div></div></div><div class="pulse-footer-bottom"><span>© 2026 PULSE STUDIO</span><span>BUILT FOR THE SOUND YOU MAKE.</span><a href="#top">BACK TO TOP ↑</a></div></footer></main></div></body>
 </html>

@@ -48,7 +48,7 @@ test('Producer Toolkits contains the sole active Song Analyzer',()=>{
  const html=read('index.html');
  assert.match(html,/id="toolkit"/);
  assert.match(html,/data-open-tool="song-analyzer"/);
- assert.match(html,/data-category-link="analyze">ANALYZE/);
+ assert.match(html,/data-open-tool="song-analyzer" class="is-active">Song Analyzer/);
  assert.match(html,/<span id="analyzer" aria-hidden="true"><\/span>/);
  assert.doesNotMatch(html,/<section id="analyzer" class="pulse-song-analyzer"/);
  assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
@@ -56,7 +56,8 @@ test('Producer Toolkits contains the sole active Song Analyzer',()=>{
  for(const category of ['analyze','create','prepare'])
   assert.ok(html.includes('data-category="'+category+'"'),category);
  assert.match(html,/class="tool-board"/);
- assert.match(html,/id="pulse-theme-toggle"/);
+ assert.match(html,/id="pulse-hero-file"/);
+ assert.doesNotMatch(html,/id="pulse-theme-toggle"/);
 });
 
 test('active Song Analyzer shares Workspace and analyzes rhythm/harmony in workers',()=>{

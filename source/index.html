@@ -1,44 +1,791 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0e0e0f">
-<script>document.documentElement.setAttribute('data-theme','dark');</script>
-<meta name="description" content="PULSE Studio — analyze, create and prepare audio for music production.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PULSE Studio — Audio Workspace</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23181818'/%3E%3Ccircle cx='32' cy='32' r='23' fill='%23ff2b20'/%3E%3C/svg%3E">
-<!-- Typefaces and typography specified in Pulse-Updated.zip. -->
+<meta name="description" content="PULSE Studio audio workspace — real local analyzer, editor, converter and AI tools.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/modules/focused-tools.css"><script type="module" src="/app.mjs"></script>
+<style id="pulse-exact-style">
+/* ==========================================================================
+   PULSE STUDIO — UI v2 stylesheet
+   Keeps the existing editorial identity (warm paper, ink, mono micro-labels,
+   numbered sections) and adds: a primary action, status chips, real focus
+   states, a working empty state, dark mode, and a mobile-first grid.
+   ========================================================================== */
+
+/* 1. TOKENS ---------------------------------------------------------------- */
+:root {
+  --paper:      #f5f4f0;
+  --paper-2:    #ebe9e1;
+  --surface:    #fbfaf7;
+  --ink:        #14130f;
+  --ink-2:      #4a483f;   /* body-secondary, 8.3:1 on paper */
+  --ink-3:      #6b6859;   /* labels, 4.9:1 on paper */
+  --line:       #d9d6cb;
+  --accent:     #ff4d1c;   /* fills only; ink text on it = 5.5:1 */
+  --accent-ink: #c93a10;   /* accent as text/links, 4.7:1 on paper */
+  --ok:         #1f7a4d;
+  --cloud:      #3b4fd1;
+
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.85rem);
+  --step-0:  clamp(1rem, 0.97rem + 0.15vw, 1.08rem);
+  --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --step-2:  clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem);
+  --step-4:  clamp(3rem, 1.6rem + 7vw, 7.5rem);
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 7rem;
+
+  --radius:  14px;
+  --radius-sm: 8px;
+  --gutter:  clamp(1rem, 4vw, 3rem);
+  --max:     1280px;
+  --ease:    cubic-bezier(.2, .7, .2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:   #121210;
+    --paper-2: #1b1b18;
+    --surface: #181816;
+    --ink:     #f2f0ea;
+    --ink-2:   #bdbaae;
+    --ink-3:   #908d80;
+    --line:    #2e2d28;
+    --accent-ink: #ff7a52;
+    --ok:      #4fcf93;
+    --cloud:   #8f9eff;
+  }
+}
+
+/* 2. BASE ------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 var(--step-0)/1.6 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+img, svg, canvas { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.02; letter-spacing: -0.02em; margin: 0; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+.wrap { width: min(100% - 2 * var(--gutter), var(--max)); margin-inline: auto; }
+.section { padding-block: var(--space-6); }
+.section + .section { border-top: 1px solid var(--line); }
+
+/* Accessible focus — the single biggest keyboard fix */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.skip-link {
+  position: absolute; left: var(--space-2); top: -4rem; z-index: 100;
+  background: var(--ink); color: var(--paper);
+  padding: .6rem 1rem; border-radius: var(--radius-sm);
+  transition: top .2s var(--ease);
+}
+.skip-link:focus { top: var(--space-2); }
+
+/* Mono micro-label: "( WHAT IT IS )" / "{ THE TOOLKIT }" */
+.eyebrow {
+  font: 500 var(--step--1)/1.2 var(--font-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.eyebrow--accent { color: var(--accent-ink); }
+
+/* 3. NAV ------------------------------------------------------------------- */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.nav__inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3); height: 4rem;
+}
+.logo { font: 700 1.2rem var(--font-display); letter-spacing: -0.03em; }
+.logo b { color: var(--accent-ink); font-weight: 700; }
+.nav__links { display: none; gap: .25rem; }
+.nav__links a {
+  font: 500 var(--step--1) var(--font-mono);
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: .55rem .8rem; border-radius: 999px; color: var(--ink-2);
+  transition: background .2s var(--ease), color .2s var(--ease);
+}
+.nav__links a:hover { background: var(--paper-2); color: var(--ink); }
+.nav__links a[aria-current="true"] { background: var(--ink); color: var(--paper); }
+@media (min-width: 900px) { .nav__links { display: flex; } }
+
+/* 4. BUTTONS --------------------------------------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
+  min-height: 48px; padding: .75rem 1.4rem;
+  font: 600 var(--step-0) var(--font-display);
+  border: 1.5px solid var(--ink); border-radius: 999px;
+  background: transparent; color: var(--ink); cursor: pointer;
+  transition: transform .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: #14130f; }
+.btn--primary:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.btn--sm { min-height: 40px; padding: .5rem 1rem; font-size: var(--step--1); }
+
+/* 5. HERO ------------------------------------------------------------------ */
+.hero { padding-block: var(--space-5) var(--space-6); }
+.hero__grid { display: grid; gap: var(--space-4); }
+.hero h1 { font-size: var(--step-4); font-weight: 700; margin-block: var(--space-2) var(--space-3); }
+.hero h1 em { font-style: normal; color: var(--accent-ink); }
+.hero__lede { max-width: 52ch; color: var(--ink-2); font-size: var(--step-1); line-height: 1.45; }
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.hero__trust {
+  display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: var(--space-3);
+  font: 500 var(--step--1) var(--font-mono); color: var(--ink-3);
+}
+.hero__trust li::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+
+/* Drop zone = the hero's real action */
+.dropzone {
+  position: relative; display: grid; place-items: center; gap: var(--space-2);
+  min-height: 320px; padding: var(--space-4) var(--space-3); text-align: center;
+  background: var(--surface);
+  border: 2px dashed var(--ink-3); border-radius: calc(var(--radius) * 1.5);
+  cursor: pointer;
+  transition: border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+}
+.dropzone:hover, .dropzone.is-dragover {
+  border-color: var(--accent); border-style: solid;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.dropzone.is-dragover { transform: scale(1.01); }
+.dropzone__icon {
+  width: 64px; height: 64px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--accent); color: #14130f;
+  font: 300 2rem/1 var(--font-display);
+}
+.dropzone__title { font: 600 var(--step-1) var(--font-display); }
+.dropzone__hint { color: var(--ink-3); font-size: var(--step--1); }
+.formats { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
+.formats span {
+  font: 500 .72rem var(--font-mono); letter-spacing: .08em;
+  padding: .25rem .6rem; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2);
+}
+
+/* Decorative waveform under the hero */
+.wave { display: flex; align-items: center; gap: 3px; height: 72px; margin-top: var(--space-4); }
+.wave i {
+  flex: 1; min-width: 2px; border-radius: 2px; background: var(--ink);
+  height: var(--h, 30%); opacity: .85;
+  transform-origin: center; animation: pulse 1.8s var(--ease) infinite;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+.wave i:nth-child(5n) { background: var(--accent); }
+@keyframes pulse { 50% { transform: scaleY(.45); } }
+
+@media (min-width: 900px) {
+  .hero__grid { grid-template-columns: 1.15fr .85fr; align-items: end; }
+}
+
+/* 6. SECTION HEADER -------------------------------------------------------- */
+.section__head {
+  display: grid; gap: var(--space-2); margin-bottom: var(--space-4);
+}
+.section__head h2 { font-size: var(--step-2); font-weight: 700; }
+.section__head p { color: var(--ink-2); max-width: 58ch; }
+@media (min-width: 900px) {
+  .section__head { grid-template-columns: 1fr 1fr; align-items: end; }
+}
+
+/* 7. WORKFLOW STEPPER ------------------------------------------------------ */
+.stepper { display: grid; gap: var(--space-2); counter-reset: step; }
+.stepper li {
+  counter-increment: step; display: flex; gap: var(--space-2); align-items: flex-start;
+  padding: var(--space-3); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.stepper li::before {
+  content: "0" counter(step); font: 600 var(--step--1) var(--font-mono); color: var(--accent-ink);
+}
+.stepper strong { display: block; font-family: var(--font-display); font-size: var(--step-1); }
+.stepper span { color: var(--ink-2); font-size: var(--step--1); }
+@media (min-width: 760px) { .stepper { grid-template-columns: repeat(3, 1fr); } }
+
+/* 8. TOOL CARDS ------------------------------------------------------------ */
+.filters { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: var(--space-3); }
+.chip {
+  min-height: 40px; padding: .4rem 1rem; cursor: pointer;
+  font: 500 var(--step--1) var(--font-mono); letter-spacing: .06em; text-transform: uppercase;
+  background: transparent; color: var(--ink-2);
+  border: 1px solid var(--line); border-radius: 999px;
+  transition: all .2s var(--ease);
+}
+.chip:hover { border-color: var(--ink); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.grid { display: grid; gap: var(--space-2); }
+@media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1040px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  position: relative; display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-3); min-height: 240px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  transition: transform .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.card:hover {
+  transform: translateY(-4px); border-color: var(--ink);
+  box-shadow: 0 14px 30px -18px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.card__top { display: flex; justify-content: space-between; align-items: center; }
+.card__num { font: 500 var(--step--1) var(--font-mono); color: var(--ink-3); }
+.card h3 { font-size: var(--step-1); font-weight: 700; }
+.card p { color: var(--ink-2); font-size: .95rem; flex: 1; }
+.card__link {
+  display: inline-flex; align-items: center; gap: .4rem; align-self: flex-start;
+  font: 600 .95rem var(--font-display); color: var(--accent-ink);
+}
+.card__link::after { content: "→"; transition: transform .2s var(--ease); }
+.card:hover .card__link::after { transform: translateX(5px); }
+/* Whole card is clickable, but only one tab stop */
+.card__link::before { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
+.card--wide { grid-column: 1 / -1; }
+@media (min-width: 1040px) { .card--wide { grid-column: span 2; } }
+
+/* Status tags: tell people where their audio goes */
+.tag {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font: 500 .7rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
+  padding: .25rem .6rem; border-radius: 999px; border: 1px solid currentColor;
+}
+.tag--local { color: var(--ok); }
+.tag--cloud { color: var(--cloud); }
+.tag--soon  { color: var(--ink-3); border-style: dashed; }
+.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* 9. WORKSPACE (replaces the dead "no audio tools installed" empty state) -- */
+.workspace {
+  display: grid; gap: var(--space-2);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5); padding: var(--space-3);
+}
+.tabs { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; padding-bottom: .25rem; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; min-height: 44px; padding: .5rem 1rem; cursor: pointer;
+  font: 500 var(--step--1) var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
+  background: transparent; color: var(--ink-2); border: 0; border-bottom: 2px solid transparent;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.workspace__stage {
+  min-height: 280px; display: grid; place-items: center; text-align: center;
+  border: 1px dashed var(--line); border-radius: var(--radius); padding: var(--space-3);
+  background: var(--paper);
+}
+
+/* 10. FOOTER --------------------------------------------------------------- */
+.footer { border-top: 1px solid var(--line); padding-block: var(--space-5) var(--space-4); }
+.footer__grid { display: grid; gap: var(--space-4); }
+.footer h4 { font: 500 var(--step--1) var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 var(--space-1); }
+.footer li a { display: inline-block; padding: .3rem 0; color: var(--ink-2); }
+.footer li a:hover { color: var(--accent-ink); }
+.footer__bottom {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2);
+  margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--line);
+  color: var(--ink-3); font: 500 var(--step--1) var(--font-mono);
+}
+@media (min-width: 760px) { .footer__grid { grid-template-columns: 1.5fr repeat(4, 1fr); } }
+
+/* 11. MOTION & PRINT ------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media print { .nav, .wave, .dropzone { display: none; } }
+
+/* Space between the mono eyebrow and the section headline */
+.section__head .eyebrow { display: block; margin-bottom: .75rem; }
+
+/* ==========================================================================
+   PULSE STUDIO — Audio Editor screen (extends pulse-studio-ui.css)
+   Load AFTER pulse-studio-ui.css. Uses the same design tokens.
+   ========================================================================== */
+
+.editor { padding-block: var(--space-4) var(--space-5); }
+.crumbs { font: 500 var(--step--1) var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.crumbs a:hover { color: var(--accent-ink); }
+.crumbs span { margin-inline: .4rem; }
+
+.editor__head { display: grid; gap: var(--space-2); margin-block: var(--space-2) var(--space-3); }
+.editor__head h1 { font-size: var(--step-2); font-weight: 700; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+@media (min-width: 900px) { .editor__head { grid-template-columns: 1fr auto; align-items: end; } }
+
+.filechip {
+  display: inline-flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+  padding: .55rem .6rem .55rem 1rem; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px;
+  font: 500 var(--step--1) var(--font-mono); color: var(--ink-2);
+}
+.filechip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.filechip b { color: var(--ink); font-weight: 500; }
+
+/* Toolbar ------------------------------------------------------------------ */
+.toolbar {
+  position: sticky; top: 4.25rem; z-index: 40;
+  display: flex; align-items: center; gap: .25rem;
+  padding: .5rem; margin-bottom: var(--space-2);
+  background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(10px);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  overflow-x: auto; scrollbar-width: none;
+}
+.toolbar::-webkit-scrollbar { display: none; }
+.tool {
+  flex: none; display: inline-flex; align-items: center; gap: .5rem;
+  min-height: 44px; padding: .4rem .85rem; cursor: pointer;
+  font: 600 .9rem var(--font-display); color: var(--ink);
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+  transition: background .15s var(--ease);
+}
+.tool:hover { background: var(--paper-2); }
+.tool[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.tool:disabled { opacity: .4; cursor: not-allowed; }
+.tool kbd {
+  font: 500 .68rem var(--font-mono); opacity: .65;
+  border: 1px solid currentColor; border-radius: 4px; padding: 0 .3rem;
+}
+.toolbar__sep { flex: none; width: 1px; align-self: stretch; background: var(--line); margin-inline: .35rem; }
+.toolbar__spacer { flex: 1 0 .5rem; }
+
+/* Layout ------------------------------------------------------------------- */
+.editor__grid { display: grid; gap: var(--space-2); }
+@media (min-width: 1040px) { .editor__grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.25); }
+.stage { padding: var(--space-3); }
+
+/* Waveform ----------------------------------------------------------------- */
+.ruler {
+  display: flex; justify-content: space-between;
+  font: 500 .72rem var(--font-mono); color: var(--ink-3); margin-bottom: .4rem;
+}
+.wave-wrap {
+  position: relative; overflow: hidden; cursor: crosshair;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.track { position: relative; height: 112px; }
+.track + .track { border-top: 1px solid var(--line); }
+.track svg { width: 100%; height: 100%; fill: var(--ink); opacity: .82; }
+.track__label { position: absolute; left: .6rem; top: .45rem; font: 500 .7rem var(--font-mono); color: var(--ink-3); }
+
+.selection {
+  position: absolute; inset-block: 0; left: 28%; width: 24%;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-inline: 2px solid var(--accent); cursor: grab;
+}
+.selection::before, .selection::after {
+  content: ""; position: absolute; top: 50%; width: 10px; height: 36px; margin-top: -18px;
+  background: var(--accent); border-radius: 3px;
+}
+.selection::before { left: -6px; }
+.selection::after  { right: -6px; }
+.selection__tag {
+  position: absolute; bottom: .45rem; left: 50%; transform: translateX(-50%);
+  font: 500 .7rem var(--font-mono); white-space: nowrap;
+  background: var(--accent); color: #14130f; padding: .1rem .6rem; border-radius: 999px;
+}
+.playhead { position: absolute; inset-block: 0; left: 35%; width: 2px; background: var(--ink); pointer-events: none; }
+.playhead::before {
+  content: ""; position: absolute; top: 0; left: -5px;
+  border-inline: 6px solid transparent; border-top: 8px solid var(--ink);
+}
+
+/* Transport ---------------------------------------------------------------- */
+.transport { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+.tbtn {
+  display: grid; place-items: center; width: 48px; height: 48px; cursor: pointer;
+  font: 600 1rem var(--font-display); color: var(--ink);
+  background: transparent; border: 1.5px solid var(--ink); border-radius: 50%;
+  transition: transform .15s var(--ease);
+}
+.tbtn:hover { transform: translateY(-2px); }
+.tbtn--play { width: 56px; height: 56px; background: var(--accent); border-color: var(--accent); color: #14130f; }
+.tbtn[aria-pressed="true"]:not(.tbtn--play) { background: var(--ink); color: var(--paper); }
+.time { font: 500 1.25rem var(--font-mono); letter-spacing: .02em; }
+.time small { color: var(--ink-3); font-size: .85rem; }
+.vol { display: flex; align-items: center; gap: .6rem; margin-left: auto; min-width: 150px; font: 500 .75rem var(--font-mono); color: var(--ink-3); }
+
+input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 24px; cursor: pointer; }
+
+/* Sidebar ------------------------------------------------------------------ */
+.side { overflow: hidden; }
+.side details { border-bottom: 1px solid var(--line); }
+.side details:last-child { border-bottom: 0; }
+.side summary {
+  display: flex; justify-content: space-between; align-items: center;
+  min-height: 52px; padding: .5rem 1.25rem; cursor: pointer; list-style: none;
+  font: 600 1rem var(--font-display);
+}
+.side summary::-webkit-details-marker { display: none; }
+.side summary::after { content: "+"; font: 500 1.1rem var(--font-mono); color: var(--ink-3); }
+.side details[open] > summary::after { content: "−"; }
+.details__body { display: grid; gap: var(--space-2); padding: 0 1.25rem 1.25rem; }
+
+.kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.kv div { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: .5rem .6rem; }
+.kv span { display: block; font: 500 .66rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.kv b { font: 500 .88rem var(--font-mono); }
+
+.field { display: grid; gap: .25rem; }
+.field label { display: flex; justify-content: space-between; font-size: .85rem; color: var(--ink-2); }
+.field output { font: 500 .85rem var(--font-mono); color: var(--ink); }
+
+.eq { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: .4rem; }
+.eq svg { width: 100%; height: auto; display: block; }
+.eq .gridline { stroke: var(--line); stroke-width: 1; }
+.eq .zero { stroke: var(--ink-3); stroke-dasharray: 3 3; }
+.eq text { fill: var(--ink-3); font: 500 9px var(--font-mono); }
+.eq .curve { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: var(--accent-ink); stroke-width: 2; }
+.eq .node { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+.eq .node.is-active { fill: var(--accent); stroke: var(--ink); }
+.bands { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+.history { display: grid; gap: .25rem; font-size: .88rem; color: var(--ink-2); }
+.history li { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem .6rem; border-radius: var(--radius-sm); }
+.history li:first-child { background: var(--paper-2); color: var(--ink); }
+.history li span:last-child { font: 500 .72rem var(--font-mono); color: var(--ink-3); }
+
+/* Export bar --------------------------------------------------------------- */
+.exportbar {
+  display: grid; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-3);
+  background: var(--ink); color: var(--paper); border-radius: calc(var(--radius) * 1.25);
+}
+@media (min-width: 900px) { .exportbar { grid-template-columns: 1fr auto auto; align-items: center; } }
+.exportbar .eyebrow { color: color-mix(in srgb, var(--paper) 60%, transparent); margin-bottom: .4rem; display: block; }
+.input {
+  width: 100%; min-height: 48px; padding: .5rem .9rem;
+  font: 500 .95rem var(--font-mono); color: inherit; background: transparent;
+  border: 1px solid color-mix(in srgb, var(--paper) 30%, transparent); border-radius: var(--radius-sm);
+}
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid color-mix(in srgb, var(--paper) 30%, transparent); border-radius: 999px; padding: 3px; }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; }
+.seg span { display: block; padding: .6rem 1rem; border-radius: 999px; font: 500 .8rem var(--font-mono); letter-spacing: .06em; }
+.seg input:checked + span { background: var(--paper); color: var(--ink); }
+.seg label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 999px; }
+.exportbar .btn--primary:hover { background: var(--paper); border-color: var(--paper); color: var(--ink); }
+.statusline { margin-top: var(--space-2); display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: center; font: 500 var(--step--1) var(--font-mono); color: var(--ink-3); }
+
+/* History moved under the waveform so both columns balance on desktop */
+.stage__history { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.stage__history-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
+.stage__history-head h2 { font: 700 var(--step-1) var(--font-display); }
+
+/* EQ band buttons: always one row */
+.bands { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; }
+.bands .chip { padding: .4rem .2rem; font-size: .66rem; letter-spacing: .02em; text-align: center; }
+
+/* Hint that the toolbar scrolls sideways on narrow screens */
+@media (max-width: 759px) {
+  .toolbar { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 2rem; }
+}
+
+/* ==========================================================================
+   PULSE STUDIO — Dark + red theme
+   Load AFTER pulse-studio-ui.css (and pulse-studio-editor.css on editor pages).
+   Keeps: red brand color, dark mode, logo, red/white headline style.
+   TO CHANGE THE BRAND RED: edit --accent and --accent-ink below. [placeholder]
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  --paper:      #0e0e0f;   /* page background */
+  --paper-2:    #19191b;   /* hover / subtle fills */
+  --surface:    #141416;   /* cards, panels */
+  --ink:        #f4f2ee;   /* primary text (15:1 on paper) */
+  --ink-2:      #bdbab1;   /* secondary text */
+  --ink-3:      #8f8c82;   /* labels (5.6:1 on paper) */
+  --line:       #2a2a2e;
+
+  --accent:     #ff4d1c;   /* original brand red-orange; dark text on it = 5.5:1 */
+  --accent-ink: #ff4d1c;   /* same red as text on dark; 5.8:1 on paper */
+  --on-accent:  #14130f;   /* dark text on red fills (white would be only 3.3:1) */
+
+  --ok:         #4fcf93;
+  --cloud:      #8f9eff;
+}
+
+/* Same values even if the OS prefers light: this site is dark by design */
+@media (prefers-color-scheme: light) {
+  :root {
+    --paper: #0e0e0f; --paper-2: #19191b; --surface: #141416;
+    --ink: #f4f2ee; --ink-2: #bdbab1; --ink-3: #8f8c82; --line: #2a2a2e;
+    --accent: #ff4d1c; --accent-ink: #ff4d1c; --ok: #4fcf93; --cloud: #8f9eff;
+  }
+}
+
+/* LOGO — wordmark stand-in. Replace the .logo contents with your original
+   logo file: <a class="logo"><img src="logo.svg" alt="Pulse Studio" height="26"></a> */
+.logo { display: inline-flex; align-items: baseline; gap: .05em; font: 700 1.3rem var(--font-display); letter-spacing: -0.03em; color: var(--ink); }
+.logo b {
+  color: var(--accent-ink); font-weight: 700;
+  font-size: .72em; letter-spacing: .14em; text-transform: uppercase; margin-left: .15em;
+}
+.logo img { display: block; height: 26px; width: auto; }
+
+/* HEADLINES — red + white, one red word/phrase per headline */
+h1, h2 { color: var(--ink); font-weight: 800; letter-spacing: -0.035em; }
+h1 em, h2 em, .hl { font-style: normal; color: var(--accent-ink); }
+.hero h1 { line-height: .95; }
+
+/* Text sitting ON red fills uses --on-accent (dark ink) */
+.btn--primary,
+.dropzone__icon,
+.tbtn--play,
+.selection__tag { color: var(--on-accent); }
+.btn--primary:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* Surfaces and depth on a dark page */
+.nav { background: color-mix(in srgb, var(--paper) 85%, transparent); }
+.card:hover { box-shadow: 0 16px 36px -20px rgba(255, 77, 28, .4); border-color: var(--accent-ink); }
+.dropzone { background: var(--surface); border-color: #4a4a50; }
+.dropzone:hover, .dropzone.is-dragover { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.wave i { background: #d9d6ce; opacity: .8; }
+.wave i:nth-child(5n) { background: var(--accent); opacity: 1; }
+
+/* Nav + toolbar active states: red is the "selected" signal */
+.nav__links a[aria-current="true"] { background: var(--accent); color: var(--on-accent); }
+.tool[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.tab[aria-selected="true"] { border-bottom-color: var(--accent); }
+
+/* Editor: waveform and EQ read better with softer light bars */
+.track svg { fill: #d9d6ce; opacity: .78; }
+.selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+.playhead { background: #fff; }
+.playhead::before { border-top-color: #fff; }
+.eq .curve { fill: color-mix(in srgb, var(--accent) 22%, transparent); stroke: var(--accent-ink); }
+.eq .node { fill: var(--surface); stroke: var(--ink); }
+.eq .node.is-active { fill: var(--accent); stroke: #fff; }
+input[type="range"] { accent-color: var(--accent); }
+
+/* Export bar: keep it a distinct dark-red panel instead of inverting to light */
+.exportbar { background: #1c1210; color: var(--ink); border: 1px solid #4a2217; }
+.exportbar .eyebrow { color: var(--ink-3); }
+.exportbar .input, .exportbar .seg { border-color: #4a4a50; }
+.seg input:checked + span { background: var(--accent); color: var(--on-accent); }
+.exportbar .btn--primary:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* Focus ring stays visible on dark */
+:focus-visible { outline-color: #fff; }
+.skip-link { background: var(--accent); color: var(--on-accent); }
+
+/* Sliders: muted track + red thumb (default white track is too harsh on dark) */
+input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 24px; }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: #3a3a40; }
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: #3a3a40; }
+input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+
+/* ==========================================================================
+   PULSE STUDIO — extra screens for the clickable prototype
+   Load AFTER ui + editor + dark CSS.
+   ========================================================================== */
+
+/* Prototype scaffolding ---------------------------------------------------- */
+.protobar {
+  background: var(--accent); color: var(--on-accent); text-align: center;
+  font: 500 .72rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: .4rem 1rem;
+}
+.view[hidden] { display: none; }
+body[data-track="none"] .when-loaded { display: none !important; }
+body[data-track="loaded"] .when-empty { display: none !important; }
+.toast {
+  position: fixed; left: 50%; bottom: 1.5rem; z-index: 300;
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--paper); padding: .7rem 1.2rem; border-radius: 999px;
+  font: 500 .85rem var(--font-mono); transition: opacity .25s var(--ease), transform .25s var(--ease);
+  max-width: calc(100vw - 2rem); text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Nav additions ------------------------------------------------------------ */
+.subnav { display: none; }
+@media (max-width: 899px) {
+  .subnav { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; padding: .45rem var(--gutter); border-top: 1px solid var(--line); }
+  .subnav::-webkit-scrollbar { display: none; }
+  .toolbar { top: 7.6rem; }
+}
+.subnav a {
+  flex: none; font: 500 .68rem var(--font-mono); letter-spacing: .04em; text-transform: uppercase;
+  padding: .55rem .55rem; border-radius: 999px; color: var(--ink-2); white-space: nowrap;
+}
+.subnav a[aria-current="true"] { background: var(--accent); color: var(--on-accent); }
+.nav .btn--sm { white-space: nowrap; }
+.logo { cursor: pointer; }
+
+/* Shared form + control polish -------------------------------------------- */
+.input, .seg { border-color: #4a4a50; }
+select.input {
+  -webkit-appearance: none; appearance: none; cursor: pointer; background-color: var(--surface); color: var(--ink);
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%), linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 2.4rem;
+}
+select.input option { background: #141416; color: #f4f2ee; }
+a.chip { display: inline-flex; align-items: center; }
+.chip[aria-current="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+button.dropzone { width: 100%; font: inherit; color: inherit; }
+a.card { color: inherit; }
+.stack { display: grid; gap: var(--space-2); }
+.split { display: grid; gap: var(--space-2); }
+@media (min-width: 900px) { .split { grid-template-columns: 1fr 1fr; } }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) * 1.25); padding: var(--space-3); }
+.block > h2, .block > h3 { font: 700 var(--step-1) var(--font-display); margin-bottom: var(--space-2); }
+.block > p { color: var(--ink-2); }
+.row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.row--between { justify-content: space-between; }
+
+/* Empty state -------------------------------------------------------------- */
+.empty {
+  display: grid; place-items: center; justify-items: center; text-align: center; gap: var(--space-2);
+  padding: var(--space-5) var(--space-3); background: var(--surface);
+  border: 1px dashed #4a4a50; border-radius: calc(var(--radius) * 1.5);
+}
+.empty h2 { font-size: var(--step-2); }
+.empty p { color: var(--ink-2); max-width: 46ch; }
+
+/* Progress ----------------------------------------------------------------- */
+.progress { height: 10px; border-radius: 99px; background: #2a2a2e; overflow: hidden; }
+.progress b { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .2s linear; }
+.status { display: flex; justify-content: space-between; margin-bottom: .5rem; font: 500 var(--step--1) var(--font-mono); color: var(--ink-3); }
+
+/* Analyzer ----------------------------------------------------------------- */
+.metrics { display: grid; gap: var(--space-2); grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 1040px) { .metrics { grid-template-columns: repeat(4, 1fr); } }
+.metric { padding: var(--space-3); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.metric span { font: 500 var(--step--1) var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.metric b { display: block; margin-top: .6rem; font: 800 var(--step-2)/1 var(--font-display); letter-spacing: -0.03em; }
+.metric small { display: block; margin-top: .5rem; color: var(--ink-3); font: 500 .75rem var(--font-mono); }
+.metric--hot b { color: var(--accent-ink); }
+.beat { position: relative; height: 130px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.beat svg { width: 100%; height: 100%; display: block; }
+.beat .w rect, .beat rect { fill: #d9d6ce; opacity: .7; }
+.beat line { stroke: var(--accent); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .55; }
+.beat line.bar { opacity: 1; stroke-width: 2; }
+.chords { display: flex; gap: 4px; }
+.chords span {
+  flex: 1; padding: .9rem .2rem; text-align: center; background: var(--paper-2);
+  border: 1px solid var(--line); border-radius: var(--radius-sm); font: 700 1rem var(--font-display);
+}
+.chords span:nth-child(4n+1) { border-color: var(--accent); }
+.note { color: var(--ink-3); font: 500 var(--step--1) var(--font-mono); }
+
+/* Tagger ------------------------------------------------------------------- */
+.meters { display: grid; gap: .95rem; }
+.meter label { display: flex; justify-content: space-between; font-size: .9rem; color: var(--ink-2); margin-bottom: .35rem; }
+.meter label span:last-child { font-family: var(--font-mono); color: var(--ink); }
+.meter i { display: block; height: 8px; border-radius: 99px; background: #2a2a2e; overflow: hidden; }
+.meter i b { display: block; height: 100%; width: var(--v); background: var(--accent); border-radius: 99px; }
+.meter.is-dim i b { background: #6b6a66; }
+.chiprow { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pill { padding: .45rem .9rem; border: 1px solid var(--line); border-radius: 999px; font: 500 var(--step--1) var(--font-mono); color: var(--ink-2); }
+.pill--hot { border-color: var(--accent); color: var(--accent-ink); }
+
+/* Converter ---------------------------------------------------------------- */
+.files { display: grid; gap: .5rem; }
+.file {
+  display: grid; grid-template-columns: 1fr auto; gap: .5rem var(--space-2); align-items: center;
+  padding: .85rem 1rem; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font: 500 .88rem var(--font-mono);
+}
+.file small { color: var(--ink-3); }
+.fields { display: grid; gap: var(--space-2); }
+@media (min-width: 640px) { .fields--2 { grid-template-columns: 1fr 1fr; } }
+.fieldblock { display: grid; gap: .4rem; }
+.fieldblock > label, .fieldblock > .lab { font: 500 var(--step--1) var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+
+/* AI Studio ---------------------------------------------------------------- */
+.group { margin-top: var(--space-4); }
+.group h2 { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; font-size: var(--step-1); margin-bottom: var(--space-2); }
+.group h2 small { font: 500 var(--step--1) var(--font-mono); color: var(--ink-3); }
+.card--tool { min-height: 190px; }
+.result { display: grid; gap: var(--space-2); }
+.ab { display: inline-flex; }
+
+/* Visualizer --------------------------------------------------------------- */
+.viz canvas { width: 100%; height: auto; display: block; border-radius: var(--radius); background: #050506; border: 1px solid var(--line); }
+.swatches { display: flex; gap: .6rem; }
+.swatch { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; }
+.swatch[aria-pressed="true"] { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* Home extras -------------------------------------------------------------- */
+.strip { display: grid; gap: var(--space-2); }
+@media (min-width: 760px) { .strip { grid-template-columns: repeat(3, 1fr); } }
+.strip div { padding: var(--space-2) var(--space-3); border-left: 2px solid var(--accent); }
+.strip b { display: block; font: 700 var(--step-1) var(--font-display); margin-bottom: .3rem; }
+.strip span { color: var(--ink-2); font-size: .95rem; }
+
+/* Consent dialog ----------------------------------------------------------- */
+dialog.modal {
+  width: min(92vw, 480px); padding: var(--space-3); color: var(--ink); background: var(--surface);
+  border: 1px solid #4a4a50; border-radius: calc(var(--radius) * 1.25);
+}
+dialog.modal::backdrop { background: rgba(0, 0, 0, .72); }
+dialog.modal h2 { font-size: var(--step-1); margin-bottom: .6rem; }
+dialog.modal p { color: var(--ink-2); margin-bottom: var(--space-2); }
+dialog.modal ul { margin: 0 0 var(--space-3); padding-left: 1.1rem; list-style: disc; color: var(--ink-2); font-size: .92rem; display: grid; gap: .3rem; }
+dialog.modal .row { justify-content: flex-end; }
+
+/* --- fixes found while clicking through --- */
+[hidden] { display: none !important; }                 /* hidden must beat .stack/.result display rules */
+.view h1:focus, #main:focus { outline: none; }          /* heading focus after route change: no ring */
+.block .row--between { margin-bottom: var(--space-2); } /* breathing room under block headers */
+.block .row--between h3 { margin: 0; }
+
+
+</style>
+<script type="module" src="/app.mjs"></script>
 </head>
-<body data-track="none" class="pulse-home-view" data-route="home">
- <div id="pulse-proto-root">
+<body data-track="none" data-pulse-live="true"><div id="pulse-proto-root">
 <a class="skip-link" href="#main">Skip to content</a>
-
-
 <header class="nav">
   <div class="wrap nav__inner">
-    <a class="logo brand" href="#/home" data-go-home aria-label="PULSE Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a>
+    <a class="logo" href="#/home" aria-label="Pulse Studio home">Pulse<b>STUDIO</b></a>
     <nav aria-label="Primary">
       <ul class="nav__links">
-        <li><a href="#/analyzer" data-nav="analyzer" data-open-tool="song-analyzer">Analyze</a></li>
-        <li><a href="#/editor" data-nav="editor" data-open-tool="editor">Edit</a></li>
-        <li><a href="#/converter" data-nav="converter" data-open-tool="wav">Convert</a></li>
+        <li><a href="#/analyzer" data-nav="analyzer">Analyze</a></li>
+        <li><a href="#/editor" data-nav="editor">Edit</a></li>
+        <li><a href="#/converter" data-nav="converter">Convert</a></li>
         <li><a href="#/ai" data-nav="ai">AI Studio</a></li>
-        <li><a href="#/visualizer" data-nav="visualizer" data-open-tool="visualizer">Visuals</a></li>
+        <li><a href="#/visualizer" data-nav="visualizer">Visuals</a></li>
       </ul>
     </nav>
-    <button class="btn btn--primary btn--sm when-empty" type="button" data-open-audio>Open audio</button>
-    <button class="btn btn--sm when-loaded" type="button" data-open-audio>Replace audio</button>
+    <button class="btn btn--primary btn--sm when-empty" type="button" data-load>Open audio</button>
+    <button class="btn btn--sm when-loaded" type="button" data-unload>Replace audio</button>
   </div>
   <nav class="subnav" aria-label="Primary (mobile)">
-    <a href="#/analyzer" data-nav="analyzer" data-open-tool="song-analyzer">Analyze</a>
-    <a href="#/editor" data-nav="editor" data-open-tool="editor">Edit</a>
-    <a href="#/converter" data-nav="converter" data-open-tool="wav">Convert</a>
+    <a href="#/analyzer" data-nav="analyzer">Analyze</a>
+    <a href="#/editor" data-nav="editor">Edit</a>
+    <a href="#/converter" data-nav="converter">Convert</a>
     <a href="#/ai" data-nav="ai">AI Studio</a>
-    <a href="#/visualizer" data-nav="visualizer" data-open-tool="visualizer">Visuals</a>
+    <a href="#/visualizer" data-nav="visualizer">Visuals</a>
   </nav>
 </header>
 
@@ -54,14 +801,14 @@
           <h1>Find your <em>rhythm.</em></h1>
           <p class="hero__lede">Analyze BPM and key, edit, master and export — without installing apps or creating an account.</p>
           <div class="hero__actions">
-            <button class="btn btn--primary" type="button" data-open-audio data-go="analyzer">Drop a track →</button>
-            <button class="btn" type="button" data-scroll="proto-directory">Browse tools</button>
+            <button class="btn btn--primary" type="button" data-load data-go="analyzer">Drop a track →</button>
+            <button class="btn" type="button" data-scroll="toolkit">Browse tools</button>
           </div>
           <ul class="hero__trust">
-            <li>No account</li><li>Local by default</li><li>No account required</li>
+            <li>No account</li><li>Local by default</li><li>No installation</li>
           </ul>
         </div>
-        <button class="dropzone" type="button" id="drop" data-open-audio data-go="analyzer" aria-label="Choose an audio file for SOURCE AUDIO">
+        <button class="dropzone" type="button" id="drop" data-load data-go="analyzer" aria-label="Drop audio here or click to load a demo track">
           <span class="dropzone__icon" aria-hidden="true">+</span>
           <span class="dropzone__title">Drop audio here</span>
           <span class="dropzone__hint">or click to browse · stays on your device</span>
@@ -79,17 +826,17 @@
         <p>Your file is processed in browser memory. Nothing is uploaded unless you choose a cloud tool and approve it.</p>
       </div>
       <ol class="stepper">
-        <li><div><strong>Load audio</strong><span>Drop a file or pick one from your device.</span></div></li>
+        <li><div><strong>Load audio</strong><span>Drop a real audio file or choose one from your device.</span></div></li>
         <li><div><strong>Run a tool</strong><span>Analyze, edit or enhance in one workspace.</span></div></li>
-        <li><div><strong>Export</strong><span>MP3, WAV, M4A or FLAC when you're done.</span></div></li>
+        <li><div><strong>Export</strong><span>MP3, WAV, M4A or FLAC when supported by the selected format.</span></div></li>
       </ol>
     </div>
   </div>
 
-  <div class="section" id="proto-directory">
+  <div class="section" id="toolkit">
     <div class="wrap">
       <div class="section__head">
-        <div><p class="eyebrow">( 02 / Toolkit )</p><h2>One source. <em>Every tool.</em></h2></div>
+        <div><p class="eyebrow">( 02 / Toolkit )</p><h2>Six tools. <em>One workspace.</em></h2></div>
         <p>Every tool is labeled so you know whether your audio stays on your device or goes to the cloud.</p>
       </div>
       <div class="filters" role="group" aria-label="Filter tools" id="filters">
@@ -101,27 +848,27 @@
         <button class="chip" type="button" data-f="visuals" aria-pressed="false">Visuals</button>
       </div>
       <div class="grid" id="toolgrid">
-        <a class="card" href="#/analyzer" data-open-tool="song-analyzer" data-cat="analyze">
+        <a class="card" href="#/analyzer" data-cat="analyze">
           <div class="card__top"><span class="card__num">01</span><span class="tag tag--local">Local</span></div>
           <h3>Song Analyzer</h3><p>BPM, musical key, Camelot, approximate chords and beat grid in one pass.</p><span class="card__link">Open Song Analyzer</span>
         </a>
-        <a class="card" href="#/tagger" data-open-tool="music-tagger" data-cat="analyze">
+        <a class="card" href="#/tagger" data-cat="analyze">
           <div class="card__top"><span class="card__num">01B</span><span class="tag tag--local">Local</span></div>
           <h3>Music Tagger</h3><p>On-device AI genre, mood and instrument predictions. Private by design.</p><span class="card__link">Open Music Tagger</span>
         </a>
-        <a class="card" href="#/editor" data-open-tool="editor" data-cat="edit">
+        <a class="card" href="#/editor" data-cat="edit">
           <div class="card__top"><span class="card__num">02</span><span class="tag tag--local">Local</span></div>
           <h3>Audio Editor</h3><p>Trim, cut, merge, fade, reverse, gain and parametric EQ.</p><span class="card__link">Open Audio Editor</span>
         </a>
-        <a class="card" href="#/converter" data-open-tool="wav" data-cat="export">
+        <a class="card" href="#/converter" data-cat="export">
           <div class="card__top"><span class="card__num">03</span><span class="tag tag--local">Local</span></div>
           <h3>Audio Converter</h3><p>WAV, MP3, FLAC, AAC and OGG with flexible sample-rate settings.</p><span class="card__link">Open Converter</span>
         </a>
         <a class="card card--wide" href="#/ai" data-cat="ai">
           <div class="card__top"><span class="card__num">04</span><span class="tag tag--cloud">Some tools use cloud</span></div>
-          <h3>AI Studio</h3><p>Twelve tools in four groups: Master &amp; mix, Voice &amp; stems, Creative, and Generate &amp; clean.</p><span class="card__link">Open AI Studio</span>
+          <h3>AI Studio</h3><p>Twelve tools in four groups: Master & mix, Voice & stems, Creative, and Generate & clean.</p><span class="card__link">Open AI Studio</span>
         </a>
-        <a class="card" href="#/visualizer" data-open-tool="visualizer" data-cat="visuals">
+        <a class="card" href="#/visualizer" data-cat="visuals">
           <div class="card__top"><span class="card__num">05</span><span class="tag tag--local">Local</span></div>
           <h3>Audio Visualizer</h3><p>Waveform, spectrum and audio-reactive visuals. Export PNG or video.</p><span class="card__link">Open Visualizer</span>
         </a>
@@ -150,36 +897,40 @@
     <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Analyze</p>
     <div class="editor__head">
       <h1>Song <em>Analyzer</em> <span class="tag tag--local">Local</span></h1>
-      <div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span><button class="btn btn--sm" data-open-audio type="button">Replace</button></div>
+      <div data-slot="chip"></div>
     </div>
     <div class="filters" aria-label="Analysis tools">
       <a class="chip" href="#/analyzer" aria-current="true">Song Analyzer</a>
       <a class="chip" href="#/tagger">Music Tagger</a>
     </div>
 
-    <div class="empty when-empty"><div class="dropzone__icon">+</div><h2>No track loaded yet</h2><p>Load a file to see BPM, key, Camelot, chords and beat grid. Takes a few seconds.</p><button class="btn btn--primary" type="button" data-open-audio>Load audio</button></div>
+    <div data-slot="empty" data-msg="Load a file to see BPM, key, Camelot, chords and beat grid. Takes a few seconds."></div>
 
     <div class="when-loaded stack">
-      <p class="note" id="proto-analysis-status" role="status" aria-live="polite">Run analysis to measure this track.</p><div class="stack" id="an-done">
+      <div class="block" id="an-run">
+        <div class="status"><span>Analyzing night-drive_demo.wav…</span><span id="an-pct">0%</span></div>
+        <div class="progress"><b id="an-bar"></b></div>
+      </div>
+      <div class="stack" id="an-done" hidden>
         <div class="metrics">
-          <div class="metric metric--hot"><span>BPM</span><b data-proto-bpm>—</b><small data-proto-confidence>Awaiting analysis</small></div>
-          <div class="metric"><span>Key</span><b data-proto-key>—</b><small>Estimated musical key</small></div>
-          <div class="metric"><span>Camelot</span><b data-proto-camelot>—</b><small>Harmonic mix code</small></div>
-          <div class="metric"><span>Time sig.</span><b>—</b><small>Not determined</small></div>
+          <div class="metric metric--hot"><span>BPM</span><b>124</b><small>Confidence 96%</small></div>
+          <div class="metric"><span>Key</span><b>A minor</b><small>Relative: C major</small></div>
+          <div class="metric"><span>Camelot</span><b>8A</b><small>Mixes with 7A · 9A · 8B</small></div>
+          <div class="metric"><span>Time sig.</span><b>4 / 4</b><small>Steady tempo</small></div>
         </div>
         <div class="block">
-          <div class="row row--between"><h3>Beat grid</h3><span class="note" id="proto-beat-count">Awaiting analysis</span></div>
+          <div class="row row--between"><h3>Beat grid</h3><span class="note">First beat at 0.21 s · 128 bars</span></div>
           <div class="beat"><svg id="bg" viewBox="0 0 220 100" preserveAspectRatio="none" aria-label="Waveform with beat grid"></svg></div>
         </div>
         <div class="block">
           <div class="row row--between"><h3>Approximate chords</h3><span class="note">Estimated — verify by ear</span></div>
-          <div class="chords" id="proto-chords" aria-label="Estimated chords"><span>—</span></div>
+          <div class="chords" aria-label="Chord progression"><span>Am</span><span>F</span><span>C</span><span>G</span><span>Am</span><span>F</span><span>C</span><span>Em</span></div>
         </div>
         <div class="row">
           <a class="btn btn--primary" href="#/editor">Open in Editor →</a>
           <a class="btn" href="#/tagger">Tag this track</a>
-          <button class="btn" type="button" id="proto-report">Export report</button>
-          <button class="btn" type="button" id="an-rerun">Analyze track</button>
+          <button class="btn" type="button" data-toast="Report exported">Export report</button>
+          <button class="btn" type="button" id="an-rerun">Re-run analysis</button>
         </div>
       </div>
     </div>
@@ -187,27 +938,326 @@
 </section>
 
 <!-- ===================== MUSIC TAGGER ===================== -->
-<section class="view editor" data-view="tagger" hidden><div class="wrap"><p class="crumbs"><a href="#/home" data-go-home>Tools</a><span>/</span>Music Tagger</p><div class="editor__head"><h1>Music <em>Tagger</em> <span class="tag tag--local">Local</span></h1><div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span><button class="btn btn--sm" type="button" data-open-audio>Replace</button></div></div><div class="filters"><a class="chip" href="#/analyzer" data-open-tool="song-analyzer">Song Analyzer</a><a class="chip" aria-current="true" href="#/tagger" data-open-tool="music-tagger">Music Tagger</a></div><div class="empty when-empty"><div class="dropzone__icon" aria-hidden="true">+</div><h2>No track loaded yet</h2><p>Load a track to identify genres, moods and instruments.</p><button class="btn btn--primary" type="button" data-open-audio>Load audio</button></div><div class="when-loaded block" data-proto-module-slot="tagger"></div></div></section>
+<section class="view editor" data-view="tagger" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Analyze</p>
+    <div class="editor__head">
+      <h1>Music <em>Tagger</em> <span class="tag tag--local">Local · on-device model</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <div class="filters" aria-label="Analysis tools">
+      <a class="chip" href="#/analyzer">Song Analyzer</a>
+      <a class="chip" href="#/tagger" aria-current="true">Music Tagger</a>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to get genre, mood and instrument predictions. The model runs on your device."></div>
+
+    <div class="when-loaded stack">
+      <div class="split">
+        <div class="block"><h3>Genre</h3>
+          <div class="meters">
+            <div class="meter"><label><span>Synthwave</span><span>72%</span></label><i><b style="--v:72%"></b></i></div>
+            <div class="meter is-dim"><label><span>Electronic</span><span>18%</span></label><i><b style="--v:18%"></b></i></div>
+            <div class="meter is-dim"><label><span>Pop</span><span>6%</span></label><i><b style="--v:6%"></b></i></div>
+            <div class="meter is-dim"><label><span>Ambient</span><span>3%</span></label><i><b style="--v:3%"></b></i></div>
+          </div>
+        </div>
+        <div class="block"><h3>Instruments</h3>
+          <div class="meters">
+            <div class="meter"><label><span>Synth pad</span><span>High</span></label><i><b style="--v:88%"></b></i></div>
+            <div class="meter"><label><span>Drum machine</span><span>High</span></label><i><b style="--v:81%"></b></i></div>
+            <div class="meter is-dim"><label><span>Bass synth</span><span>Medium</span></label><i><b style="--v:55%"></b></i></div>
+            <div class="meter is-dim"><label><span>Vocals</span><span>Low</span></label><i><b style="--v:14%"></b></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="block"><h3>Mood</h3>
+        <div class="chiprow"><span class="pill pill--hot">Nocturnal</span><span class="pill pill--hot">Driving</span><span class="pill">Dreamy</span><span class="pill">Nostalgic</span><span class="pill">Energetic</span></div>
+      </div>
+      <div class="row">
+        <button class="btn btn--primary" type="button" data-toast="Tags copied (prototype)">Copy tags</button>
+        <a class="btn" href="#/analyzer">Back to Song Analyzer</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== AUDIO EDITOR ===================== -->
-<section class="view editor" data-view="editor" hidden><div class="wrap"><p class="crumbs"><a href="#/home" data-go-home>Tools</a><span>/</span>Audio Editor</p><div class="editor__head"><h1>Audio <em>Editor</em> <span class="tag tag--local">Local</span></h1><div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span><button class="btn btn--sm" type="button" data-open-audio>Replace</button></div></div><div class="empty when-empty"><div class="dropzone__icon" aria-hidden="true">+</div><h2>No track loaded yet</h2><p>Load a track to edit the shared audio buffer.</p><button class="btn btn--primary" type="button" data-open-audio>Load audio</button></div><div class="when-loaded"><div class="toolbar" data-proto-editor-toolbar></div><div class="editor__grid"><section class="panel stage"><div data-proto-editor-source></div><div data-proto-editor-transport></div><div data-proto-editor-history></div></section><aside class="panel side" data-proto-editor-properties></aside></div><div data-proto-editor-export></div><p class="statusline"><span class="tag tag--local">Local</span> Audio is processed in your browser memory.</p></div></div></section>
+<section class="view editor" data-view="editor" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Audio Editor</p>
+    <div class="editor__head">
+      <h1>Audio <em>Editor</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to trim, cut, merge, fade, reverse, adjust gain and shape the EQ."></div>
+
+    <div class="when-loaded">
+      <div class="toolbar" role="toolbar" aria-label="Editing tools">
+        <button class="tool" type="button" aria-label="Undo" data-toast="Undo (prototype)">↶ <kbd>⌘Z</kbd></button>
+        <button class="tool" type="button" aria-label="Redo" disabled>↷</button>        <i class="toolbar__sep" aria-hidden="true"></i>
+        <button class="tool" type="button" aria-pressed="true">Select <kbd>V</kbd></button>
+        <button class="tool" type="button" aria-pressed="false">Trim <kbd>T</kbd></button>
+        <button class="tool" type="button" aria-pressed="false">Cut <kbd>X</kbd></button>
+        <button class="tool" type="button" aria-pressed="false">Merge</button>
+        <i class="toolbar__sep" aria-hidden="true"></i>
+        <button class="tool" type="button" aria-pressed="false">Fade in</button>
+        <button class="tool" type="button" aria-pressed="false">Fade out</button>
+        <button class="tool" type="button" aria-pressed="false">Reverse</button>
+        <button class="tool" type="button" aria-pressed="false">Gain</button>
+        <span class="toolbar__spacer"></span>
+        <button class="tool" type="button" aria-label="Zoom out" data-toast="Zoom (prototype)">−</button>
+        <button class="tool" type="button" aria-label="Zoom in" data-toast="Zoom (prototype)">+</button>
+      </div>
+
+      <div class="editor__grid">
+        <section class="panel stage" aria-label="Waveform">
+          <div class="ruler" aria-hidden="true"><span>0:00</span><span>0:30</span><span>1:00</span><span>1:30</span><span>2:00</span><span>2:30</span><span>3:00</span><span>3:42</span></div>
+          <div class="wave-wrap">
+            <div class="track"><span class="track__label">L</span><svg id="wl" viewBox="0 0 220 100" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+            <div class="track"><span class="track__label">R</span><svg id="wr" viewBox="0 0 220 100" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+            <div class="selection" role="group" aria-label="Selection 1:02.2 to 1:55.5"><span class="selection__tag">53.3 s</span></div>
+            <div class="playhead" id="playhead"></div>
+          </div>
+          <div class="transport">
+            <button class="tbtn" type="button" aria-label="Back to start" data-toast="Back to start (prototype)">⏮</button>
+            <button class="tbtn tbtn--play" type="button" id="play" aria-label="Play">▶</button>
+            <button class="tbtn" type="button" aria-label="Loop selection" aria-pressed="false" id="loopbtn">⟲</button>
+            <div class="time"><span id="now">1:17.7</span> <small>/ 3:42.0</small></div>
+            <label class="vol">VOL <input type="range" min="0" max="100" value="80" aria-label="Volume"></label>
+          </div>
+          <div class="stage__history">
+            <div class="stage__history-head"><h2>Edit history</h2><span class="tag tag--local">Undo any step</span></div>
+            <ul class="history">
+              <li><span>Gain +2.0 dB on selection</span><span>just now</span></li>
+              <li><span>Fade out 3.0 s</span><span>1 min ago</span></li>
+              <li><span>Trim 0:00 – 3:42</span><span>3 min ago</span></li>
+              <li><span>Open night-drive_demo.wav</span><span>4 min ago</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <aside class="panel side" aria-label="Properties">
+          <details open><summary>Selection</summary>
+            <div class="details__body">
+              <div class="kv"><div><span>Start</span><b>1:02.2</b></div><div><span>End</span><b>1:55.5</b></div><div><span>Length</span><b>53.3 s</b></div></div>
+              <div class="row"><button class="btn btn--sm" type="button" data-toast="Trimmed to selection (prototype)">Trim to selection</button><button class="btn btn--sm" type="button" data-toast="Cut (prototype)">Cut</button></div>
+            </div>
+          </details>
+          <details open><summary>Fade & gain</summary>
+            <div class="details__body">
+              <div class="field"><label for="fi">Fade in <output id="fiO">1.5 s</output></label><input id="fi" type="range" min="0" max="10" step="0.1" value="1.5"></div>
+              <div class="field"><label for="fo">Fade out <output id="foO">3.0 s</output></label><input id="fo" type="range" min="0" max="10" step="0.1" value="3"></div>
+              <div class="field"><label for="gn">Gain <output id="gnO">+2.0 dB</output></label><input id="gn" type="range" min="-24" max="12" step="0.5" value="2"></div>
+            </div>
+          </details>
+          <details open><summary>Parametric EQ</summary>
+            <div class="details__body">
+              <div class="eq"><svg viewBox="0 0 400 150" role="img" aria-label="EQ curve"><g id="eqgrid"></g><path id="curve" class="curve"></path><g id="nodes"></g></svg></div>
+              <div class="bands" role="group" aria-label="EQ band">
+                <button class="chip" type="button" data-b="0" aria-pressed="false">Low</button>
+                <button class="chip" type="button" data-b="1" aria-pressed="true">Low-mid</button>
+                <button class="chip" type="button" data-b="2" aria-pressed="false">High-mid</button>
+                <button class="chip" type="button" data-b="3" aria-pressed="false">High</button>
+              </div>
+              <div class="field"><label for="ef">Frequency <output id="efO"></output></label><input id="ef" type="range" min="0" max="1000" step="1"></div>
+              <div class="field"><label for="eg">Gain <output id="egO"></output></label><input id="eg" type="range" min="-12" max="12" step="0.5"></div>
+              <div class="field"><label for="eqq">Q <output id="eqO"></output></label><input id="eqq" type="range" min="0.3" max="8" step="0.1"></div>
+            </div>
+          </details>
+        </aside>
+      </div>
+
+      <section class="exportbar" aria-label="Export">
+        <div><span class="eyebrow">( Filename )</span><input class="input" type="text" value="night-drive_demo_edit" aria-label="Filename"></div>
+        <div><span class="eyebrow">( Format )</span>
+          <div class="seg" role="radiogroup" aria-label="Export format">
+            <label><input type="radio" name="efmt" value="mp3"><span>MP3</span></label>
+            <label><input type="radio" name="efmt" value="wav" checked><span>WAV 16-bit</span></label>
+            <label><input type="radio" name="efmt" value="m4a"><span>M4A 192k</span></label>
+            <label><input type="radio" name="efmt" value="flac"><span>FLAC</span></label>
+          </div>
+        </div>
+        <button class="btn btn--primary" type="button" data-toast="Exported night-drive_demo_edit.wav (prototype)">Export ↓</button>
+      </section>
+      <p class="statusline"><span class="tag tag--local">Local</span><span>Edited in browser memory — nothing is uploaded.</span><span>M4A/AAC export depends on browser support.</span></p>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== CONVERTER ===================== -->
-<section class="view editor" data-view="converter" hidden><div class="wrap"><p class="crumbs"><a href="#/home" data-go-home>Tools</a><span>/</span>Audio Converter</p><div class="editor__head"><h1>Audio <em>Converter</em> <span class="tag tag--local">Local</span></h1><div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span><button class="btn btn--sm" type="button" data-open-audio>Replace</button></div></div><div class="empty when-empty"><div class="dropzone__icon" aria-hidden="true">+</div><h2>No track loaded yet</h2><p>Load audio once to convert it locally.</p><button class="btn btn--primary" type="button" data-open-audio>Load audio</button></div><div class="when-loaded split"><div class="block"><h3>Source audio</h3><div class="files"><div class="file"><span><b data-proto-file-name>—</b><small data-proto-file-meta>—</small></span><span class="tag tag--local">Ready</span></div></div><p class="note">Uses the track from SOURCE AUDIO. No second upload.</p></div><div class="block" data-proto-module-slot="converter"></div></div></div></section>
+<section class="view editor" data-view="converter" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Convert</p>
+    <div class="editor__head">
+      <h1>Audio <em>Converter</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+
+    <div data-slot="empty" data-msg="Load one or more files to convert between WAV, MP3, FLAC, AAC and OGG."></div>
+
+    <div class="when-loaded split">
+      <div class="block">
+        <h3>Files</h3>
+        <div class="files">
+          <div class="file"><span>night-drive_demo.wav<br><small>3:42 · 44.1 kHz · 37.4 MB</small></span><span class="tag tag--local">Ready</span></div>
+          <div class="file"><span>bassline_v3.flac<br><small>1:08 · 48 kHz · 9.1 MB</small></span><span class="tag tag--local">Ready</span></div>
+        </div>
+        <div class="row" style="margin-top:var(--space-2)"><button class="btn btn--sm" type="button" data-toast="Add files (prototype)">+ Add files</button><button class="btn btn--sm" type="button" data-toast="Cleared (prototype)">Clear all</button></div>
+      </div>
+
+      <div class="block">
+        <h3>Output</h3>
+        <div class="fields">
+          <div class="fieldblock"><span class="lab">Format</span>
+            <div class="seg" role="radiogroup" aria-label="Output format" id="cfmt">
+              <label><input type="radio" name="cf" value="mp3" checked><span>MP3</span></label>
+              <label><input type="radio" name="cf" value="wav"><span>WAV</span></label>
+              <label><input type="radio" name="cf" value="flac"><span>FLAC</span></label>
+              <label><input type="radio" name="cf" value="aac"><span>AAC</span></label>
+              <label><input type="radio" name="cf" value="ogg"><span>OGG</span></label>
+            </div>
+          </div>
+          <div class="fields fields--2">
+            <div class="fieldblock"><label for="csr">Sample rate</label>
+              <select class="input" id="csr"><option>44.1 kHz</option><option>48 kHz</option><option>88.2 kHz</option><option>96 kHz</option></select></div>
+            <div class="fieldblock" id="cbr-wrap"><label for="cbr">Bitrate</label>
+              <select class="input" id="cbr"><option>128 kbps</option><option>192 kbps</option><option selected>256 kbps</option><option>320 kbps</option></select></div>
+          </div>
+          <p class="note" id="cest">Estimated output: ~11 MB total</p>
+          <button class="btn btn--primary" type="button" id="cgo">Convert 2 files</button>
+          <div id="cprog" hidden>
+            <div class="status"><span id="cmsg">Converting…</span><span id="cpct">0%</span></div>
+            <div class="progress"><b id="cbar"></b></div>
+          </div>
+          <div id="cdone" hidden class="stack">
+            <p><span class="tag tag--local">Done</span>  2 files converted in your browser.</p>
+            <div class="row"><button class="btn btn--primary" type="button" data-toast="Downloaded .zip (prototype)">Download all (.zip) ↓</button><button class="btn" type="button" id="cagain">Convert again</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== AI STUDIO HUB ===================== -->
-<section class="view editor" data-view="ai" hidden><div class="wrap"><p class="crumbs"><a href="#/home" data-go-home>Tools</a><span>/</span>AI Studio</p><div class="editor__head"><h1>AI <em>Studio</em> <span class="tag tag--cloud">Cloud + local</span></h1><div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span><button class="btn btn--sm" type="button" data-open-audio>Replace</button></div></div><p class="hero__lede">Production workflows grouped by task, with explicit cloud consent.</p><div id="proto-ai-groups"></div></div></section>
-<!-- ===================== AI TOOL ===================== -->
-<section class="view editor" data-view="ai-tool" hidden><div class="wrap"><p class="crumbs"><a href="#/home" data-go-home>Tools</a><span>/</span><a href="#/ai">AI Studio</a><span>/</span><span id="proto-active-name">Tool</span></p><div class="editor__head"><h1 id="proto-active-heading">Audio <em>tool</em></h1><div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span></div></div><div class="block" data-proto-module-slot="tool"></div></div></section>
+<section class="view editor" data-view="ai" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>AI Studio</p>
+    <div class="editor__head">
+      <h1>AI <em>Studio</em> <span class="tag tag--cloud">Some tools use cloud</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <p style="color:var(--ink-2);max-width:62ch">Twelve tools in four groups. Each card says whether your audio stays on your device or needs your permission to upload.</p>
+    <div id="ai-groups"></div>
+  </div>
+</section>
+
+<!-- ===================== AI TOOL (dynamic) ===================== -->
+<section class="view editor" data-view="ai-tool" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span><a href="#/ai">AI Studio</a><span>/</span><span id="ai-crumb" style="margin:0"></span></p>
+    <div class="editor__head">
+      <h1 id="ai-title" tabindex="-1"></h1>
+      <div data-slot="chip"></div>
+    </div>
+    <p id="ai-desc" style="color:var(--ink-2);max-width:62ch;margin-bottom:var(--space-3)"></p>
+
+    <div data-slot="empty" data-msg="Load a file to use this tool."></div>
+
+    <div class="when-loaded split">
+      <div class="block">
+        <div class="row row--between" style="margin-bottom:var(--space-2)"><h3 style="margin:0">Settings</h3><span class="tag" id="ai-tag"></span></div>
+        <div class="fields" id="ai-controls"></div>
+        <div class="row" style="margin-top:var(--space-3)"><button class="btn btn--primary" type="button" id="ai-run">Run</button><button class="btn" type="button" data-toast="Settings reset (prototype)">Reset</button></div>
+      </div>
+      <div class="block">
+        <h3>Result</h3>
+        <p id="ai-idle" class="note">Nothing yet. Adjust the settings and press Run.</p>
+        <div id="ai-prog" hidden>
+          <div class="status"><span id="ai-msg">Processing…</span><span id="ai-pct">0%</span></div>
+          <div class="progress"><b id="ai-bar"></b></div>
+        </div>
+        <div id="ai-res" class="result" hidden>
+          <div class="row row--between">
+            <div class="seg" role="radiogroup" aria-label="Compare">
+              <label><input type="radio" name="ab" value="before"><span>Before</span></label>
+              <label><input type="radio" name="ab" value="after" checked><span>After</span></label>
+            </div>
+            <span class="tag tag--local" id="ai-done-tag">Ready</span>
+          </div>
+          <div class="beat"><svg id="aiw" viewBox="0 0 220 100" preserveAspectRatio="none" aria-label="Result waveform"></svg></div>
+          <div class="row"><button class="btn btn--primary" type="button" data-toast="Downloaded result (prototype)">Download ↓</button><a class="btn" href="#/editor">Open in Editor</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== VISUALIZER ===================== -->
-<section class="view editor" data-view="visualizer" hidden><div class="wrap"><p class="crumbs"><a href="#/home" data-go-home>Tools</a><span>/</span>Audio Visualizer</p><div class="editor__head"><h1>Audio <em>Visualizer</em> <span class="tag tag--local">Local</span></h1><div class="filechip when-loaded" data-proto-filechip><i class="dot"></i><b data-proto-file-name>—</b><span data-proto-file-meta>—</span><button class="btn btn--sm" type="button" data-open-audio>Replace</button></div></div><div class="empty when-empty"><div class="dropzone__icon" aria-hidden="true">+</div><h2>No track loaded yet</h2><p>Load audio to generate responsive visualizations.</p><button class="btn btn--primary" type="button" data-open-audio>Load audio</button></div><div class="when-loaded block" data-proto-module-slot="visualizer"></div></div></section>
+<section class="view editor viz" data-view="visualizer" hidden>
+  <div class="wrap">
+    <p class="crumbs"><a href="#/home">Tools</a><span>/</span>Visuals</p>
+    <div class="editor__head">
+      <h1>Audio <em>Visualizer</em> <span class="tag tag--local">Local</span></h1>
+      <div data-slot="chip"></div>
+    </div>
+
+    <div data-slot="empty" data-msg="Load a file to generate waveform, spectrum and audio-reactive visuals."></div>
+
+    <div class="when-loaded editor__grid">
+      <section class="panel stage" aria-label="Preview">
+        <canvas id="viz" width="1280" height="720" aria-label="Animated visualization preview"></canvas>
+        <div class="transport">
+          <button class="tbtn tbtn--play" type="button" id="vplay" aria-label="Pause">❚❚</button>
+          <div class="time"><small>night-drive_demo.wav</small></div>
+        </div>
+      </section>
+      <aside class="panel side" aria-label="Visual settings">
+        <details open><summary>Style</summary>
+          <div class="details__body">
+            <div class="seg" role="radiogroup" aria-label="Style" id="vstyle">
+              <label><input type="radio" name="vs" value="bars" checked><span>Bars</span></label>
+              <label><input type="radio" name="vs" value="wave"><span>Waveform</span></label>
+              <label><input type="radio" name="vs" value="circle"><span>Circle</span></label>
+            </div>
+            <div class="fieldblock"><span class="lab">Color</span>
+              <div class="swatches" id="vcol">
+                <button class="swatch" type="button" style="background:#ff4d1c" data-c="#ff4d1c" aria-pressed="true" aria-label="Red"></button>
+                <button class="swatch" type="button" style="background:#f4f2ee" data-c="#f4f2ee" aria-pressed="false" aria-label="White"></button>
+                <button class="swatch" type="button" style="background:#4fcf93" data-c="#4fcf93" aria-pressed="false" aria-label="Green"></button>
+              </div>
+            </div>
+            <div class="field"><label for="vsens">Sensitivity <output id="vsensO">70%</output></label><input id="vsens" type="range" min="10" max="100" value="70"></div>
+          </div>
+        </details>
+        <details open><summary>Format</summary>
+          <div class="details__body">
+            <div class="seg" role="radiogroup" aria-label="Aspect ratio" id="vasp">
+              <label><input type="radio" name="va" value="16:9" checked><span>16:9</span></label>
+              <label><input type="radio" name="va" value="9:16"><span>9:16</span></label>
+              <label><input type="radio" name="va" value="1:1"><span>1:1</span></label>
+            </div>
+            <div class="row"><button class="btn btn--sm" type="button" data-toast="Saved PNG (prototype)">Export PNG</button><button class="btn btn--primary btn--sm" type="button" data-toast="Rendering video… (prototype)">Export video</button></div>
+            <p class="note">Video export depends on browser support.</p>
+          </div>
+        </details>
+      </aside>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <footer class="footer">
   <div class="wrap">
     <div class="footer__grid">
-      <div><a class="logo brand" href="#/home" data-go-home aria-label="PULSE Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
-      <div><h4>Analysis</h4><ul><li><a href="#/analyzer" data-open-tool="song-analyzer">Song Analyzer</a></li><li><a href="#/tagger" data-open-tool="music-tagger">Music Tagger</a></li><li><a href="#/tool/release-preflight" data-open-tool="release-preflight">Release Preflight</a></li><li><a href="#/tool/vocal-session-mapper" data-open-tool="vocal-session-mapper">Vocal Session Mapper</a></li><li><a href="#/tool/smart-sample-finder" data-open-tool="smart-sample-finder">Smart Sample Finder</a></li></ul></div>
-      <div><h4>Edit &amp; Export</h4><ul><li><a href="#/editor" data-open-tool="editor">Audio Editor</a></li><li><a href="#/converter" data-open-tool="wav">Audio Converter</a></li><li><a href="#/tool/audio-protection" data-open-tool="audio-protection">Audio Protection</a></li><li><a href="#/tool/sample-pack-lab" data-open-tool="sample-pack-lab">Sample Pack Lab</a></li><li><a href="#/tool/stem-delivery-studio" data-open-tool="stem-delivery-studio">Stem Delivery Studio</a></li></ul></div>
-      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering" data-open-tool="ai2-mastering">AI Mastering</a></li><li><a href="#/ai/stems" data-open-tool="ai2-extraction">Stem Extraction</a></li><li><a href="#/ai/lyrics" data-open-tool="ai2-lyrics">Lyrics Generator</a></li><li><a href="#/ai">All 12 tools</a></li></ul></div>
-      <div><h4>Visuals</h4><ul><li><a href="#/visualizer" data-open-tool="visualizer">Audio Visualizer</a></li></ul></div>
+      <div><a class="logo" href="#/home">Pulse<b>STUDIO</b></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
+      <div><h4>Analysis</h4><ul><li><a href="#/analyzer">Song Analyzer</a></li><li><a href="#/tagger">Music Tagger</a></li></ul></div>
+      <div><h4>Edit & Export</h4><ul><li><a href="#/editor">Audio Editor</a></li><li><a href="#/converter">Audio Converter</a></li></ul></div>
+      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering">AI Mastering</a></li><li><a href="#/ai/stems">Stem Extraction</a></li><li><a href="#/ai">All 12 tools</a></li></ul></div>
+      <div><h4>Visuals</h4><ul><li><a href="#/visualizer">Audio Visualizer</a></li></ul></div>
     </div>
     <div class="footer__bottom"><span>© 2026 PULSE STUDIO</span><span>Built for the sound you make.</span><a href="#/home">Back to top ↑</a></div>
   </div>
@@ -215,10 +1265,11 @@
 
 
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 
 </div>
- <div id="pulse-legacy-host" hidden aria-hidden="true">
+<div id="pulse-legacy-host" hidden aria-hidden="true">
 <!-- Compatibility host: only audio controls and module mount points still in use. -->
 <span id="analyzer" aria-hidden="true"></span>
 <section class="toolkit editor section" id="toolkit" aria-labelledby="toolkit-title">

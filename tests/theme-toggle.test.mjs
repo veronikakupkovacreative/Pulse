@@ -16,7 +16,7 @@ test('accessible production shell retains all original modules with active navig
    assert.ok(html.includes(id),'missing '+id);
  assert.match(html,/data-open-tool="editor"/);
  assert.match(app,/pulse:tool-mounted/);
- assert.match(styles,/studio-redesign.css/);
+ assert.match(styles,/studio-reference.css/);
 });
 test('local editor controls use shared DSP and have reachable keyboard actions',()=>{
  const js=read('modules/studio-redesign.mjs'),css=read('modules/studio-reference.css');

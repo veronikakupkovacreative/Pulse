@@ -122,12 +122,12 @@ function mountBeatLab({host}){
 function mountMultitrack({host}){
  panel(host,heading('MIX ASSISTANT','Build your mix.<br><span>Control the balance.</span>',
   'Balance, pan and render up to eight tracks.')+
-  '<div class="ai2-import"><button type="button" data-add-current>+ ADD SOURCE AUDIO</button><label>+ ADD AUDIO FILES<input type="file" data-add-files accept="audio/*,.wav,.mp3,.m4a,.flac" multiple></label></div>'+
+  '<div class="ai2-import"><button type="button" data-add-current>+ ADD SOURCE AUDIO</button><p class="ai2-note">All mix tracks come from 01 / SOURCE AUDIO. No additional upload.</p></div>'+
   '<div data-mix-tracks class="ai2-tracks" aria-label="Mix tracks"><p class="ai2-note">No tracks added.</p></div>'+
   '<div class="ai2-actions">'+button('balance','SUGGEST LEVEL BALANCE')+button('render','RENDER STEREO MIX')+'</div>');
  let disposed=false,busy=false,tracks=[];
  const list=host.querySelector('[data-mix-tracks]'),actions=[...host.querySelectorAll('[data-ai2-action]')];
- const setBusy=v=>{busy=v;actions.forEach(x=>x.disabled=v);host.querySelector('[data-add-current]').disabled=v;host.querySelector('[data-add-files]').disabled=v;};
+ const setBusy=v=>{busy=v;actions.forEach(x=>x.disabled=v);host.querySelector('[data-add-current]').disabled=v;};
  function repaint(){
   list.replaceChildren();
   if(!tracks.length){const p=document.createElement('p');p.className='ai2-note';p.textContent='No tracks added.';list.append(p);return;}
@@ -154,16 +154,6 @@ function mountMultitrack({host}){
   if(totalSamples*4>192*1024*1024)throw Error('Total decoded tracks exceed the 192 MB memory limit.');
   tracks.push({buffer,name,gainDb:0,pan:0});repaint();};
  host.querySelector('[data-add-current]').onclick=()=>{try{append(w.ensureAudio(),w.displayName||'SOURCE AUDIO');status(host,'Source track added.');}catch(e){status(host,e.message,true)}};
- host.querySelector('[data-add-files]').onchange=async e=>{
-  const files=[...e.target.files];setBusy(true);try{
-   const ctx=await w.ensureContext();
-   for(const file of files){
-    if(file.size>50*1024*1024)throw Error(file.name+' exceeds 50 MB.');
-    const b=await ctx.decodeAudioData(await file.arrayBuffer());if(disposed)return;
-    append(b,file.name);
-   }status(host,'Added '+files.length+' audio files.');
-  }catch(err){if(!disposed)status(host,err.message,true)}finally{e.target.value='';if(!disposed)setBusy(false)}
- };
  actions.forEach(b=>b.onclick=async()=>{
   const action=b.dataset.ai2Action;if(busy)return;
   try{if(!tracks.length)throw Error('Add an audio track first.');

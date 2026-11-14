@@ -10,6 +10,7 @@
  * Never include either secret in this file or in public build assets.
  */
 import {workspace as w} from './workspace.mjs';
+import {makeCloudTaggingExcerpt} from './music-tagger.mjs';
 
 const API = '/api/pulse-ai';
 const MAX_CLOUD_BYTES = 2_400_000; // conservative Vercel JSON request size (<4.5 MB including base64)
@@ -112,8 +113,11 @@ async function toBase64(file) {
   }
   return btoa(pieces);
 }
-function selectedCloudFile(root) {
-  return root.querySelector('[data-cloud-file]')?.files?.[0] || document.querySelector('#audio-file')?.files?.[0] || null;
+function selectedCloudFile() {
+  // Voice cloning requires an original, unmodified small file; never upload a stale version after edits.
+  if(!w.buffer||w.history.canUndo||w.history.canRedo||!w.originalFile||
+    w.originalFile.size>MAX_CLOUD_BYTES)return null;
+  return w.originalFile;
 }
 async function callCloud(root, action, params={}, {signal, binary=false}={}) {
   const accessToken = root.querySelector('[data-ai-token]')?.value.trim();
@@ -131,20 +135,15 @@ async function callCloud(root, action, params={}, {signal, binary=false}={}) {
   return binary ? await response.blob() : await response.json();
 }
 async function neuralIsolation(root, signal) {
-  const file=selectedCloudFile(root);
-  if(!file)throw Error('Choose a short voice recording in this panel (or in SOURCE AUDIO).');
-  const audioBase64=await toBase64(file);
-  const blob=await callCloud(root,'isolate',{audioBase64, filename:file.name, mime:file.type || 'audio/mpeg'}, {signal,binary:true});
+  const {file}=makeCloudTaggingExcerpt(w.ensureAudio(),{selection:w.selection,maxSeconds:12});
+  const audioBase64=file.base64;
+  const blob=await callCloud(root,'isolate',{audioBase64, filename:file.name, mime:'audio/wav'}, {signal,binary:true});
   if(!blob.size)throw Error('Voice isolation returned an empty audio file.');
   const ctx=await w.ensureContext();
   try{return await ctx.decodeAudioData(await blob.arrayBuffer());}
   catch{throw Error('Your browser cannot decode the isolated audio returned by the provider.');}
 }
-async function loadForLocal(root) {
-  if (w.buffer) return w.buffer;
-  const file=selectedCloudFile(root);
-  if(!file)throw Error('Upload audio to SOURCE AUDIO, or select a sample in this tool.');
-  await w.load(file);
+async function loadForLocal() {
   return w.ensureAudio();
 }
 
@@ -226,9 +225,7 @@ function mountVoiceCleaner({host}) {
     ${header('04 / AI VOICE CLEANER','Clean the voice.<br><span>Not the feeling.</span>',
     'Remove background sound using neural voice isolation, or use a lightweight local DSP cleanup on your recording.','NEURAL / LOCAL DSP')}
     <div class="pulse-ai-mode" role="group" aria-label="Cleaning mode">${buttons([['local','LOCAL DSP',true],['neural','NEURAL ISOLATION',false]])}</div>
-    <label class="pulse-ai-control">OPTIONAL SAMPLE FOR CLOUD PROCESSING (MP3 ≤ 2.4 MB)
-      <input data-cloud-file type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac" />
-    </label>
+    <p class="pulse-ai-muted">Neural isolation uses the current SOURCE AUDIO selection (up to 12 s). No separate upload.</p>
     ${row('amount','LOCAL GATE AMOUNT',0,100,65,1,'%')}
     ${row('highpass','LOW CUT',50,220,95,5,' Hz')}
     <div data-cloud-credentials>${secureField()}</div>
@@ -268,8 +265,7 @@ function mountSpeechEnhancer({host}) {
     <div class="pulse-ai-grid">${row('amount','PROCESSING MIX',0,100,85,1,'%')}${row('presence','PRESENCE',-4,7,2.8,.1,' dB')}</div>
     <div class="pulse-ai-grid">${row('deess','SIBILANCE CONTROL',0,8,2.8,.1,' dB')}${row('highpass','LOW CUT',40,220,85,5,' Hz')}</div>
     <label class="pulse-ai-tick"><input data-pre-clean type="checkbox" /> Start with neural voice isolation (uploads a selected clip)</label>
-    <label class="pulse-ai-control">OPTIONAL FILE FOR NEURAL ISOLATION
-      <input data-cloud-file type="file" accept="audio/*,.mp3,.wav,.m4a" /></label>
+    <p class="pulse-ai-muted">Neural isolation uses SOURCE AUDIO (up to 12 s). No separate upload.</p>
     <div data-cloud-credentials hidden>${secureField()}</div>
     <button class="pulse-ai-action" type="button" data-ai-action="enhance">ENHANCE SPEECH ↗</button>
     <p class="pulse-ai-out" data-ai-status role="status" aria-live="polite">Local processing is private. Neural isolation requires the configured API backend.</p>
@@ -302,8 +298,7 @@ function mountVoiceClone({host}) {
       'Create an Instant Voice Clone from your own authorized recording, then synthesize a new voiceover using text. Cloud processing uses ElevenLabs.','NEURAL / OWNER ACCESS')}
     <span class="pulse-ai-chip">YOUR OWN VOICE / EXPLICIT PERMISSION ONLY</span>
     <label class="pulse-ai-control">VOICE NAME <input data-clone-name maxlength="70" placeholder="My Studio Voice" autocomplete="off" /></label>
-    <label class="pulse-ai-control">CLEAN VOICE SAMPLE (1–2 MIN MP3 RECOMMENDED)
-      <input data-cloud-file type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg" /></label>
+    <p class="pulse-ai-muted">Voice sample: current SOURCE AUDIO original. Cloud limit 2.4 MB. Edited files cannot be reused for cloning.</p>
     <label class="pulse-ai-tick"><input data-clone-consent type="checkbox" /> I own this voice or have the speaker's explicit authorization, and understand that this sample is sent to ElevenLabs.</label>
     ${secureField()}
     <button class="pulse-ai-action" data-ai-action="clone" type="button">CREATE VOICE CLONE ↗</button>
@@ -334,7 +329,8 @@ function mountVoiceClone({host}) {
     setBusy(root,true);status(root,'Working with neural voice service…');
     try {
       if (action==='clone') {
-        const file=root.querySelector('[data-cloud-file]').files?.[0] || selectedCloudFile(root);
+        const file=selectedCloudFile(root);
+        if(!file)throw Error('Voice cloning requires a small original recording (under 2.4 MB) loaded in SOURCE AUDIO without edits.');
         const name=root.querySelector('[data-clone-name]').value.trim();
         if(name.length<2)throw Error('Enter a name for your voice.');
         if(!root.querySelector('[data-clone-consent]').checked)throw Error('Confirm authorization to clone this voice.');

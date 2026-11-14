@@ -2,22 +2,18 @@ import {workspace as w} from './workspace.mjs';
 import {base64File,audoWorkspaceFile,completeAudo} from './audo-ui.mjs';
 import {encodeWav} from './dsp.mjs';
 import {resampleBuffer} from './legacy-dsp.mjs';
+import {analyzeReleaseBuffer} from './release-analysis.mjs';
 
 const safeName=value=>String(value||'audio').replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,64)||'audio';
 const message=(host,selector,text,error=false)=>{const el=host.querySelector(selector);if(el){el.textContent=text;el.dataset.error=String(error);}};
 const waitText='Preparing audio…';
-async function inputSource(host,{maxSeconds=120,fullFile=false}={}){
- const selected=host.querySelector('[data-pw-file]')?.files?.[0];
- if(selected)return {file:await base64File(selected),name:selected.name,scope:'FILE'};
- const url=host.querySelector('[data-pw-url]')?.value.trim();
- if(url)return {fileUrl:url,name:'remote-audio',scope:'PUBLIC URL'};
+async function inputSource(_host,{maxSeconds=120}={}){
+ w.ensureAudio();
  const source=await audoWorkspaceFile({maxSeconds});
- if(fullFile&&source.scope!=='FULL FILE')throw Error('For a full-file report, choose a compressed file under 2.4 MB or paste a public HTTPS download URL.');
  return {...source,name:w.displayName||w.name||'source-audio'};
 }
-function fileInputMarkup(label='AUDIO FILE'){
- return '<label class="pw-field">'+label+'<input type="file" data-pw-file accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.aiff"></label>'+
-  '<label class="pw-field">PUBLIC HTTPS AUDIO URL <input type="url" data-pw-url placeholder="https://…"></label>';
+function fileInputMarkup(){
+ return '<div class="pw-shared-source" data-pw-source><span>01 / SOURCE AUDIO</span><strong>Uses the currently loaded track.</strong><small>Change the track in the shared Source Audio panel above. No separate upload or URL is needed.</small></div>';
 }
 function bytesFromBase64(value){const binary=atob(value),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes;}
 function blobDownload(blob,name){const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
@@ -88,32 +84,67 @@ function reportData(raw){
  ]};
 }
 function mountReleasePreflight({host}){
- host.innerHTML='<section class="tool-view pw-panel"><div class="tool-view-header"><span>01 / ANALYZE / RELEASE PREFLIGHT</span><span>MASTER CHECK</span></div>'+
-  '<h3>Check the master.<br><span>Before release.</span></h3><p class="tool-description">Measure loudness, true peak, clipping, noise floor, format and file metadata.</p>'+
-  fileInputMarkup()+'<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send this audio to Audo for analysis.</label>'+
-  '<button class="pw-action" type="button" data-pw-run>ANALYZE RELEASE ↗</button>'+
-  '<p class="pw-status" data-pw-status role="status" aria-live="polite">Choose a master or use a public download URL.</p>'+
-  '<div class="pw-metrics" data-pw-metrics hidden></div><div class="pw-report-actions" data-pw-report-actions hidden><button type="button" data-pw-export>EXPORT REPORT JSON</button></div></section>';
+ host.innerHTML='<section class="tool-view pw-panel pw-release"><div class="tool-view-header"><span>01 / ANALYZE / RELEASE PREFLIGHT</span><span>LOCAL · FULL TRACK</span></div>'+
+  '<h3>Check the master.<br><span>Before release.</span></h3>'+
+  '<p class="tool-description">Analyze the track loaded in 01 / SOURCE AUDIO. Integrated loudness, sample peak, estimated true peak, clipping and noise floor are measured locally over the full decoded track.</p>'+
+  fileInputMarkup()+
+  '<p class="pw-release-source" data-release-source aria-live="polite"></p>'+
+  '<button class="pw-action" type="button" data-pw-run>ANALYZE LOADED TRACK ↗</button>'+
+  '<p class="pw-status" data-pw-status role="status" aria-live="polite">Load a track into 01 / SOURCE AUDIO to begin.</p>'+
+  '<div class="pw-metrics" data-pw-metrics hidden></div>'+
+  '<p class="pw-small" data-pw-accuracy hidden></p>'+
+  '<div class="pw-report-actions" data-pw-report-actions hidden><button type="button" data-pw-export>EXPORT REPORT JSON</button></div></section>';
  const run=host.querySelector('[data-pw-run]'),grid=host.querySelector('[data-pw-metrics]');
  let disposed=false,busy=false,report=null,controller=null;
- run.onclick=async()=>{
-  if(busy||disposed)return;if(!host.querySelector('[data-pw-consent]').checked)return message(host,'[data-pw-status]','Confirm the upload first.',true);
-  busy=true;run.disabled=true;controller=new AbortController();
-  try{
-   message(host,'[data-pw-status]',waitText);const input=await inputSource(host,{maxSeconds:600,fullFile:true});
-   const result=await completeAudo({tool:'release',...input,detail:'full',consent:true},'release',{signal:controller.signal,onProgress:text=>!disposed&&message(host,'[data-pw-status]',text)});
-   if(disposed||controller.signal.aborted)return;if(result.kind!=='json')throw Error('A media report was not returned.');
-   report=reportData(result.result);grid.replaceChildren(...report.metrics.map(([label,value,unit])=>metric(label,value,unit)));
-   grid.hidden=false;host.querySelector('[data-pw-report-actions]').hidden=false;
-   const peakValue=report.root?.loudness?.true_peak_dbtp,clippedValue=report.root?.clipped_samples,peak=Number(peakValue),clipped=Number(clippedValue),checks=[];
-   if(peakValue!=null&&Number.isFinite(peak))checks.push(peak<=-1?'TRUE PEAK OK':'TRUE PEAK ABOVE -1 dBTP');
-   if(clippedValue!=null&&Number.isFinite(clipped))checks.push(clipped===0?'NO CLIPPED SAMPLES':clipped+' CLIPPED SAMPLES');
-   message(host,'[data-pw-status]','Analysis complete'+(checks.length?' · '+checks.join(' · '):'')+'.');
-  }catch(error){if(!disposed&&error.name!=='AbortError')message(host,'[data-pw-status]',error.message,true);}
-  finally{busy=false;controller=null;if(!disposed)run.disabled=false;}
+ const updateSource=()=>{
+  const loaded=w.buffer,source=host.querySelector('[data-release-source]');
+  if(!source)return;
+  source.textContent=loaded?(w.displayName||w.name||'Source Audio')+' · '+loaded.duration.toFixed(1)+' s · '+(loaded.sampleRate/1000).toFixed(1)+' kHz · '+(loaded.numberOfChannels===2?'stereo':'mono'):'No track loaded in 01 / SOURCE AUDIO.';
+  run.disabled=busy||!loaded;
  };
- host.querySelector('[data-pw-export]').onclick=()=>{if(report)downloadText(JSON.stringify(report.root,null,2),'pulse-release-report.json','application/json');};
- return()=>{disposed=true;controller?.abort();};
+ const unsubscribe=w.subscribe(updateSource);
+ run.onclick=async()=>{
+  if(busy||disposed)return;
+  busy=true;run.disabled=true;controller=new AbortController();
+  const buffer=w.buffer,trackId=w.trackId;
+  try{
+   if(!buffer)throw Error('Load a track into 01 / SOURCE AUDIO first.');
+   grid.hidden=true;host.querySelector('[data-pw-report-actions]').hidden=true;
+   message(host,'[data-pw-status]','Analyzing 0% · full track locally…');
+   const m=await analyzeReleaseBuffer(buffer,{signal:controller.signal,onProgress:value=>{
+    if(!disposed)message(host,'[data-pw-status]','Analyzing '+value+'% · full track locally…');
+   }});
+   if(disposed||controller.signal.aborted||w.trackId!==trackId||w.buffer!==buffer)return;
+   const original=w.originalFile;
+   report={
+    filename:w.displayName||w.name||'source-audio',source:'01 / SOURCE AUDIO',scope:'full decoded track',
+    codecHint:original?.name?.split('.').pop()?.toUpperCase()||'AUDIO',
+    fileBytes:original?.size??null,measuredAt:new Date().toISOString(),...m
+   };
+   const fields=[
+    ['DURATION',m.durationSeconds,'s'],['FORMAT (SOURCE)',report.codecHint],
+    ['SAMPLE RATE',m.sampleRate,'Hz'],['CHANNELS',m.channels],
+    ['INTEGRATED LOUDNESS',m.integratedLufs,'LUFS'],
+    ['EST. TRUE PEAK',m.estimatedTruePeakDbtp,'dBTP'],
+    ['LOUDNESS RANGE (APPROX.)',m.loudnessRangeLu,'LU'],
+    ['SAMPLE PEAK',m.samplePeakDbfs,'dBFS'],
+    ['RMS',m.rmsDbfs,'dBFS'],['NOISE FLOOR (EST.)',m.noiseFloorDbfs,'dBFS'],
+    ['CLIPPED SAMPLES',m.clippedSamples]
+   ];
+   grid.replaceChildren(...fields.map(([name,value,unit])=>metric(name,value,unit)));
+   grid.hidden=false;
+   const note=host.querySelector('[data-pw-accuracy]');
+   note.textContent=m.accuracyNote;note.hidden=false;
+   host.querySelector('[data-pw-report-actions]').hidden=false;
+   message(host,'[data-pw-status]','Local full-track preflight complete · true peak '+(m.peakStatus==='pass'?'below -1 dBTP estimate':'needs review')+' · clipping '+(m.clippingStatus==='pass'?'not detected':'detected')+'.');
+  }catch(error){if(!disposed&&error.name!=='AbortError')message(host,'[data-pw-status]',error.message,true);}
+  finally{busy=false;controller=null;if(!disposed)updateSource();}
+ };
+ host.querySelector('[data-pw-export]').onclick=()=>{
+  if(report)downloadText(JSON.stringify(report,null,2),'pulse-release-report.json','application/json');
+ };
+ updateSource();
+ return()=>{disposed=true;controller?.abort();unsubscribe();};
 }
 function mountVocalSessionMapper({host}){
  host.innerHTML='<section class="tool-view pw-panel"><div class="tool-view-header"><span>01 / ANALYZE / VOCAL SESSION MAPPER</span><span>TRANSCRIPT + TIMING</span></div>'+
@@ -123,7 +154,7 @@ function mountVocalSessionMapper({host}){
   '<label class="pw-field" data-pw-language-wrap hidden>TRANSLATE TO<select data-pw-language><option value="en">English</option><option value="cs">Czech</option><option value="de">German</option><option value="fr">French</option><option value="es">Spanish</option><option value="it">Italian</option><option value="pt">Portuguese</option><option value="ja">Japanese</option><option value="ko">Korean</option></select></label>'+
   '<label class="pw-field">OUTPUT FORMAT<select data-pw-format><option value="srt">SRT</option><option value="vtt">VTT</option><option value="txt">TXT</option></select></label>'+
   '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send this vocal to Audo for processing.</label>'+
-  '<button class="pw-action" type="button" data-pw-run>TRANSCRIBE VOCAL ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Choose a vocal recording or use SOURCE AUDIO.</p>'+
+  '<button class="pw-action" type="button" data-pw-run>TRANSCRIBE VOCAL ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Load a track in SOURCE AUDIO to transcribe, align or translate.</p>'+
   '<div class="pw-output" data-pw-output hidden></div></section>';
  const run=host.querySelector('[data-pw-run]'),script=host.querySelector('[data-pw-script]'),scriptWrap=host.querySelector('[data-pw-script-wrap]'),languageWrap=host.querySelector('[data-pw-language-wrap]'),format=host.querySelector('[data-pw-format]');
  let mode='transcribe',busy=false,disposed=false,controller=null;
@@ -164,19 +195,18 @@ function audioResultFile(result,originalName){
 }
 function mountSamplePackLab({host}){
  host.innerHTML='<section class="tool-view pw-panel"><div class="tool-view-header"><span>03 / PREPARE / SAMPLE PACK LAB</span><span>BATCH PROCESSING</span></div>'+
-  '<h3>Clean the pack.<br><span>Keep the character.</span></h3><p class="tool-description">Process up to five short samples in one batch, then export an organized ZIP.</p>'+
-  '<label class="pw-field">SAMPLE FILES · UP TO 5<input type="file" data-pw-files multiple accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.aiff"></label>'+
+  '<h3>Clean the pack.<br><span>Keep the character.</span></h3><p class="tool-description">Process SOURCE AUDIO or its selected excerpt, then export a ZIP.</p>'+
+  fileInputMarkup()+
   '<div class="pw-options"><label><input type="checkbox" data-pw-silence> REMOVE SILENCE</label><label><input type="checkbox" data-pw-loudness> MATCH LOUDNESS</label><label><input type="checkbox" data-pw-convert checked> CONVERT FORMAT</label></div>'+
   '<label class="pw-field">LOUDNESS TARGET<select data-pw-target><option value="streaming">STREAMING · -14 LUFS</option><option value="podcast">PODCAST · -16 LUFS</option><option value="broadcast">BROADCAST · -23 LUFS</option></select></label>'+
   '<label class="pw-field">OUTPUT FORMAT<select data-pw-format><option value="wav">WAV</option><option value="flac">FLAC</option><option value="mp3">MP3</option></select></label>'+
   '<label class="pw-field">SAMPLE CHOP RANGES · OPTIONAL<input type="text" data-pw-ranges placeholder="0-1.5, 2-4"></label>'+
   '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send these samples to Audo for processing.</label>'+
-  '<button class="pw-action" type="button" data-pw-run>PROCESS SAMPLE PACK ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Choose samples to begin.</p>'+
+  '<button class="pw-action" type="button" data-pw-run>PROCESS SAMPLE PACK ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Load a track in SOURCE AUDIO to begin.</p>'+
   '<div class="pw-output" data-pw-output hidden></div></section>';
- const run=host.querySelector('[data-pw-run]'),input=host.querySelector('[data-pw-files]');let busy=false,disposed=false,controller=null;
+ const run=host.querySelector('[data-pw-run]');let busy=false,disposed=false,controller=null;
  run.onclick=async()=>{
-  if(busy||disposed)return;const files=[...(input.files||[])];
-  if(!files.length||files.length>5)return message(host,'[data-pw-status]','Select one to five audio files.',true);
+  if(busy||disposed)return;if(!w.buffer)return message(host,'[data-pw-status]','Load audio into SOURCE AUDIO first.',true);
   if(!host.querySelector('[data-pw-consent]').checked)return message(host,'[data-pw-status]','Confirm the upload first.',true);
   let ranges;try{ranges=parseRanges(host.querySelector('[data-pw-ranges]').value);}catch(error){return message(host,'[data-pw-status]',error.message,true);}
   const operations={silence:host.querySelector('[data-pw-silence]').checked,loudness:host.querySelector('[data-pw-loudness]').checked,
@@ -184,10 +214,12 @@ function mountSamplePackLab({host}){
   if(!operations.silence&&!operations.loudness&&!operations.convert&&!operations.ranges.length)return message(host,'[data-pw-status]','Choose at least one processing step.',true);
   busy=true;run.disabled=true;controller=new AbortController();const entries=[],processed=[];
   try{
+   const shared=await inputSource(host,{maxSeconds:30});
+   const files=[{name:shared.name,payload:shared.file}];
    for(let index=0;index<files.length;index++){
     if(disposed||controller.signal.aborted)throw Object.assign(Error('Cancelled'),{name:'AbortError'});
-    const file=files[index];message(host,'[data-pw-status]','Preparing '+(index+1)+'/'+files.length+' · '+file.name);
-    let payload=await base64File(file),name=file.name;
+    const file=files[index];message(host,'[data-pw-status]','Preparing SOURCE AUDIO · '+file.name);
+    let payload=file.payload,name=file.name;
     const apply=async(tool,request,label)=>{
      message(host,'[data-pw-status]',file.name+' · '+label);
      const result=await completeAudo({tool,file:payload,consent:true,...request},tool,{signal:controller.signal,onProgress:text=>!disposed&&message(host,'[data-pw-status]',file.name+' · '+text)});
@@ -227,7 +259,7 @@ function mountSmartSampleFinder({host}){
   '<h3>Find the moment.<br><span>Make it a sample.</span></h3><p class="tool-description">Find standout sections in a track, review their timestamps and export selected ranges.</p>'+
   fileInputMarkup()+'<label class="pw-field">NUMBER OF HIGHLIGHTS<select data-pw-count><option value="3">3</option><option value="5" selected>5</option><option value="8">8</option><option value="10">10</option></select></label>'+
   '<label class="pw-consent"><input type="checkbox" data-pw-consent> I agree to send this audio to Audo for highlight analysis.</label>'+
-  '<button class="pw-action" type="button" data-pw-run>FIND HIGHLIGHTS ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Choose a track to begin.</p>'+
+  '<button class="pw-action" type="button" data-pw-run>FIND HIGHLIGHTS ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Load a track in 01 / SOURCE AUDIO to begin.</p>'+
   '<div class="pw-highlight-list" data-pw-highlights hidden></div><div class="pw-output" data-pw-output hidden></div></section>';
  const run=host.querySelector('[data-pw-run]'),list=host.querySelector('[data-pw-highlights]');let busy=false,disposed=false,controller=null,currentInput=null;
  run.onclick=async()=>{
@@ -259,27 +291,20 @@ function mountSmartSampleFinder({host}){
 }
 function mountStemDeliveryStudio({host}){
  host.innerHTML='<section class="tool-view pw-panel"><div class="tool-view-header"><span>03 / PREPARE / STEM DELIVERY STUDIO</span><span>LOCAL PACKAGE BUILDER</span></div>'+
-  '<h3>Deliver clean stems.<br><span>Ready for the mix.</span></h3><p class="tool-description">Validate, standardize and package up to ten stems as synchronized WAV files.</p>'+
-  '<label class="pw-field">STEM FILES · UP TO 10<input type="file" data-pw-stems multiple accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.aiff"></label>'+
+  '<h3>Deliver clean stems.<br><span>Ready for the mix.</span></h3><p class="tool-description">Package the current SOURCE AUDIO as a standardized WAV. This does not separate a mix into stems.</p>'+
+  fileInputMarkup()+
   '<div class="pw-fields-row"><label class="pw-field">SAMPLE RATE<select data-pw-rate><option value="44100">44.1 kHz</option><option value="48000" selected>48 kHz</option></select></label><label class="pw-field">BIT DEPTH<select data-pw-depth><option value="24" selected>24-bit PCM</option><option value="16">16-bit PCM</option></select></label></div>'+
   '<div class="pw-fields-row"><label class="pw-field">BPM · OPTIONAL<input type="number" data-pw-bpm min="30" max="300" step="0.1" placeholder="145"></label><label class="pw-field">KEY · OPTIONAL<input type="text" data-pw-key maxlength="30" placeholder="F minor"></label></div>'+
-  '<p class="pw-small">Assumes every stem starts at the same timeline position. Shorter files are padded to the longest duration.</p>'+
-  '<button class="pw-action" type="button" data-pw-run>BUILD STEM PACKAGE ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Select the stems to prepare.</p>'+
+  '<p class="pw-small">Uses only SOURCE AUDIO. To separate vocals, drums and bass, use AI Stem Extraction.</p>'+
+  '<button class="pw-action" type="button" data-pw-run>BUILD STEM PACKAGE ↗</button><p class="pw-status" data-pw-status role="status" aria-live="polite">Load a track in SOURCE AUDIO to prepare a WAV delivery.</p>'+
   '<div class="pw-output" data-pw-output hidden></div></section>';
- const run=host.querySelector('[data-pw-run]'),input=host.querySelector('[data-pw-stems]');let busy=false,disposed=false;
+ const run=host.querySelector('[data-pw-run]');let busy=false,disposed=false;
  run.onclick=async()=>{
-  if(busy||disposed)return;const files=[...(input.files||[])];
-  if(!files.length||files.length>10)return message(host,'[data-pw-status]','Select one to ten stem files.',true);
-  if(files.some(file=>file.size>100*1024*1024))return message(host,'[data-pw-status]','Each stem must be under 100 MB.',true);
-  if(files.reduce((sum,file)=>sum+file.size,0)>300*1024*1024)return message(host,'[data-pw-status]','The total input size must be under 300 MB.',true);
+  if(busy||disposed)return;if(!w.buffer)return message(host,'[data-pw-status]','Load SOURCE AUDIO first.',true);
   busy=true;run.disabled=true;
   try{
-   const context=await w.ensureContext(),rate=Number(host.querySelector('[data-pw-rate]').value),depth=Number(host.querySelector('[data-pw-depth]').value),decoded=[];
-   for(let i=0;i<files.length;i++){
-    if(disposed)throw Error('Package creation cancelled.');
-    message(host,'[data-pw-status]','Reading stem '+(i+1)+'/'+files.length+'…');
-    decoded.push({file:files[i],buffer:await context.decodeAudioData(await files[i].arrayBuffer())});
-   }
+   const context=await w.ensureContext(),rate=Number(host.querySelector('[data-pw-rate]').value),depth=Number(host.querySelector('[data-pw-depth]').value);
+    const decoded=[{file:{name:w.displayName||w.name||'source-audio'},buffer:w.ensureAudio()}];
    const resampled=[];
    for(let i=0;i<decoded.length;i++){message(host,'[data-pw-status]','Standardizing '+decoded[i].file.name+'…');resampled.push(await resampleBuffer(decoded[i].buffer,rate));}
    const duration=Math.max(...resampled.map(buffer=>buffer.duration)),frames=Math.ceil(duration*rate),entries=[];
@@ -295,9 +320,9 @@ function mountStemDeliveryStudio({host}){
    const manifest=['PULSE STEM DELIVERY','',...decoded.map((item,i)=>(i+1)+'. '+entries[i].name+' | '+resampled[i].numberOfChannels+' ch | '+duration.toFixed(3)+' s'),
     '', 'Sample rate: '+rate+' Hz','Bit depth: '+depth+'-bit PCM','Duration: '+duration.toFixed(3)+' s',
     'BPM: '+(bpm||'not supplied'),'Key: '+(key||'not supplied'),
-    'Alignment: files assumed to share the same start time; shorter stems padded with silence.'].join('\n');
+    'Source: 01 / SOURCE AUDIO (single track). Not separated stems.'].join('\n');
    entries.push({name:'session-manifest.txt',data:new TextEncoder().encode(manifest)});
-   blobDownload(createZip(entries),'pulse-stem-delivery.zip');message(host,'[data-pw-status]',files.length+' stems packaged · '+rate+' Hz · '+depth+' bit.');
+   blobDownload(createZip(entries),'pulse-stem-delivery.zip');message(host,'[data-pw-status]','SOURCE AUDIO packaged · '+rate+' Hz · '+depth+' bit.');
   }catch(error){if(!disposed)message(host,'[data-pw-status]',error.message||'Stem package failed.',true);}
   finally{busy=false;if(!disposed)run.disabled=false;}
  };

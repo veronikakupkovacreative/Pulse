@@ -63,15 +63,8 @@ export function mountStemExtraction({host}={}){
   '<h3>Pull it apart.<br><span>Keep every layer.</span></h3>'+
   '<p class="tool-description">Separate vocals, drums, bass and individual instruments.</p>'+
   '<div class="pulse-ext-form">'+
-   '<div class="pulse-ext-section-heading"><strong>01 / SOURCE AUDIO</strong><span>CHOOSE ONE METHOD</span></div>'+
-   '<div class="pulse-ext-modes" role="group" aria-label="Audio source">'+
-    '<button type="button" data-ext-source="file" aria-pressed="true">AUDIO FILE</button>'+
-    '<button type="button" data-ext-source="workspace" aria-pressed="false">SOURCE AUDIO / 12 SEC</button>'+
-    '<button type="button" data-ext-source="url" aria-pressed="false">YOUTUBE URL</button></div>'+
-   '<label class="pulse-ext-field" data-ext-input="file">UPLOAD AUDIO (MAX 2.4 MB)<input type="file" data-ext-file accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg,.opus,.aac"></label>'+
-   '<p class="pulse-ext-note" data-ext-input="workspace" hidden>Uses the middle 12 seconds or a selected waveform region from SOURCE AUDIO. This is an excerpt, not full-track separation.</p>'+
-   '<label class="pulse-ext-field" data-ext-input="url" hidden>YOUTUBE AUDIO SOURCE<input type="url" data-ext-url placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"></label>'+
-   '<p class="pulse-ext-note">Full tracks: use a supported YouTube URL.</p>'+
+   '<div class="pulse-ext-section-heading"><strong>01 / SOURCE AUDIO</strong><span>SHARED TRACK</span></div>'+
+   '<p class="pulse-ext-note">Uses the track in 01 / SOURCE AUDIO, or the selected waveform region. Cloud gateway supports a short excerpt (12 seconds). No additional upload or URL field.</p>'+
    '<div class="pulse-ext-section-heading"><strong>02 / SELECT OUTPUT STEMS</strong><span>CHOOSE AT LEAST ONE</span></div>'+
    '<div class="pulse-ext-groups">'+stemChoices+'</div>'+
    '<div class="pulse-ext-section-heading"><strong>03 / OPTIONAL PREPROCESSING</strong><span>BEFORE EXTRACTION</span></div>'+
@@ -90,7 +83,7 @@ export function mountStemExtraction({host}={}){
   '<div class="pulse-ext-results" data-ext-results hidden><div class="pulse-ext-section-heading"><strong>EXTRACTED STEMS</strong><span>DOWNLOAD / PREVIEW</span></div><div data-ext-files></div></div>'+
   '</section>';
  const $=s=>select(host,s);
- let disposed=false,busy=false,sourceMethod='file',conversionId=null,controller=null,run=0,configured=false;
+ let disposed=false,busy=false,sourceMethod='workspace',conversionId=null,controller=null,run=0,configured=false;
  const status=(message,error=false)=>{if(disposed)return;const el=$('[data-ext-status]');el.textContent=message;el.dataset.error=String(error);};
  const showControls=()=>{
   $('[data-ext-submit]').disabled=busy||Boolean(conversionId)||!configured;
@@ -107,15 +100,6 @@ export function mountStemExtraction({host}={}){
  const abort=()=>{
   run++;controller?.abort();controller=null;busy=false;showControls();
  };
- const updateMethod=next=>{
-  if(disposed||busy||conversionId||!['file','workspace','url'].includes(next))return;
-  sourceMethod=next;
-  host.querySelectorAll('[data-ext-source]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.extSource===next)));
-  host.querySelectorAll('[data-ext-input]').forEach(el=>el.hidden=el.dataset.extInput!==next);
-  status(next==='workspace'?'SOURCE AUDIO will be encoded as a short WAV excerpt for cloud extraction.':
-   next==='url'?'Use a provider-supported YouTube URL for full-track extraction.':'Choose an audio file up to 2.4 MB.');
- };
- for(const b of host.querySelectorAll('[data-ext-source]'))b.onclick=()=>updateMethod(b.dataset.extSource);
  async function gateway(action,values,signal){
   const res=await fetch(API+(action==='submit'?'?charge=1':''),{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({action,...values}),signal,cache:'no-store'});
@@ -125,21 +109,8 @@ export function mountStemExtraction({host}={}){
  }
  const picked=selector=>[...host.querySelectorAll(selector)].filter(x=>x.checked).map(x=>selector==='[data-ext-pre]'?x.dataset.extPre:x.dataset.extStem);
  async function prepareInput(){
-  if(sourceMethod==='url'){
-   const value=$('[data-ext-url]').value.trim();
-   if(!value)return Promise.reject(Error('Paste a supported YouTube watch URL.'));
-   return {audioUrl:value};
-  }
-  if(sourceMethod==='workspace'){
-   // Direct upload stays under the Vercel 4.5MB ingress limit.
-   const clip=makeCloudTaggingExcerpt(w.ensureAudio(),{selection:w.selection,maxSeconds:12});
-   return {file:clip.file};
-  }
-  const file=$('[data-ext-file]').files?.[0];
-  if(!file)throw Error('Choose a file before extraction.');
-  if(file.size<1024||file.size>MAX_FILE_BYTES)throw Error(ERRORS.AUDIO_TOO_LARGE);
-  if(!/\.(wav|mp3|m4a|flac|ogg|aac|opus)$/i.test(file.name))throw Error(ERRORS.INVALID_AUDIO_FORMAT);
-  return {file:await fileToBase64(file)};
+  const clip=makeCloudTaggingExcerpt(w.ensureAudio(),{selection:w.selection,maxSeconds:12});
+  return {file:clip.file};
  }
  function renderFiles(files){
   const root=$('[data-ext-files]');root.replaceChildren();
@@ -233,7 +204,7 @@ export function mountStemExtraction({host}={}){
    configured=res.ok&&info.configured===true;
    showControls();
    if(!configured)status(ERRORS.MUSICGPT_EXTRACTION_NOT_CONFIGURED,true);
-   else if(!conversionId)status('Ready. Select stems and extract.');
+   else if(!conversionId)status('Ready. Uses the loaded SOURCE AUDIO excerpt. Select stems and extract.');
   }catch{if(!disposed)status('Could not check availability. Reload the tool.',true);}
  })();
  return()=>{disposed=true;abort();host.replaceChildren();};

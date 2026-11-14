@@ -35,9 +35,7 @@ test('status updates after a workspace buffer is added and no stale listeners re
  ui.listeners.get('pulse:audio-source')();assert.equal(ui.preview.disabled,false);
  ui.cleanup();assert.equal(ui.listeners.has('pulse:audio-source'),false);
 });
-test('tool panel and standalone BPM both mount shared output controls',()=>{
+test('the application mounts shared output controls into registered modules',()=>{
  const app=readFileSync(new URL('../source/app.mjs',import.meta.url),'utf8');
- const bpm=readFileSync(new URL('../source/reference-ui.mjs',import.meta.url),'utf8');
- assert.match(app,/mountWorkspaceActions\(host,w\)/);
- assert.match(bpm,/mountWorkspaceActions\(document\.querySelector\('#analyzer \.bpm-result-panel'\),w\)/);
+ assert.match(app,/mountWorkspaceActions\(host,w\)/);assert.match(app,/mountTool\(definition\)/);
 });

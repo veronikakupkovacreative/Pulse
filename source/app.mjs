@@ -5,7 +5,7 @@ import {isAiV2,renderAiV2Copy} from './modules/ai-v2-copy.mjs';
 import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 import {studioStore} from './modules/studio-store.mjs';
-import {initializeThemeToggle} from './modules/theme-toggle.mjs';
+import {initializePhaseOne} from './modules/phase-one-runtime.mjs';
 
 const toolSummaries=Object.freeze({
  "song-analyzer": "BPM, key, Camelot, chords and an optional independent cross-check.",
@@ -40,7 +40,7 @@ const categories=Object.freeze({
   prepare:{name:'PREPARE',title:'Prepare your files.',description:'Edit, organize, standardize and deliver production-ready audio.',number:'03'}
 });
 const query=(selector)=>document.querySelector(selector);
-initializeThemeToggle();
+initializePhaseOne({workspace:w});
 const blank=query('#blank-panel');
 const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');

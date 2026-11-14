@@ -1380,3 +1380,71 @@ body.pulse-ai-hub-view #toolkit .toolkit-note{display:none!important}
 html[data-theme="dark"] :focus-visible{outline:3px solid var(--accent)!important;outline-offset:3px!important}
 @media(max-width:640px){.pulse-tool-grid.grid{grid-template-columns:1fr!important}}
 #toolkit .tool-module-host select option{background:#141416;color:#f4f2ee}
+
+/* v3 detailed panels: converter, FX, metering, mastering and cloud tools. */
+#toolkit .tool-module-host :is(.module-work,.pulse-fx-panel,.pulse-creative,.pulse-legacy,
+  .pulse-web-tool,.pulse-master-work,.ai2-panel,.pulse-protection){font-family:var(--font-body)!important;line-height:1.55}
+#toolkit .tool-module-host :is(.module-work,.pulse-fx-panel,.pulse-creative,.pulse-legacy,
+  .pulse-web-tool,.pulse-master-work,.ai2-panel,.pulse-protection) :is(h4,h5){color:var(--ink)!important;font-family:var(--font-display)!important}
+#toolkit .tool-module-host :is(.module-work .pulse-result-block,.module-work .pulse-metrics-grid>div,
+  .pulse-fx-result,.pulse-master-section,.pulse-creative .creative-meter,.creative-status,
+  .ai2-track,.ai2-stem-row,.pulse-legacy-result,.pulse-tagger-cloud,
+  .pulse-noise-profile,.pulse-mg-result,.pulse-master-reports>div){
+  background:var(--surface)!important;color:var(--ink)!important;
+  border:1px solid var(--line)!important;border-radius:12px!important;padding:18px!important;box-shadow:none!important}
+#toolkit .tool-module-host :is(.module-work .pulse-metrics-grid,.pulse-ai-fields,.pulse-mg-grid){
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#toolkit .tool-module-host :is(.pulse-result-block,.pulse-legacy-result,.pulse-fx-result) strong{
+  color:var(--ink)!important}
+#toolkit .tool-module-host :is(.module-work,.pulse-legacy,.pulse-creative,.pulse-fx-panel,
+  .pulse-master-work,.pulse-protection,.ai2-panel) :is(.module-result,.tool-footnote,.module-description,
+  .pulse-master-disclaimer,.ai2-note,.ap-note){color:var(--ink-2)!important;opacity:1!important}
+#toolkit .tool-module-host :is(.creative-presets button,.creative-modes button,.pulse-fx-preset,
+  .pulse-legacy-presets button,.module-work .eq-preset-pills button,.ai2-switch-buttons button){
+  min-height:42px!important;color:var(--ink-2)!important;background:var(--paper-2)!important;
+  border:1px solid #56555b!important;border-radius:999px!important;padding:10px 15px!important;
+  font:500 12px/1.3 var(--font-mono)!important;letter-spacing:0!important}
+#toolkit .tool-module-host :is(.creative-presets button,.creative-modes button,.pulse-fx-preset,
+  .pulse-legacy-presets button,.module-work .eq-preset-pills button,.ai2-switch-buttons button)[aria-pressed="true"]{
+  background:var(--accent)!important;border-color:var(--accent)!important;color:var(--on-accent)!important}
+#toolkit .tool-module-host :is(.creative-apply,.module-work .module-action,.pulse-fx-apply,
+  .pulse-master-actions button,.pulse-tagger .focus-action){
+  border:1px solid var(--accent)!important;border-radius:999px!important;
+  background:var(--accent)!important;color:var(--on-accent)!important;
+  min-height:46px!important;padding:11px 18px!important;font:700 13px/1.3 var(--font-display)!important}
+#toolkit .tool-module-host :is(.creative-apply,.module-work .module-action,.pulse-fx-apply,
+  .pulse-master-actions button,.pulse-tagger .focus-action) :is(span,b,strong){color:var(--on-accent)!important}
+#toolkit .tool-module-host .converter-codec-note{color:var(--ink-3)!important;font:400 12px/1.6 var(--font-mono)!important}
+#toolkit .tool-module-host .converter-progress{background:var(--paper-2)!important;border-radius:99px;height:8px}
+#toolkit .tool-module-host .converter-progress i{background:var(--accent)!important;border-radius:99px}
+#toolkit #module-wav .module-work{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px 24px;align-items:start}
+#toolkit #module-wav .module-work>.tool-view-header,
+#toolkit #module-wav .module-work>h3,
+#toolkit #module-wav .module-work>.tool-description,
+#toolkit #module-wav .module-work>.converter-codec-note,
+#toolkit #module-wav .module-work>.converter-progress,
+#toolkit #module-wav .module-work>.module-result{grid-column:1/-1}
+#toolkit #module-wav .module-work>.tool-fields:not(.converter-options){grid-column:1}
+#toolkit #module-wav .module-work>.converter-options{grid-column:2}
+#toolkit #module-wav .module-work>.pulse-result-block{grid-column:1}
+#toolkit #module-wav .module-work>.pulse-module-actions{grid-column:2}
+#toolkit #module-wav .module-work>.tool-fields{display:grid;grid-template-columns:1fr;
+  align-content:start;min-width:0;padding:22px!important;background:var(--paper-2)!important;
+  border:1px solid var(--line)!important;border-radius:14px!important;gap:14px}
+#toolkit #module-wav .module-work .pulse-module-actions button{width:100%;min-height:48px}
+#toolkit .tool-module-host .pulse-protection .ap-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#toolkit .tool-module-host .pulse-protection .ap-heading p{color:var(--ink-2)!important;max-width:62ch}
+#toolkit .tool-module-host .pulse-protection :is(.ap-tab,.ap-source,.ap-panel){box-shadow:none!important}
+#toolkit .tool-module-host .pulse-protection .ap-primary{color:var(--on-accent)!important}
+#toolkit .tool-module-host :is(.ap-grid,.ai2-fields,.pulse-mg-grid,.pulse-master-fields)>*{min-width:0}
+#toolkit .tool-module-host .pulse-mg-consent{border:1px solid var(--line);border-radius:10px;padding:13px;color:var(--ink-2)!important}
+#toolkit .tool-module-host :is(.pulse-master-field,.ai2-field,.pulse-slider-card) input:focus-visible{
+  outline:3px solid var(--accent)!important;outline-offset:3px!important}
+#toolkit .tool-module-host :is(.pulse-master-work,.pulse-protection) :is(a,button):focus-visible{
+  outline:3px solid var(--accent)!important;outline-offset:3px!important}
+@media(max-width:700px){
+ #toolkit #module-wav .module-work{grid-template-columns:1fr!important}
+ #toolkit #module-wav .module-work>*{grid-column:1!important}
+ #toolkit .tool-module-host .pulse-protection .ap-grid{grid-template-columns:1fr!important}
+}

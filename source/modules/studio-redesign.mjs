@@ -89,7 +89,7 @@ async function exportAudio(){
 const ROUTES=Object.freeze({
  'song-analyzer':'#/analyzer','music-tagger':'#/tagger','release-preflight':'#/release-preflight',
  'editor':'#/editor','wav':'#/converter','visualizer':'#/visualizer','audio-protection':'#/protection',
- 'ai2-mastering':'#/ai','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
+ 'ai2-mastering':'#/ai/mastering','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
 });
 let currentTool='song-analyzer';
 function pageTitle(idValue){
@@ -106,13 +106,15 @@ function pageTitle(idValue){
 }
 function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
  currentTool=toolId||currentTool;
- document.body.classList.remove('pulse-home-view');
+ document.body.classList.remove('pulse-home-view','pulse-ai-hub-view');
  document.body.classList.add('pulse-workspace-view');
  document.body.dataset.route='tool';
  mode(currentTool==='editor');
+ if(id('pulse-ai-hub'))id('pulse-ai-hub').hidden=true;
  pageTitle(currentTool);
+ $('[data-go-ai-hub]').forEach(link=>{const active=currentTool.startsWith('ai2-');link.classList.toggle('is-active',active);if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current')});
  const group=currentTool==='editor'?'editor':currentTool==='wav'?'wav':currentTool==='visualizer'?'visualizer':currentTool==='audio-protection'?'audio-protection':currentTool.startsWith('ai2-')?'ai2-mastering':'song-analyzer';
- $$('.header-nav [data-open-tool]').forEach(link=>{
+ $('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{
   const active=link.dataset.openTool===group;
   link.classList.toggle('is-active',active);
   if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
@@ -121,20 +123,39 @@ function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
  if(updateUrl&&location.hash!==desired)history.pushState(null,'',desired);
  requestAnimationFrame(()=>{w.drawWave();if(scroll)id('toolkit')?.scrollIntoView({block:'start',behavior:'auto'});});
 }
+function navigateAiHub({updateUrl=true,scroll=true}={}){
+ document.body.classList.remove('pulse-home-view','pulse-editor-mode');
+ document.body.classList.add('pulse-workspace-view','pulse-ai-hub-view');
+ document.body.dataset.route='ai';
+ const heading=id('toolkit-title');
+ if(heading){heading.replaceChildren(document.createTextNode('AI '));const s=document.createElement('span');s.textContent='Studio.';heading.append(s);}
+ text('pulse-tool-crumb','AI Studio');text('pulse-tool-chip','LOCAL TOOLS + CLOUD WITH CONSENT');
+ const summary=id('pulse-tool-summary');
+ if(summary)summary.textContent='Twelve audio tools grouped by production task. Open a workflow to use it with the shared audio workspace.';
+ document.title='AI Studio — PULSE Studio';
+ $('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{link.classList.remove('is-active');link.removeAttribute('aria-current')});
+ $('[data-go-ai-hub]').forEach(link=>{link.classList.add('is-active');link.setAttribute('aria-current','true')});
+ const hub=id('pulse-ai-hub');if(hub)hub.hidden=false;
+ if(updateUrl&&location.hash!=='#/ai')history.pushState(null,'','#/ai');
+ if(scroll)id('toolkit')?.scrollIntoView({block:'start',behavior:'auto'});
+}
 function navigateHome({updateUrl=true,scroll=true}={}){
  document.body.classList.add('pulse-home-view');
- document.body.classList.remove('pulse-workspace-view','pulse-editor-mode');
+ document.body.classList.remove('pulse-workspace-view','pulse-editor-mode','pulse-ai-hub-view');
  document.body.dataset.route='home';
+ if(id('pulse-ai-hub'))id('pulse-ai-hub').hidden=true;
  if(updateUrl&&location.hash!=='#/home')history.pushState(null,'','#/home');
  document.title='PULSE Studio — Find your rhythm';
- $$('.header-nav [data-open-tool]').forEach(link=>{
+ $('.header-nav [data-open-tool],.pulse-mobile-nav [data-open-tool]').forEach(link=>{
   link.classList.remove('is-active');link.removeAttribute('aria-current');
  });
+ $('[data-go-ai-hub]').forEach(link=>{link.classList.remove('is-active');link.removeAttribute('aria-current')});
  if(scroll)window.scrollTo({top:0,behavior:'auto'});
 }
 function handleDeepLink(){
  const hash=decodeURIComponent(location.hash||'');
  if(!hash||hash==='#/home'){navigateHome({updateUrl:false});return}
+ if(hash==='#/ai'||hash==='#/ai/'){navigateAiHub({updateUrl:false});return}
  if(['#top','#pulse-tool-directory','#how-it-works'].includes(hash)){navigateHome({updateUrl:false,scroll:false});return;}
  const tool=Object.entries(ROUTES).find(([,route])=>route===hash)?.[0]||
   (hash.startsWith('#/tool/')?hash.slice(7):null);
@@ -182,6 +203,7 @@ export function initializeStudioRedesign(){
   const idValue=event.detail?.id||$('.tool-tabs .tool-tab.selected')?.dataset.tool;
   if(idValue)navigateTool(idValue);
  });
+ document.addEventListener('click',event=>{if(event.target.closest('[data-go-ai-hub]')){event.preventDefault();navigateAiHub();}});
  document.addEventListener('click',event=>{
   if(!event.target.closest('[data-go-home]'))return;
   event.preventDefault();navigateHome();

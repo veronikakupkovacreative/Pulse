@@ -175,36 +175,40 @@ test('single-url completed Extraction outputs a playable result; empty completed
   assert.match(empty.data.message,/no downloadable/i);
  });
 });
-test('double clicking Extraction while input is loading makes one paid submission',async()=>{
+test('double clicking Extraction with shared SOURCE AUDIO makes one paid submission',async()=>{
  const previous={document:globalThis.document,fetch:globalThis.fetch};
+ const {workspace:w}=await import('../source/modules/workspace.mjs');
+ const savedBuffer=w.buffer,savedSelection=w.selection;
+ const samples=new Float32Array(44100*12);
+ for(let i=0;i<samples.length;i++)samples[i]=Math.sin(2*Math.PI*440*i/44100)*.2;
+ w.buffer={sampleRate:44100,length:samples.length,duration:12,numberOfChannels:1,getChannelData:()=>samples};
+ w.selection=null;
  const {document}=parseHTML('<html><body><main id="host"></main></body></html>');
  globalThis.document=document;
- let releaseFile,paid=0;
- const pendingFile=new Promise(resolve=>{releaseFile=resolve;});
+ let paid=0;
  globalThis.fetch=async(_url,options)=>{
   if(!options?.method)return {ok:true,json:async()=>({configured:true})};
   const body=JSON.parse(options.body);
-  if(body.action==='submit'){assert.match(String(_url),/\?charge=1$/);paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
+  if(body.action==='submit'){assert.match(String(_url),/\\?charge=1$/);paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
   return {ok:true,json:async()=>({status:'complete',files:[{stem:'vocals',audioUrl:'https://cdn.example/voice.mp3',wavUrl:null}]})};
  };
  try{
   const host=document.getElementById('host'),cleanup=mountStemExtraction({host});
-  const file=host.querySelector('[data-ext-file]');
-  Object.defineProperty(file,'files',{configurable:true,value:[{name:'clip.mp3',size:2000,arrayBuffer:()=>pendingFile}]});
+  assert.equal(host.querySelector('[data-ext-file]'),null);
+  assert.equal(host.querySelector('[data-ext-url]'),null);
   const consent=host.querySelector('[data-ext-consent]');consent.checked=true;consent.setAttribute('checked','');
   const vocal=host.querySelector('[data-ext-stem="vocals"]');vocal.checked=true;vocal.setAttribute('checked','');
-  // Allow the read-only configuration check to finish before clicking.
   for(let i=0;i<6;i++)await Promise.resolve();
   const submitButton=host.querySelector('[data-ext-submit]');
   assert.equal(submitButton.disabled,false);
   submitButton.onclick();submitButton.onclick();
-  assert.equal(submitButton.disabled,true,'Button not locked: '+host.querySelector('[data-ext-status]').textContent);
-  releaseFile(new Uint8Array(2000).buffer);
-  for(let i=0;i<20;i++)await Promise.resolve();
-  assert.equal(paid,1,'Only one credit-bearing API submission is allowed.');
-  assert.match(host.querySelector('[data-ext-status]').textContent,/stem\(s\) ready|Submitted/);
+  assert.equal(submitButton.disabled,true);
+  for(let i=0;i<25;i++)await Promise.resolve();
+  assert.equal(paid,1,'Only one paid provider job must be submitted.');
+  assert.match(host.querySelector('[data-ext-status]').textContent,/stem\\(s\\) ready|Submitted|Processing/);
   cleanup();
  }finally{
+  w.buffer=savedBuffer;w.selection=savedSelection;
   if(previous.document===undefined)delete globalThis.document;else globalThis.document=previous.document;
   if(previous.fetch===undefined)delete globalThis.fetch;else globalThis.fetch=previous.fetch;
  }

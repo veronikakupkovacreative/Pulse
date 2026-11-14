@@ -28,16 +28,17 @@ test('the five producer modules mount their expected controls',()=>{
  try{
   const host=document.getElementById('host');
   const expected={
-   'release-preflight':['[data-pw-run]','[data-pw-metrics]','[data-pw-consent]'],
+   'release-preflight':['[data-pw-run]','[data-pw-metrics]','[data-pw-source]'],
    'vocal-session-mapper':['[data-pw-mode="transcribe"]','[data-pw-mode="align"]','[data-pw-mode="translate"]','[data-pw-script]'],
    'smart-sample-finder':['[data-pw-count]','[data-pw-highlights]'],
-   'sample-pack-lab':['[data-pw-files]','[data-pw-silence]','[data-pw-loudness]','[data-pw-convert]','[data-pw-ranges]'],
-   'stem-delivery-studio':['[data-pw-stems]','[data-pw-rate]','[data-pw-depth]']
+   'sample-pack-lab':['[data-pw-source]','[data-pw-silence]','[data-pw-loudness]','[data-pw-convert]','[data-pw-ranges]'],
+   'stem-delivery-studio':['[data-pw-source]','[data-pw-rate]','[data-pw-depth]']
   };
   for(const module of producerModules){
    const cleanup=module.mount({host});
    for(const selector of expected[module.id])assert.ok(host.querySelector(selector),module.id+' '+selector);
-   if(module.id!=='stem-delivery-studio')assert.match(host.textContent,/Audo/,'Cloud consent must name the provider');
+   if(!['stem-delivery-studio','release-preflight'].includes(module.id))assert.match(host.textContent,/Audo/,'Cloud consent must name the provider');
+   if(module.id==='release-preflight')assert.doesNotMatch(host.innerHTML,/type="file"|type="url"/);
    cleanup?.();host.replaceChildren();
   }
  }finally{if(old===undefined)delete globalThis.document;else globalThis.document=old;}

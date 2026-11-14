@@ -91,6 +91,9 @@ test('complete application routes to all 23 tools in ANALYZE / CREATE / PREPARE 
  globalThis.fetch=async()=>({ok:true,json:async()=>({configured:false})});
  globalThis.requestAnimationFrame=()=>1;
  globalThis.cancelAnimationFrame=()=>{};
+ globalThis.location={hash:'#/home'};
+ globalThis.history={pushState(_state,_title,hash){globalThis.location.hash=hash;}};
+ window.scrollTo=()=>{};
  const {visibleToolModules}=await import('../source/modules/index.mjs');
  await import('../source/app.mjs');
  assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Song Analyzer should mount by default');

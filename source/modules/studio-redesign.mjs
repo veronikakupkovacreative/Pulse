@@ -88,7 +88,7 @@ async function exportAudio(){
 
 const ROUTES=Object.freeze({
  'song-analyzer':'#/analyzer','music-tagger':'#/tagger','release-preflight':'#/release-preflight',
- 'editor':'#/editor','wav':'#/converter','visualizer':'#/visualizer',
+ 'editor':'#/editor','wav':'#/converter','visualizer':'#/visualizer','audio-protection':'#/protection',
  'ai2-mastering':'#/ai','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
 });
 let currentTool='song-analyzer';
@@ -111,7 +111,7 @@ function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
  document.body.dataset.route='tool';
  mode(currentTool==='editor');
  pageTitle(currentTool);
- const group=currentTool==='editor'?'editor':currentTool==='wav'?'wav':currentTool==='visualizer'?'visualizer':currentTool.startsWith('ai2-')?'ai2-mastering':'song-analyzer';
+ const group=currentTool==='editor'?'editor':currentTool==='wav'?'wav':currentTool==='visualizer'?'visualizer':currentTool==='audio-protection'?'audio-protection':currentTool.startsWith('ai2-')?'ai2-mastering':'song-analyzer';
  $$('.header-nav [data-open-tool]').forEach(link=>{
   const active=link.dataset.openTool===group;
   link.classList.toggle('is-active',active);

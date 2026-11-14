@@ -5,14 +5,15 @@ import {songAnalyzerModule,audioEditorModule} from './focused-tools.mjs';
 import {musicTaggerModule} from './music-tagger.mjs';
 import {mountAdvancedVisualizer} from './pulse-ai-master.mjs';
 import {producerModules} from './producer-workflows.mjs';
+import {audioProtectionModule} from './audio-protection-tool.mjs';
 const converter=existingToolModules.find(m=>m.id==='wav');
 if(!converter)throw Error('PULSE converter module missing.');
 const visualizer=Object.freeze({id:'visualizer',category:'create',label:'Audio Visualizer',mount:({host})=>mountAdvancedVisualizer({host})});
-const allModules=[songAnalyzerModule,musicTaggerModule,...producerModules,audioEditorModule,converter,...aiV2Modules,visualizer];
+const allModules=[songAnalyzerModule,musicTaggerModule,...producerModules,audioEditorModule,converter,audioProtectionModule,...aiV2Modules,visualizer];
 const categoryOverrides=Object.freeze({
  'song-analyzer':'analyze','music-tagger':'analyze','release-preflight':'analyze',
  'vocal-session-mapper':'analyze','smart-sample-finder':'analyze','ai2-beat':'analyze',
- 'editor':'prepare','wav':'prepare','sample-pack-lab':'prepare','stem-delivery-studio':'prepare',
+ 'editor':'prepare','wav':'prepare','audio-protection':'prepare','sample-pack-lab':'prepare','stem-delivery-studio':'prepare',
  'ai2-mastering':'prepare','ai2-watermark':'prepare'
 });
 export const visibleToolModules=Object.freeze(allModules.map(module=>Object.freeze({...module,category:categoryOverrides[module.id]||(module.category==='ai'?'create':module.category)||'create'})));
@@ -34,6 +35,7 @@ if(typeof document!=='undefined'){
   // Canonical last-loaded layer: keeps every red toolkit consistent with Beat Lab.
   const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
   const darkStyle=document.createElement('link');darkStyle.rel='stylesheet';darkStyle.href='/modules/studio-reference.css';document.head.append(darkStyle);
+  const protectionStyle=document.createElement('link');protectionStyle.rel='stylesheet';protectionStyle.href='/modules/protection.css';document.head.append(protectionStyle);
   workspace.mountSource();
   // HTML owns editorial copy. Never rewrite the approved design text on mount.
 }

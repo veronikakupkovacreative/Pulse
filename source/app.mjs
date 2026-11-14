@@ -26,6 +26,7 @@ const toolSummaries=Object.freeze({
  "ai2-extraction": "Separate vocals, drums and instruments.",
  "visualizer": "Waveforms, spectrum and audio-reactive visuals.",
  "release-preflight": "Check LUFS, true peak, clipping, noise floor and delivery metadata.",
+ "audio-protection": "Add a private watermark, producer tag and protected WAV preview to SOURCE AUDIO.",
  "vocal-session-mapper": "Transcribe vocals, align lyrics and translate sessions.",
  "smart-sample-finder": "Find standout moments and export sample ranges.",
  "sample-pack-lab": "Batch clean, normalize, chop and convert sample packs.",

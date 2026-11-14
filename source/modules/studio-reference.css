@@ -878,3 +878,5 @@ html,body{background:#0e0e0f!important;color:#f4f2ee!important;color-scheme:dark
 :root{--ps-page:#0e0e0f;--ps-red:#ff4d1c;--ps-surface:#141416;--ps-text:#f4f2ee;--ps-sub:#bdbab1;--ps-border:#2a2a2e}
 
 @media(max-width:640px){#pulse-proto-root .filechip{max-width:100%;flex-wrap:wrap}#pulse-proto-root .editor__head{gap:12px}}
+
+#pulse-proto-root .brand .brand-period{font:700 10px/1.2 Arial,Helvetica,sans-serif!important;letter-spacing:0!important;color:var(--accent)!important;align-self:flex-start;margin-left:-4px}

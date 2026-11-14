@@ -8,16 +8,16 @@ const ID=/^[A-Za-z0-9_-]{8,120}$/;
 const ERROR_COPY={
  CREDIT_PROTECTION_REQUIRED:'Refresh the page and try again.',
  MUSICGPT_MUSICAI_NOT_CONFIGURED:'Music AI is not configured for this deployment.',
- CREDIT_CONSENT_REQUIRED:'You must confirm paid MusicGPT generation.',
+ CREDIT_CONSENT_REQUIRED:'Confirm permission to generate the tracks.',
  INVALID_GENERATION_PARAMETERS:'Check the prompt, music style, lyrics and output settings.',
- INSUFFICIENT_CREDITS:'Not enough MusicGPT credits to generate two tracks.',
- MUSICGPT_AUTH_FAILED:'MusicGPT rejected the server-side API key.',
+ INSUFFICIENT_CREDITS:'Music generation is temporarily unavailable.',
+ MUSICGPT_AUTH_FAILED:'Service authorization failed.',
  INVALID_PROVIDER_REQUEST:'MusicGPT rejected these generation parameters.',
- RATE_LIMITED:'MusicGPT rate limit reached. Try again later.',
- MISSING_CONVERSION_IDS:'MusicGPT did not return two track IDs; check your provider account before generating again.',
- MUSICGPT_TIMEOUT:'MusicGPT timed out. The paid job may still have started; check your MusicGPT account before retrying.',
- MUSICGPT_CONNECTION_ERROR:'Connection to MusicGPT failed. Check existing provider jobs before starting another.',
- INVALID_PROVIDER_RESPONSE:'MusicGPT returned an incomplete response.'
+ RATE_LIMITED:'Too many requests. Try again later.',
+ MISSING_CONVERSION_IDS:'Two track IDs were not returned. Check the job status before retrying.',
+ MUSICGPT_TIMEOUT:'Generation timed out. Check the existing job before retrying.',
+ MUSICGPT_CONNECTION_ERROR:'Could not connect. Check existing jobs before starting another.',
+ INVALID_PROVIDER_RESPONSE:'The service returned an incomplete response.'
 };
 const $=(host,selector)=>host.querySelector(selector);
 const allowedLink=value=>{
@@ -27,9 +27,9 @@ const allowedLink=value=>{
 export function mountMusicAIV2({host}={}){
  if(!host)throw Error('Music AI needs a host element.');
  host.innerHTML='<section class="tool-view ai2-panel pulse-musicai" aria-label="AI Music Generator">'+
- '<div class="tool-view-header"><span>04 / AI STUDIO / MUSIC GENERATOR</span><span>MUSICGPT / MUSIC AI</span></div>'+
+ '<div class="tool-view-header"><span>04 / AI STUDIO / MUSIC GENERATOR</span><span>MUSIC GENERATION</span></div>'+
  '<h3>Generate a track.<br><span>Choose your version.</span></h3>'+
- '<p class="tool-description">Create complete original music from a prompt or your own lyrics. Choose your sound. MusicGPT generates TWO variations on its servers using paid API credits. SOURCE AUDIO is not uploaded.</p>'+
+ '<p class="tool-description">Create two original tracks from a prompt or your own lyrics. SOURCE AUDIO remains unchanged.</p>'+
  '<div class="pulse-mai-modes" role="group" aria-label="Song generation input mode"><button type="button" data-mai-mode="prompt" aria-pressed="true">PROMPT TO SONG</button><button type="button" data-mai-mode="custom" aria-pressed="false">CUSTOM LYRICS</button></div>'+
  '<form class="pulse-mai-form" data-mai-form novalidate>'+
  '<label class="pulse-mai-field" data-mai-prompt-group>SONG DESCRIPTION / MAX 280 CHARACTERS<textarea data-mai-prompt rows="4" maxlength="280" placeholder="Dark cinematic trap, punchy 808s, sparse haunting piano, 145 BPM, expressive hook..." required></textarea></label>'+
@@ -40,14 +40,14 @@ export function mountMusicAIV2({host}={}){
  '<label class="pulse-mai-field">VOCAL CHARACTER<select data-mai-gender><option value="">AUTO</option><option value="female">FEMALE</option><option value="male">MALE</option><option value="neutral">NEUTRAL</option></select></label>'+
  '</div>'+
  '<label class="pulse-mai-field">TRACK TITLE / OPTIONAL<input data-mai-title maxlength="120" placeholder="Untitled session"></label>'+
- '<label class="pulse-mai-field">VOICE ID / OPTIONAL · AUTHORIZED MODELS ONLY<input data-mai-voice maxlength="120" autocomplete="off" placeholder="Voice ID from your MusicGPT account"></label>'+
+ '<label class="pulse-mai-field">VOICE ID / OPTIONAL<input data-mai-voice maxlength="120" autocomplete="off" placeholder="Enter an authorized voice ID"></label>'+
  '<label class="pulse-mai-check"><input type="checkbox" data-mai-cover> GENERATE ALBUM COVER WITH THE TRACK</label>'+
- '<p class="ai2-note">No API key required · PULSE credits.</p>'+
+ ''+
  '<label class="pulse-mai-check pulse-mai-consent"><input type="checkbox" data-mai-consent required> I have the rights to the lyrics and any voice model. I agree to send this text to MusicGPT to generate TWO versions.</label>'+
- '<p class="pulse-mai-hint">For reliable results, keep the prompt within 280 characters. MusicGPT determines the actual credit cost and generation time. This interface provides completed-track playback and downloads.</p>'+
+ '<p class="pulse-mai-hint">Keep the prompt within 280 characters.</p>'+
  '<button type="submit" class="ai2-action pulse-mai-generate" data-mai-generate>GENERATE 2 VERSIONS <span aria-hidden="true">↗</span></button>'+
  '</form>'+
- '<div class="pulse-mai-status-panel"><div class="pulse-mai-status-heading"><strong data-mai-config>CHECKING MUSICGPT</strong><span data-mai-job-label>NO JOB</span></div><p class="pulse-mai-status" role="status" aria-live="polite" data-mai-status>Choose a mode, describe your track and authorize the generation.</p>'+
+ '<div class="pulse-mai-status-panel"><div class="pulse-mai-status-heading"><strong data-mai-config>CHECKING</strong><span data-mai-job-label>NO JOB</span></div><p class="pulse-mai-status" role="status" aria-live="polite" data-mai-status>Choose a mode, describe your track and authorize the generation.</p>'+
  '<div class="pulse-mai-job-actions"><button type="button" data-mai-resume hidden>CHECK / RESUME JOB ↗</button><button type="button" data-mai-stop hidden>STOP CHECKING</button><button type="button" data-mai-reset hidden>NEW GENERATION</button></div></div>'+
  '<div class="pulse-mai-results" data-mai-results hidden aria-label="Generated versions">'+
  '<div class="pulse-mai-result-head"><strong>GENERATED VARIATIONS</strong><span>2 SEPARATE TRACKS</span></div>'+
@@ -85,7 +85,7 @@ export function mountMusicAIV2({host}={}){
    card.querySelector('[data-mai-track-status]').textContent='QUEUED';
    const body=card.querySelector('[data-mai-track-body]');body.replaceChildren();
    const label=document.createElement('p');
-   label.textContent='Waiting for MusicGPT version '+(i===0?'A':'B')+'…';
+   label.textContent='Waiting for version '+(i===0?'A':'B')+'…';
    body.append(label);
   }
  }
@@ -95,7 +95,7 @@ export function mountMusicAIV2({host}={}){
   const label=card.querySelector('[data-mai-track-status]'),body=card.querySelector('[data-mai-track-body]');
   if(data.status==='failed'){
    label.textContent='FAILED';card.dataset.complete='failed';
-   body.textContent='MusicGPT could not generate this variation. Check the provider account for details.';
+   body.textContent='This variation could not be generated. Check the job status.';
    outputs[i]='failed';return;
   }
   if(data.status!=='complete'){
@@ -139,7 +139,7 @@ export function mountMusicAIV2({host}={}){
    body:JSON.stringify({action,...data}),signal,cache:'no-store'
   });
   const json=await response.json().catch(()=>({error:'INVALID_PROVIDER_RESPONSE'}));
-  if(!response.ok)throw Error(response.status===429?'PULSE cloud limit reached. Try in 10 minutes.':ERROR_COPY[json.error]||'MusicGPT request failed ('+(json.error||response.status)+').');
+  if(!response.ok)throw Error(response.status===429?'PULSE cloud limit reached. Try in 10 minutes.':ERROR_COPY[json.error]||'Generation failed ('+(json.error||response.status)+').');
   return json;
  }
  const wait=(ms,signal)=>new Promise((resolve,reject)=>{
@@ -166,7 +166,7 @@ export function mountMusicAIV2({host}={}){
       'Generation finished, but one or more variations failed. Check the status of each version.',outputs.some(x=>x==='failed'));
      return;
     }
-    status('MusicGPT is generating the tracks. Checking two versions · round '+(round+1)+'/45. You can stop checking and resume later.');
+    status('Generating two tracks · check '+(round+1)+'/45. You can stop checking and resume later.');
     if(round<44)await wait(10_000,ac.signal);
    }
    status('Still processing. Use CHECK / RESUME JOB to continue later. No additional generation charge.');
@@ -177,7 +177,7 @@ export function mountMusicAIV2({host}={}){
   }
  }
  const readValues=()=>{
-  if(!configured)throw Error('MusicGPT Music AI is not configured on this deployment.');
+  if(!configured)throw Error('Music generation is temporarily unavailable.');
   if(!get('[data-mai-consent]').checked)throw Error('Confirm authorization and credit usage for both generated versions.');
   const prompt=get('[data-mai-prompt]').value.trim();
   const lyrics=get('[data-mai-lyrics]').value.trim();
@@ -195,16 +195,15 @@ export function mountMusicAIV2({host}={}){
   if(disposed||submitting||polling||job)return;
   let values;try{values=readValues();}catch(error){status(error.message,true);return;}
   const ac=new AbortController();controller=ac;submitting=true;showJob();
-  status('Submitting paid MusicGPT Music AI generation for TWO tracks. Do not submit again if the connection times out.');
+  status('Submitting two-track generation… Do not submit again if the connection times out.');
   try{
    const result=await request('generate',values,ac.signal);
    if(disposed||ac.signal.aborted)return;
-   if(result.versions?.length!==2||!result.versions.every(v=>ID.test(v.id||'')))throw Error('MusicGPT returned an invalid job. Check your account before retrying.');
+   if(result.versions?.length!==2||!result.versions.every(v=>ID.test(v.id||'')))throw Error('The job response was invalid. Check its status before retrying.');
    job={ids:result.versions.map(v=>v.id),taskId:result.taskId,created:Date.now()};
    persist();resetCards();
    get('[data-mai-results]').hidden=false;
-   status('Two versions submitted'+(result.creditEstimate!==null?' · estimated '+result.creditEstimate+' credits':'')+
-    (result.eta!==null?' · ETA '+result.eta+' seconds':'')+'. Preparing the results…');
+   status('Two versions submitted. Preparing the results…');
   }catch(error){
    if(!disposed&&error.name!=='AbortError')status(error.message||'Could not submit generation.',true);
   }finally{
@@ -214,13 +213,13 @@ export function mountMusicAIV2({host}={}){
  });
  get('[data-mai-stop]').onclick=()=>{
   counter++;controller?.abort();controller=null;polling=false;showJob();
-  status('Stopped checking. MusicGPT may still be generating. Resume without submitting another paid job.');
+  status('Stopped checking. Generation may still be running. Resume without submitting another job.');
  };
  get('[data-mai-resume]').onclick=()=>{if(!polling&&job)void checkVersions();};
  get('[data-mai-reset]').onclick=()=>{
   if(polling||submitting)return;
   job=null;outputs=[null,null];persist();resetCards();showJob();
-  status('Ready for a NEW paid generation. Previous generated files remain with MusicGPT.');
+  status('Ready for a new generation. Previous results remain in your history.');
  };
  // Session keeps only conversion IDs; no API secrets.
  try{
@@ -238,8 +237,8 @@ export function mountMusicAIV2({host}={}){
    const info=await res.json();
    if(disposed)return;
    configured=res.ok&&info.configured===true;
-   get('[data-mai-config]').textContent=configured?'MUSICGPT MUSIC AI / READY':'MUSICGPT MUSIC AI / NOT CONFIGURED';
-   if(!configured)status('Music AI is not configured in this deployment. The API key must be set in the server environment.',true);
+   get('[data-mai-config]').textContent=configured?'READY':'UNAVAILABLE';
+   if(!configured)status('Music generation is temporarily unavailable.',true);
   }catch{if(!disposed){get('[data-mai-config]').textContent='CONFIGURATION STATUS UNAVAILABLE';}}
  })();
  return()=>{

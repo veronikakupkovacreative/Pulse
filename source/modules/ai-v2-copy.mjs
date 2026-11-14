@@ -2,19 +2,19 @@
 const data=Object.freeze({
  'ai2-mastering':{
   title:['Master the track','Finish the sound'],
-  summary:'Process your mix entirely in PULSE using adaptive EQ, compression, saturation and output limiting. Analyze loudness and stereo image, optionally match a reference locally, then compare A/B and export 24-bit WAV. No cloud upload, API token or paid credits.',
+  summary:'Master your mix with adaptive EQ, compression, saturation and output limiting. Analyze loudness and stereo image, match a reference, compare A/B and export 24-bit WAV.',
   steps:['Load your mix into SOURCE AUDIO. Optionally choose a reference track to compare loudness and spectral balance locally.','Select a mastering preset, use AUTO ANALYZE or adjust the EQ, compressor and limiter controls yourself.','Render MASTER on-device, compare original, master and reference, then apply with Undo or export a 24-bit WAV.'],
-  benefits:[['100% LOCAL MASTERING','All processing happens in your browser with no cloud transfer or API credits.'],['REFERENCE MATCH','Analyze a reference track locally to guide loudness, tonal balance and dynamics.'],['A/B AND 24-BIT WAV','Audition the result before applying; preserve Undo and export a 24-bit mastered WAV.']]},
+  benefits:[['MASTERING CONTROL','Shape tone, dynamics and loudness with a complete mastering chain.'],['REFERENCE MATCH','Analyze a reference track locally to guide loudness, tonal balance and dynamics.'],['A/B AND 24-BIT WAV','Audition the result before applying; preserve Undo and export a 24-bit mastered WAV.']]},
  'ai2-stereo':{
   title:['Shape the stereo','Keep the bass solid'],
-  summary:'Control stereo width, Mid/Side balance, low-frequency mono, panning and output gain. Fully local DSP in a Web Worker; no neural isolation or stem splitting.',
+  summary:'Control stereo width, Mid/Side balance, low-frequency mono, panning and output gain.',
   steps:['Load your stereo track in SOURCE AUDIO.','Choose Natural, Wide Mix or Mono Low and refine width, bass crossover and pan.','Analyze phase correlation, apply the result and use Undo to compare.'],
   benefits:[['MID/SIDE CONTROL','Control stereo width while monitoring correlation and mono compatibility.'],['BASS MONO','Centre low frequencies below an adjustable crossover.'],['REAL LOCAL DSP','Offline audio processing in a Worker with peak protection.']]},
  'ai2-vocals':{
   title:['Refine the voice','Create natural doubles'],
-  summary:'Choose local Vocal Enhance, local Vocal Doubler, or optional MusicGPT AI Voice Changer. Only AI Voice Changer uploads a short authorized vocal excerpt after explicit consent; local DSP remains private.',
-  steps:['Load a vocal into SOURCE AUDIO or choose an optional short file.','Choose local ENHANCE/DOUBLER, or MusicGPT AI VOICE CHANGER with an authorized voice ID and consent.','Process the vocal, listen to the result and download it. Local DSP is reversible with Undo.'],
-  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['LOCAL OR CLOUD','Enhance and Doubler are local. MusicGPT AI Voice Changer uses the public cloud gateway.'] ]},
+  summary:'Choose Vocal Enhance, Vocal Doubler or AI Voice Changer. Local processing is reversible; voice conversion requires permission to upload the vocal.',
+  steps:['Load a vocal into SOURCE AUDIO or choose an optional short file.','Choose local ENHANCE/DOUBLER or AI VOICE CHANGER with an authorized voice and consent.','Process the vocal, listen to the result and download it. Local DSP is reversible with Undo.'],
+  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['THREE VOCAL TOOLS','Enhance, double or convert a voice with separate controls.'] ]},
  'ai2-beat':{
   title:['Read the rhythm','Find the groove'],
   summary:'Estimate tempo and beat markers without freezing the UI, create a four-bar region and export a ready-to-use loop.',
@@ -22,14 +22,14 @@ const data=Object.freeze({
   benefits:[['BEAT MARKERS','Beat positions appear in the shared waveform.'],['BACKGROUND ANALYSIS','Signal processing runs in a dedicated Worker.'],['PRECISE LOOP EXPORT','Export the selected range as 24-bit WAV.']]},
  'ai2-mix':{
   title:['Balance the tracks','Build a mix'],
-  summary:'Import stems or recordings, get RMS-based gain suggestions and render a stereo mix. The suggestions are DSP heuristics rather than a trained AI model.',
+  summary:'Import stems or recordings, balance gain and pan, then render a stereo mix.',
   steps:['Add your SOURCE AUDIO and extra track files.','Adjust gain and pan, optionally apply RMS balance suggestions.','Render the stereo mix and compare it with Undo.'],
   benefits:[['MULTITRACK IMPORT','Mix up to eight mono or stereo sources.'],['GAIN ASSISTANCE','Use RMS estimates to reach a consistent starting balance.'],['PEAK PROTECTION','Render with basic stereo summing protection.']]},
  'ai2-repair':{
   title:['Remove the noise','Preserve the detail'],
-  summary:'Choose local spectral repair for steady hiss or Audo AI Vocal Cleanup for speech noise and echo. Cloud transfer is opt-in and free-tier limited.',
-  steps:['Load a noisy recording.','Choose LOCAL SPECTRAL or AI VOCAL CLEANUP; the latter requires permission to send audio to Audo.','Render locally, or preview and download the Audo result.'],
-  benefits:[['LOCAL SPECTRAL','Reduce steady noise without uploading.'],['AI VOCAL CLEANUP','Remove speech noise or restore an echoey microphone using Audo.'],['SAFE PREVIEW','Download the AI result separately; SOURCE AUDIO is unchanged.']]},
+  summary:'Choose local spectral repair for steady hiss or AI Vocal Cleanup for speech noise and echo.',
+  steps:['Load a noisy recording.','Choose LOCAL SPECTRAL or AI VOCAL CLEANUP. Confirm permission before uploading audio.','Render locally, or preview and download the Audo result.'],
+  benefits:[['LOCAL SPECTRAL','Reduce steady noise without uploading.'],['AI VOCAL CLEANUP','Remove speech noise or restore an echoey microphone recording.'],['SAFE PREVIEW','Download the AI result separately; SOURCE AUDIO is unchanged.']]},
  'ai2-pitch':{
   title:['Transform the tempo','Keep the pitch'],
   summary:'Change tempo independently from musical pitch using Web Worker DSP. Limited to two-minute clips and moderate shifts to reduce audible artifacts.',
@@ -37,19 +37,19 @@ const data=Object.freeze({
   benefits:[['INDEPENDENT CONTROLS','Tempo change does not inherently transpose the notes.'],['WORKER PROCESSING','The UI stays responsive during rendering.'],['LOCAL BY DEFAULT','No sound files are sent to a server.']]},
  'ai2-fx':{
   title:['Build an FX chain','Shape the energy'],
-  summary:'Use local sidechain and modulation effects, or generate original short sound effects from a text description using Audo AI.',
+  summary:'Use local sidechain and modulation effects, or generate short sound effects from a text description.',
   steps:['Use a local effects rack with SOURCE AUDIO, or open AI SOUND EFFECTS.','For AI describe a sound and choose duration; no source file is required.','Apply local DSP or preview and download the generated sound.'],
-  benefits:[['LOCAL FX','Sidechain and modulation processors.'],['AI SOUND DESIGN','Create dark whooshes, impacts or atmospheres.'],['FREE PREVIEW','Audo offers limited free short generations.']]},
+  benefits:[['LOCAL FX','Sidechain and modulation processors.'],['AI SOUND DESIGN','Create dark whooshes, impacts or atmospheres.'],['SOUND DESIGN','Create short whooshes, impacts and atmospheres from text.']]},
  'ai2-musicai':{
   title:['Generate original music','Pick your version'],
-  summary:'Create two original tracks with MusicGPT MusicAI from a description or your lyrics. Source audio stays on your device.',
-  steps:['Describe your music or enter original lyrics.','Choose output and approve MusicGPT processing. No credentials needed.','Check progress and download either completed version.'],
-  benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['USAGE PROTECTION','Rate limits protect PULSE credits.']]},
+  summary:'Generate two original tracks from a description or your own lyrics. SOURCE AUDIO remains unchanged.',
+  steps:['Describe your music or enter original lyrics.','Choose an output and confirm permission to submit the prompt.','Check progress and download either completed version.'],
+  benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['TWO VERSIONS','Listen to and download either generated track.']]},
  'ai2-extraction':{
   title:['Separate the stems','Keep every layer'],
-  summary:'Extract individual vocal and instrument stems with MusicGPT Extraction v2. Explicit permission is required. No credentials needed. Audio is uploaded to MusicGPT only when you submit.',
+  summary:'Separate vocals, drums, bass and individual instruments. Audio is uploaded only after you confirm permission.',
   steps:['Choose a short audio upload, SOURCE AUDIO excerpt or supported YouTube URL.','Select stems, optional preprocessing and confirm your rights to the audio.','Start extraction once, then check the same job ID to preview and download available stems.'],
-  benefits:[['CHOOSE YOUR STEMS','Split vocals, instruments, bass or individual drum elements.'],['CLOUD AI PROCESSING','MusicGPT v2 processes the audio after explicit approval.'],['RESUMABLE JOBS','Check pending extraction results without a new paid submission.']]},
+  benefits:[['CHOOSE YOUR STEMS','Split vocals, instruments, bass or individual drum elements.'],['SELECTIVE OUTPUT','Choose the parts you want to separate.'],['RESUMABLE JOBS','Check a pending extraction without submitting it again.']]},
  'ai2-watermark':{
   title:['Inspect provenance','Keep the audio'],
   summary:'Inspect and remove supported metadata from WAV, MP3, FLAC and M4A without audio re-encoding. A separate text tab removes selected invisible characters and offers opt-in normalization. Embedded acoustic AI watermarks are not detected or removed.',
@@ -57,9 +57,9 @@ const data=Object.freeze({
   benefits:[['LOCAL INSPECTION','Audio and text remain on your device.'],['LOSSLESS AUDIO','Only selected container metadata is removed; encoded sound remains unchanged.'],['CLEAR LIMITS','No false promises about embedded acoustic watermarks.']]},
  'ai2-lyrics':{
   title:['Generate lyrics','Shape the story'],
-  summary:'Create original song lyrics in PULSE from a theme, genre, mood, language and song structure. MusicGPT processes a text prompt on its servers using PULSE cloud credits. Your audio is never uploaded.',
+  summary:'Create editable lyrics from a theme, genre, mood, language and song structure.',
   steps:['Enter a song idea and select the desired genre, mood, language and structure.','Approve text submission and generate original lyrics.','Edit the generated lyrics in place, copy them or export a TXT file.'],
-  benefits:[['CREATIVE DIRECTION','Guide the original lyrics using theme, genre, mood, language and song structure.'],['EDITABLE RESULT','Revise generated lines directly in PULSE before copying or downloading the full text.'],['CLOUD TEXT, NO AUDIO','Only your text instructions reach MusicGPT after explicit approval; original audio remains on your device.']]}
+  benefits:[['CREATIVE DIRECTION','Guide the original lyrics using theme, genre, mood, language and song structure.'],['EDITABLE RESULT','Revise generated lines directly in PULSE before copying or downloading the full text.'],['TEXT INPUT','Shape the lyrics with a written idea and style choices.']]}
 });
 export const isAiV2 = module => !!module && Object.hasOwn(data,module.id);
 export function renderAiV2Copy(module,root=document){

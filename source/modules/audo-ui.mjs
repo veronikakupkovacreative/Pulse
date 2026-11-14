@@ -1,4 +1,4 @@
-/** Audo free-tier UI for PULSE. No user keys, payment or account required. */
+/** Audo free-tier tools for PULSE. */
 import {workspace as w} from './workspace.mjs';
 import {makeCloudTaggingExcerpt} from './music-tagger.mjs';
 
@@ -11,17 +11,17 @@ const ERROR_MESSAGES={
  AUDIO_SIZE_LIMIT:'File exceeds the 2.4 MB upload limit. Select a short section in SOURCE AUDIO.',
  INVALID_REDUCTION:'Noise reduction must be 10–100%.',
  INVALID_SOUND_EFFECT:'Provide a description (up to 450 characters) and length 0.5–10 seconds.',
- AUDO_FREE_LIMIT:'Audo free quota has been used today. Try after the UTC daily reset.',
- AUDO_FREE_ONLY:'This free preview cannot use paid credits.',
- AUDO_PROVIDER_ERROR:'Audo could not complete the request. Try later.',
- AUDO_STATUS_UNAVAILABLE:'The Audo job status is temporarily unavailable.',
- AUDO_REQUEST_TIMEOUT:'Audo timed out. The job may still be running. Do not submit another job immediately.',
- AUDO_CONNECTION_ERROR:'Cannot reach Audo. Check your connection.',
+ AUDO_FREE_LIMIT:'Daily free limit reached. Try again after the reset.',
+ AUDO_FREE_ONLY:'This request is not available in the free tier.',
+ AUDO_PROVIDER_ERROR:'Processing failed. Try again later.',
+ AUDO_STATUS_UNAVAILABLE:'Job status is temporarily unavailable.',
+ AUDO_REQUEST_TIMEOUT:'Processing timed out. The job may still be running; check its status before retrying.',
+ AUDO_CONNECTION_ERROR:'Could not connect. Check your connection.',
  AUDO_RATE_GATE_REQUIRED:'Reload PULSE and try again.',
- CLOUD_CONSENT_REQUIRED:'Confirm permission to send content to Audo.',
- AUDO_PROCESSING_FAILED:'Audo reported a failed job.',
- MISSING_AUDO_STATUS_URL:'Audo did not provide a usable status link.',
- UNRECOGNIZED_AUDO_OUTPUT:'Audo returned an unfamiliar result.',
+ CLOUD_CONSENT_REQUIRED:'Confirm permission to upload this content.',
+ AUDO_PROCESSING_FAILED:'Processing failed.',
+ MISSING_AUDO_STATUS_URL:'No usable job status was returned.',
+ UNRECOGNIZED_AUDO_OUTPUT:'The processing service returned an unsupported result.',
  AUDO_OUTPUT_TOO_LARGE:'Output is too large to download through PULSE.'
 };
 const wait=(ms,signal)=>new Promise((resolve,reject)=>{
@@ -37,7 +37,7 @@ export async function requestAudo(body,{signal}={}){
  });
  const data=await response.json().catch(()=>({error:'INVALID_AUDO_RESPONSE'}));
  if(!response.ok)throw Error(response.status===429?'Free usage limit reached. Try again later.':
-  ERROR_MESSAGES[data.error]||'Audo request failed ('+String(data.error||response.status)+').');
+  ERROR_MESSAGES[data.error]||'Processing request failed ('+String(data.error||response.status)+').');
  return data;
 }
 export async function completeAudo(request,tool,{signal,onProgress=()=>{}}={}){
@@ -45,11 +45,11 @@ export async function completeAudo(request,tool,{signal,onProgress=()=>{}}={}){
  for(let attempt=0;attempt<35;attempt++){
   if(data.status==='complete')return data;
   if(data.status!=='processing'||!data.statusUrl)throw Error('Audo did not return a usable job.');
-  onProgress('Audo is processing · check '+(attempt+1)+'/35.');
+  onProgress('Processing · check '+(attempt+1)+'/35.');
   await wait(2500,signal);
   data=await requestAudo({action:'status',tool,statusUrl:data.statusUrl},{signal});
  }
- throw Error('Still processing at Audo. Please try later; do not submit the same job repeatedly.');
+ throw Error('Still processing. Try again later; do not submit the same job repeatedly.');
 }
 const status=(host,text,error=false)=>{
  const el=host.querySelector('[data-audo-status]');
@@ -75,7 +75,7 @@ export async function audoWorkspaceFile({maxSeconds=12}={}){
 }
 function audioUrl(result,urls){
  if(result?.audioUrl?.startsWith('https://'))return result.audioUrl;
- if(typeof result?.base64!=='string'||!/^audio\//.test(result.mime||''))throw Error('Audo did not return playable audio.');
+ if(typeof result?.base64!=='string'||!/^audio\//.test(result.mime||''))throw Error('No playable audio was returned.');
  const binary=atob(result.base64),bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
  const url=URL.createObjectURL(new Blob([bytes],{type:result.mime}));
@@ -87,27 +87,24 @@ function showAudio(host,result,urls,downloadBase){
  root.replaceChildren();disposeUrls(urls);
  const url=audioUrl(result,urls);
  const player=document.createElement('audio');player.controls=true;player.preload='metadata';player.src=url;
- player.setAttribute('aria-label','Audo processed audio');
+ player.setAttribute('aria-label','Processed audio');
  const link=document.createElement('a');link.href=url;link.textContent='DOWNLOAD AUDIO ↗';
  if(url.startsWith('blob:'))link.download=(downloadBase||'pulse-audo')+(result.mime?.includes('wav')?'.wav':'.mp3');
  else {link.target='_blank';link.rel='noopener noreferrer';}
- const note=document.createElement('small');note.textContent='Audo free-tier result · '+(result.processedSeconds!=null?
-  result.processedSeconds.toFixed(1)+' s processed · ':'')+'download while available.';
- root.append(player,link,note);root.hidden=false;
+ root.append(player,link);root.hidden=false;
 }
-const copy='Audo free API · no key · daily free quota shared on this service. Files are transferred only with consent.';
 export function mountAudoVocalCleanup({host}){
  host.innerHTML='<section class="tool-view ai2-panel audo-panel" data-audo-cleanup>'+
-  '<div class="tool-view-header"><span>04 / AUDIO REPAIR / AI VOCAL CLEANUP</span><span>AUDO CLOUD / FREE PREVIEW</span></div>'+
+  '<div class="tool-view-header"><span>04 / AUDIO REPAIR / AI VOCAL CLEANUP</span><span>SPEECH CLEANUP</span></div>'+
   '<h3>Clean the voice.<br><span>Keep the character.</span></h3>'+
-  '<p class="tool-description">Speech-focused cleanup. Preserve Voice removes background noise; Studio Restore may regenerate the voice and change its timbre. Neither mode is intended for mastered music.</p>'+
+  '<p class="tool-description">Clean speech recordings. Studio Restore can change the voice character; it is not intended for finished music mixes.</p>'+
   '<div class="audo-fields"><label>PROCESSING MODE<select data-audo-mode><option value="remove-noise">PRESERVE VOICE · Noise removal</option><option value="enhance-voice">STUDIO RESTORE · Echo + distortion</option></select></label>'+
   '<label>STRENGTH / BLEND · <output data-audo-strength-label>85%</output><input data-audo-strength type="range" min="10" max="100" step="5" value="85"></label></div>'+
   '<label class="audo-check"><input type="checkbox" data-audo-volume checked> Normalize speech output to -16 LUFS</label>'+
-  '<p class="ai2-note">Use the current SOURCE AUDIO (or a Shift-drag selection). For larger files PULSE sends a short excerpt, not the whole track.</p>'+
+  '<p class="ai2-note">Use SOURCE AUDIO or a Shift-drag selection. Larger recordings use a short excerpt.</p>'+
   '<label class="audo-check"><input type="checkbox" data-audo-consent> I have rights to this voice and agree to upload the selected audio to Audo.</label>'+
   '<button class="ai2-action" type="button" data-audo-run>CLEAN VOCAL ↗</button>'+
-  '<p class="ai2-status" data-audo-status role="status" aria-live="polite">Load a vocal in SOURCE AUDIO. '+copy+'</p>'+
+  '<p class="ai2-status" data-audo-status role="status" aria-live="polite">Load a vocal in SOURCE AUDIO.</p>'+
   '<div class="audo-output" data-audo-output hidden></div></section>';
  const run=host.querySelector('[data-audo-run]'),slider=host.querySelector('[data-audo-strength]');
  slider.oninput=()=>{host.querySelector('[data-audo-strength-label]').textContent=slider.value+'%';};
@@ -118,10 +115,10 @@ export function mountAudoVocalCleanup({host}){
   if(!host.querySelector('[data-audo-consent]').checked)return status(host,'Confirm permission to send the audio to Audo.',true);
   busy=true;run.disabled=true;controller=new AbortController();
   try{
-   status(host,'Preparing a short audio excerpt…');
+   status(host,'Preparing audio…');
    const prepared=await audoWorkspaceFile({maxSeconds:12});
    if(disposed||controller.signal.aborted)return;
-   status(host,'Sending '+prepared.scope.toLowerCase()+' to Audo…');
+   status(host,'Sending '+prepared.scope.toLowerCase()+'…');
    const result=await completeAudo({tool:'cleanup',mode:host.querySelector('[data-audo-mode]').value,
     file:prepared.file,strength:Number(slider.value),autoVolume:host.querySelector('[data-audo-volume]').checked,consent:true},
     'cleanup',{signal:controller.signal,onProgress:text=>!disposed&&status(host,text)});
@@ -141,7 +138,7 @@ export function mountAudoVocalCleanup({host}){
 }
 export function mountAudoSfx({host}){
  host.innerHTML='<section class="tool-view ai2-panel audo-panel" data-audo-sfx>'+
-  '<div class="tool-view-header"><span>04 / SMART FX / SOUND EFFECTS</span><span>AUDO / AI CLOUD</span></div>'+
+  '<div class="tool-view-header"><span>04 / SMART FX / SOUND EFFECTS</span><span>SOUND DESIGN</span></div>'+
   '<h3>Describe it.<br><span>Hear it.</span></h3>'+
   '<p class="tool-description">Generate an original whoosh, impact, texture or atmosphere from a text description. Does not modify SOURCE AUDIO.</p>'+
   '<label class="audo-label">SOUND DESCRIPTION<textarea data-audo-prompt maxlength="450" rows="4" placeholder="A low, distorted cinematic impact with a metallic echo and deep sub tail"></textarea></label>'+
@@ -153,7 +150,7 @@ export function mountAudoSfx({host}){
   '<label class="audo-check"><input type="checkbox" data-audo-loop> Seamless loop</label>'+
   '<label class="audo-check"><input type="checkbox" data-audo-consent> Send the description to Audo to generate the sound.</label>'+
   '<button type="button" class="ai2-action" data-audo-run>GENERATE SOUND ↗</button>'+
-  '<p class="ai2-status" data-audo-status role="status" aria-live="polite">'+copy+' Free generation: up to 10 s.</p>'+
+  '<p class="ai2-status" data-audo-status role="status" aria-live="polite">Describe a sound to begin.</p>'+
   '<div class="audo-output" data-audo-output hidden></div></section>';
  const run=host.querySelector('[data-audo-run]'),prompt=host.querySelector('[data-audo-prompt]');
  for(const preset of host.querySelectorAll('[data-audo-preset]'))preset.onclick=()=>{prompt.value=preset.dataset.audoPreset;prompt.focus();};
@@ -202,23 +199,23 @@ export function mountAudoKeyComparison({host}){
    notice.textContent='Preparing independent analysis…';
    const prepared=await audoWorkspaceFile({maxSeconds:20});
    if(disposed||controller.signal.aborted||w.buffer!==source)return;
-   notice.textContent='Analyzing '+prepared.scope.toLowerCase()+' using Audo…';
+   notice.textContent='Analyzing '+prepared.scope.toLowerCase()+'…';
    const result=await completeAudo({tool:'crosscheck',file:prepared.file,consent:true},'crosscheck',
     {signal:controller.signal,onProgress:msg=>{if(!disposed)notice.textContent=msg;}});
    if(disposed||controller.signal.aborted||w.buffer!==source)return;
    const data=result.analysis;
-   if(!data||(!data.bpm&&!data.key&&!data.camelot))throw Error('Audo returned no usable musical estimates.');
+   if(!data||(!data.bpm&&!data.key&&!data.camelot))throw Error('No usable musical estimate was returned.');
    output.replaceChildren();
    const local=Number(host.querySelector('[data-focus="bpm"]')?.textContent),match=compareTempos(local,data.bpm);
-   const fields=[['AUDO BPM',Number.isFinite(data.bpm)?data.bpm.toFixed(1):'—'],
-    ['AUDO KEY',data.key||'—'],['AUDO CAMELOT',data.camelot||'—']];
+   const fields=[['CROSS-CHECK BPM',Number.isFinite(data.bpm)?data.bpm.toFixed(1):'—'],
+    ['CROSS-CHECK KEY',data.key||'—'],['CROSS-CHECK CAMELOT',data.camelot||'—']];
    if(match)fields.push(['TEMPO COMPARISON',match.label+' · '+match.delta.toFixed(1)+' BPM difference']);
    for(const [label,value] of fields){
     const item=document.createElement('div'),small=document.createElement('small'),strong=document.createElement('strong');
     small.textContent=label;strong.textContent=value;item.append(small,strong);output.append(item);
    }
    output.hidden=false;
-   notice.textContent='Independent Audo estimate · '+prepared.scope+'. Compare the beat by ear; it does not change your beat grid.';
+   notice.textContent='Independent estimate · '+prepared.scope+'. Compare the beat by ear; it does not change your beat grid.';
   }catch(error){if(!disposed&&error.name!=='AbortError')notice.textContent=error.message;}
   finally{busy=false;controller=null;if(!disposed)run.disabled=false;}
  };

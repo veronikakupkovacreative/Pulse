@@ -23,15 +23,15 @@ const ERRORS={
  AUDIO_CONSENT_REQUIRED:'Confirm the rights to the input and consent to paid cloud processing.',
  INVALID_EXTRACTION_PARAMETERS:'Select at least one supported stem and only valid preprocessing options.',
  CHOOSE_ONE_AUDIO_SOURCE:'Choose exactly one audio input method.',
- INVALID_YOUTUBE_URL:'MusicGPT currently supports a standard YouTube watch or share URL for remote extraction.',
+ INVALID_YOUTUBE_URL:'Use a standard YouTube watch or share URL.',
  INVALID_AUDIO_FILE:'Choose a valid audio file and try again.',
  INVALID_AUDIO_FORMAT:'Use WAV, MP3, M4A, FLAC, OGG, AAC or OPUS.',
  AUDIO_TOO_LARGE:'Direct uploads are limited to 2.4 MB through the PULSE gateway. Use a shorter excerpt or the provider-supported YouTube URL.',
- MUSICGPT_AUTH_FAILED:'MusicGPT rejected the server-side Extraction API key.',
- INSUFFICIENT_CREDITS:'Your MusicGPT account has insufficient credits.',
- RATE_LIMITED:'MusicGPT rate limit reached. Resume an existing job or try later.',
- MUSICGPT_TIMEOUT:'The provider timed out. Check your MusicGPT account before starting another paid job.',
- MUSICGPT_CONNECTION_ERROR:'MusicGPT is unreachable. The submitted job might still be running.',
+ MUSICGPT_AUTH_FAILED:'Processing authorization failed.',
+ INSUFFICIENT_CREDITS:'Processing is temporarily unavailable.',
+ RATE_LIMITED:'Rate limit reached. Resume an existing job or try later.',
+ MUSICGPT_TIMEOUT:'Request timed out. Check the existing job before retrying.',
+ MUSICGPT_CONNECTION_ERROR:'Processing service is unavailable. The submitted job might still be running.',
  MISSING_CONVERSION_ID:'The provider did not return a usable job ID. Check your account before retrying.'
 };
 const escaped=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -59,9 +59,9 @@ export function mountStemExtraction({host}={}){
    (['vocals','instrumental'].includes(id)?' checked':'')+'><span>'+escaped(label)+'</span></label>').join('')+
   '</fieldset>').join('');
  host.innerHTML='<section class="tool-view ai2-panel pulse-extraction">'+
-  '<div class="tool-view-header"><span>04 / AI STUDIO / STEM EXTRACTION</span><span>MUSICGPT / V2 CLOUD</span></div>'+
+  '<div class="tool-view-header"><span>04 / AI STUDIO / STEM EXTRACTION</span><span>23 OUTPUT STEMS</span></div>'+
   '<h3>Pull it apart.<br><span>Keep every layer.</span></h3>'+
-  '<p class="tool-description">Separate vocals, drums, bass and instruments using MusicGPT.</p>'+
+  '<p class="tool-description">Separate vocals, drums, bass and individual instruments.</p>'+
   '<div class="pulse-ext-form">'+
    '<div class="pulse-ext-section-heading"><strong>01 / SOURCE AUDIO</strong><span>CHOOSE ONE METHOD</span></div>'+
    '<div class="pulse-ext-modes" role="group" aria-label="Audio source">'+
@@ -76,13 +76,13 @@ export function mountStemExtraction({host}={}){
    '<div class="pulse-ext-groups">'+stemChoices+'</div>'+
    '<div class="pulse-ext-section-heading"><strong>03 / OPTIONAL PREPROCESSING</strong><span>BEFORE EXTRACTION</span></div>'+
    '<div class="pulse-ext-pre">'+ALLOWED_PRE.map(x=>'<label><input type="checkbox" data-ext-pre="'+x+'">'+x.toUpperCase()+'</label>').join('')+'</div>'+
-   '<label class="pulse-ext-check"><input type="checkbox" data-ext-eco> ECO MODE / PROVIDER PARALLEL PROCESSING</label>'+
-   '<p class="pulse-ext-note">No API key required · PULSE credits.</p>'+
+   '<label class="pulse-ext-check"><input type="checkbox" data-ext-eco> ECO MODE</label>'+
+   ''+
    '<label class="pulse-ext-check pulse-ext-consent"><input type="checkbox" data-ext-consent> I own or have permission to use this audio. I consent to sending it to MusicGPT for processing.</label>'+
    '<div class="pulse-ext-actions"><button type="button" data-ext-submit>EXTRACT STEMS ↗</button><button type="button" data-ext-stop hidden>STOP CHECKING</button></div>'+
-   '<p class="pulse-ext-note">Limit: 3 new cloud jobs / IP / 10 min. Stop pauses checks, not processing.</p>'+
+   ''+
   '</div>'+
-  '<div class="pulse-ext-status" role="status" aria-live="polite" data-ext-status>Checking MusicGPT Extraction availability…</div>'+
+  '<div class="pulse-ext-status" role="status" aria-live="polite" data-ext-status>Checking availability…</div>'+
   '<div class="pulse-ext-job" data-ext-job hidden>'+
    '<strong>LAST EXTRACTION JOB</strong><p data-ext-job-id></p>'+
    '<div class="pulse-ext-job-actions"><button type="button" data-ext-resume>CHECK / RESUME JOB</button><button type="button" data-ext-new>NEW EXTRACTION</button></div>'+
@@ -120,7 +120,7 @@ export function mountStemExtraction({host}={}){
   const res=await fetch(API+(action==='submit'?'?charge=1':''),{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({action,...values}),signal,cache:'no-store'});
   const data=await res.json().catch(()=>({error:'INVALID_PROVIDER_RESPONSE'}));
-  if(!res.ok)throw Error(res.status===429?'PULSE cloud limit reached. Try in 10 minutes.':ERRORS[data.error]||('MusicGPT returned '+String(data.error||res.status)));
+  if(!res.ok)throw Error(res.status===429?'PULSE cloud limit reached. Try in 10 minutes.':ERRORS[data.error]||('The service returned '+String(data.error||res.status)));
   return data;
  }
  const picked=selector=>[...host.querySelectorAll(selector)].filter(x=>x.checked).map(x=>selector==='[data-ext-pre]'?x.dataset.extPre:x.dataset.extStem);
@@ -176,7 +176,7 @@ export function mountStemExtraction({host}={}){
      status(result.files.length+' extracted stem(s) ready. Preview or open the download links.');
      return;
     }
-    if(result.status==='failed'){status(result.message||'MusicGPT Extraction failed. Check your MusicGPT account.',true);return;}
+    if(result.status==='failed'){status(result.message||'Extraction failed. Check the job status before retrying.',true);return;}
     status('Processing · '+(i+1)+'/50.');
     if(i<49)await sleep(10_000,ac.signal);
    }
@@ -201,12 +201,12 @@ export function mountStemExtraction({host}={}){
    if(disposed||ac.signal.aborted||turn!==run)return;
    const selection={stems,preprocessingOptions:picked('[data-ext-pre]'),ecoMode:$('[data-ext-eco]').checked,
     consent:true,rightsConfirmed:true,...input};
-   status('Submitting extraction. One paid request.');
+   status('Submitting extraction…');
    const result=await gateway('submit',selection,ac.signal);
    if(disposed||ac.signal.aborted||turn!==run)return;
    if(!ID.test(result.conversionId||''))throw Error(ERRORS.MISSING_CONVERSION_ID);
    conversionId=result.conversionId;remember();showControls();
-   status('Submitted'+(Number.isFinite(result.creditEstimate)?' · est. '+result.creditEstimate+' credits':'')+'.');
+   status('Submitted.');
   }catch(err){if(!disposed&&err?.name!=='AbortError')status(err.message||'Extraction failed.',true);}
   finally{if(controller===ac){controller=null;busy=false;if(!disposed)showControls();}}
   if(conversionId&&!disposed)void checkJob();
@@ -234,7 +234,7 @@ export function mountStemExtraction({host}={}){
    showControls();
    if(!configured)status(ERRORS.MUSICGPT_EXTRACTION_NOT_CONFIGURED,true);
    else if(!conversionId)status('Ready. Select stems and extract.');
-  }catch{if(!disposed)status('Could not check MusicGPT configuration. Try reloading the tool.',true);}
+  }catch{if(!disposed)status('Could not check availability. Reload the tool.',true);}
  })();
  return()=>{disposed=true;abort();host.replaceChildren();};
 }

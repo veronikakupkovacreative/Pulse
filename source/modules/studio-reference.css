@@ -808,9 +808,9 @@ header.header.nav{position:sticky!important;top:0;z-index:100;width:100%;min-hei
 header.header .pulse-header-inner{width:min(calc(100% - 2*clamp(16px,4vw,48px)),1280px);
   height:64px;margin:auto;display:flex;gap:clamp(16px,2vw,30px);justify-content:space-between;align-items:center}
 header .brand,header .brand:visited{display:inline-flex;flex:none;align-items:baseline;gap:4px;
-  font:700 22px/1 var(--font-display);letter-spacing:-.045em;text-transform:none;color:var(--ink)!important}
-header .brand .brand-dot{display:none!important}
-header .brand .brand-period{font:700 14px/1 var(--font-display);letter-spacing:.08em;color:var(--accent)!important}
+  font:700 29px/1 Arial,Helvetica,sans-serif;letter-spacing:-1.8px;text-transform:none;color:var(--ink)!important}
+header .brand .brand-dot{display:block!important;flex:none;width:21px;height:21px;border-radius:50%;background:#ff2b20!important}
+header .brand .brand-period{font:700 10px/1.2 Arial,Helvetica,sans-serif;align-self:flex-start;letter-spacing:0;margin:0 0 0 -6px;color:var(--accent)!important}
 .header-nav{display:flex;align-items:center;gap:3px;justify-content:center;flex-wrap:nowrap;margin-left:auto}
 .header-nav a,header .pulse-mobile-nav a{display:inline-flex;align-items:center;white-space:nowrap;
   min-height:44px;padding:9px 13px;border-radius:999px;border:1px solid transparent;
@@ -831,7 +831,7 @@ header .pulse-mobile-nav{display:none;width:100%;padding:5px 16px 8px;
 header .pulse-mobile-nav::-webkit-scrollbar{display:none}
 @media(max-width:1060px){.header-nav a{padding-inline:8px;font-size:11px}}
 @media(max-width:890px){header .header-nav{display:none!important}header .pulse-mobile-nav{display:flex!important}}
-@media(max-width:440px){header .brand{font-size:19px!important}header .brand .brand-period{font-size:12px!important}
+@media(max-width:440px){header .brand{font-size:24px!important}header .brand .brand-dot{width:18px;height:18px}header .brand .brand-period{font-size:9px!important}
  header .pulse-nav-open{padding:9px 12px!important;font-size:12px!important}}
 
 /* Homepage: exact prototype hierarchy, drop area and 3-step explanation. */

@@ -215,7 +215,7 @@ function mountAudioEditor({host}){
    editModes.map(([id,label],i)=>'<button type="button" data-edit-mode="'+id+'" aria-pressed="'+(i===0?'true':'false')+'">'+label+'</button>').join('')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="trim"><p>Keep the selected range and discard the rest of the track.</p>'+button('trim','TRIM TO SELECTION')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="cut" hidden><p>Remove the selected range and join the remaining audio.</p>'+button('cut','CUT SELECTION')+'</div>'+
-  '<div class="focus-edit-view" data-edit-view="merge" hidden><p>Append up to seven more tracks. The editor matches sample rates and mono/stereo layout, and adds short boundary fades.</p><label class="focus-input">ADD AUDIO FILES<input type="file" data-edit-files accept="audio/*,.wav,.mp3,.m4a,.flac" multiple></label>'+button('merge','MERGE INTO WORKSPACE')+'</div>'+
+  '<div class="focus-edit-view" data-edit-view="merge" hidden><p>Append the selected region to the end of SOURCE AUDIO. With no selection, append a second copy of the entire track. No extra upload.</p>'+button('merge','APPEND FROM SOURCE AUDIO')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="fade" hidden><p>Apply a smooth fade at the start or end of the full track.</p><label class="focus-input">DIRECTION<select data-edit-direction><option value="in">Fade in</option><option value="out">Fade out</option></select></label><label class="focus-input">DURATION (SECONDS)<input type="number" data-focus-input="fade" min="0.01" max="60" step="0.1" value="2"></label>'+button('fade','APPLY FADE')+'</div>'+
   '<div class="focus-edit-view" data-edit-view="gain" hidden><p>Adjust the overall track gain. Positive values may clip loud audio.</p><label class="focus-input">GAIN (dB)<input type="number" data-focus-input="gain" min="-24" max="24" step="0.5" value="-2"></label>'+button('gain','APPLY GAIN')+'</div>'+
   '<div class="focus-edit-view focus-eq-view" data-edit-view="eq" hidden></div>'+
@@ -241,17 +241,15 @@ function mountAudioEditor({host}){
    }else if(mode==='gain')output=gainBuffer(source,num(host,'gain',-24,24));
    else if(mode==='fade')output=fadeBuffer(source,num(host,'fade',.01,60),host.querySelector('[data-edit-direction]').value);
    else if(mode==='merge'){
-    const files=[...(host.querySelector('[data-edit-files]').files||[])];
-    if(!files.length||files.length>7)throw Error('Select between one and seven additional audio files.');
-    if(files.some(f=>f.size>100*1024*1024))throw Error('Each audio file must be under 100 MB.');
-    const ctx=await w.ensureContext(),buffers=[source];
-    for(const file of files){
-     const decoded=await ctx.decodeAudioData(await file.arrayBuffer());
-     if(disposed||w.buffer!==source)throw Error('Source audio changed. Retry merge.');
-     const resampled=decoded.sampleRate===source.sampleRate?decoded:await resampleBuffer(decoded,source.sampleRate);
-     buffers.push(matchChannels(resampled,source.numberOfChannels));
+    const selection=w.selection;
+    let append=source;
+    if(selection&&selection.end-selection.start>=.01){
+     const start=Math.floor(selection.start*source.sampleRate);
+     const end=Math.ceil(selection.end*source.sampleRate);
+     append=fromChannels(Array.from({length:source.numberOfChannels},
+      (_,c)=>source.getChannelData(c).slice(start,end)),source.sampleRate);
     }
-    output=mergePreparedAudio(buffers);
+    output=mergePreparedAudio([source,append]);
    }
    if(!output)throw Error('No audio generated.');
    if(w.buffer!==source||disposed)throw Error('Source audio changed. Retry the operation.');

@@ -15,7 +15,7 @@ test('23 tools remain registered across the three real workflows',()=>{
 test('PULSE dark theme is the sole active canonical design',()=>{
  for(const token of ['--paper:#0e0e0f','--surface:#141416','--accent:#ff4d1c','--on-accent:#14130f'])
   assert.ok(css.includes(token),token);
- assert.ok(registry.includes("'studio-reference.css'"));
+ assert.ok(registry.includes('"studio-reference.css"'));
  assert.doesNotMatch(registry,/pulse-design-system\.css|theme\.css/);
  assert.match(html,/data-theme','dark'/);
 });

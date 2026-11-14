@@ -18,8 +18,8 @@ test('one dark visual system provides accessible foreground and action contrast'
  assert.ok(contrast('#ff4d1c','#141416')>=4.5);
 });
 test('only the active prototype style is the final stylesheet',()=>{
- const pos=index.indexOf("'studio-reference.css'");
- assert.ok(pos>index.indexOf("'ui.css'"));
+ const pos=index.indexOf(""studio-reference.css"");
+ assert.ok(pos>index.indexOf(""ui.css""));
  assert.doesNotMatch(index,/pulse-design-system\.css|studio-redesign\.css|theme\.css/);
  assert.doesNotMatch(html,/href="\/modules\/theme\.css"/);
 });

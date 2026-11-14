@@ -13,7 +13,7 @@ test('three active AI tools remain registered, advanced visuals paused',()=>{
 test('every mounted tool has its own editorial copy',()=>{
   for(const tool of toolModules){const copy=TOOL_EDITORIAL[tool.id];assert.ok(copy,tool.id);assert.equal(copy.steps.length,3);}
   assert.match(read('app.mjs'),/renderToolEditorial\(definition\)/);
-  assert.doesNotMatch(read('reference-ui.mjs'),/const descriptions=\{/);
+  assert.match(read('modules/prototype-runtime.mjs'),/updateAnalyzer/);
 });
 test('AUTO uses practical audio format defaults and supports overrides',()=>{
  const mp3=conversionOptions({format:'mp3'}),aac=conversionOptions({format:'aac'}),wav=conversionOptions({format:'wav'}),ogg=conversionOptions({format:'ogg'});

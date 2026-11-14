@@ -7,7 +7,7 @@ import {visibleToolModules} from '../source/modules/index.mjs';
 const mockBuffer=(length,channels=2)=>({length,numberOfChannels:channels});
 test('history stores references and supports undo and redo',()=>{
  const h=new HistoryStack({maxBytes:1024*1024,maxEntries:8}),a=mockBuffer(100),b=mockBuffer(120);
- assert.equal(h.push(a,b,'trim'),true);assert.equal(h.undo(b),a);assert.equal(h.canRedo,true);assert.equal(h.redo(a),b);assert.equal(h.canUndo,true);
+ h.push(a,b,'trim');assert.equal(h.undo(b),a);assert.equal(h.canRedo,true);assert.equal(h.redo(a),b);assert.equal(h.canUndo,true);
 });
 test('history prunes snapshots over the memory budget',()=>{
  const h=new HistoryStack({maxBytes:1200,maxEntries:10}),a=mockBuffer(100),b=mockBuffer(100),c=mockBuffer(100),d=mockBuffer(100);

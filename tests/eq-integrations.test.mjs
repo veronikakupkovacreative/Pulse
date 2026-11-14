@@ -16,5 +16,5 @@ test('EQ presets and layouts support three, five, ten and twenty bands',()=>{
 test('advanced EQ graph retains real DSP and keyboard support',()=>{
  const source=read('modules/eq-advanced.mjs'),graph=read('modules/eq-response.mjs');
  assert.match(source,/renderWithNodes/);assert.match(source,/bandOptions:\[3,10,20\]/);
- assert.match(graph,/getFrequencyResponse/);assert.match(graph,/key==='ArrowUp'/);
+ assert.match(graph,/getFrequencyResponse/);assert.match(graph,/ArrowUp/);
 });

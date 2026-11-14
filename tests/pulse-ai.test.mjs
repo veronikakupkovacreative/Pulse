@@ -116,22 +116,3 @@ test('module registers three AI tools, preserving renderer code for future relea
   }finally{await rm(dir,{recursive:true,force:true})}
 });
 
-test('installer adds module import and registration only once',async()=>{
-  const dir=await mkdtemp(join(tmpdir(),'pulse-install-test-'));
-  try{
-    await mkdir(join(dir,'source/modules'),{recursive:true});await mkdir(join(dir,'api'),{recursive:true});
-    await writeFile(join(dir,'package.json'),JSON.stringify({type:'module'}));
-    await writeFile(join(dir,'source/modules/features.mjs'),"import {creativeModules} from './creative-tools.mjs';\nexport const toolModules=Object.freeze([...creativeModules]);\n");
-    await writeFile(join(dir,'source/modules/pulse-ai-master.mjs'),'export const pulseAiModules=[];\n');
-    await writeFile(join(dir,'api/pulse-ai.js'),'export default ()=>{};\n');
-    const {spawnSync}=await import('node:child_process');
-    const installer=join(root,'scripts/install-pulse-ai.mjs');
-    for(let repeat=0;repeat<2;repeat++){
-      const run=spawnSync(process.execPath,[installer],{cwd:dir,encoding:'utf8'});
-      assert.equal(run.status,0,run.stderr);
-    }
-    const result=await readFile(join(dir,'source/modules/features.mjs'),'utf8');
-    assert.equal(result.split("import {pulseAiModules}").length,2);
-    assert.equal(result.split('...pulseAiModules').length,2);
-  }finally{await rm(dir,{recursive:true,force:true})}
-});

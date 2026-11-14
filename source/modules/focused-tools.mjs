@@ -238,7 +238,7 @@ function mountAudioEditor({host}){
    if(mode==='trim'||mode==='cut'){
     const range=w.selection;if(!range||range.end-range.start<.01)throw Error('Shift + drag over at least 10 ms of the waveform to select audio.');
     output=editRegion(source,range.start,range.end,mode);
-   else if(mode==='gain')output=gainBuffer(source,num(host,'gain',-24,24));
+   }else if(mode==='gain')output=gainBuffer(source,num(host,'gain',-24,24));
    else if(mode==='fade')output=fadeBuffer(source,num(host,'fade',.01,60),host.querySelector('[data-edit-direction]').value);
    else if(mode==='merge'){
     const files=[...(host.querySelector('[data-edit-files]').files||[])];

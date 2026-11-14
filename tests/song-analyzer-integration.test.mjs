@@ -73,8 +73,8 @@ test('active Song Analyzer shares Workspace and analyzes rhythm/harmony in worke
  assert.doesNotMatch(code,/getElementById\('analyzer'\)/);
 });
 
-test('toolkit red analyzer UI is defined by shared design system, not legacy standalone CSS',()=>{
- const css=read('modules/pulse-design-system.css');
+test('active analyzer uses the canonical prototype theme, not the abandoned red-only system',()=>{
+ const css=read('modules/studio-reference.css');
  const html=read('index.html');
  assert.match(css,/\.focus-song-main/);
  assert.match(css,/\.focus-song-tonality/);

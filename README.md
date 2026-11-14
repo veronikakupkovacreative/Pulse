@@ -1,22 +1,27 @@
-# PULSE Studio - Clean Shell
+# PULSE Studio
 
-This branch contains no audio processors. All previous DSP functions, legacy tools, dependencies and tool tests are absent from its file tree. Old code is recoverable from Git history and previous branches.
+Browser-first audio workspace for analysis, editing, conversion, mastering, AI workflows and visualization.
 
-## Preserved
-- PULSE visual identity and responsive two-column layout.
-- Four main categories: ANALYZE, EDIT, EXPORT and AI STUDIO.
-- Accessible category navigation and blank module slots.
+## Current architecture
 
-## Add improved modules
-1. Create a module at source/modules/<name>.mjs.
-2. Export a mount function accepting {host, category}; return an optional cleanup callback.
-3. Import and register it in source/modules/index.mjs as {id,category,label,mount}.
-4. Update scripts/build.mjs to copy new module assets to public/modules.
-5. Write and run module tests before release.
+- `source/index.html` — visible prototype-based screens and hidden compatibility host for audio controls.
+- `source/modules/prototype-runtime.mjs` — routes visible screens and connects them to the shared `AudioWorkspace`.
+- `source/modules/workspace.mjs` — single audio source, transport, waveform, selection and history.
+- `source/app.mjs` and `source/modules/index.mjs` — active tool registry and tool mounting.
+- `source/modules/studio-reference.css` — canonical dark design from the approved HTML.
+- `source/modules/ui.css` and feature CSS — styles still required by active legacy modules.
+- `api/` — existing protected provider gateways; API secrets must stay on the server.
 
-## Commands
-- npm test
-- npm run build
-- Serve the public directory as a static website.
+## Development
 
-The previous production site stays unchanged until this branch is explicitly deployed there.
+```bash
+npm install
+npm test
+npm run build
+```
+
+Vercel executes `npm test && npm run build` and publishes `public/`.
+
+## Cleanup policy
+
+The legacy host is deliberately retained **only** for active audio controls until migrated. It must not become a second user-facing UI. Previous standalone Song Analyzer UI, unused red-theme overlay, obsolete theme toggle and one-time installer scripts have been removed. The historical `source/song` DSP code remains test-only, and is not shipped in the browser build.

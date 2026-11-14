@@ -5,7 +5,6 @@ import {isAiV2,renderAiV2Copy} from './modules/ai-v2-copy.mjs';
 import {workspace as w} from './modules/workspace.mjs';
 import {mountWorkspaceActions} from './modules/workspace-actions.mjs';
 import {studioStore} from './modules/studio-store.mjs';
-import {initializeThemeToggle} from './modules/theme-toggle.mjs';
 
 const toolSummaries=Object.freeze({
  "song-analyzer": "BPM, key, Camelot, chords and an optional independent cross-check.",
@@ -41,16 +40,11 @@ const categories=Object.freeze({
   prepare:{name:'PREPARE',title:'Prepare your files.',description:'Edit, organize, standardize and deliver production-ready audio.',number:'03'}
 });
 const query=(selector)=>document.querySelector(selector);
-initializeThemeToggle();
 const blank=query('#blank-panel');
 const panel=query('#tool-panel');
 const tabs=query('#tool-tabs');
 let activeCategory='analyze';
 let currentCleanup=null;
-const bitrateGuide=query('#pulse-bitrate-guide');
-function showBitrateGuide(show){
-  if(bitrateGuide)bitrateGuide.hidden=!show;
-}
 
 function clearMountedTool(){
   if(typeof currentCleanup==='function'){
@@ -61,7 +55,6 @@ function clearMountedTool(){
 }
 function showEmpty(){
   studioStore.setActiveModule(null);
-  showBitrateGuide(false);
   clearMountedTool();
   blank.hidden=false;
   query('#empty-title').textContent=categories[activeCategory].title;
@@ -69,7 +62,6 @@ function showEmpty(){
 }
 function mountTool(definition){
   studioStore.setActiveModule(definition.id);
-  showBitrateGuide(false);
   clearMountedTool();
   blank.hidden=true;
   if(isAiV2(definition))renderAiV2Copy(definition);
@@ -88,18 +80,11 @@ function mountTool(definition){
   panel.append(host);
   try{
     const cleanup=definition.mount({host,category:activeCategory});
-    const converterFormat=definition.id==='wav'?host.querySelector('#format'):null;
-    const syncBitrateGuide=()=>showBitrateGuide(converterFormat?.value==='mp3');
-    if(converterFormat){
-      converterFormat.addEventListener('change',syncBitrateGuide);
-      syncBitrateGuide();
-    }
     const stopSliders=enhanceParameterControls(host);
     const stopAudioActions=mountWorkspaceActions(host,w);
-    currentCleanup=()=>{converterFormat?.removeEventListener('change',syncBitrateGuide);stopAudioActions();stopSliders();if(typeof cleanup==='function')cleanup();};
+    currentCleanup=()=>{stopAudioActions();stopSliders();if(typeof cleanup==='function')cleanup();};
     if(typeof document.dispatchEvent==='function'&&typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('pulse:tool-mounted',{detail:{id:definition.id}}));
   }catch(error){
-    showBitrateGuide(false);
     host.replaceChildren();
     const msg=document.createElement('p');
     msg.setAttribute('role','alert');

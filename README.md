@@ -1,22 +1,24 @@
-# PULSE Studio - Clean Shell
+# PULSE Studio
 
-This branch contains no audio processors. All previous DSP functions, legacy tools, dependencies and tool tests are absent from its file tree. Old code is recoverable from Git history and previous branches.
+PULSE is a browser-based audio workspace. The visible UI is defined by `source/index.html` and `source/modules/studio-reference.css`; production audio processing lives in focused modules under `source/modules/`.
 
-## Preserved
-- PULSE visual identity and responsive two-column layout.
-- Four main categories: ANALYZE, EDIT, EXPORT and AI STUDIO.
-- Accessible category navigation and blank module slots.
+## Architecture
 
-## Add improved modules
-1. Create a module at source/modules/<name>.mjs.
-2. Export a mount function accepting {host, category}; return an optional cleanup callback.
-3. Import and register it in source/modules/index.mjs as {id,category,label,mount}.
-4. Update scripts/build.mjs to copy new module assets to public/modules.
-5. Write and run module tests before release.
+- `source/app.mjs` mounts the module registry and shared workspace.
+- `source/modules/index.mjs` is the single registry for available tools and their styles.
+- `source/modules/workspace.mjs` owns the single `01 / SOURCE AUDIO` buffer, playback, selection and undo history.
+- `source/modules/prototype-runtime.mjs` connects the prototype screens to real tool modules.
+- `source/modules/studio-redesign.mjs` owns Audio Editor controls and local DSP actions.
+- `api/` contains only server-side provider gateways. API secrets stay server-side.
+- `scripts/build.mjs` copies the active browser modules and pinned local runtimes into `public/`.
 
-## Commands
-- npm test
-- npm run build
-- Serve the public directory as a static website.
+## Development
 
-The previous production site stays unchanged until this branch is explicitly deployed there.
+```sh
+npm test
+npm run build
+```
+
+Audio is processed locally unless a specific cloud tool asks for consent. The build runs the full test suite before creating `public/`.
+
+The Vercel production domain is not changed by preview deployments.

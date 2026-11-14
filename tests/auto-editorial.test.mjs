@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TOOL_EDITORIAL,renderToolEditorial} from '../source/modules/tool-editorial.mjs';
 
-const existing = ['song-analyzer','music-tagger','rhythm','key','tap','release-preflight','vocal-session-mapper','smart-sample-finder','sample-pack-lab','stem-delivery-studio','editor','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','ai2-lyrics','ai2-musicai','ai2-watermark','ai2-extraction','visualizer','reference-matcher','room-tail-reducer','key-chords','noise-remover'];
+const existing = ['song-analyzer','music-tagger','rhythm','key','tap','release-preflight','audio-protection','vocal-session-mapper','smart-sample-finder','sample-pack-lab','stem-delivery-studio','editor','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','ai2-lyrics','ai2-musicai','ai2-watermark','ai2-extraction','visualizer','reference-matcher','room-tail-reducer','key-chords','noise-remover'];
 
 test('every currently registered tool has individual editorial summary and steps',()=>{
   assert.deepEqual(Object.keys(TOOL_EDITORIAL).sort(),existing.sort());

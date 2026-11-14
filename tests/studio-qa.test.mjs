@@ -8,15 +8,17 @@ const read=name=>readFileSync(new URL('../source/'+name,import.meta.url),'utf8')
 
 test('homepage has a visible source action, independent tool directory and correct heading structure',()=>{
  const {document}=parseHTML(read('index.html'));
- const main=document.querySelector('main'),directory=document.getElementById('pulse-tool-directory'),toolkit=document.getElementById('toolkit');
+ const main=document.querySelector('#pulse-proto-root main'),directory=document.getElementById('proto-directory'),toolkit=document.getElementById('toolkit');
  assert.ok(main&&directory&&toolkit);
  assert.ok(main.contains(directory)&&!toolkit.contains(directory));
- assert.ok(directory.querySelector('h2#pulse-directory-title'));
- assert.equal(document.querySelectorAll('#pulse-tool-directory .pulse-tool-card').length,8);
- assert.equal(document.querySelectorAll('#pulse-tool-directory .pulse-tool-card[data-kind="ai"]').length,1);
- assert.ok(document.getElementById('pulse-hero-drop'));
- assert.ok(document.querySelector('a.pulse-skip[href="#top"]'));
+ assert.ok(directory.querySelector('h2'));
+ assert.equal(document.querySelectorAll('#toolgrid .card').length,6);
+ assert.equal(document.querySelectorAll('#toolgrid .card[data-cat="ai"]').length,1);
+ assert.ok(document.getElementById('drop'));
+ assert.ok(document.querySelector('a.skip-link[href="#main"]'));
  assert.ok(document.querySelector('#toolkit h1#toolkit-title'));
+ assert.ok(document.querySelector('#pulse-proto-root [data-view="analyzer"]'));
+ assert.ok(document.querySelector('#pulse-proto-root [data-view="editor"]'));
 });
 test('waveform viewport maps zoom and pan to actual time positions',()=>{
  const w=new AudioWorkspace();

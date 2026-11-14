@@ -17,7 +17,7 @@ test('Song Analyzer uses shared SOURCE AUDIO with rhythm and harmony workers',()
  assert.doesNotMatch(ui,/type="file"|data-analyzer-upload/);
 });
 test('prototype runtime mirrors actual analyzer results into the visible screen',()=>{
- const runtime=read('modules/prototype-runtime.mjs');
+ const studio=read('modules/studio-redesign.mjs');
  for(const token of ['data-proto-bpm','data-proto-key','data-proto-camelot','data-proto-confidence','data-proto-chords'])assert.ok(runtime.includes(token),token);
- assert.match(runtime,/pulse:tool-mounted/);
+ assert.match(studio,/pulse:tool-mounted/);
 });

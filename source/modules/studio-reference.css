@@ -880,3 +880,43 @@ html,body{background:#0e0e0f!important;color:#f4f2ee!important;color-scheme:dark
 @media(max-width:640px){#pulse-proto-root .filechip{max-width:100%;flex-wrap:wrap}#pulse-proto-root .editor__head{gap:12px}}
 
 #pulse-proto-root .brand .brand-period{font:700 10px/1.2 Arial,Helvetica,sans-serif!important;letter-spacing:0!important;color:var(--accent)!important;align-self:flex-start;margin-left:-4px}
+
+/* Active module skin: one dark inspector language across every prototype view. */
+#pulse-proto-root .tool-module-host{
+ --ink:#f4f2ee;--ink-2:#bdbab1;--ink-3:#8f8c82;--paper:#0e0e0f;--paper-2:#141416;
+ --surface:#141416;--line:#2a2a2e;--accent:#ff4d1c;--accent-ink:#14130f;
+ color:var(--ink);color-scheme:dark;min-width:0;
+}
+#pulse-proto-root .tool-module-host :is(.tool-view,.module-work,.ai2-panel,.ai2-switch,.focus-module,.pulse-master-work,.pulse-legacy,.pulse-web-tool,.pulse-creative,.pulse-noise-module,.pulse-eq-advanced,.pulse-tagger,.pulse-protection,.pulse-workspace-actions){
+ background:transparent!important;color:var(--ink)!important;min-width:0;
+}
+#pulse-proto-root .tool-module-host :is(h1,h2,h3,h4,strong,output,.tool-view-header,.module-kicker,.pulse-detail-label,.pulse-master-section-head,.focus-song-panel-top){
+ color:var(--ink)!important;
+}
+#pulse-proto-root .tool-module-host :is(p,small,.tool-description,.module-description,.ai2-note,.ai2-status,.focus-status,.module-result,.tool-footnote,.pulse-legacy-status,.pulse-master-disclaimer,.pulse-song-muted){
+ color:var(--ink-2);
+}
+#pulse-proto-root .tool-module-host :is(label,.ai2-field>span,.pulse-master-field>span,.pulse-noise-field>span,.pulse-mono){
+ color:var(--ink-3);
+}
+#pulse-proto-root .tool-module-host :is(input:not([type=range]),select,textarea){
+ background:#141416!important;color:#f4f2ee!important;border:1px solid #2a2a2e!important;border-radius:8px!important;min-height:44px;
+}
+#pulse-proto-root .tool-module-host input[type=range],
+#pulse-proto-root .tool-module-host input[type=checkbox]{accent-color:#ff4d1c}
+#pulse-proto-root .tool-module-host button{
+ min-height:40px;border-radius:8px;border-color:#2a2a2e;background:#141416;color:#f4f2ee;
+}
+#pulse-proto-root .tool-module-host button[aria-pressed=true]{
+ background:#ff4d1c!important;color:#14130f!important;border-color:#ff4d1c!important;
+}
+#pulse-proto-root .tool-module-host :is(.ai2-action,.focus-action,.module-button,.pulse-legacy-run,.pulse-fx-apply,.pulse-master-actions button[data-master-action=render],.pw-action,.pulse-workspace-actions-buttons button[data-workspace-export]){
+ background:#ff4d1c!important;color:#14130f!important;border-color:#ff4d1c!important;
+}
+#pulse-proto-root .tool-module-host button:disabled{opacity:.5!important;cursor:not-allowed}
+#pulse-proto-root .tool-module-host :is(.ai2-metrics>div,.focus-analysis-metrics>div,.focus-song-main,.focus-song-tonality>div,.focus-song-panel,.pulse-master-reports>div,.pulse-slider-card,.pulse-noise-report>div,.pw-metric,.pulse-mg-result){
+ background:#141416!important;color:#f4f2ee!important;border:1px solid #2a2a2e!important;border-radius:10px!important;box-shadow:none!important;
+}
+#pulse-proto-root .tool-module-host :is(a,.tool-link){color:#ff4d1c}
+#pulse-proto-root .tool-module-host :is(button,input,select,textarea):focus-visible{outline:3px solid #ff4d1c!important;outline-offset:3px!important}
+#pulse-proto-root .tool-module-host :is([data-error=true],.pulse-ai-out[data-error=true]){color:#ff9b8f!important}

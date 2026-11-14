@@ -14,6 +14,7 @@ import {mountLyricsGenerator} from './musicgpt-lyrics.mjs';
 import {mountMusicAIV2} from './musicgpt-musicai.mjs';
 import {mountWatermarkCleaner} from './watermark-cleaner.mjs';
 import {mountStemExtraction} from './musicgpt-extraction.mjs';
+import {mountAudoVocalCleanup,mountAudoSfx} from './audo-ui.mjs';
 import {suggestGainDb,renderMultitrack} from './mix-v2-dsp.mjs';
 
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -221,12 +222,20 @@ function mountPitchTime({host}){
  return()=>{disposed=true;job++;stop();};
 }
 
+function mountAudioRepair(args){
+ return switcher(args,[
+  {id:'spectral',label:'LOCAL SPECTRAL',mount:noiseRemoverModule.mount},
+  {id:'audo-cleanup',label:'AI VOCAL CLEANUP',mount:mountAudoVocalCleanup}
+ ]);
+}
+
 function mountSmartFx(args){
  const select=id=>advancedModules.find(x=>x.id===id);
  return switcher(args,[
   {id:'rack',label:'FX RACK',mount:select('rack').mount},
   {id:'sidechain',label:'SIDECHAIN',mount:select('sidechain').mount},
-  {id:'modulation',label:'CHORUS / FLANGER',mount:select('modulation').mount}
+  {id:'modulation',label:'CHORUS / FLANGER',mount:select('modulation').mount},
+   {id:'audo-sfx',label:'AI SOUND EFFECTS',mount:mountAudoSfx}
  ]);
 }
 
@@ -237,7 +246,7 @@ export const aiV2Modules=Object.freeze([
  {id:'ai2-vocals',category:'ai',label:'Vocal Studio',mount:mountVocals},
  {id:'ai2-beat',category:'ai',label:'Beat Lab',mount:mountBeatLab},
  {id:'ai2-mix',category:'ai',label:'Mix Assistant',mount:mountMultitrack},
- {id:'ai2-repair',category:'ai',label:'Audio Repair',mount:noiseRemoverModule.mount},
+ {id:'ai2-repair',category:'ai',label:'Audio Repair',mount:mountAudioRepair},
  {id:'ai2-pitch',category:'ai',label:'Pitch & Time',mount:mountPitchTime},
  {id:'ai2-fx',category:'ai',label:'Smart FX',mount:mountSmartFx},
  {id:'ai2-lyrics',category:'ai',label:'Lyrics Generator',mount:mountLyricsGenerator},

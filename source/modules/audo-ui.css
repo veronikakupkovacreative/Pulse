@@ -1,0 +1,34 @@
+/* Audo integration: compact black/red toolkit styling. */
+.audo-panel{display:grid;gap:14px;min-width:0}
+.audo-panel .tool-description{max-width:650px}
+.audo-panel :is(input,textarea,select,button){font:inherit}
+.audo-panel :is(input:not([type=checkbox]),textarea,select){
+ background:transparent;color:inherit;border:1px solid currentColor;border-radius:0;
+ min-width:0;width:100%;padding:10px 12px;min-height:42px;
+ font:400 13px/1.5 Arial,Helvetica,sans-serif}
+.audo-panel textarea{resize:vertical;min-height:100px}
+.audo-panel input[type=range]{accent-color:var(--red,#ff2b20);padding:9px 0;cursor:pointer}
+.audo-panel :is(select,textarea,input,button,a):focus-visible,.audo-key-panel :is(input,button):focus-visible{
+ outline:2px solid var(--red,#ff2b20);outline-offset:3px}
+.audo-label,.audo-fields>label{display:flex;flex-direction:column;gap:7px;font:600 10px/1.5 Arial,Helvetica,sans-serif;letter-spacing:.05em}
+.audo-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.audo-check{display:flex;gap:9px;align-items:flex-start;font:400 12px/1.5 Arial,Helvetica,sans-serif;cursor:pointer}
+.audo-check input[type=checkbox]{flex:0 0 auto;margin:3px 0 0;accent-color:var(--red,#ff2b20)}
+.audo-presets{display:flex;gap:7px;flex-wrap:wrap}
+.audo-presets button{border:1px solid currentColor;color:inherit;background:transparent;border-radius:0;padding:9px 11px;cursor:pointer;font:600 10px Arial,Helvetica,sans-serif}
+.audo-presets button:hover{background:#171717;color:white}
+.audo-output{display:grid;gap:10px;border-top:1px solid currentColor;padding-top:14px}
+.audo-output audio{width:100%;min-height:42px}
+.audo-output a{display:inline-flex;justify-content:space-between;align-items:center;color:inherit;text-decoration:none;border:1px solid currentColor;padding:12px;font:600 11px Arial,Helvetica,sans-serif}
+.audo-output small{opacity:.7;font:400 11px/1.5 Arial,Helvetica,sans-serif}
+.audo-panel [data-audo-status][data-error=true]{color:var(--red,#ff2b20)}
+.audo-key-panel{display:grid;gap:13px}
+.audo-key-panel [data-audo-key-run]{width:100%;background:#191919;color:#fff;border:1px solid #191919;padding:12px;cursor:pointer;font:600 11px Arial,Helvetica,sans-serif;min-height:43px}
+.audo-key-panel button:disabled{opacity:.5;cursor:wait}
+.audo-key-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.audo-key-results>div{min-width:0;border:1px solid currentColor;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.audo-key-results small{font:600 9px Arial,Helvetica,sans-serif;letter-spacing:.07em;opacity:.78}
+.audo-key-results strong{font:400 19px/1.2 Arial,Helvetica,sans-serif;overflow-wrap:anywhere}
+.audo-key-panel [data-audo-key-note]{margin:0;font-size:11px;line-height:1.5}
+@media(max-width:580px){.audo-fields,.audo-key-results{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.audo-panel *, .audo-key-panel *{transition:none!important}}

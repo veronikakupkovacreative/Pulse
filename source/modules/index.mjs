@@ -21,6 +21,7 @@ if(typeof document!=='undefined'){
   const extractionStyle=document.createElement('link');extractionStyle.rel='stylesheet';extractionStyle.href='/modules/musicgpt-extraction.css';document.head.append(extractionStyle);
   const watermarkStyle=document.createElement('link');watermarkStyle.rel='stylesheet';watermarkStyle.href='/modules/watermark-cleaner.css';document.head.append(watermarkStyle);
   const aiV2Style=document.createElement('link');aiV2Style.rel='stylesheet';aiV2Style.href='/modules/ai-v2.css';document.head.append(aiV2Style);
+  const audoStyle=document.createElement('link');audoStyle.rel='stylesheet';audoStyle.href='/modules/audo-ui.css';document.head.append(audoStyle);
   // Canonical last-loaded layer: keeps every red toolkit consistent with Beat Lab.
   const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
   workspace.mountSource();

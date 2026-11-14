@@ -8,7 +8,7 @@ import {studioStore} from './modules/studio-store.mjs';
 import {initializeThemeToggle} from './modules/theme-toggle.mjs';
 
 const toolSummaries=Object.freeze({
- "song-analyzer": "BPM, key, Camelot, beat grid and chords.",
+ "song-analyzer": "BPM, key, Camelot, chords and optional Audo cross-check.",
  "music-tagger": "Local genre, mood and instrument tagging.",
  "editor": "Cut, fade, reverse, merge and adjust audio.",
  "wav": "Convert audio to WAV, MP3, M4A, FLAC and more.",
@@ -17,9 +17,9 @@ const toolSummaries=Object.freeze({
  "ai2-vocals": "Vocal enhancement, doubling and AI voice conversion.",
  "ai2-beat": "Detect beats and export 4-bar loops.",
  "ai2-mix": "Balance and render up to eight audio tracks.",
- "ai2-repair": "Noise removal and frequency filtering.",
+ "ai2-repair": "Local spectral repair or Audo AI Vocal Cleanup.",
  "ai2-pitch": "Change tempo and pitch independently.",
- "ai2-fx": "Effects rack, sidechain and modulation.",
+ "ai2-fx": "Local FX racks and Audo AI sound effect generation.",
  "ai2-lyrics": "Generate and edit original lyrics.",
  "ai2-musicai": "Generate two music versions from your prompt.",
  "ai2-watermark": "Clean selected audio metadata or text markers.",

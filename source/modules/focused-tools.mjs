@@ -8,6 +8,7 @@ import {advancedEqualizerModule} from './eq-advanced.mjs';
 import {analyzeRhythmInWorker} from './rhythm-client.mjs';
 import {analyzeHarmonyInWorker} from './harmony-client.mjs';
 import {buildBeatGrid} from './beat-detector.mjs';
+import {mountAudoKeyComparison} from './audo-ui.mjs';
 
 const section=(num,name,detail)=>'<div class="tool-view-header"><span>'+num+' / '+name+'</span><span>LOCAL AUDIO PROCESSING</span></div><h3>'+name+'.<br><span>'+detail+'.</span></h3>';
 const setText=(host,key,text)=>{const el=host.querySelector('[data-focus="'+key+'"]');if(el)el.textContent=String(text);};
@@ -31,11 +32,19 @@ function mountSongAnalyzer({host}){
   '<div class="focus-song-panel focus-song-chord-panel"><div class="focus-song-panel-top"><span>02 / CHORD TIMELINE</span><span>APPROXIMATE MAJ / MIN</span></div>'+
   '<p>Short harmonic snapshots, not a transcription. Uncertain chords are deliberately hidden.</p>'+
   '<div class="focus-chords" data-focus-chords><p class="focus-song-muted">Analyze a musical track to view potential chords.</p></div></div>'+
-  '<div class="focus-song-actions">'+button('analyze','ANALYZE TRACK')+
+  '<div class="focus-song-panel audo-key-panel" data-audo-key-panel>'+
+   '<div class="focus-song-panel-top"><span>03 / INDEPENDENT KEY & BPM</span><span>AUDO CLOUD · FREE</span></div>'+
+   '<p>Cross-check local BPM, key and Camelot using Audo. For large files, a short excerpt is uploaded; the local result stays unchanged.</p>'+
+   '<label class="audo-check"><input type="checkbox" data-audo-key-consent> I agree to send a copy or excerpt to Audo.</label>'+
+   '<button type="button" class="focus-action" data-audo-key-run>COMPARE WITH AUDO ↗</button>'+
+   '<div class="audo-key-results" data-audo-key-result hidden></div>'+
+   '<p class="focus-song-muted" data-audo-key-note aria-live="polite">Free Audo analysis, no API key. Independent estimate, not a guaranteed correct BPM.</p></div>'+
+   '<div class="focus-song-actions">'+button('analyze','ANALYZE TRACK')+
   '<button type="button" class="focus-song-link" data-focus-action="copy" disabled>COPY DETECTED BPM <span aria-hidden="true">↗</span></button></div>'+
   '<p class="focus-status" data-focus-status role="status" aria-live="polite">Load audio into SOURCE AUDIO, then analyze. For BPM use at least 6 seconds of clear rhythm.</p>'+
   '</section>';
  let disposed=false,busy=false,controller=null,current=null,selectionBpm=null;
+ const cleanupAudo=mountAudoKeyComparison({host});
  const analyzeButton=host.querySelector('[data-focus-action="analyze"]');
  const candidatesHost=host.querySelector('[data-focus-candidates]');
  const controls=[...host.querySelectorAll('[data-focus-tempo]')];
@@ -165,7 +174,7 @@ function mountSongAnalyzer({host}){
   if(busy)controller?.abort();
   clear();
  });
- return()=>{disposed=true;controller?.abort();unsub();};
+ return()=>{disposed=true;controller?.abort();unsub();cleanupAudo();};
 }
 
 /** Concatenate already decoded, equal-rate mono/stereo audio with 5ms joins. */

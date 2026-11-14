@@ -11,6 +11,5 @@ test('every registered non-AI module has one current editorial entry',()=>{
 });
 test('the current AI Studio has twelve provider-aware modules with dedicated copy',()=>{
  assert.equal(visibleToolModules.filter(isAiV2).length,12);
- assert.match(requireText(),'');
+ assert.ok(visibleToolModules.filter(isAiV2).every(tool=>tool.id.startsWith('ai2-')));
 });
-function requireText(){return 'AI copy is owned by ai-v2-copy.mjs';}

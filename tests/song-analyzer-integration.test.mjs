@@ -48,7 +48,7 @@ test('Producer Toolkits contains the sole active Song Analyzer',()=>{
  const html=read('index.html');
  assert.match(html,/id="toolkit"/);
  assert.match(html,/data-open-tool="song-analyzer"/);
- assert.match(html,/data-open-tool="song-analyzer">Song Analyzer/);
+ assert.match(html,/data-open-tool="song-analyzer">Analyze/);
  assert.match(html,/<span id="analyzer" aria-hidden="true"><\/span>/);
  assert.doesNotMatch(html,/<section id="analyzer" class="pulse-song-analyzer"/);
  assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);

@@ -6,6 +6,7 @@ export function initializePhaseOne({workspace:w}){
  const $$=selector=>[...root.querySelectorAll(selector)];
  const source=()=>document.getElementById('audio-file');
  const status=$('#phase1-upload-status');
+ const legacy=document.getElementById('pulse-legacy-workspace');
  const report=message=>{if(status){status.textContent=message||'';status.hidden=!message}};
  let pending=false;
  const sync=()=>{
@@ -20,7 +21,24 @@ export function initializePhaseOne({workspace:w}){
    else link.removeAttribute('aria-current');
   }
  };
- const goto=()=>document.getElementById('toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+ const goto=()=>{
+  root.dataset.view='tool';
+  if(legacy)legacy.hidden=false;
+  document.getElementById('toolkit')?.scrollIntoView({behavior:'smooth',block:'start'});
+ };
+ const home=()=>{
+  root.dataset.view='home';
+  if(legacy)legacy.hidden=true;
+  for(const nav of $('[data-phase-nav]'))nav.removeAttribute('aria-current');
+  document.getElementById('main')?.scrollIntoView({behavior:'smooth',block:'start'});
+ };
+ // Capture tool-card clicks before the existing application selects the real module.
+ // The existing module loader remains the only owner of tool activation.
+ const captureToolLink=event=>{
+  const target=event.target.closest?.('[data-open-tool]');
+  if(target&&root.contains(target))goto();
+ };
+ document.addEventListener('click',captureToolLink,true);
  const openAudio=()=>{
   const input=source();
   if(!input){report('SOURCE AUDIO is unavailable. Reload the page.');return;}
@@ -33,6 +51,8 @@ export function initializePhaseOne({workspace:w}){
   });
  }
  const click=event=>{
+  const back=event.target.closest('[data-phase-home], .logo[href="#main"]');
+  if(back&&root.contains(back)){event.preventDefault();home();return;}
   const upload=event.target.closest('[data-phase-open]');
   if(upload&&root.contains(upload)){event.preventDefault();openAudio();return;}
   const scroll=event.target.closest('[data-phase-scroll]');
@@ -76,6 +96,8 @@ export function initializePhaseOne({workspace:w}){
   }
   if(reason==='clear')pending=false;
  });
+ if(legacy)legacy.hidden=true;
+ root.dataset.view='home';
  sync();
- return()=>{unsubscribe();root.removeEventListener('click',click);if(drop){drop.removeEventListener('dragenter',over);drop.removeEventListener('dragover',over);drop.removeEventListener('dragleave',leave);drop.removeEventListener('drop',onDrop);}};
+ return()=>{unsubscribe();document.removeEventListener('click',captureToolLink,true);root.removeEventListener('click',click);if(drop){drop.removeEventListener('dragenter',over);drop.removeEventListener('dragover',over);drop.removeEventListener('dragleave',leave);drop.removeEventListener('drop',onDrop);}};
 }

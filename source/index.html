@@ -767,25 +767,25 @@ dialog.modal .row { justify-content: flex-end; }
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="nav">
   <div class="wrap nav__inner">
-    <a class="logo" href="#/home" aria-label="Pulse Studio home">Pulse<b>STUDIO</b></a>
+    <a class="logo brand" href="#/home" aria-label="Pulse Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a>
     <nav aria-label="Primary">
       <ul class="nav__links">
-        <li><a href="#/analyzer" data-nav="analyzer">Analyze</a></li>
-        <li><a href="#/editor" data-nav="editor">Edit</a></li>
-        <li><a href="#/converter" data-nav="converter">Convert</a></li>
+        <li><a href="#/analyzer" data-open-tool="song-analyzer" data-nav="analyzer">Analyze</a></li>
+        <li><a href="#/editor" data-open-tool="editor" data-nav="editor">Edit</a></li>
+        <li><a href="#/converter" data-open-tool="wav" data-nav="converter">Convert</a></li>
         <li><a href="#/ai" data-nav="ai">AI Studio</a></li>
-        <li><a href="#/visualizer" data-nav="visualizer">Visuals</a></li>
+        <li><a href="#/visualizer" data-open-tool="visualizer" data-nav="visualizer">Visuals</a></li>
       </ul>
     </nav>
     <button class="btn btn--primary btn--sm when-empty" type="button" data-load>Open audio</button>
     <button class="btn btn--sm when-loaded" type="button" data-unload>Replace audio</button>
   </div>
   <nav class="subnav" aria-label="Primary (mobile)">
-    <a href="#/analyzer" data-nav="analyzer">Analyze</a>
-    <a href="#/editor" data-nav="editor">Edit</a>
-    <a href="#/converter" data-nav="converter">Convert</a>
+    <a href="#/analyzer" data-open-tool="song-analyzer" data-nav="analyzer">Analyze</a>
+    <a href="#/editor" data-open-tool="editor" data-nav="editor">Edit</a>
+    <a href="#/converter" data-open-tool="wav" data-nav="converter">Convert</a>
     <a href="#/ai" data-nav="ai">AI Studio</a>
-    <a href="#/visualizer" data-nav="visualizer">Visuals</a>
+    <a href="#/visualizer" data-open-tool="visualizer" data-nav="visualizer">Visuals</a>
   </nav>
 </header>
 
@@ -848,19 +848,19 @@ dialog.modal .row { justify-content: flex-end; }
         <button class="chip" type="button" data-f="visuals" aria-pressed="false">Visuals</button>
       </div>
       <div class="grid" id="toolgrid">
-        <a class="card" href="#/analyzer" data-cat="analyze">
+        <a class="card" href="#/analyzer" data-open-tool="song-analyzer" data-cat="analyze">
           <div class="card__top"><span class="card__num">01</span><span class="tag tag--local">Local</span></div>
           <h3>Song Analyzer</h3><p>BPM, musical key, Camelot, approximate chords and beat grid in one pass.</p><span class="card__link">Open Song Analyzer</span>
         </a>
-        <a class="card" href="#/tagger" data-cat="analyze">
+        <a class="card" href="#/tagger" data-open-tool="music-tagger" data-cat="analyze">
           <div class="card__top"><span class="card__num">01B</span><span class="tag tag--local">Local</span></div>
           <h3>Music Tagger</h3><p>On-device AI genre, mood and instrument predictions. Private by design.</p><span class="card__link">Open Music Tagger</span>
         </a>
-        <a class="card" href="#/editor" data-cat="edit">
+        <a class="card" href="#/editor" data-open-tool="editor" data-cat="edit">
           <div class="card__top"><span class="card__num">02</span><span class="tag tag--local">Local</span></div>
           <h3>Audio Editor</h3><p>Trim, cut, merge, fade, reverse, gain and parametric EQ.</p><span class="card__link">Open Audio Editor</span>
         </a>
-        <a class="card" href="#/converter" data-cat="export">
+        <a class="card" href="#/converter" data-open-tool="wav" data-cat="export">
           <div class="card__top"><span class="card__num">03</span><span class="tag tag--local">Local</span></div>
           <h3>Audio Converter</h3><p>WAV, MP3, FLAC, AAC and OGG with flexible sample-rate settings.</p><span class="card__link">Open Converter</span>
         </a>
@@ -868,7 +868,7 @@ dialog.modal .row { justify-content: flex-end; }
           <div class="card__top"><span class="card__num">04</span><span class="tag tag--cloud">Some tools use cloud</span></div>
           <h3>AI Studio</h3><p>Twelve tools in four groups: Master & mix, Voice & stems, Creative, and Generate & clean.</p><span class="card__link">Open AI Studio</span>
         </a>
-        <a class="card" href="#/visualizer" data-cat="visuals">
+        <a class="card" href="#/visualizer" data-open-tool="visualizer" data-cat="visuals">
           <div class="card__top"><span class="card__num">05</span><span class="tag tag--local">Local</span></div>
           <h3>Audio Visualizer</h3><p>Waveform, spectrum and audio-reactive visuals. Export PNG or video.</p><span class="card__link">Open Visualizer</span>
         </a>
@@ -900,22 +900,22 @@ dialog.modal .row { justify-content: flex-end; }
       <div data-slot="chip"></div>
     </div>
     <div class="filters" aria-label="Analysis tools">
-      <a class="chip" href="#/analyzer" aria-current="true">Song Analyzer</a>
-      <a class="chip" href="#/tagger">Music Tagger</a>
+      <a class="chip" href="#/analyzer" data-open-tool="song-analyzer" aria-current="true">Song Analyzer</a>
+      <a class="chip" href="#/tagger" data-open-tool="music-tagger">Music Tagger</a>
     </div>
 
     <div data-slot="empty" data-msg="Load a file to see BPM, key, Camelot, chords and beat grid. Takes a few seconds."></div>
 
     <div class="when-loaded stack">
       <div class="block" id="an-run">
-        <div class="status"><span>Analyzing night-drive_demo.wav…</span><span id="an-pct">0%</span></div>
+        <div class="status"><span>Analyzing SOURCE AUDIO…</span><span id="an-pct">0%</span></div>
         <div class="progress"><b id="an-bar"></b></div>
       </div>
       <div class="stack" id="an-done" hidden>
         <div class="metrics">
-          <div class="metric metric--hot"><span>BPM</span><b>124</b><small>Confidence 96%</small></div>
-          <div class="metric"><span>Key</span><b>A minor</b><small>Relative: C major</small></div>
-          <div class="metric"><span>Camelot</span><b>8A</b><small>Mixes with 7A · 9A · 8B</small></div>
+          <div class="metric metric--hot"><span>BPM</span><b data-proto-bpm>—</b><small>Awaiting analysis</small></div>
+          <div class="metric"><span>Key</span><b data-proto-key>—</b><small>Relative: C major</small></div>
+          <div class="metric"><span>Camelot</span><b data-proto-camelot>—</b><small>Mixes with 7A · 9A · 8B</small></div>
           <div class="metric"><span>Time sig.</span><b>4 / 4</b><small>Steady tempo</small></div>
         </div>
         <div class="block">
@@ -927,8 +927,8 @@ dialog.modal .row { justify-content: flex-end; }
           <div class="chords" aria-label="Chord progression"><span>Am</span><span>F</span><span>C</span><span>G</span><span>Am</span><span>F</span><span>C</span><span>Em</span></div>
         </div>
         <div class="row">
-          <a class="btn btn--primary" href="#/editor">Open in Editor →</a>
-          <a class="btn" href="#/tagger">Tag this track</a>
+          <a class="btn btn--primary" href="#/editor" data-open-tool="editor">Open in Editor →</a>
+          <a class="btn" href="#/tagger" data-open-tool="music-tagger">Tag this track</a>
           <button class="btn" type="button" data-toast="Report exported">Export report</button>
           <button class="btn" type="button" id="an-rerun">Re-run analysis</button>
         </div>
@@ -946,8 +946,8 @@ dialog.modal .row { justify-content: flex-end; }
       <div data-slot="chip"></div>
     </div>
     <div class="filters" aria-label="Analysis tools">
-      <a class="chip" href="#/analyzer">Song Analyzer</a>
-      <a class="chip" href="#/tagger" aria-current="true">Music Tagger</a>
+      <a class="chip" href="#/analyzer" data-open-tool="song-analyzer">Song Analyzer</a>
+      <a class="chip" href="#/tagger" data-open-tool="music-tagger" aria-current="true">Music Tagger</a>
     </div>
 
     <div data-slot="empty" data-msg="Load a file to get genre, mood and instrument predictions. The model runs on your device."></div>
@@ -976,7 +976,7 @@ dialog.modal .row { justify-content: flex-end; }
       </div>
       <div class="row">
         <button class="btn btn--primary" type="button" data-toast="Tags copied (prototype)">Copy tags</button>
-        <a class="btn" href="#/analyzer">Back to Song Analyzer</a>
+        <a class="btn" href="#/analyzer" data-open-tool="song-analyzer">Back to Song Analyzer</a>
       </div>
     </div>
   </div>
@@ -1033,7 +1033,7 @@ dialog.modal .row { justify-content: flex-end; }
               <li><span>Gain +2.0 dB on selection</span><span>just now</span></li>
               <li><span>Fade out 3.0 s</span><span>1 min ago</span></li>
               <li><span>Trim 0:00 – 3:42</span><span>3 min ago</span></li>
-              <li><span>Open night-drive_demo.wav</span><span>4 min ago</span></li>
+              <li><span>Open SOURCE AUDIO</span><span>4 min ago</span></li>
             </ul>
           </div>
         </section>
@@ -1101,8 +1101,8 @@ dialog.modal .row { justify-content: flex-end; }
       <div class="block">
         <h3>Files</h3>
         <div class="files">
-          <div class="file"><span>night-drive_demo.wav<br><small>3:42 · 44.1 kHz · 37.4 MB</small></span><span class="tag tag--local">Ready</span></div>
-          <div class="file"><span>bassline_v3.flac<br><small>1:08 · 48 kHz · 9.1 MB</small></span><span class="tag tag--local">Ready</span></div>
+          <div class="file"><span>SOURCE AUDIO<br><small>3:42 · 44.1 kHz · 37.4 MB</small></span><span class="tag tag--local">Ready</span></div>
+          <div class="file"><span>SOURCE AUDIO<br><small>1:08 · 48 kHz · 9.1 MB</small></span><span class="tag tag--local">Ready</span></div>
         </div>
         <div class="row" style="margin-top:var(--space-2)"><button class="btn btn--sm" type="button" data-toast="Add files (prototype)">+ Add files</button><button class="btn btn--sm" type="button" data-toast="Cleared (prototype)">Clear all</button></div>
       </div>
@@ -1188,7 +1188,7 @@ dialog.modal .row { justify-content: flex-end; }
             <span class="tag tag--local" id="ai-done-tag">Ready</span>
           </div>
           <div class="beat"><svg id="aiw" viewBox="0 0 220 100" preserveAspectRatio="none" aria-label="Result waveform"></svg></div>
-          <div class="row"><button class="btn btn--primary" type="button" data-toast="Downloaded result (prototype)">Download ↓</button><a class="btn" href="#/editor">Open in Editor</a></div>
+          <div class="row"><button class="btn btn--primary" type="button" data-toast="Downloaded result (prototype)">Download ↓</button><a class="btn" href="#/editor" data-open-tool="editor">Open in Editor</a></div>
         </div>
       </div>
     </div>
@@ -1211,7 +1211,7 @@ dialog.modal .row { justify-content: flex-end; }
         <canvas id="viz" width="1280" height="720" aria-label="Animated visualization preview"></canvas>
         <div class="transport">
           <button class="tbtn tbtn--play" type="button" id="vplay" aria-label="Pause">❚❚</button>
-          <div class="time"><small>night-drive_demo.wav</small></div>
+          <div class="time"><small>SOURCE AUDIO</small></div>
         </div>
       </section>
       <aside class="panel side" aria-label="Visual settings">
@@ -1253,11 +1253,11 @@ dialog.modal .row { justify-content: flex-end; }
 <footer class="footer">
   <div class="wrap">
     <div class="footer__grid">
-      <div><a class="logo" href="#/home">Pulse<b>STUDIO</b></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
-      <div><h4>Analysis</h4><ul><li><a href="#/analyzer">Song Analyzer</a></li><li><a href="#/tagger">Music Tagger</a></li></ul></div>
-      <div><h4>Edit & Export</h4><ul><li><a href="#/editor">Audio Editor</a></li><li><a href="#/converter">Audio Converter</a></li></ul></div>
-      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering">AI Mastering</a></li><li><a href="#/ai/stems">Stem Extraction</a></li><li><a href="#/ai">All 12 tools</a></li></ul></div>
-      <div><h4>Visuals</h4><ul><li><a href="#/visualizer">Audio Visualizer</a></li></ul></div>
+      <div><a class="logo brand" href="#/home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
+      <div><h4>Analysis</h4><ul><li><a href="#/analyzer" data-open-tool="song-analyzer">Song Analyzer</a></li><li><a href="#/tagger" data-open-tool="music-tagger">Music Tagger</a></li></ul></div>
+      <div><h4>Edit & Export</h4><ul><li><a href="#/editor" data-open-tool="editor">Audio Editor</a></li><li><a href="#/converter" data-open-tool="wav">Audio Converter</a></li><li><a href="#/protection" data-open-tool="audio-protection">Audio Protection</a></li></ul></div>
+      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering" data-open-tool="ai2-mastering">AI Mastering</a></li><li><a href="#/ai/stems" data-open-tool="ai2-extraction">Stem Extraction</a></li><li><a href="#/ai">All 12 tools</a></li></ul></div>
+      <div><h4>Visuals</h4><ul><li><a href="#/visualizer" data-open-tool="visualizer">Audio Visualizer</a></li></ul></div>
     </div>
     <div class="footer__bottom"><span>© 2026 PULSE STUDIO</span><span>Built for the sound you make.</span><a href="#/home">Back to top ↑</a></div>
   </div>

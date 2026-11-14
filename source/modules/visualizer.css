@@ -1,0 +1,23 @@
+.pulse-ai-master{display:flex;flex-direction:column;gap:13px;min-width:0;color:var(--ink);font:400 13px/1.55 var(--font-body)}
+.pulse-ai-master h3{font:700 clamp(28px,3vw,42px)/1.08 var(--font-display);letter-spacing:-.04em;margin:12px 0;color:var(--ink)}
+.pulse-ai-master .tool-description{max-width:60ch;color:var(--ink-2);margin:0 0 12px}
+.pulse-ai-subhead{font:600 10px/1.4 var(--font-mono);letter-spacing:.1em;color:var(--ink-3);margin:8px 0 0}
+.pulse-ai-control{display:grid;gap:7px;min-width:0;color:var(--ink-2);font:500 11px/1.4 var(--font-body)}
+.pulse-ai-control output{float:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.pulse-ai-control input[type=range]{width:100%;accent-color:var(--accent)}
+.pulse-ai-control input:not([type=range]),.pulse-ai-control select{width:100%;min-width:0;min-height:42px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink)}
+.pulse-ai-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.pulse-ai-mode{display:flex;gap:6px;flex-wrap:wrap}
+.pulse-ai-mode button,.pulse-ai-stage-actions button{min-height:40px;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);cursor:pointer}
+.pulse-ai-mode button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pulse-ai-visual-stage{display:grid;gap:11px;min-width:0;max-width:100%;padding:13px;margin-top:14px;border:1px solid var(--line);border-radius:var(--radius);background:#080809;color:#f4f2ee}
+.pulse-ai-visual-stage canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#080809;border:1px solid #2a2a2e;border-radius:var(--radius-sm)}
+.pulse-ai-stage-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font:500 10px var(--font-mono);letter-spacing:.08em}
+.pulse-ai-stage-top i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:6px}
+.pulse-ai-stage-actions{display:flex;gap:7px;flex-wrap:wrap}
+.pulse-ai-stage-actions button{border-color:#515159;background:#141416;color:#f4f2ee}
+.pulse-ai-stage-actions button:disabled{opacity:.5;cursor:not-allowed}
+.pulse-ai-visual-stage>p{margin:0;color:#bdbab1;font-size:11px}
+.pulse-ai-out{min-height:35px;padding:10px 0;border-top:1px solid var(--line);overflow-wrap:anywhere;white-space:pre-wrap;color:var(--ink-2);font:400 12px/1.5 var(--font-body)}
+.pulse-ai-out[data-error=true]{color:#c63d2b}
+@media(max-width:640px){.pulse-ai-grid{grid-template-columns:1fr}.pulse-ai-visual-stage{padding:9px}.pulse-ai-stage-actions button{flex:1}}

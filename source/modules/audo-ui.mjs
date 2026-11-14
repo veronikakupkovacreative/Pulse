@@ -66,7 +66,8 @@ async function base64File(file){
 export async function audoWorkspaceFile({maxSeconds=12}={}){
  const source=w.ensureAudio();
  if(w.originalFile?.size>=1024&&w.originalFile.size<=MAX_BYTES &&
-  /\.(wav|mp3|m4a|aac|flac|ogg|opus|webm|aiff)$/i.test(w.originalFile.name)&&!w.selection){
+  /\.(wav|mp3|m4a|aac|flac|ogg|opus|webm|aiff)$/i.test(w.originalFile.name)&&!w.selection &&
+  !w.history.canUndo&&!w.history.canRedo){
   return {file:await base64File(w.originalFile),scope:'FULL FILE'};
  }
  const {file,window}=makeCloudTaggingExcerpt(source,{selection:w.selection,maxSeconds});

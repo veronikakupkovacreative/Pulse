@@ -7,7 +7,6 @@ const source=join(root,'source'),output=join(root,'public');
 await mkdir(join(output,'modules'),{recursive:true});
 for(const file of ['index.html','style.css','app.mjs']){await readFile(join(source,file));await copyFile(join(source,file),join(output,file));}
 for(const file of await readdir(join(source,'modules'))){if(file.endsWith('.mjs')||file.endsWith('.css'))await copyFile(join(source,'modules',file),join(output,'modules',file));}
-// Historical standalone Song Analyzer is used only by independent regression tests.
 // The live analyzer uses modules/rhythm-worker.mjs and modules/harmony-worker.mjs.
 // Publish a pinned same-origin beat detector for lazy browser loading.
 await mkdir(join(output,'vendor','beat-detector'),{recursive:true});

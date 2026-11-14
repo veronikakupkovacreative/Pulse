@@ -24,4 +24,4 @@ Vercel executes `npm test && npm run build` and publishes `public/`.
 
 ## Cleanup policy
 
-The legacy host is deliberately retained **only** for active audio controls until migrated. It must not become a second user-facing UI. Previous standalone Song Analyzer UI, unused red-theme overlay, obsolete theme toggle and one-time installer scripts have been removed. The historical `source/song` DSP code remains test-only, and is not shipped in the browser build.
+The legacy host is deliberately retained **only** for active audio controls until migrated. It must not become a second user-facing UI. Previous standalone Song Analyzer UI, unused red-theme overlay, obsolete theme toggle and one-time installer scripts have been removed. The abandoned standalone `source/song` implementation and its tests have been removed. The current BPM engine lives in `source/modules/rhythm-client.mjs` and its worker.

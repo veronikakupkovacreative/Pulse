@@ -56,7 +56,7 @@ test('Producer Toolkits contains the sole active Song Analyzer',()=>{
  for(const category of ['analyze','create','prepare'])
   assert.ok(html.includes('data-category="'+category+'"'),category);
  assert.match(html,/class="tool-board editor__grid"/);
- assert.match(html,/id="pulse-hero-drop"/);
+ assert.match(html,/id="drop"/);
  assert.doesNotMatch(html,/id="pulse-theme-toggle"/);
 });
 

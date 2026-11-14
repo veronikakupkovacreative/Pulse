@@ -12,7 +12,7 @@ test('PULSE shell is dark-only regardless of OS preferences or saved light theme
 });
 test('accessible production shell retains all original modules with active navigation',()=>{
  const html=read('index.html'),app=read('app.mjs'),styles=read('modules/index.mjs');
- for(const id of ['toolkit','tool-panel','tool-tabs','pulse-hero-drop','pulse-editor-properties','pulse-tool-directory','pulse-editor-export'])
+ for(const id of ['toolkit','tool-panel','tool-tabs','drop','pulse-editor-properties','proto-directory','pulse-editor-export'])
    assert.ok(html.includes(id),'missing '+id);
  assert.match(html,/data-open-tool="editor"/);
  assert.match(app,/pulse:tool-mounted/);

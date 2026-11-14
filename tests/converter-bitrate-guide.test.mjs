@@ -14,7 +14,7 @@ test('MP3 bitrate guide is attached immediately below the converter workspace an
  assert.match(guide,/id="pulse-bitrate-guide"[^>]*hidden/);
  assert.match(guide,/id="pulse-bitrate-title"/);
  assert.ok(html.indexOf('class="pulse-bitrate-guide"')>html.indexOf('class="tool-board editor__grid"'));
- assert.ok(html.indexOf('id="pulse-tool-directory"')<html.indexOf('class="pulse-bitrate-guide"'));
+ assert.ok(html.indexOf('id="proto-directory"')<html.indexOf('class="pulse-bitrate-guide"'));
  assert.equal((guide.match(/class="pulse-bitrate-card"/g)||[]).length,5);
 });
 

@@ -88,22 +88,12 @@ test('disabled storage does not prevent appearance changes', () => {
   unsubscribe();
 });
 
-test('theme control is a single icon-only button in the header and bootstraps before CSS', () => {
-  const html = read('index.html');
-  assert.equal((html.match(/id="pulse-theme-toggle"/g) || []).length, 1);
-  const brand = html.indexOf('class="brand"');
-  const toggle = html.indexOf('id="pulse-theme-toggle"');
-  const nav = html.indexOf('class="header-nav"');
-  assert.ok(brand >= 0 && toggle > brand && nav > toggle);
-  assert.match(html, /type="button" aria-label="Switch to dark mode" aria-pressed="false"/);
-  assert.match(html, /class="pulse-theme-moon"/);
-  assert.match(html, /class="pulse-theme-sun"/);
-  assert.ok(html.indexOf("localStorage.getItem('pulse-theme')") < html.indexOf('href="/style.css"'));
-  assert.ok(html.indexOf('href="/modules/theme.css"') > html.indexOf('href="/style.css"'));
-  assert.ok(html.indexOf('href="/modules/theme.css"') < html.indexOf('src="/app.mjs"'));
-  const app = read('app.mjs');
-  assert.match(app, /import \{initializeThemeToggle\} from '\.\/modules\/theme-toggle\.mjs'/);
-  assert.match(app, /initializeThemeToggle\(\)/);
+test('approved Phase 1 shell replaces the obsolete theme control',()=>{
+ const html=read('index.html'),app=read('app.mjs');
+ assert.match(html,/id="pulse-phase-one"/);
+ assert.match(html,/data-theme","dark"/);
+ assert.doesNotMatch(html,/id="pulse-theme-toggle"/);
+ assert.match(app,/initializePhaseOne\(\{workspace:w\}\)/);
 });
 
 test('dark mode applies to editorial surfaces while audio panels retain red and black', () => {

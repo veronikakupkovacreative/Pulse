@@ -19,5 +19,5 @@
 .pulse-ai-stage-actions button:disabled{opacity:.5;cursor:not-allowed}
 .pulse-ai-visual-stage>p{margin:0;color:#bdbab1;font-size:11px}
 .pulse-ai-out{min-height:35px;padding:10px 0;border-top:1px solid var(--line);overflow-wrap:anywhere;white-space:pre-wrap;color:var(--ink-2);font:400 12px/1.5 var(--font-body)}
-.pulse-ai-out[data-error=true]{color:#c63d2b}
+.pulse-ai-out[data-error=true]{color:#ff9b8f}
 @media(max-width:640px){.pulse-ai-grid{grid-template-columns:1fr}.pulse-ai-visual-stage{padding:9px}.pulse-ai-stage-actions button{flex:1}}

@@ -7,6 +7,6 @@
 .pulse-converter .converter-progress{height:6px;overflow:hidden;border-radius:999px;background:var(--line)}
 .pulse-converter .converter-progress>span{display:block;width:0;height:100%;background:var(--accent);transition:width .15s ease}
 .pulse-converter .converter-status{min-height:1.5em;margin:0;color:var(--ink-2);font-size:var(--step--1)}
-.pulse-converter .converter-status[data-error=true]{color:#c43e2d}
+.pulse-converter .converter-status[data-error=true]{color:#ff9b8f}
 .pulse-converter button:disabled{opacity:.55;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.pulse-converter .converter-progress>span{transition:none}}

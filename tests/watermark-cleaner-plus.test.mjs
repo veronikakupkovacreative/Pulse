@@ -81,14 +81,15 @@ test('Opt-in space, typography, NFKC transforms are separately controlled',()=>{
  assert.ok(combined.normalizations.spaces>0);
  assert.equal(combined.normalizations.nfkc,1);
 });
-test('PULSE presents the extra M4A input and optional normalization controls',()=>{
+test('PULSE uses shared SOURCE AUDIO for metadata and preserves optional text normalization controls',()=>{
  const old=globalThis.document;
  const {document}=parseHTML('<html><body><main id="host"></main></body></html>');
  globalThis.document=document;
  try{
   const host=document.getElementById('host');
   const cleanup=mountWatermarkCleaner({host});
-  assert.match(host.querySelector('[data-wm-file]').getAttribute('accept'),/\.m4a/);
+  assert.ok(host.querySelector('[data-wm-scan-audio]'));
+  assert.equal(host.querySelector('[data-wm-file]'),null);
   const opts=[...host.querySelectorAll('[data-wm-option]')];
   assert.deepEqual(opts.map(x=>x.dataset.wmOption),['homoglyphs','typography','spaces','nfkc']);
   assert.ok(opts.every(x=>!x.checked),'Visible content must not be modified without opt-in');

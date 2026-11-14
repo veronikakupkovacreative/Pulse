@@ -22,7 +22,7 @@ test('source waveform renders detected onsets as short ticks, never full-height 
  const ctx={
   fillStyle:'',strokeStyle:'',lineWidth:1,
   fillRect(x,y,width,height){fills.push({color:this.fillStyle,x,y,width,height});},
-  beginPath(){},moveTo(){},lineTo(){},stroke(){}
+  beginPath(){},moveTo(){},lineTo(){},stroke(){},fillText(){}
  };
  const canvas={width:0,height:0,getBoundingClientRect:()=>({width:400,height:180}),getContext:()=>ctx};
  const previousDocument=globalThis.document,previousWindow=globalThis.window;
@@ -34,11 +34,11 @@ test('source waveform renders detected onsets as short ticks, never full-height 
   workspace.markers=Array.from({length:1500},(_,i)=>i*4/1500);
   workspace.position=1;
   workspace.drawWave();
-  const ticks=fills.filter(fill=>fill.color==='#f5f4f0aa');
+  const ticks=fills.filter(fill=>fill.color==='#f4f2ee99');
   assert.ok(ticks.length>0,'beat markers must remain visible');
   assert.ok(ticks.every(tick=>tick.y===0&&tick.height<=14&&tick.width<=2),'beat ticks must not cross the audio');
   assert.ok(ticks.length<=Math.ceil(canvas.width/12)+1,'dense markers should be visually thinned');
-  assert.ok(fills.some(fill=>fill.color==='#101010'),'waveform background is retained');
+  assert.ok(fills.some(fill=>fill.color==='#0e0e0f'),'waveform background is retained');
  }finally{
   if(previousDocument===undefined)delete globalThis.document;
   else globalThis.document=previousDocument;

@@ -18,7 +18,7 @@ test('the home waveform reflects source audio and matches 90-bar design',()=>{
  assert.match(runtime,/host\.replaceChildren\(fragment\)/);
  assert.match(runtime,/initHub\(\);renderHeroWave\(\);/);
 });
-test('editor's waveform ruler uses eight dynamic timeline labels',()=>{
+test('editor waveform ruler uses eight dynamic timeline labels',()=>{
  const source=read('source/modules/source-ui.mjs');
  assert.match(source,/for\(let i=0;i<=7;i\+\+\)/);
  assert.match(source,/view\+span\*i\/7/);

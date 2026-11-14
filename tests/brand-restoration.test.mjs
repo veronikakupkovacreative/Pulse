@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../source/'+p,import.meta.url),'utf8');
-test('hero content matches exact approved reference',()=>{
+test('hero follows the approved reference prototype with task-first loading',()=>{
  const h=read('index.html');
- assert.match(h,/Pulse Studio brings common audio edits into one focused workspace/);
- assert.match(h,/class="pulse-format-tags" aria-label="Export formats"><span>MP3<\/span><span>WAV<\/span><span>M4A<\/span><span>FLAC<\/span>/);
+ assert.match(h,/Find your <em>rhythm\.<\/em>/);
+ assert.match(h,/id="pulse-hero-drop"/);
+ assert.match(h,/Cloud only with consent/);
+ assert.match(h,/class="formats"/);
 });
 test('reference red BPM section stays isolated from DSP',()=>{
  const c=read('style.css');assert.match(c,/Exact source: 10997574ca69082c15aa3f87fbe41009634bf09b/);

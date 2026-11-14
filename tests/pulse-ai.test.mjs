@@ -99,6 +99,7 @@ test('module registers three AI tools, preserving renderer code for future relea
   try{
     await writeFile(join(dir,'package.json'),JSON.stringify({type:'module'}));
     await writeFile(join(dir,'workspace.mjs'),'export const workspace={source:null,buffer:null};\n');
+    await writeFile(join(dir,'music-tagger.mjs'),'export const makeCloudTaggingExcerpt=()=>({file:{name:"clip.wav",base64:""}});\n');
     await copyFile(join(root,'source/modules/pulse-ai-master.mjs'),join(dir,'pulse-ai-master.mjs'));
     const mod=await import(pathToFileURL(join(dir,'pulse-ai-master.mjs')).href);
     assert.deepEqual(mod.pulseAiModules.map(m=>m.id),['ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning']);

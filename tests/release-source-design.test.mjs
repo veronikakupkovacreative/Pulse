@@ -34,7 +34,7 @@ test('all upload entry points use the shared source panel; visual prototype is w
  assert.match(studio,/w\.load\(file\)/);
  assert.match(studio,/navigateHome/);
  assert.match(page,/pulse-tool-directory/);
- assert.doesNotMatch(extraction,/data-ext-file|data-ext-url/);
+ assert.doesNotMatch(extraction,/data-ext-file\\b|data-ext-url\\b|type="file"|type="url"/);
  assert.doesNotMatch(voice,/data-cloud-file/);
  assert.match(read('modules/studio-reference.css'),/--accent:#ff4d1c/);
 });

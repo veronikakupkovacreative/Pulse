@@ -49,7 +49,7 @@ function relocate(){
  // The original library UI lives inside its module panel, never inside a fake form.
  for(const node of $$('#tool-panel .tool-module-host'))node.hidden=false;
  if(view==='editor')$('#pulse-editor-controls')?.removeAttribute('hidden');
- if(view==='analyzer')syncAnalyzer();
+ if(view==='analyzer')updateAnalyzer();
 }
 function navigate(){
  const [view,ai]=sectionFor();
@@ -74,6 +74,9 @@ function load(file){
  return w.load(file).then(()=>{analysisTrack=null;location.hash='#/analyzer';navigate();say('Source audio loaded: '+file.name)}).catch(e=>say(e.message||'Audio could not be decoded.',true));
 }
 function openFile(){const input=$('#audio-file');if(input)input.click();else say('The audio file picker is unavailable.',true);}
+function updateAnalyzer(){
+ syncAnalyzer();
+}
 function syncAnalyzer(){
  const source=$('#module-song-analyzer');if(!source)return;
  const get=k=>$('[data-focus="'+k+'"]',source)?.textContent?.trim()||'—';

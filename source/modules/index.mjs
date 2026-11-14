@@ -15,7 +15,7 @@ const categoryOverrides=Object.freeze({
  'editor':'prepare','wav':'prepare','sample-pack-lab':'prepare','stem-delivery-studio':'prepare',
  'ai2-mastering':'prepare','ai2-watermark':'prepare'
 });
-export const visibleToolModules=Object.freeze(allModules.map(module=>Object.freeze({...module,category:categoryOverrides[module.id]||module.category||'create'})));
+export const visibleToolModules=Object.freeze(allModules.map(module=>Object.freeze({...module,category:categoryOverrides[module.id]||(module.category==='ai'?'create':module.category)||'create'})));
 export const toolModules=visibleToolModules;
 if(typeof document!=='undefined'){
   const link=document.createElement('link');link.rel='stylesheet';link.href='/modules/ui.css';document.head.append(link);

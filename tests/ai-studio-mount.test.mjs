@@ -116,7 +116,7 @@ test('complete application routes to all 22 tools in ANALYZE / CREATE / PREPARE 
   }
  }
  assert.equal(checked,22);
- const nav=document.querySelector('[data-category-link="analyze"]');
+ const nav=document.querySelector('.header-nav [data-open-tool="song-analyzer"]');
  nav.dispatchEvent(event());
- assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Header navigation should return to Song Analyzer');
+ assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Header tool navigation should return to Song Analyzer');
 });

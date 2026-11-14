@@ -40,7 +40,7 @@ test('Lyrics Generator is registered as a separate AI Studio tool',()=>{
  const registry=readFileSync(new URL('../source/modules/index.mjs',import.meta.url),'utf8');
  assert.match(registry,/musicgpt-lyrics\.css/);
  const html=readFileSync(new URL('../source/index.html',import.meta.url),'utf8');
- assert.match(html,/data-open-tool="ai2-lyrics"/);
+ assert.match(html,/data-phase-category="create"/); // AI Studio directory exposes all registered tools through the shared registry.
 });
 test('UI composes a natural-language prompt below MusicGPT 1000-character limit',()=>{
  const prompt=composeLyricsPrompt({

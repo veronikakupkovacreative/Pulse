@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseHTML} from 'linkedom';
+import {transformSync} from 'esbuild';
 import {visibleToolModules} from '../source/modules/index.mjs';
 import {AUDIO_FORMATS} from '../source/modules/converter.mjs';
 import {initializePhaseTwo} from '../source/modules/phase-two-runtime.mjs';
@@ -109,4 +110,22 @@ test('phase two changes only presentation color of the existing waveform',()=>{
  assert.match(audio,/new HistoryStack\(\)/);
  assert.match(audio,/subscribe\(listener\)/);
  assert.match(html,/id="pulse-phase-footer"/);
+});
+
+test('phase two CSS passes an actual parser and keeps readable colors',()=>{
+ const output=transformSync(css,{loader:'css',target:'es2022',minify:true});
+ assert.ok(output.code.length>1000);
+ assert.equal(output.warnings.length,0);
+ const luminance=hex=>{
+  const v=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255)
+   .map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);
+  return .2126*v[0]+.7152*v[1]+.0722*v[2];
+ };
+ const contrast=(a,b)=>{
+  const [hi,lo]=[luminance(a),luminance(b)].sort((a,b)=>b-a);
+  return (hi+.05)/(lo+.05);
+ };
+ assert.ok(contrast('#14130f','#ff4d1c')>=4.5,'CTA text on orange fill must pass AA');
+ assert.ok(contrast('#bdbab1','#141416')>=4.5,'secondary text on dark surface must pass AA');
+ assert.ok(contrast('#f4f2ee','#141416')>=7,'body text on dark surface should pass AAA');
 });

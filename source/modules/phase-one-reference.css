@@ -781,3 +781,7 @@ body{background:#0e0e0f!important;color:#f4f2ee}
 #pulse-legacy-workspace .pulse-directory{display:none!important}
 #pulse-legacy-workspace .pulse-footer{margin:0;padding:clamp(2rem,4vw,4rem);background:#141416;color:#f4f2ee;border-top:1px solid #2a2a2e}
 @media(max-width:899px){#pulse-phase-one{padding-top:7.45rem}#pulse-legacy-workspace{width:calc(100% - 2rem)}}
+
+/* Prevent the stable app's obsolete three-column .hero grid from constraining the exact HTML hero. */
+#pulse-phase-one .hero{display:block;grid-template-columns:none}
+#pulse-phase-one .hero>.wrap{width:min(calc(100% - 2*var(--gutter)),var(--max));margin-inline:auto}

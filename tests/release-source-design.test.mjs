@@ -18,7 +18,7 @@ test('local release analyzer measures a known sine wave and clipping',async()=>{
 test('prototype routes connect to the shared real modules',()=>{
  const page=read('index.html'),studio=read('modules/studio-redesign.mjs'),runtime=read('modules/prototype-runtime.mjs');
  assert.match(page,/id="drop"[^>]*data-open-audio/);assert.match(studio,/w\.load\(file\)/);
- assert.match(runtime,/pulse:workspace-change/);assert.match(page,/id="pulse-legacy-host" hidden/);
+ assert.match(runtime,/pulse:tool-mounted/);assert.match(page,/id="pulse-legacy-host" hidden/);
  assert.doesNotMatch(page,/pulse-hero-drop|pulse-tool-directory|pulse-bitrate-guide/);
  assert.doesNotMatch(read('modules/musicgpt-extraction.mjs'),/data-ext-file="|data-ext-url="|type="file"|type="url"/);
  assert.doesNotMatch(read('modules/musicgpt-voicechanger.mjs'),/data-voice-file|type="file"/);

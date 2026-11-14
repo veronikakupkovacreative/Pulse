@@ -762,6 +762,7 @@ dialog.modal .row { justify-content: flex-end; }
 
 </style>
 <script type="module" src="/app.mjs"></script>
+<script>document.documentElement.setAttribute('data-theme','dark');</script>
 </head>
 <body data-track="none" data-pulse-live="true"><div id="pulse-proto-root">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -777,7 +778,7 @@ dialog.modal .row { justify-content: flex-end; }
         <li><a href="#/visualizer" data-open-tool="visualizer" data-nav="visualizer">Visuals</a></li>
       </ul>
     </nav>
-    <button class="btn btn--primary btn--sm when-empty" type="button" data-load>Open audio</button>
+    <button class="btn btn--primary btn--sm when-empty" type="button" data-load data-open-audio>Open audio</button>
     <button class="btn btn--sm when-loaded" type="button" data-unload>Replace audio</button>
   </div>
   <nav class="subnav" aria-label="Primary (mobile)">
@@ -801,14 +802,14 @@ dialog.modal .row { justify-content: flex-end; }
           <h1>Find your <em>rhythm.</em></h1>
           <p class="hero__lede">Analyze BPM and key, edit, master and export — without installing apps or creating an account.</p>
           <div class="hero__actions">
-            <button class="btn btn--primary" type="button" data-load data-go="analyzer">Drop a track →</button>
-            <button class="btn" type="button" data-scroll="toolkit">Browse tools</button>
+            <button class="btn btn--primary" type="button" data-load data-open-audio data-go="analyzer">Drop a track →</button>
+            <button class="btn" type="button" data-scroll="proto-directory">Browse tools</button>
           </div>
           <ul class="hero__trust">
             <li>No account</li><li>Local by default</li><li>No installation</li>
           </ul>
         </div>
-        <button class="dropzone" type="button" id="drop" data-load data-go="analyzer" aria-label="Drop audio here or click to load a demo track">
+        <button class="dropzone" type="button" id="drop" data-load data-go="analyzer" aria-label="Drop audio here or click to choose an audio file">
           <span class="dropzone__icon" aria-hidden="true">+</span>
           <span class="dropzone__title">Drop audio here</span>
           <span class="dropzone__hint">or click to browse · stays on your device</span>
@@ -833,7 +834,7 @@ dialog.modal .row { justify-content: flex-end; }
     </div>
   </div>
 
-  <div class="section" id="toolkit">
+  <div class="section" id="proto-directory">
     <div class="wrap">
       <div class="section__head">
         <div><p class="eyebrow">( 02 / Toolkit )</p><h2>Six tools. <em>One workspace.</em></h2></div>
@@ -913,7 +914,7 @@ dialog.modal .row { justify-content: flex-end; }
       </div>
       <div class="stack" id="an-done" hidden>
         <div class="metrics">
-          <div class="metric metric--hot"><span>BPM</span><b data-proto-bpm>—</b><small>Awaiting analysis</small></div>
+          <div class="metric metric--hot"><span>BPM</span><b data-proto-bpm data-live-bpm>—</b><small>Awaiting analysis</small></div>
           <div class="metric"><span>Key</span><b data-proto-key>—</b><small>Relative: C major</small></div>
           <div class="metric"><span>Camelot</span><b data-proto-camelot>—</b><small>Mixes with 7A · 9A · 8B</small></div>
           <div class="metric"><span>Time sig.</span><b>4 / 4</b><small>Steady tempo</small></div>
@@ -1256,7 +1257,7 @@ dialog.modal .row { justify-content: flex-end; }
       <div><a class="logo brand" href="#/home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
       <div><h4>Analysis</h4><ul><li><a href="#/analyzer" data-open-tool="song-analyzer">Song Analyzer</a></li><li><a href="#/tagger" data-open-tool="music-tagger">Music Tagger</a></li></ul></div>
       <div><h4>Edit & Export</h4><ul><li><a href="#/editor" data-open-tool="editor">Audio Editor</a></li><li><a href="#/converter" data-open-tool="wav">Audio Converter</a></li><li><a href="#/protection" data-open-tool="audio-protection">Audio Protection</a></li></ul></div>
-      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering" data-open-tool="ai2-mastering">AI Mastering</a></li><li><a href="#/ai/stems" data-open-tool="ai2-extraction">Stem Extraction</a></li><li><a href="#/ai">All 12 tools</a></li></ul></div>
+      <div><h4>AI Studio</h4><ul><li><a href="#/ai/mastering" data-open-tool="ai2-mastering">AI Mastering</a></li><li><a href="#/ai/stems" data-open-tool="ai2-extraction">Stem Extraction</a></li><li><a href="#/ai/lyrics" data-open-tool="ai2-lyrics">Lyrics Generator</a><a href="#/ai">All 12 tools</a></li></ul></div>
       <div><h4>Visuals</h4><ul><li><a href="#/visualizer" data-open-tool="visualizer">Audio Visualizer</a></li></ul></div>
     </div>
     <div class="footer__bottom"><span>© 2026 PULSE STUDIO</span><span>Built for the sound you make.</span><a href="#/home">Back to top ↑</a></div>

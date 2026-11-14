@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/modules/theme.css"><link rel="stylesheet" href="/modules/focused-tools.css"><script type="module" src="/app.mjs"></script>
 </head>
 <body>
-<div id="pulse-phase-one" data-track="none"><a class="skip-link" href="#main">Skip to content</a><header class="nav">
+<div id="pulse-phase-one" data-track="none" data-view="home"><a class="skip-link" href="#main">Skip to content</a><header class="nav">
   <div class="wrap nav__inner">
     <a class="logo" href="#main" aria-label="Pulse Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a>
     <nav aria-label="Primary">
@@ -128,7 +128,20 @@
       </div>
     </div>
   </div>
-</section></main></div>
+</section></main>
+<footer class="footer" id="pulse-phase-footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div><a class="logo" href="#main" data-phase-home aria-label="PULSE Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
+      <div><h4>Analysis</h4><ul><li><a href="#toolkit" data-open-tool="song-analyzer">Song Analyzer</a></li><li><a href="#toolkit" data-open-tool="music-tagger">Music Tagger</a></li></ul></div>
+      <div><h4>Edit & Export</h4><ul><li><a href="#toolkit" data-open-tool="editor">Audio Editor</a></li><li><a href="#toolkit" data-open-tool="wav">Audio Converter</a></li></ul></div>
+      <div><h4>AI Studio</h4><ul><li><a href="#toolkit" data-open-tool="ai2-mastering">AI Mastering</a></li><li><a href="#toolkit" data-open-tool="ai2-extraction">Stem Extraction</a></li><li><a href="#toolkit" data-phase-category="create">All 12 tools</a></li></ul></div>
+      <div><h4>Visuals</h4><ul><li><a href="#toolkit" data-open-tool="visualizer">Audio Visualizer</a></li></ul></div>
+    </div>
+    <div class="footer__bottom"><span>© 2026 PULSE STUDIO</span><span>Built for the sound you make.</span><a href="#main" data-phase-home>Back to top ↑</a></div>
+  </div>
+</footer>
+</div>
 <div class="shell" id="pulse-legacy-workspace" hidden><main id="top">
 <!-- Backward-compatible anchor: #analyzer opens the single Song Analyzer in Producer Toolkits. -->
 <span id="analyzer" aria-hidden="true"></span>
@@ -218,17 +231,6 @@
   <article class="pulse-directory-card"><div class="pulse-card-head"><h3>Audio Converter</h3><span>03C</span></div><p>Convert WAV, MP3, FLAC, AAC, M4A and OGG.</p><button class="pulse-card-action" type="button" data-open-tool="wav">Open tool <span aria-hidden="true">↗</span></button></article>
  </div>
 </div></section>
-</main></div><footer class="footer" id="pulse-phase-footer">
-  <div class="wrap">
-    <div class="footer__grid">
-      <div><a class="logo" href="#main" data-phase-home aria-label="PULSE Studio home"><span class="brand-dot" aria-hidden="true"></span>Pulse<span class="brand-period">STUDIO</span></a><p style="color:var(--ink-2);margin-top:.75rem;max-width:34ch">Focused audio tools for producers. Analyze, edit and export in one browser workspace.</p></div>
-      <div><h4>Analysis</h4><ul><li><a href="#toolkit" data-open-tool="song-analyzer">Song Analyzer</a></li><li><a href="#toolkit" data-open-tool="music-tagger">Music Tagger</a></li></ul></div>
-      <div><h4>Edit & Export</h4><ul><li><a href="#toolkit" data-open-tool="editor">Audio Editor</a></li><li><a href="#toolkit" data-open-tool="wav">Audio Converter</a></li></ul></div>
-      <div><h4>AI Studio</h4><ul><li><a href="#toolkit" data-open-tool="ai2-mastering">AI Mastering</a></li><li><a href="#toolkit" data-open-tool="ai2-extraction">Stem Extraction</a></li><li><a href="#toolkit" data-phase-category="create">All 12 tools</a></li></ul></div>
-      <div><h4>Visuals</h4><ul><li><a href="#toolkit" data-open-tool="visualizer">Audio Visualizer</a></li></ul></div>
-    </div>
-    <div class="footer__bottom"><span>© 2026 PULSE STUDIO</span><span>Built for the sound you make.</span><a href="#main" data-phase-home>Back to top ↑</a></div>
-  </div>
-</footer>
+</main></div>
 </body>
 </html>

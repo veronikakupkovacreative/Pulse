@@ -233,7 +233,7 @@ function initToolUI(){
  }
  // Display only factual source audio in converter, never the two fake demo files.
  const files=$('[data-view="converter"] .files');if(files)files.replaceChildren();
- for(const action of $('[data-view="editor"] [data-toast]'))action.removeAttribute('data-toast');
+ for(const action of $$('[data-view="editor"] [data-toast]'))action.removeAttribute('data-toast');
  const editor=$('[data-view="editor"]');
  if(editor){editor.querySelector('.stage__history .history')?.replaceChildren();
   editor.querySelector('.exportbar .input')?.setAttribute('value','pulse-edit');

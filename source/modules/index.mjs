@@ -34,8 +34,9 @@ if(typeof document!=='undefined'){
   const workflowStyle=document.createElement('link');workflowStyle.rel='stylesheet';workflowStyle.href='/modules/producer-workflows.css';document.head.append(workflowStyle);
   // Canonical last-loaded layer: keeps every red toolkit consistent with Beat Lab.
   const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
-  const darkStyle=document.createElement('link');darkStyle.rel='stylesheet';darkStyle.href='/modules/studio-reference.css';document.head.append(darkStyle);
   const protectionStyle=document.createElement('link');protectionStyle.rel='stylesheet';protectionStyle.href='/modules/protection.css';document.head.append(protectionStyle);
+  // Canonical reference design is the LAST stylesheet, including protected audio tools.
+  const darkStyle=document.createElement('link');darkStyle.rel='stylesheet';darkStyle.href='/modules/studio-reference.css';document.head.append(darkStyle);
   workspace.mountSource();
   // HTML owns editorial copy. Never rewrite the approved design text on mount.
 }

@@ -1,12 +1,11 @@
-/* PULSE dark UI enhancements; existing audio-engine modules remain authoritative. */
 import {workspace as w} from './workspace.mjs';
 import {editRegion,reverseBuffer,gainBuffer} from './dsp.mjs';
 import {fadeBuffer,renderWithNodes} from './legacy-dsp.mjs';
 import {convertBuffer,downloadConversion} from './converter.mjs';
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],id=s=>document.getElementById(s);
-const clock=t=>{t=Math.max(0,t||0);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor(t%1*10)};
+const $$=selector=>[...document.querySelectorAll(selector)],id=value=>document.getElementById(value);
+const clock=seconds=>{const t=Math.max(0,seconds||0);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor(t%1*10)};
 const show=(message,error=false)=>{const node=id('pulse-redesign-status')||id('source-status');if(node){node.textContent=message;node.dataset.error=String(error)}};
-const text=(i,v)=>{if(id(i))id(i).textContent=String(v)};
+const text=(key,value)=>{if(id(key))id(key).textContent=String(value)};
 let editor=false,eqIndex=1,busy=false;
 const eq=[
  {f:100,g:2,q:.8,type:'lowshelf'},
@@ -16,9 +15,6 @@ const eq=[
 ];
 function refresh(){
  const b=w.buffer,sel=w.selection;
- text('pulse-current-name',b?w.displayName||w.name:'No track loaded');
- if(id('pulse-filechip'))id('pulse-filechip').hidden=!b;
- text('pulse-file-meta',b?clock(b.duration)+' · '+(b.sampleRate/1000).toFixed(1)+' kHz · '+(b.numberOfChannels>1?'stereo':'mono'):'Choose a file');
  text('pulse-editor-now',clock(w.position));text('pulse-editor-duration',clock(b?.duration));
  text('pulse-sel-start',sel?clock(sel.start):'—');text('pulse-sel-end',sel?clock(sel.end):'—');text('pulse-sel-length',sel?clock(sel.end-sel.start):'—');
  text('pulse-sel-tag',sel?clock(sel.end-sel.start)+' selected':'Drag to select');
@@ -86,118 +82,11 @@ async function exportAudio(){
  catch(error){show(error.message||'Export failed',true)}finally{busy=false;button.disabled=false}
 }
 
-const ROUTES=Object.freeze({
- 'song-analyzer':'#/analyzer','music-tagger':'#/tagger','release-preflight':'#/release-preflight',
- 'editor':'#/editor','wav':'#/converter','visualizer':'#/visualizer','audio-protection':'#/protection',
- 'ai2-mastering':'#/ai/mastering','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
-});
-let currentTool='song-analyzer';
-function pageTitle(idValue){
- const selected=document.querySelector('#tool-tabs .tool-tab.selected');
- let title=(selected?.textContent||'Song Analyzer').replace(/\s*↗\s*$/,'').trim();
- if(idValue==='song-analyzer')title='Song Analyzer';
- const labels=title.split(/\s+/),last=labels.pop(),head=labels.join(' ');
- const heading=id('toolkit-title');
- if(heading){heading.textContent='';if(head)heading.append(document.createTextNode(head+' '));const accent=document.createElement('span');accent.textContent=last+'.';heading.append(accent)}
- text('pulse-tool-crumb',title);
- const chip=id('pulse-tool-chip');
- if(chip)chip.textContent=idValue.startsWith('ai2-')?'LOCAL OR CLOUD · PER TOOL':'SHARED AUDIO WORKSPACE';
- document.title=title+' — PULSE Studio';
-}
-function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
- currentTool=toolId||currentTool;
- document.body.classList.remove('pulse-home-view');
- document.body.classList.add('pulse-workspace-view');
- document.body.dataset.route='tool';
- mode(currentTool==='editor');
- pageTitle(currentTool);
- const group=currentTool==='editor'?'editor':currentTool==='wav'?'wav':currentTool==='visualizer'?'visualizer':currentTool==='audio-protection'?'audio-protection':currentTool.startsWith('ai2-')?'ai2-mastering':'song-analyzer';
- $$('.header-nav [data-open-tool]').forEach(link=>{
-  const active=link.dataset.openTool===group;
-  link.classList.toggle('is-active',active);
-  if(active)link.setAttribute('aria-current','true');else link.removeAttribute('aria-current');
- });
- const desired=ROUTES[currentTool]||'#/tool/'+encodeURIComponent(currentTool);
- if(updateUrl&&location.hash!==desired)history.pushState(null,'',desired);
- requestAnimationFrame(()=>{w.drawWave();if(scroll)(document.querySelector('#pulse-proto-root .view:not([hidden])')||id('toolkit'))?.scrollIntoView({block:'start',behavior:'auto'});});
-}
-function navigateHome({updateUrl=true,scroll=true}={}){
- document.body.classList.add('pulse-home-view');
- document.body.classList.remove('pulse-workspace-view','pulse-editor-mode');
- document.body.dataset.route='home';
- if(updateUrl&&location.hash!=='#/home')history.pushState(null,'','#/home');
- document.title='PULSE Studio — Find your rhythm';
- $$('.header-nav [data-open-tool]').forEach(link=>{
-  link.classList.remove('is-active');link.removeAttribute('aria-current');
- });
- if(scroll)window.scrollTo({top:0,behavior:'auto'});
-}
-function handleDeepLink(){
- const hash=decodeURIComponent(location.hash||'');
- if(!hash||hash==='#/home'){navigateHome({updateUrl:false});return}
- if(['#top','#pulse-tool-directory','#how-it-works'].includes(hash)){navigateHome({updateUrl:false,scroll:false});return;}
- const tool=Object.entries(ROUTES).find(([,route])=>route===hash)?.[0]||
-  (hash.startsWith('#/tool/')?hash.slice(7):null);
- if(tool){
-  const target=document.querySelector('[data-open-tool="'+CSS.escape(tool)+'"]');
-  if(target){target.click();return}
-  const tab=document.querySelector('#tool-tabs [data-tool="'+CSS.escape(tool)+'"]');
-  if(tab){tab.click();return}
- }
- if(hash==='#toolkit')navigateTool(currentTool,{updateUrl:false});
-}
 export function initializeStudioRedesign(){
- document.documentElement.setAttribute('data-theme','dark');
- const input=id('audio-file'),drop=id('pulse-hero-drop');
- const openSource=()=>input?.click();
- document.querySelectorAll('[data-open-audio]').forEach(button=>button.addEventListener('click',event=>{
-  event.preventDefault();openSource();
- }));
- const load=async file=>{
-  if(!file)return;
-  try{await w.load(file);if(document.body.classList.contains('pulse-home-view'))navigateTool('song-analyzer');show('Track loaded in SOURCE AUDIO: '+file.name);}
-  catch(error){show(error?.message||'Could not load audio.',true)}
- };
- if(drop){
-  for(const type of ['dragover','dragenter'])drop.addEventListener(type,event=>{
-   event.preventDefault();drop.classList.add('is-dragging');
-  });
-  for(const type of ['drop','dragleave'])drop.addEventListener(type,event=>{
-   event.preventDefault();drop.classList.remove('is-dragging');
-  });
-  drop.addEventListener('drop',event=>void load(event.dataTransfer?.files?.[0]));
- }
- const strip=id('pulse-wave-strip');
- if(strip&&!strip.childElementCount)for(let i=0;i<90;i++){
-  const bar=document.createElement('i');
-  bar.style.setProperty('--height',Math.round(18+Math.abs(Math.sin(i*.42)*Math.cos(i*.13))*75)+'%');
-  strip.append(bar);
- }
- $$('.pulse-tool-filter').forEach(button=>button.addEventListener('click',()=>{
-  const f=button.dataset.filter;
-  $$('.pulse-tool-filter').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
-  $$('.pulse-tool-card').forEach(card=>card.dataset.hidden=String(f!=='all'&&card.dataset.kind!==f));
- }));
- document.addEventListener('pulse:tool-mounted',event=>{
-  const idValue=event.detail?.id||$('.tool-tabs .tool-tab.selected')?.dataset.tool;
-  if(idValue)navigateTool(idValue);
- });
- document.addEventListener('click',event=>{
-  if(!event.target.closest('[data-go-home]'))return;
-  event.preventDefault();navigateHome();
- });
- window.addEventListener('popstate',handleDeepLink);
- window.addEventListener('hashchange',handleDeepLink);
+ document.addEventListener('pulse:tool-mounted',event=>mode(event.detail?.id==='editor'));
  w.subscribe((snapshot,reason)=>{
   if(reason==='position')text('pulse-editor-now',clock(snapshot.position));
   else refresh();
-  if(reason==='load'&&document.body.classList.contains('pulse-home-view')){
-   const description=id('pulse-drop-description');if(description)description.textContent='Loaded '+(w.displayName||w.name)+' · ready in SOURCE AUDIO';
-   navigateTool('song-analyzer');
-  }
-  if(reason==='clear'){
-   const description=id('pulse-drop-description');if(description)description.textContent='or click to browse · one shared SOURCE AUDIO for all tools';
-  }
   if(reason==='transport'){
    const button=id('pulse-editor-play');
    if(button){button.textContent=w.playing?'PAUSE':'PLAY';button.setAttribute('aria-label',w.playing?'Pause':'Play')}
@@ -205,7 +94,6 @@ export function initializeStudioRedesign(){
  });
  id('pulse-toolbar-undo')?.addEventListener('click',()=>w.undo());
  id('pulse-toolbar-redo')?.addEventListener('click',()=>w.redo());
- id('pulse-editor-replace')?.addEventListener('click',()=>input?.click());
  id('pulse-editor-play')?.addEventListener('click',()=>void w.togglePlay().catch(error=>show(error.message,true)));
  id('pulse-editor-start')?.addEventListener('click',()=>w.seek(0));
  id('pulse-toolbar-zoom-in')?.addEventListener('click',()=>id('source-zoomin')?.click());
@@ -221,7 +109,10 @@ export function initializeStudioRedesign(){
  }));
  $$('[data-editor-action]').forEach(button=>button.addEventListener('click',()=>{
   const action=button.dataset.editorAction;
-  if(action==='merge'){document.querySelector('#module-editor [data-edit-mode="merge"]')?.click();document.querySelector('#module-editor [data-focus-action="merge"]')?.click();return;}
+  if(action==='merge'){
+   document.querySelector('#module-editor [data-edit-mode="merge"]')?.click();
+   document.querySelector('#module-editor [data-focus-action="merge"]')?.click();return;
+  }
   void edit(action);
  }));
  id('pulse-selection-trim')?.addEventListener('click',()=>void edit('trim'));
@@ -233,9 +124,7 @@ export function initializeStudioRedesign(){
   const value=Number(id(inputId).value);
   text(output,(inputId==='pulse-gain'&&value>0?'+':'')+value.toFixed(1)+unit);
  });
- $$('[data-band]').forEach(button=>button.addEventListener('click',()=>{
-  eqIndex=Number(button.dataset.band);syncEq();
- }));
+ $$('[data-band]').forEach(button=>button.addEventListener('click',()=>{eqIndex=Number(button.dataset.band);syncEq()}));
  for(const field of ['pulse-eq-frequency','pulse-eq-gain','pulse-eq-q']){
   id(field)?.addEventListener('input',()=>{
    eq[eqIndex].f=Math.round(20*Math.pow(1000,id('pulse-eq-frequency').value/1000));
@@ -250,13 +139,14 @@ export function initializeStudioRedesign(){
  const canvas=id('audio-wave');let gesture=null;
  if(canvas){
   const coord=event=>w.waveCoordinate(event.clientX-canvas.getBoundingClientRect().left,canvas.clientWidth);
-  const xForTime=t=>{const v=w.getWaveViewport();return (t-v.view)/Math.max(.001,v.visible)*canvas.clientWidth;};
+  const xForTime=seconds=>{const viewport=w.getWaveViewport();return (seconds-viewport.view)/Math.max(.001,viewport.visible)*canvas.clientWidth};
   canvas.addEventListener('pointerdown',event=>{
    if(!editor||!w.buffer||event.button!==0)return;
-   const at=coord(event),x=event.clientX-canvas.getBoundingClientRect().left,sel=w.selection;
-   const left=sel?Math.abs(x-xForTime(sel.start)):Infinity,right=sel?Math.abs(x-xForTime(sel.end)):Infinity;
+   const at=coord(event),x=event.clientX-canvas.getBoundingClientRect().left,selection=w.selection;
+   const left=selection?Math.abs(x-xForTime(selection.start)):Infinity;
+   const right=selection?Math.abs(x-xForTime(selection.end)):Infinity;
    const handle=left<15&&left<=right?'start':right<15?'end':'new';
-   gesture={anchor:at,handle,moved:false,start:sel?.start??at,end:sel?.end??at};
+   gesture={anchor:at,handle,moved:false,start:selection?.start??at,end:selection?.end??at};
    canvas.setPointerCapture(event.pointerId);event.stopImmediatePropagation();
   },true);
   canvas.addEventListener('pointermove',event=>{
@@ -277,6 +167,4 @@ export function initializeStudioRedesign(){
   canvas.addEventListener('pointercancel',()=>{gesture=null},true);
  }
  syncEq();refresh();
- if(location.hash&&location.hash!=='#/home')handleDeepLink();
- else navigateHome({updateUrl:false});
 }

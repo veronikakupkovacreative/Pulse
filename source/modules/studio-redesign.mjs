@@ -193,7 +193,8 @@ export function initializeStudioRedesign(){
  w.subscribe((snapshot,reason)=>{
   if(reason==='position')text('pulse-editor-now',clock(snapshot.position));
   else refresh();
-  if(reason==='load'&&document.body.dataset.pulseLive!=='true'&&document.body.classList.contains('pulse-home-view')){
+  if(reason==='load'&&document.body.classList.contains('pulse-home-view')){
+    if(document.body.dataset.pulseLive==='true')return;
    const description=id('pulse-drop-description');if(description)description.textContent='Loaded '+(w.displayName||w.name)+' · ready in SOURCE AUDIO';
    navigateTool('song-analyzer');
   }

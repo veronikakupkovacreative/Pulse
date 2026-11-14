@@ -100,7 +100,7 @@ export function initializeReferenceLayout({workspace}){
   intro.querySelector('h1')?.replaceChildren();
   const heading=document.getElementById('phase2-tool-title');
   heading.append(document.createTextNode(pieces[0]+' '));
-  const emphasis=document.createElement('em');emphasis.textContent=pieces[1];heading.append(emphasis,tag);
+  const emphasis=document.createElement('em');emphasis.textContent=pieces[1];heading.append(emphasis,document.createTextNode(' '),tag);
   tag.textContent=['song-analyzer','music-tagger','editor','wav','visualizer'].includes(definition.id)?'Local':'Tool';
   crumbName.textContent=pieces[2];
   modes.replaceChildren();

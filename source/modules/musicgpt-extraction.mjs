@@ -1,5 +1,5 @@
 /**
- * MusicGPT Extraction v2 in AI Studio (owner-only, credit-based).
+ * MusicGPT Extraction v2 in AI Studio (public, rate-limited cloud).
  * This is stem separation, not a YouTube video-to-audio converter.
  */
 import {workspace as w} from './workspace.mjs';
@@ -17,8 +17,8 @@ const STEM_GROUPS=Object.freeze([
  ['DRUMS',[['kick_drum','Kick'],['snare_drum','Snare'],['hi_hat','Hi-hat'],['toms','Toms'],['ride','Ride'],['crash','Crash']]]
 ]);
 const ERRORS={
- MUSICGPT_EXTRACTION_NOT_CONFIGURED:'MusicGPT Extraction API or private owner access is not configured on this environment.',
- OWNER_AUTH_REQUIRED:'Private PULSE access token is incorrect.',
+ MUSICGPT_EXTRACTION_NOT_CONFIGURED:'Stem Extraction is temporarily unavailable.',
+ CREDIT_PROTECTION_REQUIRED:'Refresh the page and try again.',
  CROSS_ORIGIN_BLOCKED:'This request was blocked by the same-origin protection.',
  AUDIO_CONSENT_REQUIRED:'Confirm the rights to the input and consent to paid cloud processing.',
  INVALID_EXTRACTION_PARAMETERS:'Select at least one supported stem and only valid preprocessing options.',
@@ -77,10 +77,10 @@ export function mountStemExtraction({host}={}){
    '<div class="pulse-ext-section-heading"><strong>03 / OPTIONAL PREPROCESSING</strong><span>BEFORE EXTRACTION</span></div>'+
    '<div class="pulse-ext-pre">'+ALLOWED_PRE.map(x=>'<label><input type="checkbox" data-ext-pre="'+x+'">'+x.toUpperCase()+'</label>').join('')+'</div>'+
    '<label class="pulse-ext-check"><input type="checkbox" data-ext-eco> ECO MODE / PROVIDER PARALLEL PROCESSING</label>'+
-   '<label class="pulse-ext-field">PRIVATE PULSE ACCESS TOKEN<input type="password" data-ext-token autocomplete="off" spellcheck="false" placeholder="Owner token, not MusicGPT API key"></label>'+
-   '<label class="pulse-ext-check pulse-ext-consent"><input type="checkbox" data-ext-consent> I own or have permission to use this audio. I consent to sending it to MusicGPT and spending API credits.</label>'+
+   '<p class="pulse-ext-note">No API key required · PULSE credits.</p>'+
+   '<label class="pulse-ext-check pulse-ext-consent"><input type="checkbox" data-ext-consent> I own or have permission to use this audio. I consent to sending it to MusicGPT for processing.</label>'+
    '<div class="pulse-ext-actions"><button type="button" data-ext-submit>EXTRACT STEMS ↗</button><button type="button" data-ext-stop hidden>STOP CHECKING</button></div>'+
-   '<p class="pulse-ext-note">Uses paid cloud credits. Stop pauses status checks, not the job.</p>'+
+   '<p class="pulse-ext-note">Limit: 3 new cloud jobs / IP / 10 min. Stop pauses checks, not processing.</p>'+
   '</div>'+
   '<div class="pulse-ext-status" role="status" aria-live="polite" data-ext-status>Checking MusicGPT Extraction availability…</div>'+
   '<div class="pulse-ext-job" data-ext-job hidden>'+
@@ -116,16 +116,11 @@ export function mountStemExtraction({host}={}){
    next==='url'?'Use a provider-supported YouTube URL for full-track extraction.':'Choose an audio file up to 2.4 MB.');
  };
  for(const b of host.querySelectorAll('[data-ext-source]'))b.onclick=()=>updateMethod(b.dataset.extSource);
- function token(){
-  const value=$('[data-ext-token]').value.trim();
-  if(!value)throw Error('Enter PRIVATE PULSE ACCESS TOKEN.');
-  return value;
- }
  async function gateway(action,values,signal){
-  const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-pulse-owner-token':token()},
+  const res=await fetch(API+(action==='submit'?'?charge=1':''),{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({action,...values}),signal,cache:'no-store'});
   const data=await res.json().catch(()=>({error:'INVALID_PROVIDER_RESPONSE'}));
-  if(!res.ok)throw Error(ERRORS[data.error]||('MusicGPT returned '+String(data.error||res.status)));
+  if(!res.ok)throw Error(res.status===429?'PULSE cloud limit reached. Try in 10 minutes.':ERRORS[data.error]||('MusicGPT returned '+String(data.error||res.status)));
   return data;
  }
  const picked=selector=>[...host.querySelectorAll(selector)].filter(x=>x.checked).map(x=>selector==='[data-ext-pre]'?x.dataset.extPre:x.dataset.extStem);
@@ -199,7 +194,6 @@ export function mountStemExtraction({host}={}){
   // Lock before asynchronous File reading; two clicks must never create two paid jobs.
   const turn=++run,ac=new AbortController();controller=ac;busy=true;showControls();
   try{
-   token();
    const stems=picked('[data-ext-stem]');
    if(!stems.length)throw Error('Select at least one stem.');
    status('Preparing audio…');
@@ -227,7 +221,7 @@ export function mountStemExtraction({host}={}){
  try{
   const saved=JSON.parse(storage()?.getItem(SESSION_KEY)||'null');
   if(saved&&ID.test(saved.id||'')&&Number.isFinite(saved.at)&&Date.now()-saved.at<7*86400_000){
-   conversionId=saved.id;status('Previous extraction found. Enter your private token and select CHECK / RESUME JOB.');
+   conversionId=saved.id;status('Previous extraction found. Select CHECK / RESUME JOB.');
   }
  }catch{}
  showControls();
@@ -242,5 +236,5 @@ export function mountStemExtraction({host}={}){
    else if(!conversionId)status('Ready. Select stems and extract.');
   }catch{if(!disposed)status('Could not check MusicGPT configuration. Try reloading the tool.',true);}
  })();
- return()=>{disposed=true;abort();$('[data-ext-token]').value='';host.replaceChildren();};
+ return()=>{disposed=true;abort();host.replaceChildren();};
 }

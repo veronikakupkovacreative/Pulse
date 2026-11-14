@@ -1,20 +1,15 @@
 /**
- * PULSE MusicGPT Voice Changer — owner-only Vercel gateway.
+ * PULSE MusicGPT Voice Changer — public, rate-limited Vercel gateway.
  * Audio files and API credentials are sent only after explicit user consent.
- * Do not expose MUSICGPT_API_KEY or PULSE_MUSICGPT_OWNER_TOKEN to the browser.
+ * Do not expose MUSICGPT_API_KEY to the browser.
  */
-import {timingSafeEqual} from 'node:crypto';
+import {cloudConfigured,checkCloudOrigin,checkBillableRoute} from './_pulse-cloud-guard.js';
 const BASE='https://api.musicgpt.com/api/public/v1';
 const MAX_BYTES=2_400_000,MAX_BODY=3_300_000;
 const idPattern=/^[a-zA-Z0-9_-]{3,100}$/;
 const convertPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-const ready=()=>Boolean(process.env.MUSICGPT_API_KEY&&process.env.PULSE_MUSICGPT_OWNER_TOKEN);
+const ready=()=>cloudConfigured(process.env.MUSICGPT_API_KEY);
 const respond=(res,code,data)=>res.status(code).json(data);
-const equal=(a,b)=>{
- if(typeof a!=='string'||typeof b!=='string'||!a||!b)return false;
- const x=Buffer.from(a),y=Buffer.from(b);
- return x.length===y.length&&timingSafeEqual(x,y);
-};
 function validateFile(file){
  if(!file||typeof file.name!=='string'||typeof file.base64!=='string'||file.base64.length>MAX_BODY||
   !/^[A-Za-z0-9+/]+={0,2}$/.test(file.base64)||file.base64.length%4)throw Error('INVALID_AUDIO');
@@ -55,11 +50,8 @@ export default async function handler(req,res){
  if(req.method==='GET')return respond(res,200,{configured:ready(),maxFileBytes:MAX_BYTES,provider:'MusicGPT',requiresExplicitConsent:true});
  if(req.method!=='POST')return respond(res,405,{error:'METHOD_NOT_ALLOWED'});
  if(!ready())return respond(res,503,{error:'MUSICGPT_NOT_CONFIGURED'});
- if(!equal(req.headers['x-pulse-owner-token'],process.env.PULSE_MUSICGPT_OWNER_TOKEN))return respond(res,403,{error:'OWNER_AUTH_REQUIRED'});
- if(req.headers.origin){
-  try{if(new URL(req.headers.origin).host!==req.headers.host)return respond(res,403,{error:'CROSS_ORIGIN_BLOCKED'});}
-  catch{return respond(res,403,{error:'CROSS_ORIGIN_BLOCKED'});}
- }
+ const originError=checkCloudOrigin(req);
+ if(originError)return respond(res,403,{error:originError});
  let payload;
  try{payload=parseBody(req.body);}catch{return respond(res,400,{error:'INVALID_JSON'});}
  if(!['voices','submit','result'].includes(payload.action))return respond(res,400,{error:'UNKNOWN_ACTION'});
@@ -83,6 +75,8 @@ export default async function handler(req,res){
    const pitch=Number(payload.pitch??0);
    if(!Number.isInteger(pitch)||pitch<-12||pitch>12)return respond(res,400,{error:'INVALID_PITCH'});
    let audio;try{audio=validateFile(payload.file);}catch(error){return respond(res,400,{error:error.message});}
+   const guard=checkBillableRoute(req);
+   if(guard)return respond(res,403,{error:guard});
    const form=new FormData();
    form.append('voice_id',voiceId);
    form.append('remove_background',payload.removeBackground===true?'1':'0');

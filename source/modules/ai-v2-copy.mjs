@@ -14,7 +14,7 @@ const data=Object.freeze({
   title:['Refine the voice','Create natural doubles'],
   summary:'Choose local Vocal Enhance, local Vocal Doubler, or optional MusicGPT AI Voice Changer. Only AI Voice Changer uploads a short authorized vocal excerpt after explicit consent; local DSP remains private.',
   steps:['Load a vocal into SOURCE AUDIO or choose an optional short file.','Choose local ENHANCE/DOUBLER, or MusicGPT AI VOICE CHANGER with an authorized voice ID and consent.','Process the vocal, listen to the result and download it. Local DSP is reversible with Undo.'],
-  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['LOCAL OR CLOUD','Enhance and Doubler are local. MusicGPT AI Voice Changer is owner-authorized cloud processing.'] ]},
+  benefits:[['VOCAL-TUNED DSP','Body, presence, sibilance smoothing and linked compression.'],['STEREO DOUBLER','Natural-sounding micro-delay doubling with adjustable movement and blend.'],['LOCAL OR CLOUD','Enhance and Doubler are local. MusicGPT AI Voice Changer uses the public cloud gateway.'] ]},
  'ai2-beat':{
   title:['Read the rhythm','Find the groove'],
   summary:'Estimate tempo and beat markers without freezing the UI, create a four-bar region and export a ready-to-use loop.',
@@ -43,12 +43,12 @@ const data=Object.freeze({
  'ai2-musicai':{
   title:['Generate original music','Pick your version'],
   summary:'Create two original tracks with MusicGPT MusicAI from a description or your lyrics. Source audio stays on your device.',
-  steps:['Describe your music or enter original lyrics.','Choose the output, enter your private PULSE token and approve credit usage.','Check progress and download either completed version.'],
-  benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['PRIVATE ACCESS','Server authorization and consent protect your credits.']]},
+  steps:['Describe your music or enter original lyrics.','Choose output and approve MusicGPT processing. No credentials needed.','Check progress and download either completed version.'],
+  benefits:[['PROMPT OR LYRICS','Create music from text or lyrics.'],['TWO VERSIONS','Listen to two separately generated tracks.'],['USAGE PROTECTION','Rate limits protect PULSE credits.']]},
  'ai2-extraction':{
   title:['Separate the stems','Keep every layer'],
-  summary:'Extract individual vocal and instrument stems with MusicGPT Extraction v2. Explicit permission, a private PULSE owner token and paid credits are required. Audio is uploaded to MusicGPT only when you submit.',
-  steps:['Choose a short audio upload, SOURCE AUDIO excerpt or supported YouTube URL.','Select the required stems, optional preprocessing and confirm rights and credit consent.','Start extraction once, then check the same job ID to preview and download available stems.'],
+  summary:'Extract individual vocal and instrument stems with MusicGPT Extraction v2. Explicit permission is required. No credentials needed. Audio is uploaded to MusicGPT only when you submit.',
+  steps:['Choose a short audio upload, SOURCE AUDIO excerpt or supported YouTube URL.','Select stems, optional preprocessing and confirm your rights to the audio.','Start extraction once, then check the same job ID to preview and download available stems.'],
   benefits:[['CHOOSE YOUR STEMS','Split vocals, instruments, bass or individual drum elements.'],['CLOUD AI PROCESSING','MusicGPT v2 processes the audio after explicit approval.'],['RESUMABLE JOBS','Check pending extraction results without a new paid submission.']]},
  'ai2-watermark':{
   title:['Inspect provenance','Keep the audio'],
@@ -57,8 +57,8 @@ const data=Object.freeze({
   benefits:[['LOCAL INSPECTION','Audio and text remain on your device.'],['LOSSLESS AUDIO','Only selected container metadata is removed; encoded sound remains unchanged.'],['CLEAR LIMITS','No false promises about embedded acoustic watermarks.']]},
  'ai2-lyrics':{
   title:['Generate lyrics','Shape the story'],
-  summary:'Create original song lyrics in PULSE from a theme, genre, mood, language and song structure. MusicGPT processes a text prompt on its servers using owner-authorized credits. Your audio is never uploaded.',
-  steps:['Enter a song idea and select the desired genre, mood, language and structure.','Authorize text submission with the private PULSE token and generate original lyrics.','Edit the generated lyrics in place, copy them or export a TXT file.'],
+  summary:'Create original song lyrics in PULSE from a theme, genre, mood, language and song structure. MusicGPT processes a text prompt on its servers using PULSE cloud credits. Your audio is never uploaded.',
+  steps:['Enter a song idea and select the desired genre, mood, language and structure.','Approve text submission and generate original lyrics.','Edit the generated lyrics in place, copy them or export a TXT file.'],
   benefits:[['CREATIVE DIRECTION','Guide the original lyrics using theme, genre, mood, language and song structure.'],['EDITABLE RESULT','Revise generated lines directly in PULSE before copying or downloading the full text.'],['CLOUD TEXT, NO AUDIO','Only your text instructions reach MusicGPT after explicit approval; original audio remains on your device.']]}
 });
 export const isAiV2 = module => !!module && Object.hasOwn(data,module.id);

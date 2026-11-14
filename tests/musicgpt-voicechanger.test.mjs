@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/pulse-musicgpt.js';
 import {readFileSync} from 'node:fs';
-const envs=['MUSICGPT_API_KEY','PULSE_MUSICGPT_OWNER_TOKEN'];
+const envs=['MUSICGPT_API_KEY','PULSE_PUBLIC_CLOUD_ENABLED'];
 function response(){return {code:200,payload:null,headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.code=n;return this;},json(v){this.payload=v;return this;}};}
-async function run(body,token='owner-test',method='POST'){
+async function run(body,route='?charge=1',method='POST'){
  const res=response();
- await handler({method,body,headers:{'x-pulse-owner-token':token}},res);
+ await handler({method,body,url:'/api/pulse-musicgpt'+(body?.action==='submit'?route:''),headers:{origin:'https://pulse.example',host:'pulse.example'}},res);
  return res;
 }
 async function withEnv(callback){
  const saved=Object.fromEntries(envs.map(x=>[x,process.env[x]])),old=global.fetch;
  try{
   process.env.MUSICGPT_API_KEY='server-only-mock-key';
-  process.env.PULSE_MUSICGPT_OWNER_TOKEN='owner-test';
+  process.env.PULSE_PUBLIC_CLOUD_ENABLED='true';
   await callback();
  }finally{
   for(const name of envs)if(saved[name]===undefined)delete process.env[name];else process.env[name]=saved[name];
@@ -22,20 +22,20 @@ async function withEnv(callback){
 }
 const voiceId='e0bb585f-b798-4bac-ac4e-de7fff38f9d75',conversionId='e3631817-165d-4f17-a7e2-7008d200ff3e';
 const file={name:'voice.wav',base64:Buffer.alloc(2048,1).toString('base64')};
-test('MusicGPT API secrets remain server-only and owner gate rejects untrusted requests',async()=>{
+test('MusicGPT API secrets remain server-only and paid-route protection rejects bypasses',async()=>{
  await withEnv(async()=>{
   let calls=0;global.fetch=async()=>{calls++;throw Error('Should not call provider');};
   const get=await run(null,'', 'GET');
   assert.equal(get.code,200);assert.equal(get.payload.configured,true);
   assert.doesNotMatch(JSON.stringify(get.payload),/server-only-mock-key/);
-  const denied=await run({action:'submit',consent:true,authorizedVoice:true},'wrong');
-  assert.equal(denied.code,403);
+  const denied=await run({action:'submit',consent:true,authorizedVoice:true,voiceId,file,pitch:0},'');
+  assert.equal(denied.code,403);assert.equal(denied.payload.error,'CREDIT_PROTECTION_REQUIRED');
   const consent=await run({action:'submit',consent:false,authorizedVoice:true,voiceId,file});
   assert.equal(consent.code,400);
   assert.equal(calls,0);
  });
 });
-test('owner may browse provider voices without exposing the MusicGPT API key',async()=>{
+test('public may browse provider voices without exposing the MusicGPT API key',async()=>{
  await withEnv(async()=>{
   let captured;
   global.fetch=async(url,opt)=>{
@@ -100,6 +100,7 @@ test('Vocal Studio includes MusicGPT changer as one subtool, preserves eight mod
  assert.match(ui,/data-voice-consent/);
  assert.match(ui,/makeCloudTaggingExcerpt/);
  assert.doesNotMatch(ui,/MUSICGPT_API_KEY/);
+ assert.doesNotMatch(ui,/data-voice-token|x-pulse-owner-token/);
 });
 
 test('Voice Changer searches a voice catalog by name without a browser API key',async()=>{

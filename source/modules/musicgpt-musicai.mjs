@@ -1,12 +1,12 @@
 /** PULSE AI Studio / MusicGPT Music AI.
  * Generates two independent tracks from text. No source audio is uploaded.
- * Only conversion IDs are kept in session storage; owner tokens never persist.
+ * Only conversion IDs are kept in session storage; no client credentials.
  * "Stop checking" stops GET polling, not the provider's paid generation job.
  */
 const SESSION_KEY='pulse-musicai-v2-last-job';
 const ID=/^[A-Za-z0-9_-]{8,120}$/;
 const ERROR_COPY={
- OWNER_AUTH_REQUIRED:'Incorrect private PULSE access token.',
+ CREDIT_PROTECTION_REQUIRED:'Refresh the page and try again.',
  MUSICGPT_MUSICAI_NOT_CONFIGURED:'Music AI is not configured for this deployment.',
  CREDIT_CONSENT_REQUIRED:'You must confirm paid MusicGPT generation.',
  INVALID_GENERATION_PARAMETERS:'Check the prompt, music style, lyrics and output settings.',
@@ -42,8 +42,8 @@ export function mountMusicAIV2({host}={}){
  '<label class="pulse-mai-field">TRACK TITLE / OPTIONAL<input data-mai-title maxlength="120" placeholder="Untitled session"></label>'+
  '<label class="pulse-mai-field">VOICE ID / OPTIONAL · AUTHORIZED MODELS ONLY<input data-mai-voice maxlength="120" autocomplete="off" placeholder="Voice ID from your MusicGPT account"></label>'+
  '<label class="pulse-mai-check"><input type="checkbox" data-mai-cover> GENERATE ALBUM COVER WITH THE TRACK</label>'+
- '<label class="pulse-mai-field">PRIVATE PULSE ACCESS TOKEN<input type="password" data-mai-token autocomplete="off" placeholder="Owner token, not your MusicGPT API key" required></label>'+
- '<label class="pulse-mai-check pulse-mai-consent"><input type="checkbox" data-mai-consent required> I have the rights to the lyrics and any voice model. I agree to send the provided text to MusicGPT and use paid credits for TWO generated versions.</label>'+
+ '<p class="ai2-note">No API key required · PULSE credits.</p>'+
+ '<label class="pulse-mai-check pulse-mai-consent"><input type="checkbox" data-mai-consent required> I have the rights to the lyrics and any voice model. I agree to send this text to MusicGPT to generate TWO versions.</label>'+
  '<p class="pulse-mai-hint">For reliable results, keep the prompt within 280 characters. MusicGPT determines the actual credit cost and generation time. This interface provides completed-track playback and downloads.</p>'+
  '<button type="submit" class="ai2-action pulse-mai-generate" data-mai-generate>GENERATE 2 VERSIONS <span aria-hidden="true">↗</span></button>'+
  '</form>'+
@@ -133,18 +133,13 @@ export function mountMusicAIV2({host}={}){
   status(next==='custom'?'Enter your lyrics and a music style to build two variations.':'Describe the music you want to generate.');
  };
  for(const button of host.querySelectorAll('[data-mai-mode]'))button.addEventListener('click',()=>setMode(button.dataset.maiMode));
- function token(){
-  const input=get('[data-mai-token]').value.trim();
-  if(!input)throw Error('Enter PRIVATE PULSE ACCESS TOKEN to continue.');
-  return input;
- }
  async function request(action,data,signal){
-  const response=await fetch('/api/pulse-musicai-v2',{
-   method:'POST',headers:{'Content-Type':'application/json','x-pulse-owner-token':token()},
+  const response=await fetch('/api/pulse-musicai-v2'+(action==='generate'?'?charge=1':''),{
+   method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({action,...data}),signal,cache:'no-store'
   });
   const json=await response.json().catch(()=>({error:'INVALID_PROVIDER_RESPONSE'}));
-  if(!response.ok)throw Error(ERROR_COPY[json.error]||'MusicGPT request failed ('+(json.error||response.status)+').');
+  if(!response.ok)throw Error(response.status===429?'PULSE cloud limit reached. Try in 10 minutes.':ERROR_COPY[json.error]||'MusicGPT request failed ('+(json.error||response.status)+').');
   return json;
  }
  const wait=(ms,signal)=>new Promise((resolve,reject)=>{
@@ -183,7 +178,6 @@ export function mountMusicAIV2({host}={}){
  }
  const readValues=()=>{
   if(!configured)throw Error('MusicGPT Music AI is not configured on this deployment.');
-  token();
   if(!get('[data-mai-consent]').checked)throw Error('Confirm authorization and credit usage for both generated versions.');
   const prompt=get('[data-mai-prompt]').value.trim();
   const lyrics=get('[data-mai-lyrics]').value.trim();
@@ -228,13 +222,13 @@ export function mountMusicAIV2({host}={}){
   job=null;outputs=[null,null];persist();resetCards();showJob();
   status('Ready for a NEW paid generation. Previous generated files remain with MusicGPT.');
  };
- // Resume IDs without exposing the owner token to client storage.
+ // Session keeps only conversion IDs; no API secrets.
  try{
   const raw=session()?.getItem(SESSION_KEY),saved=raw?JSON.parse(raw):null;
   if(saved&&Array.isArray(saved.ids)&&saved.ids.length===2&&saved.ids.every(id=>ID.test(id))&&
    Number.isFinite(saved.created)&&Date.now()-saved.created<7*86400_000){
    job={ids:saved.ids,taskId:saved.taskId,created:saved.created};
-   resetCards();showJob();status('Saved generation found. Enter your owner token and select CHECK / RESUME JOB to retrieve both versions without another charge.');
+   resetCards();showJob();status('Saved generation found. Select CHECK / RESUME JOB to retrieve both versions.');
   }
  }catch{}
  showJob();
@@ -250,6 +244,5 @@ export function mountMusicAIV2({host}={}){
  })();
  return()=>{
   disposed=true;counter++;controller?.abort();controller=null;
-  get('[data-mai-token]').value='';
  };
 }

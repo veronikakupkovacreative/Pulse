@@ -1,9 +1,9 @@
 /**
- * PULSE / MusicGPT Music AI (v1): owner-gated, server-only song generator.
+ * PULSE / MusicGPT Music AI (v1): public, rate-limited, server-only song generator.
  * POST /v1/MusicAI creates TWO paid versions. GET /v1/byId is read-only.
  * Do not retry paid submissions automatically; a timed-out job may still run.
  */
-import {timingSafeEqual} from 'node:crypto';
+import {cloudConfigured,checkCloudOrigin,checkBillableRoute} from './_pulse-cloud-guard.js';
 
 const CREATE_URL='https://api.musicgpt.com/api/public/v1/MusicAI';
 const LOOKUP_URL='https://api.musicgpt.com/api/public/v1/byId';
@@ -11,12 +11,7 @@ const LOOKUP_URL='https://api.musicgpt.com/api/public/v1/byId';
 const GENDERS=new Set(['','male','female','neutral']);
 const ID=/^[A-Za-z0-9_-]{8,120}$/;
 const errorResponse=(res,code,error)=>res.status(code).json({error});
-const ready=()=>Boolean(process.env.MUSICGPT_MUSICAI_V2_API_KEY&&process.env.PULSE_MUSICGPT_OWNER_TOKEN);
-function sameSecret(a,b){
- if(typeof a!=='string'||typeof b!=='string'||!a||!b)return false;
- const x=Buffer.from(a),y=Buffer.from(b);
- return x.length===y.length&&timingSafeEqual(x,y);
-}
+const ready=()=>cloudConfigured(process.env.MUSICGPT_MUSICAI_V2_API_KEY);
 function text(value,max,{required=false}={}){
  if(value==null)return required?null:'';
  if(typeof value!=='string')return null;
@@ -99,18 +94,16 @@ export default async function handler(req,res){
  });
  if(req.method!=='POST')return errorResponse(res,405,'METHOD_NOT_ALLOWED');
  if(!ready())return errorResponse(res,503,'MUSICGPT_MUSICAI_NOT_CONFIGURED');
- if(!sameSecret(req.headers?.['x-pulse-owner-token'],process.env.PULSE_MUSICGPT_OWNER_TOKEN))
-  return errorResponse(res,403,'OWNER_AUTH_REQUIRED');
- if(req.headers?.origin){
-  try{if(new URL(req.headers.origin).host!==req.headers.host)return errorResponse(res,403,'CROSS_ORIGIN_BLOCKED');}
-  catch{return errorResponse(res,403,'CROSS_ORIGIN_BLOCKED');}
- }
+ const originError=checkCloudOrigin(req);
+ if(originError)return errorResponse(res,403,originError);
  const body=parseRequest(req.body);
  if(!body)return errorResponse(res,400,'INVALID_JSON');
  if(body.action==='generate'){
   if(body.consent!==true)return errorResponse(res,400,'CREDIT_CONSENT_REQUIRED');
   const data=buildGeneration(body);
   if(!data)return errorResponse(res,400,'INVALID_GENERATION_PARAMETERS');
+  const guard=checkBillableRoute(req);
+  if(guard)return errorResponse(res,403,guard);
   // Only one provider request for each explicit click. No automatic paid retries.
   const result=await provider(CREATE_URL,{method:'POST',body:JSON.stringify(data)});
   if(!result.ok)return errorResponse(res,result.status,result.error);

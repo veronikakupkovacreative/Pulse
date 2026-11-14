@@ -30,7 +30,7 @@ function downloadText(name,content){
  a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
 const errors={
- OWNER_AUTH_REQUIRED:'Incorrect PULSE owner access token.',
+ CREDIT_PROTECTION_REQUIRED:'Refresh the page and try again.',
  MUSICGPT_LYRICS_NOT_CONFIGURED:'Lyrics Generator is not configured on this PULSE deployment.',
  TEXT_UPLOAD_CONSENT_REQUIRED:'Confirm you agree to send the prompt to MusicGPT.',
  INSUFFICIENT_CREDITS:'Your MusicGPT account has insufficient credits.',
@@ -55,8 +55,8 @@ export function mountLyricsGenerator({host}){
  '<label>STRUCTURE<select name="structure" data-lyrics-structure><option>Verse / Chorus / Verse / Chorus / Bridge / Chorus</option><option>Intro / Verse / Pre-Chorus / Chorus / Verse / Chorus / Outro</option><option>Hook / Verse / Hook / Verse / Hook</option><option>Free-form / Spoken word</option></select></label>'+
  '</div>'+
  '<label>OPTIONAL / KEYWORDS<input name="keywords" data-lyrics-keywords maxlength="160" placeholder="city lights, midnight, no sleep"></label>'+
- '<label>PRIVATE PULSE ACCESS TOKEN<input data-lyrics-token type="password" autocomplete="off" required placeholder="Your owner access token"></label>'+
- '<label class="pulse-lyrics-consent"><input type="checkbox" data-lyrics-consent required> I agree to send this text prompt to MusicGPT and use my account credits for generation.</label>'+
+ '<p class="pulse-lyrics-note">No API key required · PULSE credits.</p>'+
+ '<label class="pulse-lyrics-consent"><input type="checkbox" data-lyrics-consent required> I agree to send this prompt to MusicGPT.</label>'+
  '<button class="ai2-action pulse-lyrics-generate" type="submit" data-lyrics-generate>GENERATE LYRICS <span aria-hidden="true">↗</span></button>'+
  '<p class="pulse-lyrics-status" role="status" aria-live="polite" data-lyrics-status>Describe your idea and press Generate Lyrics. Audio is never sent.</p>'+
  '</form>'+
@@ -95,10 +95,8 @@ export function mountLyricsGenerator({host}){
    language:$('[data-lyrics-language]').value,structure:$('[data-lyrics-structure]').value,
    keywords:$('[data-lyrics-keywords]').value
   });
-  const token=$('[data-lyrics-token]').value.trim();
-  if(!token)throw Error('Enter your private PULSE access token.');
   if(!$('[data-lyrics-consent]').checked)throw Error('Confirm consent and credit usage before generating.');
-  return {instructions,token};
+  return {instructions};
  };
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(disposed||busy)return;
@@ -107,12 +105,12 @@ export function mountLyricsGenerator({host}){
   const signalController=new AbortController(),run=++generation;controller=signalController;
   setBusy(true);status('Sending text instructions to MusicGPT. The generated lyrics will appear here…');
   try{
-   const response=await fetch('/api/pulse-lyrics',{method:'POST',headers:{
-    'Content-Type':'application/json','x-pulse-owner-token':payload.token
+   const response=await fetch('/api/pulse-lyrics?charge=1',{method:'POST',headers:{
+    'Content-Type':'application/json'
    },body:JSON.stringify({action:'generate',consent:true,prompt:payload.instructions}),signal:signalController.signal});
    const output=await response.json().catch(()=>({error:'INVALID_PROVIDER_RESPONSE'}));
    if(!response.ok){
-    const error=new Error(errors[output.error]||'MusicGPT returned an error ('+(output.error||response.status)+').');
+    const error=new Error(response.status===429?'PULSE cloud limit reached. Try in 10 minutes.':errors[output.error]||'MusicGPT returned an error ('+(output.error||response.status)+').');
     error.code=output.error;throw error;
    }
    if(typeof output.lyrics!=='string'||!output.lyrics.trim())throw Error('MusicGPT returned no lyrics.');

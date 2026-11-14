@@ -6,22 +6,23 @@ import handler,{safeStemFiles,STEMS,MAX_FILE_BYTES} from '../api/pulse-extractio
 import {mountStemExtraction} from '../source/modules/musicgpt-extraction.mjs';
 import {visibleToolModules} from '../source/modules/index.mjs';
 
-const KEYS=['MUSICGPT_EXTRACTION_API_KEY','PULSE_MUSICGPT_OWNER_TOKEN'];
-const PRIVATE='not-a-real-provider-key',OWNER='owner-test-token-1234';
+const KEYS=['MUSICGPT_EXTRACTION_API_KEY','PULSE_PUBLIC_CLOUD_ENABLED'];
+const PRIVATE='not-a-real-provider-key';
 const CONVERSION_ID='dded3f43-4715-4564-88e0-b66ebc00c466';
 const response=()=>({code:0,data:null,headers:{},setHeader(k,v){this.headers[k.toLowerCase()]=v;return this;},
  status(code){this.code=code;return this;},json(body){this.data=body;return this;}});
 async function setup(f){
  const before=Object.fromEntries(KEYS.map(key=>[key,process.env[key]])),saved=globalThis.fetch;
- process.env.MUSICGPT_EXTRACTION_API_KEY=PRIVATE;process.env.PULSE_MUSICGPT_OWNER_TOKEN=OWNER;
+ process.env.MUSICGPT_EXTRACTION_API_KEY=PRIVATE;process.env.PULSE_PUBLIC_CLOUD_ENABLED='true';
  try{await f();}finally{
   globalThis.fetch=saved;
   for(const key of KEYS){if(before[key]===undefined)delete process.env[key];else process.env[key]=before[key];}
  }
 }
-async function call(body,token=OWNER,method='POST',origin){
+async function call(body,route='?charge=1',method='POST',origin='https://thepulsestudio.eu'){
  const res=response();
- await handler({method,body,headers:{'x-pulse-owner-token':token,host:'thepulsestudio.eu',...(origin?{origin}:{})}},res);
+ const url='/api/pulse-extraction'+(body?.action==='submit'?route:'');
+ await handler({method,url,body,headers:{origin,host:'thepulsestudio.eu'}},res);
  return res;
 }
 const submit={action:'submit',consent:true,rightsConfirmed:true,
@@ -35,14 +36,14 @@ test('Extraction status is read-only and does not leak credentials',async()=>{
   assert.equal(r.data.apiVersion,'v2');assert.equal(r.data.maxFileBytes,MAX_FILE_BYTES);
   assert.ok(r.data.stems.includes('lead_vocal'));assert.ok(r.data.stems.includes('hi_hat'));
   assert.equal(r.headers['cache-control'],'private, no-store, max-age=0');
-  assert.doesNotMatch(JSON.stringify(r.data),/not-a-real-provider-key|owner-test-token/);
+  assert.doesNotMatch(JSON.stringify(r.data),/not-a-real-provider-key/);
  });
 });
-test('Owner check, same-origin and paid consent prevent unauthorized upstream traffic',async()=>{
+test('Billable route, same-origin and paid consent prevent unauthorized upstream traffic',async()=>{
  await setup(async()=>{
   let requests=0;globalThis.fetch=async()=>{requests++;throw Error('unexpected network call');};
-  let r=await call(submit,'invalid');assert.equal(r.code,403);assert.equal(r.data.error,'OWNER_AUTH_REQUIRED');
-  r=await call(submit,OWNER,'POST','https://attacker.example');assert.equal(r.code,403);
+  let r=await call(submit,'');assert.equal(r.code,403);assert.equal(r.data.error,'CREDIT_PROTECTION_REQUIRED');
+  r=await call(submit,'?charge=1','POST','https://attacker.example');assert.equal(r.code,403);
   r=await call({...submit,consent:false});assert.equal(r.code,400);
   r=await call({...submit,rightsConfirmed:false});assert.equal(r.code,400);
   r=await call({...submit,stems:[]});assert.equal(r.code,400);
@@ -80,7 +81,7 @@ test('MusicGPT v2 Extraction receives the correct multipart request, stems, prep
   assert.deepEqual(JSON.parse(form.get('preprocessing_options')),submit.preprocessingOptions);
   assert.equal(form.get('eco_mode'),'false');
   assert.equal(form.get('webhook_url'),null);
-  assert.doesNotMatch(JSON.stringify(r.data),/owner-test-token|not-a-real-provider-key/);
+  assert.doesNotMatch(JSON.stringify(r.data),/not-a-real-provider-key/);
  });
 });
 test('Short file upload is multipart, and unapproved formats or oversized files are rejected',async()=>{
@@ -142,7 +143,7 @@ test('Stem Extraction UI mounts, stays in AI Studio and replaces removed video/c
  try{
   const host=document.getElementById('host'),cleanup=mountStemExtraction({host});
   assert.ok(host.querySelector('[data-ext-submit]'));
-  assert.ok(host.querySelector('[data-ext-token][type="password"]'));
+  assert.equal(host.querySelector('[data-ext-token]'),null);
   assert.ok(host.querySelector('[data-ext-consent]'));
   assert.ok(host.querySelector('[data-ext-pre="Dereverb"]'));
   assert.equal(host.querySelectorAll('[data-ext-stem]').length,STEMS.length);
@@ -183,14 +184,13 @@ test('double clicking Extraction while input is loading makes one paid submissio
  globalThis.fetch=async(_url,options)=>{
   if(!options?.method)return {ok:true,json:async()=>({configured:true})};
   const body=JSON.parse(options.body);
-  if(body.action==='submit'){paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
+  if(body.action==='submit'){assert.match(String(_url),/\?charge=1$/);paid++;return {ok:true,json:async()=>({status:'submitted',conversionId:CONVERSION_ID})};}
   return {ok:true,json:async()=>({status:'complete',files:[{stem:'vocals',audioUrl:'https://cdn.example/voice.mp3',wavUrl:null}]})};
  };
  try{
   const host=document.getElementById('host'),cleanup=mountStemExtraction({host});
   const file=host.querySelector('[data-ext-file]');
   Object.defineProperty(file,'files',{configurable:true,value:[{name:'clip.mp3',size:2000,arrayBuffer:()=>pendingFile}]});
-  host.querySelector('[data-ext-token]').value='only-a-test-owner-token';
   const consent=host.querySelector('[data-ext-consent]');consent.checked=true;consent.setAttribute('checked','');
   const vocal=host.querySelector('[data-ext-stem="vocals"]');vocal.checked=true;vocal.setAttribute('checked','');
   // Allow the read-only configuration check to finish before clicking.

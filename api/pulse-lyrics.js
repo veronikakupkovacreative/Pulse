@@ -1,16 +1,11 @@
-/** MusicGPT Lyrics Generator — server-only API key; consent-gated and owner protected.
+/** MusicGPT Lyrics Generator — server-only API key; public, consent-gated and rate limited.
  * Public docs: GET /api/public/v1/prompt_to_lyrics?prompt=...
  * Provider bills per request. Do not auto-generate or retry POST requests.
  */
-import {timingSafeEqual} from 'node:crypto';
+import {cloudConfigured,checkCloudOrigin,checkBillableRoute} from './_pulse-cloud-guard.js';
 const ENDPOINT='https://api.musicgpt.com/api/public/v1/prompt_to_lyrics';
 const respond=(res,status,payload)=>res.status(status).json(payload);
-const ready=()=>Boolean(process.env.MUSICGPT_LYRICS_API_KEY&&process.env.PULSE_MUSICGPT_OWNER_TOKEN);
-const matches=(a,b)=>{
- if(typeof a!=='string'||typeof b!=='string'||!a||!b)return false;
- const left=Buffer.from(a),right=Buffer.from(b);
- return left.length===right.length&&timingSafeEqual(left,right);
-};
+const ready=()=>cloudConfigured(process.env.MUSICGPT_LYRICS_API_KEY);
 const validPrompt=prompt=>typeof prompt==='string'&&prompt.trim().length>=1&&prompt.trim().length<=1000&&
  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(prompt);
 export default async function handler(req,res){
@@ -19,18 +14,16 @@ export default async function handler(req,res){
  if(req.method==='GET')return respond(res,200,{configured:ready(),provider:'MusicGPT',input:'text',promptLimit:1000,requiresConsent:true});
  if(req.method!=='POST')return respond(res,405,{error:'METHOD_NOT_ALLOWED'});
  if(!ready())return respond(res,503,{error:'MUSICGPT_LYRICS_NOT_CONFIGURED'});
- if(!matches(req.headers?.['x-pulse-owner-token'],process.env.PULSE_MUSICGPT_OWNER_TOKEN))
-  return respond(res,403,{error:'OWNER_AUTH_REQUIRED'});
- if(req.headers?.origin){
-  try{if(new URL(req.headers.origin).host!==req.headers.host)return respond(res,403,{error:'CROSS_ORIGIN_BLOCKED'});}
-  catch{return respond(res,403,{error:'CROSS_ORIGIN_BLOCKED'});}
- }
+ const originError=checkCloudOrigin(req);
+ if(originError)return respond(res,403,{error:originError});
  let payload=req.body;
  if(typeof payload==='string'){try{payload=JSON.parse(payload);}catch{return respond(res,400,{error:'INVALID_JSON'});}}
  if(!payload||typeof payload!=='object'||Array.isArray(payload))return respond(res,400,{error:'INVALID_JSON'});
  if(payload.action!=='generate')return respond(res,400,{error:'INVALID_ACTION'});
  if(payload.consent!==true)return respond(res,400,{error:'TEXT_UPLOAD_CONSENT_REQUIRED'});
  if(!validPrompt(payload.prompt))return respond(res,400,{error:'INVALID_PROMPT',message:'Prompt must contain 1–1000 characters.'});
+ const guard=checkBillableRoute(req);
+ if(guard)return respond(res,403,{error:guard});
  const apiKey=process.env.MUSICGPT_LYRICS_API_KEY;
  const url=new URL(ENDPOINT);url.searchParams.set('prompt',payload.prompt.trim());
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),50000);

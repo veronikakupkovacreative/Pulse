@@ -1,10 +1,10 @@
 /**
  * PULSE / MusicGPT Stem Extraction v2
- * Owner-gated, server-side-only gateway. Submission spends provider credits.
+ * Public, server-side-only gateway. Billable requests are rate limited by Vercel WAF.
  * No automatic retry for paid submit. Results are fetched by conversion ID.
  * Documentation: https://docs.musicgpt.com/api-documentation/endpoint/extraction
  */
-import {timingSafeEqual} from 'node:crypto';
+import {cloudConfigured,checkCloudOrigin,checkBillableRoute} from './_pulse-cloud-guard.js';
 
 const EXTRACT='https://api.musicgpt.com/api/public/v2/Extraction';
 const RESULT='https://api.musicgpt.com/api/public/v1/byId';
@@ -21,12 +21,7 @@ export const STEMS=Object.freeze([
 const allowedStems=new Set(STEMS);
 const allowedPre=new Set(['Denoise','Deecho','Dereverb']);
 const response=(res,status,data)=>res.status(status).json(data);
-const configured=()=>Boolean(process.env.MUSICGPT_EXTRACTION_API_KEY&&process.env.PULSE_MUSICGPT_OWNER_TOKEN);
-function equal(a,b){
- if(typeof a!=='string'||typeof b!=='string'||!a||!b)return false;
- const x=Buffer.from(a),y=Buffer.from(b);
- return x.length===y.length&&timingSafeEqual(x,y);
-}
+const configured=()=>cloudConfigured(process.env.MUSICGPT_EXTRACTION_API_KEY);
 function youtubeUrl(raw){
  if(typeof raw!=='string'||raw.length>2048)return null;
  try{
@@ -141,15 +136,11 @@ export default async function handler(req,res){
  res.setHeader('X-Content-Type-Options','nosniff');
  if(req.method==='GET')return response(res,200,{configured:configured(),apiVersion:'v2',
   maxFileBytes:MAX_FILE_BYTES,stems:STEMS,preprocessing:['Denoise','Deecho','Dereverb'],
-  cloud:true,ownerAccessRequired:true,creditConsentRequired:true});
+  cloud:true,ownerAccessRequired:false,creditConsentRequired:true,publicUsageLimit:'3 new jobs per IP / 10 min'});
  if(req.method!=='POST')return response(res,405,{error:'METHOD_NOT_ALLOWED'});
  if(!configured())return response(res,503,{error:'MUSICGPT_EXTRACTION_NOT_CONFIGURED'});
- if(!equal(req.headers?.['x-pulse-owner-token'],process.env.PULSE_MUSICGPT_OWNER_TOKEN))
-  return response(res,403,{error:'OWNER_AUTH_REQUIRED'});
- if(req.headers?.origin){
-  try{if(new URL(req.headers.origin).host!==req.headers.host)return response(res,403,{error:'CROSS_ORIGIN_BLOCKED'});}
-  catch{return response(res,403,{error:'CROSS_ORIGIN_BLOCKED'});}
- }
+ const originError=checkCloudOrigin(req);
+ if(originError)return response(res,403,{error:originError});
  const body=parseBody(req.body);
  if(!body)return response(res,400,{error:'INVALID_JSON'});
  if(body.action==='submit'){
@@ -172,6 +163,8 @@ export default async function handler(req,res){
    try{file=audioFile(body.file);}catch(e){return response(res,e.message==='AUDIO_TOO_LARGE'?413:400,{error:e.message});}
    form.append('audio_file',new Blob([file.bytes],{type:file.mime}),file.name);
   }
+  const guard=checkBillableRoute(req);
+  if(guard)return response(res,403,{error:guard});
   // One paid request per user click. Never retry automatically after timeout.
   const upstream=await provider(EXTRACT,{method:'POST',body:form});
   if(!upstream.ok)return response(res,upstream.status,{error:upstream.error});

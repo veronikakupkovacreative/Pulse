@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import lyricsHandler from '../api/pulse-lyrics.js';
 import {composeLyricsPrompt,mountLyricsGenerator} from '../source/modules/musicgpt-lyrics.mjs';
 import {aiV2Modules} from '../source/modules/ai-v2.mjs';
-const envs=['MUSICGPT_LYRICS_API_KEY','PULSE_MUSICGPT_OWNER_TOKEN'];
+const envs=['MUSICGPT_LYRICS_API_KEY','PULSE_PUBLIC_CLOUD_ENABLED'];
 const samplePrompt='Write original English lyrics about the last train home.';
 const mockedKey='server-only-lyrics-credential';
 const fakeResponse=()=>({
@@ -13,10 +13,10 @@ const fakeResponse=()=>({
  status(value){this.statusCode=value;return this;},
  json(value){this.result=value;return this;}
 });
-async function call({method='POST',body={},token='test-owner',origin=null,host='test.local'}={}){
+async function call({method='POST',body={},route='?charge=1',origin='https://test.local',host='test.local'}={}){
  const res=fakeResponse();
  await lyricsHandler({
-  method,body,headers:{'x-pulse-owner-token':token,...(origin?{origin,host}:{})}
+  method,body,url:'/api/pulse-lyrics'+(method==='POST'?route:''),headers:{origin,host}
  },res);
  return res;
 }
@@ -24,7 +24,7 @@ async function withProvider(run){
  const before=Object.fromEntries(envs.map(name=>[name,process.env[name]]));
  const previousFetch=global.fetch;
  process.env.MUSICGPT_LYRICS_API_KEY=mockedKey;
- process.env.PULSE_MUSICGPT_OWNER_TOKEN='test-owner';
+ process.env.PULSE_PUBLIC_CLOUD_ENABLED='true';
  try{await run();}finally{
   global.fetch=previousFetch;
   for(const name of envs){
@@ -58,16 +58,16 @@ test('UI composes a natural-language prompt below MusicGPT 1000-character limit'
  assert.throws(()=>composeLyricsPrompt({theme:'x'.repeat(751)}),/750 characters/);
  assert.throws(()=>composeLyricsPrompt({theme:'x'.repeat(740),keywords:'y'.repeat(160)}),/1,000 characters/);
 });
-test('owner authorization and explicit consent prevent paid API calls',async()=>{
+test('public billable route and explicit consent prevent unintended paid API calls',async()=>{
  await withProvider(async()=>{
   let calls=0;global.fetch=async()=>{calls++;throw Error('Must not reach MusicGPT');};
   const config=await call({method:'GET'});
   assert.equal(config.statusCode,200);
   assert.equal(config.result.configured,true);
   assert.doesNotMatch(JSON.stringify(config.result),/server-only-lyrics-credential/);
-  const forbidden=await call({body:{action:'generate',consent:true,prompt:samplePrompt},token:'wrong'});
+  const forbidden=await call({body:{action:'generate',consent:true,prompt:samplePrompt},route:''});
   assert.equal(forbidden.statusCode,403);
-  assert.equal(forbidden.result.error,'OWNER_AUTH_REQUIRED');
+  assert.equal(forbidden.result.error,'CREDIT_PROTECTION_REQUIRED');
   const consent=await call({body:{action:'generate',consent:false,prompt:samplePrompt}});
   assert.equal(consent.statusCode,400);
   const empty=await call({body:{action:'generate',consent:true,prompt:' '}});

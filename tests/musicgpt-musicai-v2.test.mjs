@@ -6,22 +6,21 @@ import handler from '../api/pulse-musicai-v2.js';
 import {mountMusicAIV2} from '../source/modules/musicgpt-musicai.mjs';
 import {visibleToolModules} from '../source/modules/index.mjs';
 
-const SECRET_KEYS=['MUSICGPT_MUSICAI_V2_API_KEY','PULSE_MUSICGPT_OWNER_TOKEN'];
-const OWNER='owner-only-test-token';
+const SECRET_KEYS=['MUSICGPT_MUSICAI_V2_API_KEY','PULSE_PUBLIC_CLOUD_ENABLED'];
 const API='fake-musicai-key';
 const idA='2872d9a6-4abe-4a8f-a04f-5540c4ef0a1a',idB='dda98922-d5e9-4fc9-accd-4fc1f0729234';
 const response=()=>({code:0,data:null,headers:{},setHeader(key,value){this.headers[key.toLowerCase()]=value;return this;},
  status(code){this.code=code;return this;},json(data){this.data=data;return this;}});
-const call=async(body,token=OWNER,method='POST',origin)=>{
+const call=async(body,route='?charge=1',method='POST',origin='https://pulse.example')=>{
  const res=response();
- await handler({method,body,headers:{'x-pulse-owner-token':token,host:'pulse.example',...(origin?{origin}:{})}},res);
+ await handler({method,body,url:'/api/pulse-musicai-v2'+(body?.action==='generate'?route:''),headers:{origin,host:'pulse.example'}},res);
  return res;
 };
 const mock=async(action)=>{
  const before=Object.fromEntries(SECRET_KEYS.map(k=>[k,process.env[k]]));
  const oldFetch=global.fetch;
  process.env.MUSICGPT_MUSICAI_V2_API_KEY=API;
- process.env.PULSE_MUSICGPT_OWNER_TOKEN=OWNER;
+ process.env.PULSE_PUBLIC_CLOUD_ENABLED='true';
  try{await action();}
  finally{
   global.fetch=oldFetch;
@@ -39,15 +38,15 @@ test('MusicAI v1 supports two-variation discovery without exposing private keys'
   assert.equal(res.data.versions,2);
   assert.equal(res.data.apiVersion,'v1');
    assert.equal(res.data.promptMaxLength,280);
-  assert.doesNotMatch(JSON.stringify(res.data),/fake-musicai-key|owner-only-test/);
+  assert.doesNotMatch(JSON.stringify(res.data),/fake-musicai-key/);
   assert.equal(res.headers['cache-control'],'private, no-store, max-age=0');
  });
 });
-test('owner, same-origin and explicit credit consent gate paid MusicGPT requests',async()=>{
+test('public billable route, same-origin and consent gate MusicGPT requests',async()=>{
  await mock(async()=>{
   let count=0;global.fetch=async()=>{count++;throw Error('provider should not be reached');};
-  let r=await call(prompt,'incorrect');assert.equal(r.code,403);assert.equal(r.data.error,'OWNER_AUTH_REQUIRED');
-  r=await call(prompt,OWNER,'POST','https://evil.example');assert.equal(r.code,403);assert.equal(r.data.error,'CROSS_ORIGIN_BLOCKED');
+  let r=await call(prompt,'');assert.equal(r.code,403);assert.equal(r.data.error,'CREDIT_PROTECTION_REQUIRED');
+  r=await call(prompt,'?charge=1','POST','https://evil.example');assert.equal(r.code,403);assert.equal(r.data.error,'CROSS_ORIGIN_BLOCKED');
   r=await call({...prompt,consent:false});assert.equal(r.code,400);assert.equal(r.data.error,'CREDIT_CONSENT_REQUIRED');
   r=await call({...prompt,prompt:'z'.repeat(281)});assert.equal(r.code,400);
   r=await call({...prompt,gender:'unknown'});assert.equal(r.code,400);
@@ -150,6 +149,7 @@ test('MusicAI UI retains existing tools while adding two generated variations',(
   assert.ok(host.querySelector('[data-mai-form]'));
   assert.equal(host.querySelectorAll('[data-mai-track]').length,2);
    assert.equal(host.querySelector('[data-mai-model]'),null);
+   assert.equal(host.querySelector('[data-mai-token]'),null);
    assert.equal(host.querySelector('[data-mai-prompt]').getAttribute('maxlength'),'280');
   assert.equal(host.querySelector('[data-mai-generate]').disabled,false);
   assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,12);

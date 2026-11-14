@@ -17,7 +17,7 @@ const categoryOverrides=Object.freeze({
 export const visibleToolModules=Object.freeze(allModules.map(module=>Object.freeze({...module,category:categoryOverrides[module.id]||(module.category==='ai'?'create':module.category)||'create'})));
 export const toolModules=visibleToolModules;
 if(typeof document!=='undefined'){
-  const link=document.createElement('link');link.rel='stylesheet';link.href='/modules/ui.css';document.head.append(link);
+  const converterStyle=document.createElement('link');converterStyle.rel='stylesheet';converterStyle.href='/modules/converter.css';document.head.append(converterStyle);
   const musicStyle=document.createElement('link');musicStyle.rel='stylesheet';musicStyle.href='/modules/music-tagger.css';document.head.append(musicStyle);
   const eqStyle=document.createElement('link');eqStyle.rel='stylesheet';eqStyle.href='/modules/eq-ui.css';document.head.append(eqStyle);
   const noiseStyle=document.createElement('link');noiseStyle.rel='stylesheet';noiseStyle.href='/modules/noise-tool.css';document.head.append(noiseStyle);

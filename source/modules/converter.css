@@ -1,0 +1,12 @@
+.pulse-converter{display:grid;gap:var(--space-3);min-width:0}
+.pulse-converter .fields{display:grid;gap:var(--space-2);min-width:0}
+.pulse-converter .fieldblock{display:grid;gap:.45rem;min-width:0}
+.pulse-converter .fieldblock>label{font:500 var(--step--1) var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.pulse-converter select{width:100%;min-width:0;min-height:44px;padding:.65rem .75rem;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink)}
+.pulse-converter .converter-options>div[hidden]{display:none!important}
+.pulse-converter .converter-progress{height:6px;overflow:hidden;border-radius:999px;background:var(--line)}
+.pulse-converter .converter-progress>span{display:block;width:0;height:100%;background:var(--accent);transition:width .15s ease}
+.pulse-converter .converter-status{min-height:1.5em;margin:0;color:var(--ink-2);font-size:var(--step--1)}
+.pulse-converter .converter-status[data-error=true]{color:#c43e2d}
+.pulse-converter button:disabled{opacity:.55;cursor:not-allowed}
+@media(prefers-reduced-motion:reduce){.pulse-converter .converter-progress>span{transition:none}}

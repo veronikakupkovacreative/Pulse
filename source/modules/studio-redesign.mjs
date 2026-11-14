@@ -133,6 +133,7 @@ function navigateHome({updateUrl=true,scroll=true}={}){
  if(scroll)window.scrollTo({top:0,behavior:'auto'});
 }
 function handleDeepLink(){
+ if(document.body.dataset.pulseLive==='true')return;
  const hash=decodeURIComponent(location.hash||'');
  if(!hash||hash==='#/home'){navigateHome({updateUrl:false});return}
  if(['#top','#pulse-tool-directory','#how-it-works'].includes(hash)){navigateHome({updateUrl:false,scroll:false});return;}
@@ -179,6 +180,7 @@ export function initializeStudioRedesign(){
   $$('.pulse-tool-card').forEach(card=>card.dataset.hidden=String(f!=='all'&&card.dataset.kind!==f));
  }));
  document.addEventListener('pulse:tool-mounted',event=>{
+  if(document.body.dataset.pulseLive==='true')return;
   const idValue=event.detail?.id||$('.tool-tabs .tool-tab.selected')?.dataset.tool;
   if(idValue)navigateTool(idValue);
  });
@@ -191,7 +193,7 @@ export function initializeStudioRedesign(){
  w.subscribe((snapshot,reason)=>{
   if(reason==='position')text('pulse-editor-now',clock(snapshot.position));
   else refresh();
-  if(reason==='load'&&document.body.classList.contains('pulse-home-view')){
+  if(reason==='load'&&document.body.dataset.pulseLive!=='true'&&document.body.classList.contains('pulse-home-view')){
    const description=id('pulse-drop-description');if(description)description.textContent='Loaded '+(w.displayName||w.name)+' · ready in SOURCE AUDIO';
    navigateTool('song-analyzer');
   }
@@ -277,6 +279,8 @@ export function initializeStudioRedesign(){
   canvas.addEventListener('pointercancel',()=>{gesture=null},true);
  }
  syncEq();refresh();
- if(location.hash&&location.hash!=='#/home')handleDeepLink();
- else navigateHome({updateUrl:false});
+ if(document.body.dataset.pulseLive!=='true'){
+  if(location.hash&&location.hash!=='#/home')handleDeepLink();
+  else navigateHome({updateUrl:false});
+ }
 }

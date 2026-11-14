@@ -14,17 +14,17 @@ export const VISUAL_MODES = Object.freeze({
   oscilloscope:'OSCILLOSCOPE', vectorscope:'STEREO SCOPE', particles:'PARTICLES'
 });
 export const VISUAL_PRESETS = Object.freeze({
-  pulse:{accent:'#ff0000',background:'#0a0a0a',secondary:'#ffffff'},
+  pulse:{accent:'#ff4d1c',background:'#0a0a0a',secondary:'#ffffff'},
   mono:{accent:'#ffffff',background:'#111111',secondary:'#aaaaaa'},
-  contrast:{accent:'#ff0000',background:'#ffffff',secondary:'#191919'},
-  night:{accent:'#ffffff',background:'#000000',secondary:'#ff0000'},
-  studio:{accent:'#ff0000',background:'#191919',secondary:'#f5f4f0'},
-  charcoal:{accent:'#f5f4f0',background:'#191919',secondary:'#ff0000'}
+  contrast:{accent:'#ff4d1c',background:'#ffffff',secondary:'#191919'},
+  night:{accent:'#ffffff',background:'#000000',secondary:'#ff4d1c'},
+  studio:{accent:'#ff4d1c',background:'#191919',secondary:'#f5f4f0'},
+  charcoal:{accent:'#f5f4f0',background:'#191919',secondary:'#ff4d1c'}
 });
 export function renderPulseFrame(canvas, options, data={}) {
   const g=canvas.getContext('2d');if(!g)return;
   const width=canvas.width,height=canvas.height;
-  const {mode='radial',accent='#ff0000',background='#080808',secondary='#ffffff',sensitivity=1,
+  const {mode='radial',accent='#ff4d1c',background='#080808',secondary='#ffffff',sensitivity=1,
     bars=64,stroke=3,low=45,high=14000,time=0,sampleRate=44100,fftSize=2048}=options;
   const minAxis=Math.min(width,height);
   g.fillStyle=background;g.fillRect(0,0,width,height);
@@ -192,7 +192,7 @@ export function mountAdvancedVisualizer({host}) {
     <div class="pulse-ai-mode" role="group" aria-label="Visual mode">${buttons(Object.entries(VISUAL_MODES).map(([id,label],i)=>[id,label,i===0]))}</div>
     <label class="pulse-ai-control">VISUAL PRESET<select data-preset><option value="pulse">Pulse Red</option><option value="mono">Mono</option><option value="contrast">Red / White</option><option value="night">Night</option><option value="studio">Studio</option><option value="charcoal">Charcoal</option><option value="custom">Custom</option></select></label>
     <div class="pulse-ai-grid">
-      <label class="pulse-ai-control">SIGNAL COLOR<input data-color="accent" type="color" value="#ff0000" /></label>
+      <label class="pulse-ai-control">SIGNAL COLOR<input data-color="accent" type="color" value="#ff4d1c" /></label>
       <label class="pulse-ai-control">BACKGROUND<input data-color="background" type="color" value="#0a0a0a" /></label>
     </div>
     <div class="pulse-ai-grid">${row('bars','BAR DENSITY',12,128,64,1,'')}${row('sensitivity','SENSITIVITY',25,300,110,5,'%')}</div>

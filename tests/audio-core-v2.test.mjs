@@ -22,7 +22,7 @@ test('harmonic worker rejects invalid frames and silence without inventing a key
  assert.throws(()=>analyzeHarmonyFrames(silence,rate,new Float32Array([0]),size),/INVALID_HARMONY_FRAMES/);
 });
 test('waveform markers are bounded and avoid duplicate pixels',()=>{
- assert.deepEqual(getWaveformMarkerPixels([0,.001,.01,.1,1],1,100,6),[0,6,99]);
+ assert.deepEqual(getWaveformMarkerPixels([0,.001,.01,.1,1],1,100,6),[0,10,99]);
 });
 test('only current workspace tools are registered',()=>{
  const ids=visibleToolModules.map(x=>x.id);

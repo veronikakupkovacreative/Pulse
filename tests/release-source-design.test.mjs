@@ -30,10 +30,10 @@ test('all upload entry points use the shared source panel; visual prototype is w
  const page=read('index.html'),studio=read('modules/studio-redesign.mjs');
  const extraction=read('modules/musicgpt-extraction.mjs');
  const voice=read('modules/pulse-ai-master.mjs');
- assert.match(page,/id="pulse-hero-drop"/);
+ assert.match(page,/id="drop"/);
  assert.match(studio,/w\.load\(file\)/);
  assert.match(studio,/navigateHome/);
- assert.match(page,/pulse-tool-directory/);
+ assert.match(page,/id="proto-directory"/);
  assert.doesNotMatch(extraction,/data-ext-file="|data-ext-url="|type="file"|type="url"/);
  assert.doesNotMatch(voice,/data-cloud-file/);
  assert.match(read('modules/studio-reference.css'),/--accent:#ff4d1c/);

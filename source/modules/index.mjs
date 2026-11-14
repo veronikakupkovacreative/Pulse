@@ -19,23 +19,14 @@ const categoryOverrides=Object.freeze({
 export const visibleToolModules=Object.freeze(allModules.map(module=>Object.freeze({...module,category:categoryOverrides[module.id]||(module.category==='ai'?'create':module.category)||'create'})));
 export const toolModules=visibleToolModules;
 if(typeof document!=='undefined'){
-  const link=document.createElement('link');link.rel='stylesheet';link.href='/modules/ui.css';document.head.append(link);
-  const musicStyle=document.createElement('link');musicStyle.rel='stylesheet';musicStyle.href='/modules/music-tagger.css';document.head.append(musicStyle);
-  const eqStyle=document.createElement('link');eqStyle.rel='stylesheet';eqStyle.href='/modules/eq-ui.css';document.head.append(eqStyle);
-  const producerStyle=document.createElement('link');producerStyle.rel='stylesheet';producerStyle.href='/modules/producer-tools.css';document.head.append(producerStyle);
-  const noiseStyle=document.createElement('link');noiseStyle.rel='stylesheet';noiseStyle.href='/modules/noise-tool.css';document.head.append(noiseStyle);
-  const voiceAiStyle=document.createElement('link');voiceAiStyle.rel='stylesheet';voiceAiStyle.href='/modules/musicgpt-voicechanger.css';document.head.append(voiceAiStyle);
-  const lyricsStyle=document.createElement('link');lyricsStyle.rel='stylesheet';lyricsStyle.href='/modules/musicgpt-lyrics.css';document.head.append(lyricsStyle);
-  const musicAIStyle=document.createElement('link');musicAIStyle.rel='stylesheet';musicAIStyle.href='/modules/musicgpt-musicai.css';document.head.append(musicAIStyle);
-  const extractionStyle=document.createElement('link');extractionStyle.rel='stylesheet';extractionStyle.href='/modules/musicgpt-extraction.css';document.head.append(extractionStyle);
-  const watermarkStyle=document.createElement('link');watermarkStyle.rel='stylesheet';watermarkStyle.href='/modules/watermark-cleaner.css';document.head.append(watermarkStyle);
-  const aiV2Style=document.createElement('link');aiV2Style.rel='stylesheet';aiV2Style.href='/modules/ai-v2.css';document.head.append(aiV2Style);
-  const audoStyle=document.createElement('link');audoStyle.rel='stylesheet';audoStyle.href='/modules/audo-ui.css';document.head.append(audoStyle);
-  const workflowStyle=document.createElement('link');workflowStyle.rel='stylesheet';workflowStyle.href='/modules/producer-workflows.css';document.head.append(workflowStyle);
-  // Canonical last-loaded layer: keeps every red toolkit consistent with Beat Lab.
-  const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
-  const darkStyle=document.createElement('link');darkStyle.rel='stylesheet';darkStyle.href='/modules/studio-reference.css';document.head.append(darkStyle);
-  const protectionStyle=document.createElement('link');protectionStyle.rel='stylesheet';protectionStyle.href='/modules/protection.css';document.head.append(protectionStyle);
+  // Active styles only. The prototype stylesheet is last so historical modules share one theme.
+  const styles=["ui.css","music-tagger.css","eq-ui.css","producer-tools.css","noise-tool.css","musicgpt-voicechanger.css","musicgpt-lyrics.css","musicgpt-musicai.css","musicgpt-extraction.css","watermark-cleaner.css","ai-v2.css","audo-ui.css","producer-workflows.css","protection.css","studio-reference.css"];
+  for(const name of styles){
+    const element=document.createElement('link');
+    element.rel='stylesheet';
+    element.href='/modules/'+name;
+    document.head.append(element);
+  }
   workspace.mountSource();
   // HTML owns editorial copy. Never rewrite the approved design text on mount.
 }

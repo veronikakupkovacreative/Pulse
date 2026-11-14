@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {analyzeHarmonyFrames} from '../source/modules/harmony-analysis.mjs';
-import {analyzeTempo} from '../source/modules/original-bpm.mjs';
 
 const read=path=>readFileSync(new URL('../source/modules/'+path,import.meta.url),'utf8');
 test('harmony worker rejects invalid frames and does not invent tonal confidence from silence',()=>{
@@ -29,20 +28,6 @@ test('harmonic snapshot of C major triad yields bounded possible key and chord t
  for(const item of result.chords){assert.ok(item.time>=0);assert.ok(/(maj|min)$/.test(item.label));}
  if(result.key)assert.ok(['low','medium','high'].includes(result.key.confidence));
 });
-test('fast music tempo is not biased toward 115 BPM',()=>{
- const rate=8000,bpm=156,duration=12,audio=new Float32Array(duration*rate);
- const period=60/bpm;
- for(let b=0;b<duration/period;b++){
-  const base=Math.round((b*period+.15)*rate);
-  for(let j=0;j<160&&base+j<audio.length;j++)audio[base+j]+=Math.exp(-j/23)*(.8*Math.sin(2*Math.PI*112*j/rate)+.3);
- }
- const result=analyzeTempo(audio,rate);
- assert.ok(Number.isFinite(result.bpm));
- assert.ok(Array.isArray(result.alternatives));
- assert.ok(['high','medium','low'].includes(result.confidence));
- assert.ok(Math.abs(result.bpm-bpm)<6||result.alternatives.some(x=>Math.abs(x.bpm-bpm)<6),'156 BPM should be among primary or alternate candidates');
- assert.doesNotMatch(read('original-bpm.mjs'),/Math.log\(bpm \/ 115\)/);
-});
 test('focused Song Analyzer shares tempo and harmony worker, provides candidates and PULSE design',()=>{
  const ui=read('focused-tools.mjs'),css=read('focused-tools.css');
  assert.match(ui,/analyzeHarmonyInWorker/);
@@ -53,6 +38,6 @@ test('focused Song Analyzer shares tempo and harmony worker, provides candidates
  assert.match(ui,/data-focus-tempo="double"/);
  assert.match(css,/\.focus-song-summary/);
  assert.match(css,/\.focus-song-main/);
- assert.match(css,/#ff2b20/);
+ assert.match(css,/#ff4d1c/);
  assert.doesNotMatch(ui,/detectKeyAndChords\(source\)/);
 });

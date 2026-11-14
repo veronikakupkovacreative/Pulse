@@ -12,7 +12,6 @@ const uiFiles=[
  'source/modules/musicgpt-voicechanger.mjs',
  'source/modules/ai-v2-copy.mjs',
  'source/modules/tool-editorial.mjs',
- 'source/modules/tool-benefits.mjs',
  'source/app.mjs',
  'source/index.html'
 ];

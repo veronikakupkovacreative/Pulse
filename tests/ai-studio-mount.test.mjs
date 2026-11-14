@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseHTML} from 'linkedom';
 import {aiV2Modules} from '../source/modules/ai-v2.mjs';
-import {TOOL_EDITORIAL} from '../source/modules/tool-editorial.mjs';
-import {TOOL_BENEFITS} from '../source/modules/tool-benefits.mjs';
 import {isAiV2} from '../source/modules/ai-v2-copy.mjs';
 
 const read=path=>readFileSync(new URL('../source/'+path,import.meta.url),'utf8');
@@ -19,9 +17,8 @@ test('AI Studio registry has twelve valid editorial routes and safe backup copy'
  }
  const lyrics=aiV2Modules.find(tool=>tool.id==='ai2-lyrics');
  assert.ok(lyrics,'Lyrics Generator must be registered');
- assert.deepEqual(TOOL_EDITORIAL[lyrics.id].title,['Lyrics','Generator']);
- assert.ok(TOOL_EDITORIAL[lyrics.id].steps.length>=3);
- assert.equal(TOOL_BENEFITS[lyrics.id].length,3);
+ assert.equal(isAiV2(lyrics),true);
+ assert.match(read('modules/ai-v2-copy.mjs'),/ai2-lyrics/);
 });
 
 test('all twelve AI Studio modules mount without throwing',async()=>{

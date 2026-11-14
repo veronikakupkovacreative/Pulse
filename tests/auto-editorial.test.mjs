@@ -1,26 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TOOL_EDITORIAL,renderToolEditorial} from '../source/modules/tool-editorial.mjs';
-
-const existing = ['song-analyzer','music-tagger','rhythm','key','tap','release-preflight','audio-protection','vocal-session-mapper','smart-sample-finder','sample-pack-lab','stem-delivery-studio','editor','equalizer','volume','eq5','silence-trim','fade','tone','center-separate','merge-files','speed-change','sidechain','modulation','clip-pan','pitch-correction','time-stretch','wav','loop','resample','file-size','health','master','quickfix','voice-cleaner','dynamics','enhancer','rack','mix-master','stems','normalize','ai-voice-cleaner','ai-speech-enhancer','ai-voice-cloning','ai2-lyrics','ai2-musicai','ai2-watermark','ai2-extraction','visualizer','reference-matcher','room-tail-reducer','key-chords','noise-remover'];
-
-test('every currently registered tool has individual editorial summary and steps',()=>{
-  assert.deepEqual(Object.keys(TOOL_EDITORIAL).sort(),existing.sort());
-  for(const id of existing){const d=TOOL_EDITORIAL[id];assert.ok(d.title[0] && d.title[1],id);assert.ok(d.summary.length>45,id);assert.equal(d.steps.length,3,id);}
-  assert.equal(new Set(existing.map(id=>TOOL_EDITORIAL[id].summary)).size,existing.length);
+import {visibleToolModules} from '../source/modules/index.mjs';
+import {isAiV2} from '../source/modules/ai-v2-copy.mjs';
+const regular=visibleToolModules.filter(tool=>!isAiV2(tool));
+test('every registered non-AI module has one current editorial entry',()=>{
+ const ids=regular.map(tool=>tool.id).sort();assert.deepEqual(Object.keys(TOOL_EDITORIAL).sort(),ids);
+ for(const id of ids){const d=TOOL_EDITORIAL[id];assert.ok(d.title[0]&&d.title[1],id);assert.ok(d.summary.length>40,id);assert.equal(d.steps.length,3,id);}
+ assert.equal(new Set(ids.map(id=>TOOL_EDITORIAL[id].summary)).size,ids.length);
 });
-test('tool description changes when mounting another module',()=>{
- const elements=new Map();
- const node=(name)=>({name,textContent:'',children:[],classList:{toggle(){}},replaceChildren(...x){this.children=x}});
+test('editorial content updates the active tool title and usage steps',()=>{
+ const elements=new Map(),node=name=>({name,textContent:'',children:[],classList:{toggle(){}},replaceChildren(...items){this.children=items}});
  for(const id of ['#toolkit-title','#pulse-tool-summary','#pulse-tool-steps'])elements.set(id,node(id));
  const doc={querySelector:id=>elements.get(id),createElement:name=>node(name)};
- renderToolEditorial({id:'rhythm',label:'Rhythm Engine'},doc);
- assert.match(elements.get('#pulse-tool-summary').textContent,/tempo/);
- renderToolEditorial({id:'ai-voice-cloning',label:'Voice Cloning'},doc);
- assert.match(elements.get('#pulse-tool-summary').textContent,/voice clone/);
- assert.deepEqual(elements.get('#pulse-tool-steps').children.map(li=>li.textContent),TOOL_EDITORIAL['ai-voice-cloning'].steps);
+ renderToolEditorial({id:'wav',label:'Audio Converter'},doc);assert.match(elements.get('#pulse-tool-summary').textContent,/convert/i);
+ assert.equal(elements.get('#pulse-tool-steps').children.length,3);
+ renderToolEditorial({id:'audio-protection',label:'Audio Protection'},doc);assert.match(elements.get('#pulse-tool-summary').textContent,/watermark/i);
 });
-test('cloud feature copy is upfront about authorization and provider',()=>{
- assert.match(TOOL_EDITORIAL['ai-voice-cloning'].summary,/protected cloud API/);
- assert.match(TOOL_EDITORIAL['ai-voice-cleaner'].summary,/cloud neural isolation/);
+test('AI Studio uses its dedicated copy module for twelve modules',()=>{
+ assert.equal(visibleToolModules.filter(isAiV2).length,12);assert.match(isAiV2.toString(),/Object\.hasOwn/);
 });

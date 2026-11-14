@@ -9,11 +9,11 @@ const row=(key,label,min,max,value,step=1,suffix='')=>'<label class="pulse-ai-co
 const download=(blob,fileName)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)};
 const safeName=name=>(name||'pulse').replace(/[^a-zA-Z0-9_-]+/g,'-').slice(0,56);
 
-const VISUAL_MODES = Object.freeze({
+export const VISUAL_MODES = Object.freeze({
   radial:'RADIAL FFT', spectrum:'SPECTRUM', mirror:'MIRROR BARS',
   oscilloscope:'OSCILLOSCOPE', vectorscope:'STEREO SCOPE', particles:'PARTICLES'
 });
-const VISUAL_PRESETS = Object.freeze({
+export const VISUAL_PRESETS = Object.freeze({
   pulse:{accent:'#ff0000',background:'#0a0a0a',secondary:'#ffffff'},
   mono:{accent:'#ffffff',background:'#111111',secondary:'#aaaaaa'},
   contrast:{accent:'#ff0000',background:'#ffffff',secondary:'#191919'},

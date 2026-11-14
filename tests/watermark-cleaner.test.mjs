@@ -70,7 +70,8 @@ test('Watermark Cleaner mounts with audio and text tabs and no cloud upload',()=
  try{
   const host=document.getElementById('host');
   const cleanup=mountWatermarkCleaner({host});
-  assert.ok(host.querySelector('[data-wm-file]'));
+  assert.ok(host.querySelector('[data-wm-scan-audio]'));
+  assert.equal(host.querySelector('[data-wm-file]'),null);
   assert.ok(host.querySelector('[data-wm-text-input]'));
   assert.equal(host.querySelector('[data-wm-panel="text"]').hidden,true);
   assert.equal(host.querySelector('[data-wm-download-audio]').disabled,true);

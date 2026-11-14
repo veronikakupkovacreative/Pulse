@@ -18,14 +18,14 @@ if(area){
  const meta=document.createElement('p');meta.className='pulse-source-loopline';meta.id='source-loopline';help.after(meta);
  const transport=document.querySelector('.audio-controls');if(transport)transport.append(replace);
  const reset=document.createElement('button');reset.className='pulse-source-reset';reset.textContent='Reset to Original';document.getElementById('audio-redo')?.after(reset);
- let loop=false,snap=false,zoom=1,view=0,tempo=122.7,offset=0,meter=4;
+ let snap=false,zoom=1,view=0,tempo=122.7,offset=0,meter=4;
  const $=id=>document.getElementById(id);
- const refresh=()=>{const b=w.buffer,span=b?b.duration/zoom:0;area.classList.toggle('has-audio',!!b);const info=sourceDisplay(b,{name:w.displayName||w.name,size:w.fileSize||0});if(b){metadata.textContent=info.title;sub.textContent=info.details;}$('source-format').textContent=info.format||'AUDIO';$('source-zoom').textContent=zoom+'×';$('source-loop').textContent=loop?'LOOP ON':'LOOP OFF';$('source-snap').textContent=snap?'SNAP ON':'SNAP OFF';$('source-zoomout').disabled=zoom===1;$('source-zoomin').disabled=zoom===16;reset.disabled=!b||!w.originalFile;
-  $('source-loopline').textContent=b?'LOOP '+label(w.selection?.start||0)+' – '+label(w.selection?.end||b.duration)+' · '+(loop?'ON':'OFF')+' · Grid '+tempo.toFixed(1)+' BPM (offset '+offset.toFixed(2)+'s)':'Load your track into 01 / SOURCE AUDIO to begin.';
+ const refresh=()=>{const b=w.buffer,span=b?b.duration/zoom:0;w.setWaveViewport(zoom,view);area.classList.toggle('has-audio',!!b);const info=sourceDisplay(b,{name:w.displayName||w.name,size:w.fileSize||0});if(b){metadata.textContent=info.title;sub.textContent=info.details;}$('source-format').textContent=info.format||'AUDIO';$('source-zoom').textContent=zoom+'×';$('source-loop').textContent=w.loopEnabled?'LOOP ON':'LOOP OFF';$('source-snap').textContent=snap?'SNAP ON':'SNAP OFF';$('source-zoomout').disabled=zoom===1;$('source-zoomin').disabled=zoom===16;reset.disabled=!b||!w.originalFile;
+  $('source-loopline').textContent=b?'LOOP '+label(w.selection?.start||0)+' – '+label(w.selection?.end||b.duration)+' · '+(w.loopEnabled?'ON':'OFF')+' · Grid '+tempo.toFixed(1)+' BPM (offset '+offset.toFixed(2)+'s)':'Load your track into 01 / SOURCE AUDIO to begin.';
   
   const ruler=$('source-ruler');ruler.replaceChildren();
   if(b){for(let i=0;i<=4;i++){const e=document.createElement('span');e.textContent=label(Math.min(b.duration,view+span*i/4));ruler.append(e)}}};
- $('source-loop').onclick=()=>{loop=!loop;refresh()};
+ $('source-loop').onclick=()=>w.setLoopEnabled(!w.loopEnabled);
  $('source-snap').onclick=()=>{snap=!snap;refresh()};
  $('source-in').onclick=()=>{if(w.buffer)w.setSelection(w.position,w.selection?.end??w.buffer.duration);refresh()};
  $('source-out').onclick=()=>{if(w.buffer)w.setSelection(w.selection?.start??0,w.position);refresh()};
@@ -37,5 +37,5 @@ if(area){
  reset.onclick=async()=>{if(w.buffer){try{await w.reset();refresh()}catch(error){w.setStatus(error.message)}}};
  document.addEventListener('pulse:tempo',e=>{tempo=e.detail.bpm;offset=e.detail.offset;meter=e.detail.meter;refresh()});
  // Playback, existing waveform drawing, editing and DSP functions are preserved.
- let last=null,selection=null;const observer=new MutationObserver(()=>{if(last!==w.buffer||selection!==w.selection){last=w.buffer;selection=w.selection;refresh()}});observer.observe(metadata,{childList:true});document.addEventListener('pulse:source-loaded',refresh);setInterval(()=>{if(last!==w.buffer||selection!==w.selection){last=w.buffer;selection=w.selection;refresh()}},500);refresh();
+ w.subscribe((_snapshot,reason)=>{if(reason==='position')return;if(reason==='load'||reason==='clear'){zoom=1;view=0;}refresh();});refresh();
 }

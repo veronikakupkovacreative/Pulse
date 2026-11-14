@@ -7,7 +7,7 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],id=
 const clock=t=>{t=Math.max(0,t||0);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')+'.'+Math.floor(t%1*10)};
 const show=(message,error=false)=>{const node=id('pulse-redesign-status')||id('source-status');if(node){node.textContent=message;node.dataset.error=String(error)}};
 const text=(i,v)=>{if(id(i))id(i).textContent=String(v)};
-let editor=false,originalDraw=null,eqIndex=1,busy=false;
+let editor=false,eqIndex=1,busy=false;
 const eq=[
  {f:100,g:2,q:.8,type:'lowshelf'},
  {f:400,g:-3,q:1.4,type:'peaking'},
@@ -17,6 +17,7 @@ const eq=[
 function refresh(){
  const b=w.buffer,sel=w.selection;
  text('pulse-current-name',b?w.displayName||w.name:'No track loaded');
+ if(id('pulse-filechip'))id('pulse-filechip').hidden=!b;
  text('pulse-file-meta',b?clock(b.duration)+' · '+(b.sampleRate/1000).toFixed(1)+' kHz · '+(b.numberOfChannels>1?'stereo':'mono'):'Choose a file');
  text('pulse-editor-now',clock(w.position));text('pulse-editor-duration',clock(b?.duration));
  text('pulse-sel-start',sel?clock(sel.start):'—');text('pulse-sel-end',sel?clock(sel.end):'—');text('pulse-sel-length',sel?clock(sel.end-sel.start):'—');
@@ -26,6 +27,11 @@ function refresh(){
  if(id('pulse-toolbar-redo'))id('pulse-toolbar-redo').disabled=!w.history.canRedo;
  $$('[data-selection-edit]').forEach(x=>x.disabled=!sel||sel.end-sel.start<.01);
  if(id('pulse-export-btn'))id('pulse-export-btn').disabled=!b;
+ $('[data-editor-action]').forEach(button=>button.disabled=!b);
+ $('[data-editor-mode]').forEach(button=>button.disabled=!b);
+ if(id('pulse-editor-play'))id('pulse-editor-play').disabled=!b;
+ if(id('pulse-editor-loop'))id('pulse-editor-loop').setAttribute('aria-pressed',String(w.loopEnabled));
+ if(id('pulse-editor-volume'))id('pulse-editor-volume').value=String(Math.round(w.volume*100));
  const hist=id('pulse-history-list');
  if(hist){hist.replaceChildren();const entries=[...w.history.undoEntries].reverse().slice(0,6);
   if(!entries.length){const li=document.createElement('li');li.textContent=b?'Track loaded · no edits yet':'Load a track to start editing';hist.append(li)}
@@ -33,28 +39,14 @@ function refresh(){
  const fmt=id('pulse-export-format')?.value||'wav',estimate=b?(fmt==='wav'?b.duration*b.sampleRate*b.numberOfChannels*2:fmt==='flac'?b.duration*b.sampleRate*b.numberOfChannels*1.2:b.duration*(fmt==='m4a'?192000:320000)/8):0;
  text('pulse-export-estimate',b?'~'+(estimate/1048576).toFixed(1)+' MB est.':'No audio');
 }
-function drawStereo(){
- const canvas=id('audio-wave'),b=w.buffer;if(!canvas)return;
- const ratio=Math.min(devicePixelRatio||1,2),width=Math.max(1,Math.round(canvas.clientWidth*ratio)),height=Math.max(1,Math.round(canvas.clientHeight*ratio));
- if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
- const ctx=canvas.getContext('2d');if(!ctx)return;
- ctx.fillStyle='#0e0e0f';ctx.fillRect(0,0,width,height);if(!b)return;
- const channels=Math.min(2,b.numberOfChannels),row=height/channels;
- for(let c=0;c<channels;c++){
-  const samples=b.getChannelData(c),mid=row*(c+.5);ctx.strokeStyle='#35353a';ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(width,mid);ctx.stroke();
-  ctx.fillStyle='#bdbab1';ctx.font='11px monospace';ctx.fillText(channels===1?'MONO':c===0?'L':'R',9,c*row+16);
-  ctx.strokeStyle='#e2ded8';ctx.lineWidth=Math.max(1,ratio*.7);const dx=Math.max(1,Math.floor(width/900));
-  for(let x=0;x<width;x+=dx){const start=Math.floor(samples.length*x/width),end=Math.max(start+1,Math.floor(samples.length*(x+dx)/width)),skip=Math.max(1,Math.floor((end-start)/60));let low=1,high=-1;for(let n=start;n<end;n+=skip){low=Math.min(low,samples[n]);high=Math.max(high,samples[n])}ctx.beginPath();ctx.moveTo(x,mid-high*row*.44);ctx.lineTo(x,mid-low*row*.44);ctx.stroke()}
- }
- if(w.selection){const a=w.selection.start/b.duration*width,z=w.selection.end/b.duration*width;ctx.fillStyle='rgba(255,77,28,.25)';ctx.fillRect(a,0,z-a,height);ctx.strokeStyle='#ff4d1c';ctx.lineWidth=2*ratio;for(const x of [a,z]){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();ctx.fillStyle='#ff4d1c';ctx.fillRect(x-4*ratio,height/2-17*ratio,8*ratio,34*ratio)}}
- ctx.strokeStyle='#fff';ctx.lineWidth=2*ratio;const x=w.position/b.duration*width;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();
-}
 function mode(on){
- editor=on;document.body.classList.toggle('pulse-editor-mode',on);
- for(const name of ['pulse-editor-controls','pulse-editor-export','pulse-editor-properties','pulse-editor-transport','pulse-editor-history'])if(id(name))id(name).hidden=!on;
- if(on&&!originalDraw){originalDraw=w.drawWave.bind(w);w.drawWave=drawStereo;w.drawWave()}
- if(!on&&originalDraw){w.drawWave=originalDraw;originalDraw=null;w.drawWave()}
+ editor=on;
+ document.body.classList.toggle('pulse-editor-mode',on);
+ for(const name of ['pulse-editor-controls','pulse-editor-export','pulse-editor-properties','pulse-editor-transport','pulse-editor-history']){
+  const element=id(name);if(element)element.hidden=!on;
+ }
  refresh();
+ requestAnimationFrame(()=>w.drawWave());
 }
 async function edit(action){
  if(busy)return;busy=true;
@@ -99,7 +91,7 @@ const ROUTES=Object.freeze({
  'editor':'#/editor','wav':'#/converter','visualizer':'#/visualizer',
  'ai2-mastering':'#/ai','ai2-extraction':'#/ai/stems','ai2-lyrics':'#/ai/lyrics'
 });
-let currentTool='song-analyzer',routeBusy=false;
+let currentTool='song-analyzer';
 function pageTitle(idValue){
  const selected=document.querySelector('#tool-tabs .tool-tab.selected');
  let title=(selected?.textContent||'Song Analyzer').replace(/\s*↗\s*$/,'').trim();
@@ -127,9 +119,9 @@ function navigateTool(toolId,{updateUrl=true,scroll=true}={}){
  });
  const desired=ROUTES[currentTool]||'#/tool/'+encodeURIComponent(currentTool);
  if(updateUrl&&location.hash!==desired)history.pushState(null,'',desired);
- if(scroll)requestAnimationFrame(()=>id('toolkit')?.scrollIntoView({block:'start',behavior:'auto'}));
+ requestAnimationFrame(()=>{w.drawWave();if(scroll)id('toolkit')?.scrollIntoView({block:'start',behavior:'auto'});});
 }
-function navigateHome({updateUrl=true}={}){
+function navigateHome({updateUrl=true,scroll=true}={}){
  document.body.classList.add('pulse-home-view');
  document.body.classList.remove('pulse-workspace-view','pulse-editor-mode');
  document.body.dataset.route='home';
@@ -138,11 +130,12 @@ function navigateHome({updateUrl=true}={}){
  $$('.header-nav [data-open-tool]').forEach(link=>{
   link.classList.remove('is-active');link.removeAttribute('aria-current');
  });
- window.scrollTo({top:0,behavior:'auto'});
+ if(scroll)window.scrollTo({top:0,behavior:'auto'});
 }
 function handleDeepLink(){
  const hash=decodeURIComponent(location.hash||'');
- if(!hash||hash==='#/home'||hash==='#top'||hash==='#pulse-tool-directory'){navigateHome({updateUrl:false});return}
+ if(!hash||hash==='#/home'){navigateHome({updateUrl:false});return}
+ if(['#top','#pulse-tool-directory','#how-it-works'].includes(hash)){navigateHome({updateUrl:false,scroll:false});return;}
  const tool=Object.entries(ROUTES).find(([,route])=>route===hash)?.[0]||
   (hash.startsWith('#/tool/')?hash.slice(7):null);
  if(tool){
@@ -156,19 +149,13 @@ function handleDeepLink(){
 export function initializeStudioRedesign(){
  document.documentElement.setAttribute('data-theme','dark');
  const input=id('audio-file'),drop=id('pulse-hero-drop');
- const openSource=()=>{
-  if(document.body.classList.contains('pulse-home-view')){
-   const button=document.querySelector('.header-nav [data-open-tool="song-analyzer"]');
-   if(button)button.click();else navigateTool('song-analyzer');
-  }
-  input?.click();
- };
+ const openSource=()=>input?.click();
  document.querySelectorAll('[data-open-audio]').forEach(button=>button.addEventListener('click',event=>{
   event.preventDefault();openSource();
  }));
  const load=async file=>{
   if(!file)return;
-  try{await w.load(file);navigateTool(currentTool||'song-analyzer');show('Track loaded in SOURCE AUDIO: '+file.name);}
+  try{await w.load(file);if(document.body.classList.contains('pulse-home-view'))navigateTool('song-analyzer');show('Track loaded in SOURCE AUDIO: '+file.name);}
   catch(error){show(error?.message||'Could not load audio.',true)}
  };
  if(drop){
@@ -192,7 +179,6 @@ export function initializeStudioRedesign(){
   $$('.pulse-tool-card').forEach(card=>card.dataset.hidden=String(f!=='all'&&card.dataset.kind!==f));
  }));
  document.addEventListener('pulse:tool-mounted',event=>{
-  if(routeBusy)return;
   const idValue=event.detail?.id||$('.tool-tabs .tool-tab.selected')?.dataset.tool;
   if(idValue)navigateTool(idValue);
  });
@@ -205,6 +191,13 @@ export function initializeStudioRedesign(){
  w.subscribe((snapshot,reason)=>{
   if(reason==='position')text('pulse-editor-now',clock(snapshot.position));
   else refresh();
+  if(reason==='load'&&document.body.classList.contains('pulse-home-view')){
+   const description=id('pulse-drop-description');if(description)description.textContent='Loaded '+(w.displayName||w.name)+' · ready in SOURCE AUDIO';
+   navigateTool('song-analyzer');
+  }
+  if(reason==='clear'){
+   const description=id('pulse-drop-description');if(description)description.textContent='or click to browse · one shared SOURCE AUDIO for all tools';
+  }
   if(reason==='transport'){
    const button=id('pulse-editor-play');
    if(button){button.textContent=w.playing?'PAUSE':'PLAY';button.setAttribute('aria-label',w.playing?'Pause':'Play')}
@@ -228,7 +221,7 @@ export function initializeStudioRedesign(){
  }));
  $$('[data-editor-action]').forEach(button=>button.addEventListener('click',()=>{
   const action=button.dataset.editorAction;
-  if(action==='merge'){document.querySelector('[data-edit-mode="merge"]')?.click();return;}
+  if(action==='merge'){document.querySelector('#module-editor [data-edit-mode="merge"]')?.click();document.querySelector('#module-editor [data-focus-action="merge"]')?.click();return;}
   void edit(action);
  }));
  id('pulse-selection-trim')?.addEventListener('click',()=>void edit('trim'));
@@ -254,25 +247,34 @@ export function initializeStudioRedesign(){
  id('pulse-eq-apply')?.addEventListener('click',()=>void applyEq());
  id('pulse-export-btn')?.addEventListener('click',()=>void exportAudio());
  id('pulse-export-format')?.addEventListener('change',refresh);
- const canvas=id('audio-wave');let start=null,moved=false;
+ const canvas=id('audio-wave');let gesture=null;
  if(canvas){
-  const coord=event=>Math.max(0,Math.min(1,(event.clientX-canvas.getBoundingClientRect().left)/Math.max(1,canvas.clientWidth)))*(w.buffer?.duration||0);
+  const coord=event=>w.waveCoordinate(event.clientX-canvas.getBoundingClientRect().left,canvas.clientWidth);
+  const xForTime=t=>{const v=w.getWaveViewport();return (t-v.view)/Math.max(.001,v.visible)*canvas.clientWidth;};
   canvas.addEventListener('pointerdown',event=>{
    if(!editor||!w.buffer||event.button!==0)return;
-   start=coord(event);moved=false;canvas.setPointerCapture(event.pointerId);
-   event.stopImmediatePropagation();
+   const at=coord(event),x=event.clientX-canvas.getBoundingClientRect().left,sel=w.selection;
+   const left=sel?Math.abs(x-xForTime(sel.start)):Infinity,right=sel?Math.abs(x-xForTime(sel.end)):Infinity;
+   const handle=left<15&&left<=right?'start':right<15?'end':'new';
+   gesture={anchor:at,handle,moved:false,start:sel?.start??at,end:sel?.end??at};
+   canvas.setPointerCapture(event.pointerId);event.stopImmediatePropagation();
   },true);
   canvas.addEventListener('pointermove',event=>{
-   if(start===null)return;
-   if(Math.abs(coord(event)-start)>.04){moved=true;w.setSelection(start,coord(event))}
+   if(!gesture)return;const at=coord(event);
+   if(Math.abs(at-gesture.anchor)>.025)gesture.moved=true;
+   if(gesture.moved){
+    if(gesture.handle==='start')w.setSelection(Math.min(at,gesture.end),gesture.end);
+    else if(gesture.handle==='end')w.setSelection(gesture.start,Math.max(at,gesture.start));
+    else w.setSelection(gesture.anchor,at);
+   }
    event.stopImmediatePropagation();
   },true);
   canvas.addEventListener('pointerup',event=>{
-   if(start===null)return;
-   if(!moved)w.seek(coord(event));
-   start=null;moved=false;event.stopImmediatePropagation();
+   if(!gesture)return;
+   if(!gesture.moved&&gesture.handle==='new')w.seek(coord(event));
+   gesture=null;event.stopImmediatePropagation();
   },true);
-  canvas.addEventListener('pointercancel',()=>{start=null;moved=false},true);
+  canvas.addEventListener('pointercancel',()=>{gesture=null},true);
  }
  syncEq();refresh();
  if(location.hash&&location.hash!=='#/home')handleDeepLink();

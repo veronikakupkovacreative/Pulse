@@ -1,4 +1,5 @@
 import {inspectAudioMetadata,inspectTextMarkers,MAX_AUDIO_BYTES} from './watermark-cleaner-core.mjs';
+import {workspace as w} from './workspace.mjs';
 
 const MARKUP=[
  '<section class="tool-view ai2-panel pulse-watermarks" aria-label="Watermark Cleaner">',
@@ -9,7 +10,7 @@ const MARKUP=[
  '<button type="button" data-wm-tab="audio" aria-pressed="true">AUDIO METADATA</button>',
  '<button type="button" data-wm-tab="text" aria-pressed="false">TEXT MARKERS</button></div>',
  '<div class="pulse-wm-section" data-wm-panel="audio">',
- '<label class="pulse-wm-file">CHOOSE YOUR OWN AUDIO FILE <input data-wm-file type="file" accept=".wav,.mp3,.flac,.m4a,audio/wav,audio/mpeg,audio/flac,audio/mp4,audio/x-m4a"></label>',
+ '<div class="pulse-wm-file"><strong>01 / SOURCE AUDIO</strong><p>Inspect the original, unedited track already loaded into the shared workspace.</p><button type="button" data-wm-scan-audio>INSPECT SOURCE AUDIO ↗</button></div>',
  '<p class="pulse-wm-hint">WAV: INFO/BEXT/XMP chunks. MP3: ID3v1/v2. FLAC: Vorbis tags, images and application blocks. M4A: iTunes tags and keys (same-size metadata neutralization). Maximum 128 MB.</p>',
  '<div class="pulse-wm-report" data-wm-audio-report hidden><strong data-wm-audio-heading>METADATA CHECK</strong><ul data-wm-audio-findings></ul><p data-wm-audio-detail></p></div>',
  '<button class="pulse-wm-action" type="button" data-wm-download-audio disabled>DOWNLOAD CLEAN COPY <span aria-hidden="true">↗</span></button>',
@@ -30,7 +31,7 @@ const MARKUP=[
  '<textarea id="pulse-wm-output" data-wm-text-output rows="6" readonly></textarea>',
  '<div class="pulse-wm-downloads"><button type="button" data-wm-copy-text>COPY TEXT</button><button type="button" data-wm-save-text>DOWNLOAD TXT</button></div></div>',
  '</div>',
- '<p class="pulse-wm-status" data-wm-status role="status" aria-live="polite">Select WAV, MP3, FLAC or M4A, or switch to text cleaning. Your files never leave this browser.</p>',
+ '<p class="pulse-wm-status" data-wm-status role="status" aria-live="polite">Inspect SOURCE AUDIO metadata or switch to text cleaning. Processing stays in the browser.</p>',
  '<p class="pulse-wm-legal">Only clean content you have permission to modify. No acoustic watermark removal is guaranteed. Metadata-only approach informed by the MIT-licensed watermarks-remover and watermark-remover-plus projects.</p>',
  '</section>'
 ].join('');
@@ -71,18 +72,19 @@ export function mountWatermarkCleaner({host}={}){
    const selected=tab.dataset.wmTab;
    host.querySelectorAll('[data-wm-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b===tab)));
    host.querySelectorAll('[data-wm-panel]').forEach(panel=>panel.hidden=panel.dataset.wmPanel!==selected);
-   status(selected==='audio'?'Select a WAV, MP3, FLAC or M4A file to inspect its metadata.':'Paste text to inspect invisible Unicode markers.');
+   status(selected==='audio'?'Inspect the track loaded in SOURCE AUDIO to check its metadata.':'Paste text to inspect invisible Unicode markers.');
   });
  }
- get('[data-wm-file]').addEventListener('change',async event=>{
-  const file=event.target.files?.[0];const current=++reading;
+ get('[data-wm-scan-audio]').addEventListener('click',async()=>{
+  const file=w.originalFile,current=++reading,trackId=w.trackId;
   audioResult=null;report.hidden=true;dl.disabled=true;revoke();
-  if(!file){status('Choose a WAV, MP3, FLAC or M4A file.');return;}
+  if(!w.buffer||!file){status('Load a WAV, MP3, FLAC or M4A track in SOURCE AUDIO.',true);return;}
+  if(w.buffer!==w.original){status('This track is edited. Use Reset to Original before inspecting its encoded metadata.',true);return;}
   if(file.size>MAX_AUDIO_BYTES){status('Maximum supported audio file size is 128 MB.',true);return;}
   status('Inspecting '+file.name+' locally...');
   try{
    const bytes=await file.arrayBuffer();
-   if(disposed||current!==reading)return;
+   if(disposed||current!==reading||w.trackId!==trackId||w.buffer!==w.original)return;
    const result=inspectAudioMetadata(bytes);
    audioResult=result;audioName=file.name;
    const list=get('[data-wm-audio-findings]');

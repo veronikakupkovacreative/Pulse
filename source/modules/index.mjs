@@ -35,15 +35,7 @@ if(typeof document!=='undefined'){
   const designStyle=document.createElement('link');designStyle.rel='stylesheet';designStyle.href='/modules/pulse-design-system.css';document.head.append(designStyle);
   const darkStyle=document.createElement('link');darkStyle.rel='stylesheet';darkStyle.href='/modules/studio-reference.css';document.head.append(darkStyle);
   workspace.mountSource();
-  const set=(selector,copy)=>{const element=document.querySelector(selector);if(element)element.textContent=copy;};
-  set('.hero-description','Analyze, create and prepare your sound.');
-  set('.state-line','LOCAL TOOLS / CONSENTED CLOUD MODULES');
-  set('.toolkit-intro p','Analysis, creative tools and production-ready delivery.');
-  set('.toolkit-intro .intro-accent','One workspace for the work around your DAW.');
-  set('.toolkit-note','+ ANALYZE / CREATE / PREPARE');
-  set('.footer-brand p','Audio tools for producers.');
-  const status=document.querySelector('.tiny-status');if(status)status.textContent='READY FOR AUDIO';
-  const source=document.querySelector('.tool-source');if(source)source.setAttribute('aria-label','Audio upload, waveform and transport');
+  // HTML owns editorial copy. Never rewrite the approved design text on mount.
 }
 
 if(typeof document!=='undefined')import('./source-ui.mjs').catch(error=>console.error('Source UI:',error));

@@ -19,7 +19,7 @@ const messages={
  MUSICGPT_CONNECTION_ERROR:'Conversion service is temporarily unavailable.'
 };
 export function mountMusicGPTVoiceChanger({host}){
- host.innerHTML="<section class=\"tool-view ai2-panel pulse-voice-ai\">\n <div class=\"tool-view-header\"><span>04 / VOCAL STUDIO / AI VOICE CHANGER</span><span>VOICE CONVERSION</span></div>\n <h3>Change the voice.<br><span>Keep the performance.</span></h3>\n <p class=\"tool-description\">Transform a vocal using SOURCE AUDIO or a separate voice file. Select an authorized target voice and adjust pitch.</p>\n <div class=\"pulse-voice-fields\">\n  <div class=\"pulse-voice-picker\"><label>FIND VOICE BY NAME<input data-voice-search type=\"search\" autocomplete=\"off\" placeholder=\"Search voice catalog (optional)\"></label><button type=\"button\" data-voice-action=\"voices\" class=\"pulse-voice-secondary\">FIND VOICES</button></div>\n  <label>AUTHORIZED VOICE ID<input data-voice-id type=\"text\" autocomplete=\"off\" placeholder=\"Choose below or paste a licensed voice ID\"></label>\n  <label>AVAILABLE VOICES<select data-voice-list aria-label=\"Available MusicGPT voices\"><option value=\"\">Select an authorized voice</option></select></label>\n  <label>OPTIONAL / OTHER VOCAL FILE<input data-voice-file type=\"file\" accept=\".wav,.mp3,.m4a,.flac,.aac,.ogg,audio/*\"></label>\n  <label>PITCH ADJUSTMENT (-12 TO +12)<input data-voice-pitch type=\"number\" min=\"-12\" max=\"12\" step=\"1\" value=\"0\"></label>\n  <label class=\"pulse-voice-check\"><input data-voice-remove type=\"checkbox\" checked> REMOVE BACKGROUND BEFORE CONVERSION</label>\n </div>\n <label class=\"pulse-voice-consent\"><input data-voice-consent type=\"checkbox\"> I have permission to use the input recording and target voice, and agree to upload the audio to MusicGPT for conversion.</label>\n <div class=\"pulse-voice-actions\"><button class=\"ai2-action\" data-voice-action=\"submit\" type=\"button\">CONVERT VOICE ↗</button><button type=\"button\" class=\"pulse-voice-secondary\" data-voice-action=\"cancel\" hidden>STOP WAITING</button></div>\n <div class=\"pulse-voice-progress\"><strong data-voice-stage>READY</strong><p role=\"status\" aria-live=\"polite\" data-voice-status>Load your vocal, search for an authorized voice, then confirm permission to begin.</p></div>\n <div class=\"pulse-voice-output\" data-voice-output hidden></div>\n <p class=\"ai2-note\">Use only voices you are authorized to reproduce.</p>\n </section>";
+ host.innerHTML="<section class=\"tool-view ai2-panel pulse-voice-ai\">\n <div class=\"tool-view-header\"><span>04 / VOCAL STUDIO / AI VOICE CHANGER</span><span>VOICE CONVERSION</span></div>\n <h3>Change the voice.<br><span>Keep the performance.</span></h3>\n <p class=\"tool-description\">Transform the vocal in SOURCE AUDIO. Select an authorized target voice and adjust pitch.</p>\n <div class=\"pulse-voice-fields\">\n  <div class=\"pulse-voice-picker\"><label>FIND VOICE BY NAME<input data-voice-search type=\"search\" autocomplete=\"off\" placeholder=\"Search voice catalog (optional)\"></label><button type=\"button\" data-voice-action=\"voices\" class=\"pulse-voice-secondary\">FIND VOICES</button></div>\n  <label>AUTHORIZED VOICE ID<input data-voice-id type=\"text\" autocomplete=\"off\" placeholder=\"Choose below or paste a licensed voice ID\"></label>\n  <label>AVAILABLE VOICES<select data-voice-list aria-label=\"Available MusicGPT voices\"><option value=\"\">Select an authorized voice</option></select></label>\n  <p class=\"ai2-note\">Input comes exclusively from 01 / SOURCE AUDIO (selected excerpt when available).</p>\n  <label>PITCH ADJUSTMENT (-12 TO +12)<input data-voice-pitch type=\"number\" min=\"-12\" max=\"12\" step=\"1\" value=\"0\"></label>\n  <label class=\"pulse-voice-check\"><input data-voice-remove type=\"checkbox\" checked> REMOVE BACKGROUND BEFORE CONVERSION</label>\n </div>\n <label class=\"pulse-voice-consent\"><input data-voice-consent type=\"checkbox\"> I have permission to use the input recording and target voice, and agree to upload the audio to MusicGPT for conversion.</label>\n <div class=\"pulse-voice-actions\"><button class=\"ai2-action\" data-voice-action=\"submit\" type=\"button\">CONVERT VOICE ↗</button><button type=\"button\" class=\"pulse-voice-secondary\" data-voice-action=\"cancel\" hidden>STOP WAITING</button></div>\n <div class=\"pulse-voice-progress\"><strong data-voice-stage>READY</strong><p role=\"status\" aria-live=\"polite\" data-voice-status>Load your vocal, search for an authorized voice, then confirm permission to begin.</p></div>\n <div class=\"pulse-voice-output\" data-voice-output hidden></div>\n <p class=\"ai2-note\">Use only voices you are authorized to reproduce.</p>\n </section>";
  const $=selector=>host.querySelector(selector);
  let dead=false,busy=false,controller=null,conversionId=null,rev=0;
  const status=(message,error=false)=>{const el=$('[data-voice-status]');el.textContent=message;el.dataset.error=String(error);};
@@ -47,7 +47,6 @@ export function mountMusicGPTVoiceChanger({host}){
   const id=event.target.value;
   if(id&&id!==$('[data-voice-id]').value){$('[data-voice-id]').value=id;resetJob();}
  };
- $('[data-voice-file]').onchange=()=>resetJob('Input changed. Ready for another conversion.');
  $('[data-voice-id]').onchange=()=>resetJob();
  $('[data-voice-pitch]').onchange=()=>resetJob();
  $('[data-voice-remove]').onchange=()=>resetJob();
@@ -80,16 +79,7 @@ export function mountMusicGPTVoiceChanger({host}){
   let done=false;
   try{
    if(!conversionId){
-    let file;
-    const alternate=$('[data-voice-file]').files?.[0];
-    if(alternate){
-     if(alternate.size>2400000)throw Error('Optional voice file exceeds 2.4 MB. Use a shorter clip.');
-     const bytes=new Uint8Array(await alternate.arrayBuffer());
-     let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-     file={name:alternate.name,base64:btoa(binary)};
-    }else{
-     file=makeCloudTaggingExcerpt(w.ensureAudio(),{selection:w.selection}).file;
-    }
+    const file=makeCloudTaggingExcerpt(w.ensureAudio(),{selection:w.selection,maxSeconds:20}).file;
     if(active.signal.aborted||dead||rev!==at)return;
     setStage('UPLOADING');status('Sending vocal excerpt…');
     const submitted=await gateway('submit',{file,voiceId,pitch,removeBackground:$('[data-voice-remove]').checked,consent:true,authorizedVoice:true},active.signal);

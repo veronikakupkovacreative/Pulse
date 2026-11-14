@@ -1072,3 +1072,44 @@ body.pulse-editor-mode #toolkit .tool-source #audio-wave{height:235px!important}
 @media(prefers-reduced-motion:reduce){
  *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* V3 QA: correct reference hierarchy, only one file input, usable touch targets */
+:root{--font-display:"Inter",system-ui,sans-serif;--font-body:"Inter",system-ui,sans-serif}
+.header.nav{box-shadow:none;clip-path:none}
+.hero__trust{list-style:none!important;padding:0!important}
+.stepper,.pulse-tool-card ul,.pulse-footer ul{list-style:none!important}
+.pulse-tool-card--wide{grid-column:span 3}
+.pulse-tool-grid{align-items:stretch}
+.pulse-tool-card button,.pulse-ai-groups button{overflow-wrap:anywhere}
+.pulse-ai-groups li button{min-height:44px}
+.section__head>div{min-width:0}
+.pulse-section-head>div h2{max-width:18ch}
+#toolkit .section-label p{font:500 10px var(--font-mono);margin:0;color:var(--ink-3)}
+#toolkit .toolkit-heading h1{
+ font:800 clamp(34px,4vw,60px)/1.05 var(--font-display)!important;
+ letter-spacing:-.05em;margin:0;color:var(--ink)
+}
+#toolkit .toolkit-heading h1 span{color:var(--accent)!important}
+#toolkit .pulse-filechip .pulse-button{min-height:44px}
+#toolkit .tool-source .audio-source-area{background:var(--paper)!important}
+.audio-source-area .pulse-source-file-top button,
+.audio-source-area .pulse-source-replace,
+.audio-source-area .pulse-source-reset{min-width:44px;min-height:44px}
+.pulse-master-reference{display:none!important}
+.pulse-wm-file{display:grid;gap:10px;padding:15px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px}
+.pulse-wm-file strong{font:600 11px var(--font-mono);color:var(--accent)}
+.pulse-wm-file p{font-size:13px;color:var(--ink-2)}
+.pulse-wm-file button{min-height:44px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);border-radius:99px;padding:10px 16px;font-weight:700;cursor:pointer}
+#toolkit .tool-settings .tool-module-host .pulse-wm-file button{color:var(--on-accent)!important}
+#toolkit .pulse-edit-toolbar{max-width:100%;overscroll-behavior-x:contain}
+#toolkit .pulse-editor-export{max-width:100%}
+@media(max-width:1080px){.pulse-tool-card--wide{grid-column:span 2}}
+@media(max-width:640px){
+ .pulse-tool-card--wide{grid-column:1}
+ .pulse-tool-directory .section__head{gap:12px}
+ .hero__grid,.pulse-tool-grid,.pulse-ai-groups{min-width:0}
+ .dropzone{min-width:0}
+ #toolkit .pulse-filechip{width:100%;max-width:100%}
+ #toolkit .pulse-filechip strong{overflow-wrap:anywhere}
+ #toolkit .pulse-edit-toolbar{top:119px}
+}

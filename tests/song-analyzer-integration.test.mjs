@@ -78,7 +78,7 @@ test('active analyzer uses the canonical prototype theme, not the abandoned red-
  const html=read('index.html');
  assert.match(css,/\.focus-song-main/);
  assert.match(css,/\.focus-song-tonality/);
- assert.match(css,/\.tool-settings/);
+ assert.match(css,/\.tool-module-host/);
  assert.doesNotMatch(html,/href="\/song\/song-analyzer.css"/);
  assert.doesNotMatch(html,/src="\/song\/song-ui.mjs"/);
 });

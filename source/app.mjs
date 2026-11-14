@@ -96,6 +96,7 @@ function mountTool(definition){
     const stopSliders=enhanceParameterControls(host);
     const stopAudioActions=mountWorkspaceActions(host,w);
     currentCleanup=()=>{converterFormat?.removeEventListener('change',syncBitrateGuide);stopAudioActions();stopSliders();if(typeof cleanup==='function')cleanup();};
+    document.dispatchEvent(new CustomEvent('pulse:tool-mounted',{detail:{id:definition.id}}));
   }catch(error){
     showBitrateGuide(false);
     host.replaceChildren();
@@ -191,3 +192,6 @@ document.addEventListener('keydown',event=>{
     w.redo();
   }
 });
+
+// Enhancement layer, after the existing workspace and modules are mounted.
+import('./modules/studio-redesign.mjs').then(module=>module.initializeStudioRedesign()).catch(error=>console.error('Studio redesign initialization:',error));

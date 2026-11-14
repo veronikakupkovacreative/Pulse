@@ -55,7 +55,7 @@ function mountVocalEnhance({host}){
   num('warmth','Body',-5,5,0,.5,'dB')+num('presence','Presence',-5,6,2,.5,'dB')+
   num('sibilance','Sibilance smoothing',0,8,2,.5,'dB')+
   num('compression','Compression threshold',4,32,16,1,'-dBFS')+
-  num('mix','Effect amount',0,100,100,5,'%')+'</div>'+button('render','APPLY VOCAL PROCESSING')+
+  num('mix','Effect amount',0,100,100,5,'%')+'</div>'+button('render','APPLY VOCAL PROCESSING'));
  const action=host.querySelector('[data-ai2-action]');let disposed=false;
  action.onclick=async()=>{
   action.disabled=true;try{const source=w.ensureAudio();const settings={};
@@ -81,7 +81,7 @@ function mountBeatLab({host}){
  panel(host,heading('BEAT LAB','Detect the beat.<br><span>Cut the loop.</span>',
   'Detect BPM, mark beats and export four-bar loops.','BEAT ANALYSIS / WORKER')+
   '<div class="ai2-metrics"><div>BPM<strong data-bpm>—</strong></div><div>CONFIDENCE<strong data-confidence>—</strong></div><div>MARKERS<strong data-markers>—</strong></div></div>'+
-  '<div class="ai2-actions">'+button('analyze','ANALYZE RHYTHM')+button('loop','SELECT 4 BARS')+button('export','EXPORT SELECTED LOOP')+'</div>'+
+  '<div class="ai2-actions">'+button('analyze','ANALYZE RHYTHM')+button('loop','SELECT 4 BARS')+button('export','EXPORT SELECTED LOOP')+'</div>');
  let disposed=false,controller=null,result=null,lastSource=null;
  const buttons=[...host.querySelectorAll('[data-ai2-action]')];
  const setBusy=x=>buttons.forEach(b=>b.disabled=x);
@@ -124,7 +124,7 @@ function mountMultitrack({host}){
   'Balance, pan and render up to eight tracks.')+
   '<div class="ai2-import"><button type="button" data-add-current>+ ADD SOURCE AUDIO</button><label>+ ADD AUDIO FILES<input type="file" data-add-files accept="audio/*,.wav,.mp3,.m4a,.flac" multiple></label></div>'+
   '<div data-mix-tracks class="ai2-tracks" aria-label="Mix tracks"><p class="ai2-note">No tracks added.</p></div>'+
-  '<div class="ai2-actions">'+button('balance','SUGGEST LEVEL BALANCE')+button('render','RENDER STEREO MIX')+'</div>'+
+  '<div class="ai2-actions">'+button('balance','SUGGEST LEVEL BALANCE')+button('render','RENDER STEREO MIX')+'</div>');
  let disposed=false,busy=false,tracks=[];
  const list=host.querySelector('[data-mix-tracks]'),actions=[...host.querySelectorAll('[data-ai2-action]')];
  const setBusy=v=>{busy=v;actions.forEach(x=>x.disabled=v);host.querySelector('[data-add-current]').disabled=v;host.querySelector('[data-add-files]').disabled=v;};
@@ -186,7 +186,7 @@ function mountPitchTime({host}){
  panel(host,heading('PITCH & TIME','Change the tempo.<br><span>Keep the pitch.</span>',
   'Change tempo or pitch independently. Up to 120-second clips.','LOCAL DSP / WEB WORKER')+
   '<div class="ai2-fields">'+num('tempo','Tempo multiplier',.7,1.5,1,.01,'×')+num('pitch','Pitch transpose',-6,6,0,1,'semitones')+'</div>'+
-  '<div class="ai2-actions">'+button('process','PROCESS PITCH & TIME')+button('reset','RESTORE PARAMETER DEFAULTS')+'</div>'+
+  '<div class="ai2-actions">'+button('process','PROCESS PITCH & TIME')+button('reset','RESTORE PARAMETER DEFAULTS')+'</div>');
  let disposed=false,worker=null,job=0;
  const actions=[...host.querySelectorAll('[data-ai2-action]')];
  const stop=()=>{worker?.terminate();worker=null;};

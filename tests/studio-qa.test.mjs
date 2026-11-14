@@ -12,7 +12,7 @@ test('homepage has a visible source action, independent tool directory and corre
  assert.ok(main&&directory&&toolkit);
  assert.ok(main.contains(directory)&&!toolkit.contains(directory));
  assert.ok(directory.querySelector('h2#pulse-directory-title'));
- assert.equal(document.querySelectorAll('#pulse-tool-directory .pulse-tool-card').length,7);
+ assert.equal(document.querySelectorAll('#pulse-tool-directory .pulse-tool-card').length,8);
  assert.equal(document.querySelectorAll('#pulse-tool-directory .pulse-tool-card[data-kind="ai"]').length,1);
  assert.ok(document.getElementById('pulse-hero-drop'));
  assert.ok(document.querySelector('a.pulse-skip[href="#top"]'));

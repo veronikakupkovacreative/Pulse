@@ -215,11 +215,11 @@ export function initializeStudioRedesign(){
   event.currentTarget.setAttribute('aria-pressed',String(on));w.setLoopEnabled(on);
  });
  id('pulse-editor-volume')?.addEventListener('input',event=>w.setVolume(Number(event.target.value)/100));
- $$$('[data-editor-mode]').forEach(button=>button.addEventListener('click',()=>{
-  $$$('[data-editor-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+ $('[data-editor-mode]').forEach(button=>button.addEventListener('click',()=>{
+  $('[data-editor-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
   if(button.dataset.editorMode==='gain')id('pulse-gain')?.focus();
  }));
- $$$('[data-editor-action]').forEach(button=>button.addEventListener('click',()=>{
+ $('[data-editor-action]').forEach(button=>button.addEventListener('click',()=>{
   const action=button.dataset.editorAction;
   if(action==='merge'){document.querySelector('#module-editor [data-edit-mode="merge"]')?.click();document.querySelector('#module-editor [data-focus-action="merge"]')?.click();return;}
   void edit(action);

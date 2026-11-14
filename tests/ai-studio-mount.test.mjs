@@ -75,7 +75,7 @@ test('AI Mastering exposes local DSP controls and no paid cloud mode',()=>{
  ])assert.ok(code.includes(marker),'Missing local mastering control: '+marker);
 });
 
-test('complete application routes to all 22 tools in ANALYZE / CREATE / PREPARE without module errors',async()=>{
+test('complete application routes to all 23 tools in ANALYZE / CREATE / PREPARE without module errors',async()=>{
  const html=read('index.html');
  const {window,document}=parseHTML(html);
  document.querySelector('.tool-empty')?.remove();
@@ -115,7 +115,7 @@ test('complete application routes to all 22 tools in ANALYZE / CREATE / PREPARE 
    checked++;
   }
  }
- assert.equal(checked,22);
+ assert.equal(checked,23);
  const nav=document.querySelector('.header-nav [data-open-tool="song-analyzer"]');
  nav.dispatchEvent(event());
  assert.ok(document.querySelector('#module-song-analyzer .focus-song-v3'),'Header tool navigation should return to Song Analyzer');

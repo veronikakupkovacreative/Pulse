@@ -11,7 +11,7 @@ const html=read('index.html');
 
 test('phase 4 design remains available under three producer workflows',()=>{
  assert.deepEqual([...new Set(visibleToolModules.map(m=>m.category))].sort(),['analyze','create','prepare']);
- assert.equal(visibleToolModules.length,22);
+ assert.equal(visibleToolModules.length,23);
  assert.ok(visibleToolModules.some(m=>m.id==='music-tagger'&&m.category==='analyze'));
  for(const id of ['song-analyzer','editor','wav','visualizer'])assert.ok(visibleToolModules.some(m=>m.id===id));
 });

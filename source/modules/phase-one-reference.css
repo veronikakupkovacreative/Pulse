@@ -785,3 +785,12 @@ body{background:#0e0e0f!important;color:#f4f2ee}
 /* Prevent the stable app's obsolete three-column .hero grid from constraining the exact HTML hero. */
 #pulse-phase-one .hero{display:block;grid-template-columns:none}
 #pulse-phase-one .hero>.wrap{width:min(calc(100% - 2*var(--gutter)),var(--max));margin-inline:auto}
+
+/* Phase 1 view isolation: homepage and original module UI are mutually exclusive. */
+#pulse-legacy-workspace[hidden]{display:none!important}
+#pulse-phase-one[data-view="tool"] > main{display:none!important}
+#pulse-phase-one[data-view="home"] > main{display:block}
+#pulse-phase-one #pulse-phase-footer{background:#0e0e0f;color:#f4f2ee}
+#pulse-phase-one #pulse-phase-footer a{color:inherit}
+#pulse-phase-one #pulse-phase-footer li a{color:var(--ink-2)}
+#pulse-phase-one #pulse-phase-footer li a:hover{color:var(--accent)}

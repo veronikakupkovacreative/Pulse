@@ -147,7 +147,7 @@ test('Stem Extraction UI mounts, stays in AI Studio and replaces removed video/c
   assert.ok(host.querySelector('[data-ext-consent]'));
   assert.ok(host.querySelector('[data-ext-pre="Dereverb"]'));
   assert.equal(host.querySelectorAll('[data-ext-stem]').length,STEMS.length);
-  assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,12);
+  assert.equal(visibleToolModules.filter(x=>x.id.startsWith('ai2-')).length,12);
   assert.ok(visibleToolModules.some(x=>x.id==='ai2-extraction'));
   assert.ok(!visibleToolModules.some(x=>x.id==='video-to-audio'));
   const master=readFileSync(new URL('../source/modules/mastering-ui.mjs',import.meta.url),'utf8');

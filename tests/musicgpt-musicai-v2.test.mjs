@@ -152,7 +152,7 @@ test('MusicAI UI retains existing tools while adding two generated variations',(
    assert.equal(host.querySelector('[data-mai-token]'),null);
    assert.equal(host.querySelector('[data-mai-prompt]').getAttribute('maxlength'),'280');
   assert.equal(host.querySelector('[data-mai-generate]').disabled,false);
-  assert.equal(visibleToolModules.filter(x=>x.category==='ai').length,12);
+  assert.equal(visibleToolModules.filter(x=>x.id.startsWith('ai2-')).length,12);
   assert.ok(visibleToolModules.some(x=>x.id==='ai2-musicai'));
    assert.ok(visibleToolModules.some(x=>x.id==='ai2-watermark'));
   assert.ok(!visibleToolModules.some(x=>x.id==='video-to-audio'));
